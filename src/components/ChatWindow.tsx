@@ -1,17 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { Girl, personalityResponses, minorBlockMessage } from "@/data/girls";
-import {
-  getChatUsage,
-  incrementChatUsage,
-  isPremium,
-  getCustomization,
-} from "@/lib/storage";
-import NeonButton from "./NeonButton";
+import { Girl, minorBlockMessage } from "@/data/girls";
+import { getCustomization } from "@/lib/storage";
+import { getAIResponse, ChatMessage } from "@/lib/ai";
 import Avatar from "./Avatar";
-import PremiumModal from "./PremiumModal";
 
 interface Message {
   id: string;
@@ -42,32 +35,64 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
   const [blocked, setBlocked] = useState(false);
-  const [usage, setUsage] = useState({ used: 0, limit: 5 });
-  const [premium, setPremium] = useState(false);
-  const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const personality = getCustomization(girl.id)?.personality ?? girl.personality;
+  const mountedRef = useRef(true);
+  const lastTextRef = useRef("");
 
   useEffect(() => {
-    setUsage(getChatUsage(girl.id));
-    setPremium(isPremium());
-  }, [girl.id]);
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, typing]);
 
-  function pickResponse(): string {
-    const pool =
-      personalityResponses[personality as keyof typeof personalityResponses] ??
-      personalityResponses.carinosa;
-    return pool[Math.floor(Math.random() * pool.length)];
+  function buildHistory(msgs: Message[]): ChatMessage[] {
+    return msgs
+      .filter((m) => m.id !== "welcome")
+      .map((m) => ({
+        role: m.from === "user" ? "user" : "assistant",
+        text: m.text,
+      }));
   }
 
-  function send() {
-    if (blocked) return;
+  async function doAI(text: string) {
+    const custom = getCustomization(girl.id);
+    const config = {
+      name: girl.name,
+      personality: custom?.personality ?? girl.personality,
+      style: girl.style,
+      customization: custom ?? undefined,
+    };
+    const history = buildHistory(messages);
+
+    try {
+      const reply = await getAIResponse(text, config, history);
+      if (mountedRef.current) {
+        setMessages((m) => [...m, { id: crypto.randomUUID(), from: "girl", text: reply }]);
+        setError(null);
+      }
+    } catch {
+      if (mountedRef.current) {
+        setError("No se pudo obtener respuesta. Intenta de nuevo.");
+      }
+    } finally {
+      if (mountedRef.current) {
+        setTyping(false);
+      }
+    }
+  }
+
+  async function send() {
+    if (blocked || typing) return;
     const text = input.trim();
     if (!text) return;
+
+    setError(null);
+    lastTextRef.current = text;
 
     if (MINOR_KEYWORDS.some((k) => text.toLowerCase().includes(k))) {
       setMessages((m) => [
@@ -80,42 +105,28 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       return;
     }
 
-    if (!premium && usage.used >= usage.limit) {
-      setShowPremiumModal(true);
-      return;
-    }
-
     setMessages((m) => [...m, { id: crypto.randomUUID(), from: "user", text }]);
     setInput("");
-
-    if (!premium) {
-      const updated = incrementChatUsage(girl.id);
-      setUsage(updated);
-    }
-
     setTyping(true);
-    setTimeout(() => {
-      setTyping(false);
-      setMessages((m) => [
-        ...m,
-        { id: crypto.randomUUID(), from: "girl", text: pickResponse() },
-      ]);
-      if (!premium) {
-        const current = getChatUsage(girl.id);
-        if (current.used >= current.limit) {
-          setTimeout(() => setShowPremiumModal(true), 500);
-        }
-      }
-    }, 900);
+
+    await doAI(text);
   }
 
-  const remaining = Math.max(usage.limit - usage.used, 0);
+  function retry() {
+    if (typing || blocked) return;
+    const text = lastTextRef.current;
+    if (!text) return;
+    setError(null);
+    setTyping(true);
+    doAI(text);
+  }
 
   return (
     <div className="mx-auto flex h-[calc(100vh-64px)] max-w-2xl flex-col px-4 py-4">
-      <div className="flex items-center gap-3 rounded-xl2 card-surface px-4 py-3 mb-3">
+      <div className="mb-3 flex items-center gap-3 rounded-xl2 card-surface px-4 py-3">
         <Avatar
           name={girl.id}
+          image={girl.image}
           accentColor={girl.accentColor}
           accentColorSecondary={girl.accentColorSecondary}
           size={44}
@@ -124,14 +135,11 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
           <p className="font-semibold">{girl.name}</p>
           <p className="text-xs text-green-400">● online</p>
         </div>
-        <span className="text-xs text-muted">
-          {premium ? "Premium activo" : `Mensajes gratis restantes: ${remaining}/${usage.limit}`}
-        </span>
       </div>
 
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto rounded-xl2 card-surface p-4 space-y-3"
+        className="flex-1 overflow-y-auto rounded-xl2 card-surface space-y-3 p-4"
       >
         {messages.map((m) => (
           <div
@@ -153,7 +161,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
           <div className="flex justify-start">
             <div className="rounded-2xl bg-white/10 px-4 py-2 text-sm text-muted">
               {girl.name} está escribiendo
-              <span className="inline-flex ml-1">
+              <span className="ml-1 inline-flex">
                 <span className="animate-pulseGlow">.</span>
                 <span className="animate-pulseGlow" style={{ animationDelay: "0.2s" }}>.</span>
                 <span className="animate-pulseGlow" style={{ animationDelay: "0.4s" }}>.</span>
@@ -161,38 +169,36 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
             </div>
           </div>
         )}
+        {error && (
+          <div className="flex flex-col items-center gap-2 py-4">
+            <p className="text-sm text-red-400">{error}</p>
+            <button
+              onClick={retry}
+              className="rounded-xl bg-gradient-to-r from-pink to-purple-500 px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+            >
+              Reintentar
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="mt-3 flex gap-2">
         <input
           value={input}
-          disabled={blocked || (!premium && remaining <= 0)}
+          disabled={blocked || typing}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && send()}
           placeholder={blocked ? "Chat bloqueado" : "Escribe un mensaje..."}
           className="min-h-[48px] flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 text-sm outline-none focus:border-pink/50 disabled:opacity-40"
         />
-        <NeonButton onClick={send} disabled={blocked || (!premium && remaining <= 0)}>
+        <button
+          onClick={send}
+          disabled={blocked || typing}
+          className="rounded-xl bg-gradient-to-r from-pink to-purple-500 px-5 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+        >
           Enviar
-        </NeonButton>
+        </button>
       </div>
-
-      {!premium && remaining <= 0 && (
-        <p className="mt-2 text-center text-xs text-muted">
-          Tu prueba gratis de chat ha terminado.{" "}
-          <Link href="/premium" className="text-pink underline">
-            Ver Premium
-          </Link>
-        </p>
-      )}
-
-      {showPremiumModal && (
-        <PremiumModal
-          title="Tu prueba gratis de chat ha terminado"
-          subtitle="Desbloquea mensajes ilimitados por 6€/mes"
-          onClose={() => setShowPremiumModal(false)}
-        />
-      )}
     </div>
   );
 }

@@ -1,12 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Girl, personalityResponses } from "@/data/girls";
-import { getCallUsage, incrementCallUsage, isPremium, getCustomization } from "@/lib/storage";
+import { getAIResponse, ChatMessage } from "@/lib/ai";
+import { getCustomization } from "@/lib/storage";
+import { Girl } from "@/data/girls";
 import Avatar from "./Avatar";
-import NeonButton from "./NeonButton";
-import PremiumModal from "./PremiumModal";
 
 const backgroundGradients: Record<string, string> = {
   "neon-room": "from-pink/25 via-purple/20 to-bg",
@@ -15,64 +13,24 @@ const backgroundGradients: Record<string, string> = {
   "car-night": "from-purple/30 via-pink/10 to-bg",
 };
 
-function formatTime(seconds: number) {
-  const m = Math.floor(seconds / 60)
-    .toString()
-    .padStart(2, "0");
-  const s = Math.floor(seconds % 60)
-    .toString()
-    .padStart(2, "0");
-  return `${m}:${s}`;
-}
-
 export default function CallScreen({ girl }: { girl: Girl }) {
-  const router = useRouter();
-  const premium = useRef(isPremium());
   const custom = getCustomization(girl.id);
-  const personality = custom?.personality ?? girl.personality;
   const background = custom?.background ?? girl.defaultBackground;
 
-  const [remaining, setRemaining] = useState<number>(() => {
-    const usage = getCallUsage(girl.id);
-    return Math.max(usage.limit - usage.used, 0);
-  });
-  const [ended, setEnded] = useState(false);
-  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [micOn, setMicOn] = useState(true);
   const [showTextPanel, setShowTextPanel] = useState(false);
   const [textInput, setTextInput] = useState("");
   const [talking, setTalking] = useState(false);
   const [lastReply, setLastReply] = useState<string | null>(null);
+  const [messages, setMessages] = useState<{ from: string; text: string }[]>([]);
+  const [thinking, setThinking] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (premium.current || ended) return;
-    if (remaining <= 0) {
-      setEnded(true);
-      setShowPremiumModal(true);
-      return;
+    if (showTextPanel && inputRef.current) {
+      inputRef.current.focus();
     }
-    const interval = setInterval(() => {
-      incrementCallUsage(girl.id, 1);
-      setRemaining((r) => {
-        if (r <= 1) {
-          clearInterval(interval);
-          setEnded(true);
-          setShowPremiumModal(true);
-          return 0;
-        }
-        return r - 1;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [girl.id, ended]);
-
-  function pickResponse(): string {
-    const pool =
-      personalityResponses[personality as keyof typeof personalityResponses] ??
-      personalityResponses.carinosa;
-    return pool[Math.floor(Math.random() * pool.length)];
-  }
+  }, [showTextPanel]);
 
   function speak(text: string) {
     setLastReply(text);
@@ -86,15 +44,40 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     window.speechSynthesis.speak(utterance);
   }
 
-  function sendText() {
+  async function sendText() {
     const text = textInput.trim();
-    if (!text || ended) return;
+    if (!text || thinking) return;
     setTextInput("");
-    setTimeout(() => speak(pickResponse()), 400);
+    setMessages((m) => [...m, { from: "user", text }]);
+    setThinking(true);
+    try {
+      const config = {
+        name: girl.name,
+        personality: girl.personality,
+        style: girl.style,
+        customization: custom || undefined,
+      };
+      const history: ChatMessage[] = [
+        ...messages.map((m) => ({
+          role: m.from === "user" ? "user" as const : "assistant" as const,
+          text: m.text,
+        })),
+        { role: "user", text },
+      ];
+      const reply = await getAIResponse(text, config, history);
+      setMessages((m) => [...m, { from: "model", text: reply }]);
+      speak(reply);
+    } catch {
+      const fallback = "Lo siento, no pude procesar eso ahora. Intenta de nuevo.";
+      setMessages((m) => [...m, { from: "model", text: fallback }]);
+      speak(fallback);
+    } finally {
+      setThinking(false);
+    }
   }
 
   function hangUp() {
-    router.push("/girls");
+    window.location.href = "/girls";
   }
 
   return (
@@ -104,18 +87,14 @@ export default function CallScreen({ girl }: { girl: Girl }) {
       <div className="w-full flex items-center justify-between text-sm">
         <div>
           <p className="font-semibold">{girl.name}</p>
-          <p className="text-xs text-muted">
-            {ended ? "llamada finalizada" : "llamada en curso"}
-          </p>
+          <p className="text-xs text-muted">llamada en curso</p>
         </div>
-        <span className="rounded-full border border-white/10 px-3 py-1 text-xs">
-          {premium.current ? "Premium activo" : `Tiempo gratis: ${formatTime(remaining)}`}
-        </span>
       </div>
 
-      <div className={`flex flex-col items-center ${ended ? "opacity-40 blur-sm" : ""}`}>
+      <div className="flex flex-col items-center">
         <Avatar
           name={girl.id}
+          image={girl.image}
           accentColor={girl.accentColor}
           accentColorSecondary={girl.accentColorSecondary}
           hair={custom?.hair ?? girl.defaultHair}
@@ -125,7 +104,7 @@ export default function CallScreen({ girl }: { girl: Girl }) {
         />
         {lastReply && (
           <p className="mt-6 max-w-sm text-center text-sm text-muted animate-fadeUp">
-            "{lastReply}"
+            &ldquo;{lastReply}&rdquo;
           </p>
         )}
         <p className="mt-3 text-xs text-muted">
@@ -137,16 +116,21 @@ export default function CallScreen({ girl }: { girl: Girl }) {
         {showTextPanel && (
           <div className="mb-3 flex gap-2 animate-fadeUp">
             <input
+              ref={inputRef}
               value={textInput}
               onChange={(e) => setTextInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendText()}
-              disabled={ended}
+              disabled={thinking}
               placeholder="Escribe algo..."
               className="min-h-[48px] flex-1 rounded-2xl border border-white/10 bg-black/30 px-4 text-sm outline-none focus:border-pink/50 disabled:opacity-40"
             />
-            <NeonButton onClick={sendText} disabled={ended}>
-              Enviar
-            </NeonButton>
+            <button
+              onClick={sendText}
+              disabled={thinking || !textInput.trim()}
+              className="min-h-[48px] rounded-2xl bg-gradient-to-r from-pink to-purple px-5 text-sm font-semibold text-white hover:opacity-90 active:scale-95 transition-all duration-200 disabled:opacity-40"
+            >
+              {thinking ? "..." : "Enviar"}
+            </button>
           </div>
         )}
         <div className="flex items-center justify-center gap-4">
@@ -171,26 +155,11 @@ export default function CallScreen({ girl }: { girl: Girl }) {
           >
             📞
           </button>
-          <button
-            onClick={() => router.push("/premium")}
-            className="flex h-14 w-14 items-center justify-center rounded-full gradient-btn hover:scale-105 active:scale-95 transition-all duration-200"
-            title="Premium"
-          >
-            ✨
-          </button>
         </div>
         <p className="mt-2 text-center text-xs text-muted">
           {micOn ? "Micrófono activado" : "Micrófono silenciado"}
         </p>
       </div>
-
-      {showPremiumModal && (
-        <PremiumModal
-          title="Tu videollamada gratis ha terminado"
-          subtitle="Desbloquea llamadas más largas por 6€/mes"
-          onClose={() => setShowPremiumModal(false)}
-        />
-      )}
     </div>
   );
 }

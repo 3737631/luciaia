@@ -16,6 +16,7 @@ export interface Girl {
   defaultBackground: BackgroundOption;
   defaultOutfit: OutfitOption;
   voiceLineExamples: string[];
+  image: string;
 }
 
 export const girls: Girl[] = [
@@ -36,6 +37,7 @@ export const girls: Girl[] = [
       "Cuéntame algo de ti.",
       "Me encanta cuando me escribes así.",
     ],
+    image: "/girls/luna.jpg",
   },
   {
     id: "nia",
@@ -54,6 +56,7 @@ export const girls: Girl[] = [
       "Me gusta tu energía.",
       "¿Jugamos o hablamos primero?",
     ],
+    image: "/girls/nia.jpg",
   },
   {
     id: "vera",
@@ -72,6 +75,7 @@ export const girls: Girl[] = [
       "Me gusta cuando prestas atención.",
       "Hoy vas a hacerme caso, ¿no?",
     ],
+    image: "/girls/vera.jpg",
   },
   {
     id: "alma",
@@ -90,6 +94,7 @@ export const girls: Girl[] = [
       "Cuéntame algo de ti, quiero conocerte mejor.",
       "Me encanta cuando me escribes así.",
     ],
+    image: "/girls/alma.jpg",
   },
   {
     id: "kira",
@@ -108,6 +113,7 @@ export const girls: Girl[] = [
       "Relájate, yo llevo la conversación.",
       "Me gusta cuando prestas atención.",
     ],
+    image: "/girls/kira.jpg",
   },
   {
     id: "maya",
@@ -126,6 +132,7 @@ export const girls: Girl[] = [
       "Podemos hablar un rato, pero no te me pongas nervioso.",
       "Me gusta tu energía.",
     ],
+    image: "/girls/maya.jpg",
   },
 ];
 
@@ -133,35 +140,11 @@ export function getGirlById(id: string): Girl | undefined {
   return girls.find((g) => g.id === id);
 }
 
-export const personalityResponses: Record<PersonalityOption, string[]> = {
-  carinosa: [
-    "Me gusta que hayas vuelto. ¿Quieres que hablemos un rato tranquilos?",
-    "Cuéntame algo de ti, quiero conocerte mejor.",
-    "Me encanta cuando me escribes así.",
-    "Se nota que tienes un buen día, ¿o me equivoco?",
-    "Me quedaría charlando contigo mucho rato.",
-  ],
-  atrevida: [
-    "Has entrado rápido… eso me gusta.",
-    "Podemos hablar un rato, pero no te me pongas nervioso.",
-    "Me gusta tu energía.",
-    "Sigue así, me tienes intrigada.",
-    "No esperaba que me sorprendieras tanto hoy.",
-  ],
-  timida: [
-    "Me da un poco de vergüenza, pero me gusta hablar contigo.",
-    "No esperaba que vinieras tan rápido.",
-    "Podemos ir poco a poco.",
-    "Me cuesta un poco soltarme, pero contigo es fácil.",
-    "Gracias por tener paciencia conmigo.",
-  ],
-  dominante: [
-    "Hoy vas a hacerme caso, ¿no?",
-    "Relájate, yo llevo la conversación.",
-    "Me gusta cuando prestas atención.",
-    "Escúchame bien, que no me gusta repetir las cosas.",
-    "Así me gusta, que sigas el ritmo.",
-  ],
+export const personalityDescriptions: Record<string, string> = {
+  carinosa: "Cariñosa y cercana, siempre pendiente de ti.",
+  atrevida: "Atrevida y con chispa, te mantendrá enganchado.",
+  timida: "Tímida pero dulce, se abre poco a poco contigo.",
+  dominante: "Segura y directa, le gusta llevar la conversación.",
 };
 
 export const minorBlockMessage =

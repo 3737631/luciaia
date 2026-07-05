@@ -16,9 +16,6 @@ export default function Header() {
           <Link href="/girls" className="hover:text-ink transition-colors">
             Chicas IA
           </Link>
-          <Link href="/premium" className="hover:text-ink transition-colors">
-            Premium
-          </Link>
         </nav>
       </div>
     </header>

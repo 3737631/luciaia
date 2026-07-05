@@ -10,7 +10,6 @@ const items = [
   "El servicio es entretenimiento.",
   "No es relación real ni terapia.",
   "El usuario puede dejar de usarlo cuando quiera.",
-  "Premium manual de 6€/mes.",
 ];
 
 export default function TermsPage() {

@@ -1,15 +1,17 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import NeonButton from "@/components/NeonButton";
 import { setAgeAccepted } from "@/lib/storage";
 
 export default function AgePage() {
-  const router = useRouter();
+  function goHome() {
+    var base = window.location.pathname.replace(/\/age\/?$/, "") || "";
+    window.location.href = base + "/";
+  }
 
   function confirm() {
     setAgeAccepted();
-    router.push("/");
+    goHome();
   }
 
   function exit() {

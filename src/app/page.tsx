@@ -7,25 +7,16 @@ const advantages = [
   "Sin registro",
   "Sin anuncios",
   "Entra desde el móvil",
-  "Gratis cada día",
+  "100% gratis",
   "Personajes personalizables",
-  "Chat o llamada simulada",
+  "Chat con IA real",
 ];
 
 const steps = [
   "Confirma que eres +18",
   "Elige una chica ficticia",
   "Personalízala",
-  "Prueba chat o videollamada",
-  "Desbloquea premium si quieres seguir",
-];
-
-const premiumBenefits = [
-  "Llamadas más largas",
-  "Más mensajes",
-  "Memoria de conversación",
-  "Más fondos",
-  "Más personalización",
+  "Chatea o llama sin límites",
 ];
 
 export default function HomePage() {
@@ -35,14 +26,13 @@ export default function HomePage() {
       <main className="mx-auto max-w-6xl px-5">
         <section className="py-16 text-center">
           <p className="mb-4 text-sm text-muted">
-            🔞 Personajes ficticios generados por IA. Solo +18.
+            Personajes ficticios generados por IA. Solo +18.
           </p>
           <h1 className="mx-auto max-w-2xl text-4xl font-extrabold leading-tight gradient-text sm:text-5xl">
             Elige tu chica IA y habla en segundos
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-muted">
-            Chat, voz y videollamada simulada. 3 minutos gratis de llamada o 5
-            mensajes gratis de chat. Sin registro. Sin anuncios.
+            Chat con IA real y videollamada simulada. Sin registro. Sin anuncios. 100% gratis.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link href="/girls">
@@ -67,7 +57,7 @@ export default function HomePage() {
 
         <section className="py-14">
           <h2 className="mb-8 text-center text-2xl font-bold">Cómo funciona</h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {steps.map((s, i) => (
               <div
                 key={s}
@@ -84,15 +74,13 @@ export default function HomePage() {
 
         <section className="py-14">
           <div className="mx-auto max-w-2xl rounded-xl2 card-surface p-8 text-center shadow-glow">
-            <p className="mb-2 text-sm text-pink font-semibold">✨ Premium</p>
-            <p className="mb-6 text-4xl font-extrabold gradient-text">6€/mes</p>
-            <ul className="mb-6 grid grid-cols-1 gap-2 text-sm text-muted sm:grid-cols-2">
-              {premiumBenefits.map((b) => (
-                <li key={b}>• {b}</li>
-              ))}
-            </ul>
-            <Link href="/premium">
-              <NeonButton>Ver Premium</NeonButton>
+            <p className="mb-2 text-sm text-pink font-semibold">Demo gratuita</p>
+            <p className="mb-4 text-4xl font-extrabold gradient-text">Sin límites</p>
+            <p className="mb-6 text-sm text-muted">
+              Chat con IA real, videollamada simulada, personalización. Todo gratis, sin registro.
+            </p>
+            <Link href="/girls">
+              <NeonButton>Empezar ahora</NeonButton>
             </Link>
           </div>
         </section>

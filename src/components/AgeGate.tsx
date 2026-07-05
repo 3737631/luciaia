@@ -1,43 +1,39 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { hasAgeAccepted } from "@/lib/storage";
 
 const ALLOWED = ["/age", "/terms", "/privacy", "/age-notice"];
 
-function getPath() {
-  if (typeof window === "undefined") return "";
-  const p = window.location.pathname;
-  const base = "/luciaia";
-  return p.startsWith(base) ? p.slice(base.length) || "/" : p;
+function getRelPath() {
+  if (typeof window === "undefined") return "/";
+  var p = window.location.pathname.replace(/\/+$/, "") || "/";
+  var s = p.indexOf("/", 1);
+  var base = s > 0 ? p.substring(0, s) : "";
+  if (base && p.startsWith(base)) return p.slice(base.length) || "/";
+  return p;
 }
 
 export default function AgeGate({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-  const pathname = usePathname();
   const [ready, setReady] = useState(false);
 
-  const redirect = useCallback(() => {
-    try { router.replace("/age"); } catch {}
-    setTimeout(() => {
-      if (!hasAgeAccepted()) {
-        const base = window.location.pathname.replace(/\/?$/, "");
-        window.location.href = base + "/age/";
-      }
-    }, 1000);
-  }, [router]);
-
-  useEffect(() => {
-    const p = pathname || getPath();
-    if (!hasAgeAccepted() && !ALLOWED.includes(p)) {
-      redirect();
-      return;
+  useEffect(function checkAge() {
+    if (hasAgeAccepted()) { setReady(true); return; }
+    var rel = getRelPath();
+    if (ALLOWED.indexOf(rel) !== -1) { setReady(true); return; }
+    // Not on an allowed page and age not accepted → redirect
+    var raw = window.location.pathname;
+    var norm = raw.replace(/\/+$/, "") || "/";
+    var s2 = norm.indexOf("/", 1);
+    var base = s2 > 0 ? norm.substring(0, s2) : "";
+    var target = base + "/age/";
+    if (raw.replace(/\/+$/, "") !== target.replace(/\/+$/, "")) {
+      window.location.replace(target);
     }
-    setReady(true);
-  }, [pathname, redirect]);
+  }, []);
 
-  const showGate = !ready && !ALLOWED.includes(pathname || getPath());
+  var rel = getRelPath();
+  var showGate = !ready && ALLOWED.indexOf(rel) === -1;
 
   if (showGate) {
     return (

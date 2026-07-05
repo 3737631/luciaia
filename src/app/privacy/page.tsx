@@ -2,7 +2,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 const items = [
-  "Se usa localStorage y cookies para recordar la aceptación +18, los límites gratis y el estado premium.",
+  "Se usa localStorage y cookies para recordar la aceptación +18.",
   "No se guardan datos de pago.",
   "No se deben compartir datos personales sensibles.",
   "En una versión futura puede usarse IP hasheada para evitar abuso, pero nunca IP pública en texto plano.",

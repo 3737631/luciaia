@@ -2,12 +2,14 @@
 
 interface AvatarProps {
   name: string;
+  image?: string;
   accentColor: string;
   accentColorSecondary?: string;
   size?: number;
   animated?: boolean;
   talking?: boolean;
   hair?: string;
+  className?: string;
 }
 
 const hairColors: Record<string, string> = {
@@ -19,19 +21,21 @@ const hairColors: Record<string, string> = {
 
 export default function Avatar({
   name,
+  image,
   accentColor,
   accentColorSecondary = "#8b5cf6",
   size = 120,
   animated = false,
   talking = false,
   hair = "moreno",
+  className = "",
 }: AvatarProps) {
   const gradientId = `grad-${name}`;
   const hairColor = hairColors[hair] ?? hairColors.moreno;
 
   return (
     <div
-      className={`relative flex items-center justify-center ${
+      className={`relative flex items-center justify-center ${className} ${
         animated ? "animate-breathe" : ""
       }`}
       style={{ width: size, height: size }}
@@ -42,39 +46,48 @@ export default function Avatar({
           background: `radial-gradient(circle, ${accentColor}, transparent 70%)`,
         }}
       />
-      <svg
-        viewBox="0 0 200 200"
-        width={size}
-        height={size}
-        className="relative rounded-full"
-      >
-        <defs>
-          <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor={accentColor} />
-            <stop offset="100%" stopColor={accentColorSecondary} />
-          </linearGradient>
-        </defs>
-        <circle cx="100" cy="100" r="98" fill={`url(#${gradientId})`} />
-        <circle cx="100" cy="100" r="98" fill="black" opacity="0.15" />
-        <ellipse cx="100" cy="120" rx="46" ry="54" fill="#1a1023" opacity="0.55" />
-        <path
-          d="M45 95 Q40 30 100 30 Q160 30 155 95 Q150 60 100 55 Q50 60 45 95 Z"
-          fill={hairColor}
+      {image ? (
+        <img
+          src={image}
+          alt={name}
+          className="relative rounded-full object-cover"
+          style={{ width: size, height: size }}
         />
-        <g className={animated ? "animate-blink" : ""} style={{ transformOrigin: "center" }}>
-          <ellipse cx="82" cy="112" rx="6" ry="8" fill="#f8fafc" />
-          <ellipse cx="118" cy="112" rx="6" ry="8" fill="#f8fafc" />
-        </g>
-        <ellipse
-          cx="100"
-          cy="140"
-          rx="10"
-          ry={talking ? 6 : 3}
-          fill="#f8fafc"
-          className={talking ? "animate-mouthTalk" : ""}
-          style={{ transformOrigin: "100px 140px" }}
-        />
-      </svg>
+      ) : (
+        <svg
+          viewBox="0 0 200 200"
+          width={size}
+          height={size}
+          className="relative rounded-full"
+        >
+          <defs>
+            <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor={accentColor} />
+              <stop offset="100%" stopColor={accentColorSecondary} />
+            </linearGradient>
+          </defs>
+          <circle cx="100" cy="100" r="98" fill={`url(#${gradientId})`} />
+          <circle cx="100" cy="100" r="98" fill="black" opacity="0.15" />
+          <ellipse cx="100" cy="120" rx="46" ry="54" fill="#1a1023" opacity="0.55" />
+          <path
+            d="M45 95 Q40 30 100 30 Q160 30 155 95 Q150 60 100 55 Q50 60 45 95 Z"
+            fill={hairColor}
+          />
+          <g className={animated ? "animate-blink" : ""} style={{ transformOrigin: "center" }}>
+            <ellipse cx="82" cy="112" rx="6" ry="8" fill="#f8fafc" />
+            <ellipse cx="118" cy="112" rx="6" ry="8" fill="#f8fafc" />
+          </g>
+          <ellipse
+            cx="100"
+            cy="140"
+            rx="10"
+            ry={talking ? 6 : 3}
+            fill="#f8fafc"
+            className={talking ? "animate-mouthTalk" : ""}
+            style={{ transformOrigin: "100px 140px" }}
+          />
+        </svg>
+      )}
     </div>
   );
 }
