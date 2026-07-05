@@ -1,8 +1,20 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { getAIResponse, ChatMessage } from "@/lib/ai";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { getCustomization } from "@/lib/storage";
+import { getFallbackResponse } from "@/lib/ai";
+import {
+  getConversationHistory,
+  saveConversationHistory,
+  getConversationSummary,
+  saveConversationSummary,
+  getUserMemory,
+  saveUserMemory,
+  extractMemoryFromMessages,
+  buildSummary,
+  clearAllMemory,
+  ChatMessage,
+} from "@/lib/memory";
 import { Girl } from "@/data/girls";
 import Avatar from "./Avatar";
 
@@ -22,9 +34,18 @@ export default function CallScreen({ girl }: { girl: Girl }) {
   const [textInput, setTextInput] = useState("");
   const [talking, setTalking] = useState(false);
   const [lastReply, setLastReply] = useState<string | null>(null);
-  const [messages, setMessages] = useState<{ from: string; text: string }[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [thinking, setThinking] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const saved = getConversationHistory(girl.id);
+    setMessages(saved);
+    if (saved.length > 0) {
+      const last = [...saved].reverse().find((m) => m.role === "assistant");
+      if (last) setLastReply(last.content);
+    }
+  }, [girl.id]);
 
   useEffect(() => {
     if (showTextPanel && inputRef.current) {
@@ -35,6 +56,7 @@ export default function CallScreen({ girl }: { girl: Girl }) {
   function speak(text: string) {
     setLastReply(text);
     if (typeof window === "undefined" || !window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     const voices = window.speechSynthesis.getVoices();
     const spanish = voices.find((v) => v.lang?.toLowerCase().startsWith("es"));
@@ -44,33 +66,74 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     window.speechSynthesis.speak(utterance);
   }
 
+  const sendToAPI = useCallback(async (text: string, history: ChatMessage[]) => {
+    const memory = getUserMemory(girl.id);
+    const summary = getConversationSummary(girl.id);
+
+    const payload = {
+      message: text,
+      girlId: girl.id,
+      girlName: girl.name,
+      girlStyle: girl.style,
+      girlPersonality: custom?.personality ?? girl.personality,
+      customization: custom || {},
+      history,
+      memory,
+      summary,
+    };
+
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || `API error ${res.status}`);
+    }
+
+    const data = await res.json();
+    return data.reply as string;
+  }, [girl.id, girl.name, girl.style, girl.personality, custom]);
+
   async function sendText() {
     const text = textInput.trim();
     if (!text || thinking) return;
     setTextInput("");
-    setMessages((m) => [...m, { from: "user", text }]);
+
+    const newMessages: ChatMessage[] = [...messages, { role: "user", content: text }];
+    setMessages(newMessages);
     setThinking(true);
+
     try {
-      const config = {
-        name: girl.name,
-        personality: girl.personality,
-        style: girl.style,
-        customization: custom || undefined,
-      };
-      const history: ChatMessage[] = [
-        ...messages.map((m) => ({
-          role: m.from === "user" ? "user" as const : "model" as const,
-          text: m.text,
-        })),
-        { role: "user", text },
-      ];
-      const reply = await getAIResponse(text, config, history);
-      setMessages((m) => [...m, { from: "model", text: reply }]);
+      const reply = await sendToAPI(text, messages);
+      const replyMessage: ChatMessage = { role: "assistant", content: reply };
+      const updatedMsgs = [...newMessages, replyMessage];
+      setMessages(updatedMsgs);
       speak(reply);
-    } catch {
-      const fallback = "Lo siento, no pude procesar eso ahora. Intenta de nuevo.";
-      setMessages((m) => [...m, { from: "model", text: fallback }]);
+
+      saveConversationHistory(girl.id, updatedMsgs);
+
+      const extracted = extractMemoryFromMessages(updatedMsgs);
+      if (extracted.length > 0) {
+        const existing = getUserMemory(girl.id);
+        const merged = [...new Map([...existing, ...extracted].map((m) => [m, m])).values()];
+        saveUserMemory(girl.id, merged.slice(-30));
+      }
+
+      if (updatedMsgs.length > 20) {
+        const sum = buildSummary(updatedMsgs);
+        if (sum) saveConversationSummary(girl.id, sum);
+      }
+    } catch (err: any) {
+      console.warn("[Call] API error, using fallback:", err);
+      const fallback = getFallbackResponse(text);
+      const replyMessage: ChatMessage = { role: "assistant", content: fallback };
+      const updatedMsgs = [...newMessages, replyMessage];
+      setMessages(updatedMsgs);
       speak(fallback);
+      saveConversationHistory(girl.id, updatedMsgs);
     } finally {
       setThinking(false);
     }
@@ -80,15 +143,26 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     window.location.href = "/girls";
   }
 
+  function clearMemory() {
+    clearAllMemory(girl.id);
+    setMessages([]);
+    setLastReply(null);
+  }
+
   return (
-    <div
-      className={`relative flex min-h-screen flex-col items-center justify-between bg-gradient-to-b ${backgroundGradients[background]} px-5 py-8`}
-    >
+    <div className={`relative flex min-h-screen flex-col items-center justify-between bg-gradient-to-b ${backgroundGradients[background]} px-5 py-8`}>
       <div className="w-full flex items-center justify-between text-sm">
         <div>
           <p className="font-semibold">{girl.name}</p>
           <p className="text-xs text-muted">llamada en curso</p>
         </div>
+        <button
+          onClick={clearMemory}
+          className="rounded-lg bg-white/10 px-3 py-1.5 text-xs text-muted hover:bg-white/20"
+          title="Borrar memoria de esta chica"
+        >
+          Borrar memoria
+        </button>
       </div>
 
       <div className="flex flex-col items-center">
