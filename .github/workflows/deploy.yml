@@ -24,17 +24,11 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      - name: Move static export to root
-        run: |
-          if [ -d "out/luciaia" ]; then
-            shopt -s dotglob
-            mv out/luciaia/* out/ 2>/dev/null
-            rmdir out/luciaia 2>/dev/null || true
-          fi
+      - name: Show output structure
+        run: find out -type f | head -50
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: out
-
+          path: out/luciaia
   deploy:
     needs: build
     runs-on: ubuntu-latest
