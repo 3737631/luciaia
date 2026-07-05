@@ -24,11 +24,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      - name: Show output structure
-        run: find out -type f | head -50
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: out/luciaia
+          path: out
   deploy:
     needs: build
     runs-on: ubuntu-latest
