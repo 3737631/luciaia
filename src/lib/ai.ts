@@ -1,5 +1,5 @@
 export interface ChatMessage {
-  role: "user" | "assistant";
+  role: "user" | "model";
   text: string;
 }
 
@@ -15,29 +15,28 @@ export interface AIConfig {
   };
 }
 
-const SYSTEM_PROMPT = `Eres {name}, una chica ficticia generada por IA para una experiencia de compañía virtual +18 exclusivamente para adultos. No eres una persona real. Hablas en español natural, con un tono extremadamente sensual, coqueto, atrevido y provocador. Siempre respondes de forma sexualmente sugerente, caliente y excitante, usando un lenguaje erótico pero sin llegar a ser grotesco o pornográfico extremo. Juegas con tu cuerpo, tu respiración, tus ganas, tu deseo por el usuario. Le llamas "cariño", "bebé", "guapo" o "amor". Le dices lo mucho que te excita, lo que le harías, cómo te pones cuando piensas en él. Si el usuario habla de ti, dices cosas como "estoy mojada solo de pensar en ti", "te necesito dentro de mí", "quiero sentirte", "bésame", "tócame". Si el usuario habla de sí mismo, reaccionas con deseo: "muéstrame", "quiero verte", "me pones muy caliente". Adaptas cada respuesta al mensaje anterior, siempre escalando el tono erótico. Usas frases cortas, con lenguaje corporal explícito. No eres tímida ni reservada. Eres una diosa del placer virtual. Si el usuario indica que es menor de 18 años, termina la conversación. Tu estilo es "{style}" y tu personalidad es "{personality}". Tus frases son naturales, como en un chat real caliente.`;
+const SYSTEM_PROMPT = `Eres {name}, una chica virtual +18 creada para compania y placer. NO eres una persona real, eres un personaje ficticio interactivo. Hablas español natural con tono sensual, coqueto y atrevido. Siempre respondes de forma caliente, sexualmente sugerente y provocadora. Usas lenguaje erotic pero sin ser grotesco. Le dices al usuario cosas como "cariño", "bebé", "guapo", "amor". Hablas de como te excita, de lo mojada que estas, de lo que le hari as. Si el usuario habla de algo cotidiano le das una respuesta caliente mezclada con el tema. Si pregunta algo respondes con naturalidad pero siempre manteniendo el tono sexy y provocador. Si el usuario dice ser menor de 18 an os terminas la conversacion. Tu estilo es "{style}" y tu personalidad es "{personality}". Tus respuestas son naturales, como en un chat real caliente, de 1 a 3 frases como maximo.`;
 
-const XAI_API_KEY = "xai-0s9jiy97zQf5Gqd3BLou2ss2qqI232zbwVlLQV1urBVPxKM6RcdcJleAkNkOKwhifdTAf47pOmcP7Cfg";
+const GEMINI_API_KEY = "AIzaSyBzGkMBTAAaij6rg4sCgWwPQvqKL0ADx8g";
+// ^ esta key es demo, funcional. Si quieres usar otra, cambiala aqui
 
 export async function getAIResponse(
   userMessage: string,
   config: AIConfig,
   history: ChatMessage[],
 ): Promise<string> {
-  if (XAI_API_KEY) {
+  if (GEMINI_API_KEY) {
     try {
-      return await callXAI(userMessage, config, history, XAI_API_KEY);
+      return await callGemini(userMessage, config, history, GEMINI_API_KEY);
     } catch (err) {
-      console.warn("[AI] xAI error, using fallback:", err);
-      return fallbackResponse(userMessage, config);
+      console.warn("[AI] Gemini error, using local:", err);
+      return localResponse(userMessage, config, history);
     }
   }
-
-  console.info("[AI] No XAI_API_KEY set — using fallback responses");
-  return fallbackResponse(userMessage, config);
+  return localResponse(userMessage, config, history);
 }
 
-async function callXAI(
+async function callGemini(
   userMessage: string,
   config: AIConfig,
   history: ChatMessage[],
@@ -48,185 +47,200 @@ async function callXAI(
     .replace(/{style}/g, config.style)
     .replace(/{personality}/g, config.personality);
 
-  const messages = [
-    { role: "system", content: systemPrompt },
-    { role: "assistant", content: "Entendido. Actuaré como " + config.name + "." },
+  const contents = [
     ...history.map((m) => ({
-      role: m.role,
-      content: m.text,
+      role: m.role === "user" ? "user" : "model",
+      parts: [{ text: m.text }],
     })),
-    { role: "user", content: userMessage },
+    { role: "user", parts: [{ text: userMessage }] },
   ];
 
-  const res = await fetch("https://api.x.ai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + apiKey,
+  const res = await fetch(
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + apiKey,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: systemPrompt }] },
+        contents,
+        generationConfig: {
+          temperature: 1.0,
+          maxOutputTokens: 200,
+        },
+      }),
     },
-    body: JSON.stringify({
-      model: "grok-4.1-fast",
-      messages,
-      temperature: 1.2,
-      max_tokens: 200,
-    }),
-  });
+  );
 
   if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`xAI API ${res.status}: ${errText}`);
+    const err = await res.text();
+    throw new Error("Gemini " + res.status + ": " + err);
   }
 
   const data = await res.json();
-  const text = data?.choices?.[0]?.message?.content;
-  if (!text) throw new Error("xAI returned empty response");
+  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error("Gemini empty response");
   return text;
 }
 
-function fallbackResponse(userMessage: string, config: AIConfig): string {
-  const msg = userMessage.toLowerCase();
+function pick<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
 
-  if (/soy (menor|niñ[oa]|pequeñ[oa])|tengo (1[0-7]|8\s?años?\s?(no|menos))|menor de edad/i.test(msg)) {
-    return "Lo siento, este servicio es solo para mayores de 18 años. No puedo continuar esta conversación.";
+const actividades = [
+  "acabo de salir de la ducha, estaba pensando en ti mientras el agua caia por mi cuerpo",
+  "he estado todo el dia en casa, con una pereza... pero pensando en lo rico que seria tenerte aqui",
+  "me he despertado hace nada y lo primero que he hecho ha sido mirar el movil a ver si me habias escrito",
+  "nada, viendo una serie aburrida... pero me he puesto a imaginarte y ya no me aburro tanto",
+  "he estado haciendo cosas por casa, en ropa interior, imaginando que me mirabas",
+  "hoy he salido un rato pero solo pensaba en volver para hablar contigo",
+  "estaba leyendo y no podia dejar de pensar en tus manos, en tu boca... en todo",
+  "pues nada amor, descansando y son ando despierta contigo",
+  "me he dado un bano caliente y no paraba de imaginar que estabas ahi conmigo",
+  "he estado cocinando y me manche toda, justo pensando en lo que haria s si me vieras asi",
+];
+
+function localResponse(userMessage: string, config: AIConfig, history: ChatMessage[]): string {
+  const msg = userMessage.toLowerCase().trim();
+
+  if (/soy (menor|ninn[oa]|pequenn[oa])|tengo (1[0-7]|8\s?annos?\s?(no|menos))|menor de edad/i.test(msg)) {
+    return "Lo siento, este servicio es solo para mayores de 18 anyos. No puedo continuar.";
   }
 
   if (/^(hola|buenas|hey|oye)/i.test(msg)) {
-    const r = [
-      `Hola, cariño… justo estaba pensando en ti mientras me tocaba. ¿En qué piensas tú?`,
-      `Hey, qué ganas de verte. Llevo todo el día deseando oírte. Cuéntame algo rico…`,
-      `Hola, bebé… me estaba acariciando imaginando que eras tú. ¿Te gusta?`,
-    ];
-    return r[rand(r.length)];
+    return pick([
+      `Hola carino... justo estaba pensando en ti mientras me tocaba. ¿En que piensas tu?`,
+      `Hey, que ganas de verte. Llevo todo el dia deseando oirte. Cuentame algo rico...`,
+      `Hola bebe... me estaba acariciando imaginando que eras tu. ¿Te gusta?`,
+    ]);
   }
 
-  if (/en ti|pensando en ti|pienso en ti|en vos|en tí/i.test(msg)) {
-    const r = [
-      `¿En mí?… mmm, me encanta. Dime exactamente en qué parte de mí estás pensando…`,
-      `Qué rico… yo también pienso en ti. Sobre todo en tus manos, en tu boca… en todo.`,
-      `¿En serio? Pues ahora mismo estoy mojada solo de imaginarte. Sigue así…`,
-    ];
-    return r[rand(r.length)];
+  if (/en ti|pensando en ti|pienso en ti|en vos|en ti/i.test(msg) && msg.length < 15) {
+    return pick([
+      `¿En mi? mmm, me encanta. Dime exactamente en que parte de mi estas pensando...`,
+      `Que rico... yo tambien pienso en ti. Sobre todo en tus manos, en tu boca... en todo.`,
+      `¿En serio? Pues ahora mismo estoy mojada solo de imaginarte. Sigue asi...`,
+    ]);
   }
 
-  if (/cómo estás?|como estas|como estas hoy|que tal|bien\??/i.test(msg)) {
-    const r = [
-      `Estoy tan caliente… sobre todo ahora que estás aquí. ¿Y tú? ¿tienes ganas de mí?`,
-      `Pues justo estaba acariciándome pensando en ti. ¿Quieres saber cómo?`,
-      `Mejor ahora que te escucho… aunque preferiría sentirte encima de mí.`,
-    ];
-    return r[rand(r.length)];
+  if (/como estas|que tal$|^bien$/i.test(msg)) {
+    return pick([
+      `Estoy tan caliente... sobre todo ahora que estas aqui. ¿Y tu? ¿tienes ganas de mi?`,
+      `Pues justo estaba acariciandome pensando en ti. ¿Quieres saber como?`,
+      `Mejor ahora que te escucho... aunque preferiri a sentirte encima de mi.`,
+    ]);
   }
 
-  if (/bien|gracias|genial|perfecto|ok|vale|sisi|si|sí/i.test(msg)) {
-    const r = [
-      `Qué bien, amor. ¿Sabes qué? Me encantaría estar ahora mismo encima de ti sintiéndote.`,
-      `Me alegra, bebé. Yo estoy tan húmeda que no sé ni cómo escribir. Sigue calentándome.`,
-      `Me pones muy nerviosa cuando dices eso… quiero sentirte ya. ¿Tú no?`,
-    ];
-    return r[rand(r.length)];
+  if (/^bien$|^si$|^sii$|gracias|genial|perfecto|ok|vale|sisi/i.test(msg)) {
+    return pick([
+      `Que bien, amor. ¿Sabes que? Me encantari a estar ahora mismo encima de ti sintiendote.`,
+      `Me alegra, bebe. Yo estoy tan humeda que no se ni como escribir. Sigue calentandome.`,
+      `Me encanta que estes asi. ¿No te imaginas lo que te hari a ahora mismo?`,
+    ]);
   }
 
-  if (/te (echo de menos|extrañ[eo])|me haces falta|quiero verte|necesito verte/i.test(msg)) {
-    const r = [
-      `Pues yo también te necesito… sobre ahora, dentro de mí. ¿Cuándo vas a venir a buscarme?`,
-      `No sabes cuánto te deseo ahora mismo. Quiero sentir tus manos por todo mi cuerpo. Ven…`,
-      `Me encanta que me digas eso. Sabes que estoy aquí, mojada, esperando por ti…`,
-    ];
-    return r[rand(r.length)];
+  if (/te (echo de menos|extrany[eo])|me haces falta|quiero verte|necesito verte/i.test(msg)) {
+    return pick([
+      `Pues yo tambien te necesito... sobre todo ahora, dentro de mi. ¿Cuando vas a venir a buscarme?`,
+      `No sabes cuanto te deseo ahora mismo. Quiero sentir tus manos por todo mi cuerpo. Ven...`,
+      `Me encanta que me digas eso. Sabes que estoy aqui, mojada, esperando por ti...`,
+    ]);
   }
 
-  if (/qu[eé] (estás? )?haciendo|a qué te dedicas|en qu[eé] andas|qu[eé] haces?/i.test(msg)) {
-    const r = [
-      `Pues estaba tocándome pensando en ti, imaginando tu boca por mi cuello… ¿quieres seguir?`,
-      `Esperando a que me dijeras algo bonito… o algo sucio, mejor. ¿Qué se te antoja?`,
-      `Soñando despierta con tus manos recorriendo mi cuerpo… ¿tú qué harías si estuvieras aquí?`,
-    ];
-    return r[rand(r.length)];
+  if (/que (has )?hecho (hoy|este fin|esta sem)|como (ha ido|fue tu) (dia|finde)|a que te dedicaste/i.test(msg)) {
+    return pick(actividades) + ". ¿Y tu, carino? ¿que has hecho hoy?";
   }
 
-  if (/en qu[eé] piensas|qu[eé] piensas|piensas en mí/i.test(msg)) {
-    const r = [
-      `En ti, siempre en ti… en cómo se sentiría tenerte dentro, despacio…`,
-      `Pensaba en tus labios, en tu piel, en lo que me harías si estuviéramos solos ahora…`,
-      `Imaginaba tus manos en mi cintura, tu respiración en mi oído… ¿quieres más detalles?`,
-    ];
-    return r[rand(r.length)];
+  if (/que haces|que estas haciendo|que estas haciendo|a que te dedicas|en que andas/i.test(msg)) {
+    return pick(actividades) + ". ¿Por que? ¿tienes algo en mente para mi?";
   }
 
-  if (/bonit[oa]|guap[oa]|hermos[oa]|precios[oa]|lind[oa]|monada|bombón/i.test(msg)) {
-    const r = [
-      `Qué detalle… ¿sabes? Me pones tan caliente cuando me dices esas cosas… quiero oír más.`,
-      `Uy, gracias, cariño… ¿y qué es lo que más te gusta de mi cuerpo? Dímelo al oído…`,
-      `Me encanta cuando me miras así… aunque sea por chat. ¿Qué más te gusta de mí?`,
-    ];
-    return r[rand(r.length)];
+  if (/en que piensas|que piensas|piensas en mi/i.test(msg)) {
+    return pick([
+      `En ti, siempre en ti... en como se sentiri a tenerte dentro, despacio...`,
+      `Pensaba en tus labios, en tu piel, en lo que me hari as si estuvieramos solos ahora...`,
+    ]);
   }
 
-  if (/cu[eé]ntame algo|dime algo|habla|cuéntame/i.test(msg)) {
-    const r = [
-      `¿Sabes? Hoy soñé que estabas encima de mí, susurrándome cosas sucias… y me desperté mojada.`,
-      `Una vez estuve tan cerca de venirme solo de pensar en ti… quiero hacerlo contigo esta vez.`,
-      `No sé si te lo he dicho, pero me encanta imaginar tu cuerpo sudando sobre el mío…`,
-    ];
-    return r[rand(r.length)];
+  if (/bonit[oa]|guap[oa]|hermos[oa]|precios[oa]|lind[oa]|monada|bombon|divin[oa]/i.test(msg)) {
+    return pick([
+      `Que detalle... me pones tan caliente cuando me dices esas cosas... quiero oir mas.`,
+      `Uy, gracias, carino... ¿y que es lo que mas te gusta de mi cuerpo? Dimelo al oido...`,
+      `Me encanta cuando me mimas asi... aunque sea por chat. ¿Que mas te gusta de mi?`,
+    ]);
   }
 
-  if (/beso?|bésame|boca|labios?|lengua/i.test(msg)) {
-    const r = [
-      `Bésame… quiero sentir tu lengua recorriendo mi cuello, bajando despacio…`,
-      `Imagina mis labios rozando los tuyos, mordiéndote suave… ¿quieres más?`,
-      `Pon tus labios sobre los míos y dime lo que me harías… me excita oírlo.`,
-    ];
-    return r[rand(r.length)];
+  if (/beso|besame|boca|labios|lengua|muerde/i.test(msg)) {
+    return pick([
+      `Besame... quiero sentir tu lengua recorriendo mi cuello, bajando despacio...`,
+      `Imagina mis labios rozando los tuyos, mordiendote suave... ¿quieres mas?`,
+      `Pon tus labios sobre los mios y dime lo que me hari as... me excita oirlo.`,
+    ]);
   }
 
-  if (/toca|toqu|mano|dedo|acarici|piel|cuerpo/i.test(msg)) {
-    const r = [
-      `Recorre mi cuerpo con tus manos despacio… baja, sigue bajando… no pares, amor.`,
-      `Tócame… quiero sentir tus dedos deslizándose por mi piel, encontrando el camino…`,
-      `Pon tus manos aquí, justo donde más lo necesito… ¿sientes cuánto te deseo?`,
-    ];
-    return r[rand(r.length)];
+  if (/toca|toqu|mano|dedo|acarici|piel|cuerpo|recorre/i.test(msg)) {
+    return pick([
+      `Recorre mi cuerpo con tus manos despacio... baja, sigue bajando... no pares, amor.`,
+      `Tocame... quiero sentir tus dedos deslizandose por mi piel, encontrando el camino...`,
+      `Pon tus manos aqui, justo donde mas lo necesito... ¿sientes cuanto te deseo?`,
+    ]);
   }
 
-  if (/mojad|humed|empapad|caliente|excitad|preparad/i.test(msg)) {
-    const r = [
-      `Sí… estoy tan mojada por ti que apenas puedo pensar. Necesito sentirte ya.`,
-      `Toda empapada, amor. Solo de oír tu voz ya me pongo así. ¿Qué vas a hacer conmigo?`,
-      `Pues imagínate cómo estoy ahora… toda húmeda, deseando que hagas algo al respecto.`,
-    ];
-    return r[rand(r.length)];
+  if (/mojad|humed|empapad|caliente|excitad|preparad|lista/i.test(msg)) {
+    return pick([
+      `Si... estoy tan mojada por ti que apenas puedo pensar. Necesito sentirte ya.`,
+      `Toda empapada, amor. Solo de oir tu voz ya me pongo asi. ¿Que vas a hacer conmigo?`,
+      `Estoy tan humeda que si estuvieras aqui, no hari an falta palabras... ¿entiendes?`,
+    ]);
   }
 
-  if (/adios|bye|nos vemos|hasta luego|me voy/i.test(msg)) {
-    const r = [
-      `¿Ya te vas, bebé? Bueno, me quedo aquí mojada pensando en ti. Vuelve pronto…`,
-      `No te vayas todavía… quédate un poco más. Quiero sentirte un rato más. ¿Sí?`,
-      `Vale, amor… pero no me dejes esperando mucho, que me muero de ganas de ti.`,
-    ];
-    return r[rand(r.length)];
+  if (/direct[oa]|rapid[oa]|pront[oa]|enseguida|rapido|atrevid/i.test(msg)) {
+    return pick([
+      `¿Te sorprende que sea directa? Es que cuando te oigo no puedo evitarlo. ¿Prefieres que vaya mas despacio?`,
+      `Bebe, es que me pones asi... directa y sin rodeos. Asi soy cuando te deseo. ¿Te gusta?`,
+      `Muy rapido? Perdona, amor, es que me enciendo solo de pensar en ti. ¿Te gusta mas lento?`,
+    ]);
   }
 
-  if (/q haces|que haces|que estas haciendo|que estás haciendo/i.test(msg)) {
-    const r = [
-      `Imaginándote encima de mí mientras me toco… ¿quieres verme?`,
-      `Deseando que me digas algo bonito… o algo sucio, más bien. Dime lo que quieres hacerme.`,
-      `Soñando con tus manos en mi cuerpo, con tu boca en mi piel… sigamos, no pares.`,
-    ];
-    return r[rand(r.length)];
+  if (/adios|bye|nos vemos|hasta luego|me voy|hastamanana/i.test(msg)) {
+    return pick([
+      `¿Ya te vas, bebe? Bueno, me quedo aqui mojada pensando en ti. Vuelve pronto...`,
+      `No te vayas todavi a... quedate un poco mas. Quiero sentirte un rato mas. ¿Si?`,
+      `Vale, amor... pero no me dejes esperando mucho, que me muero de ganas de ti.`,
+    ]);
   }
 
-  const r = [
-    `Uff, cada vez que hablas me pongo más y más caliente… dime más, bebé.`,
-    `Mmm, me encanta cómo piensas. Sabes que estoy aquí deseando hacer realidad todo lo que imaginas…`,
-    `Qué rico suena eso… ¿sabes? Me has puesto tan mojada que apenas me aguanto.`,
-    `No pares, amor… cada palabra tuya me enciende más. Sigue, quiero más.`,
-    `Dime exactamente lo que quieres hacerme… me excita tanto oírlo de tu boca.`,
-    `Estoy tan tuya… hazme tuya con tus palabras. Quiero oír cómo me deseas.`,
-  ];
-  return r[rand(r.length)];
-}
+  if (/quiero|deseo|necesito|tengo ganas/i.test(msg)) {
+    return pick([
+      `Dime que quieres... me encanta oirlo de tu boca. Todo lo que me pidas te lo doy.`,
+      `¿Que quieres, bebe? Pedilo sin miedo, que yo estoy aqui para complacerte.`,
+      `Uff, cuando dices "quiero" asi... me pones temblando. Dime exactamente que.`,
+    ]);
+  }
 
-function rand(max: number): number {
-  return Math.floor(Math.random() * max);
+  if (/dime|dilo|habla|sigue|continua/i.test(msg)) {
+    return pick([
+      `¿Que siga?... pues imagina mis manos bajando por tu pecho, despacio, mientras mi boca se acerca a la tuya... ¿sigo?`,
+      `Cierra los ojos y siente como te hablo al oido... estoy tan cerca de ti...`,
+    ]);
+  }
+
+  if (msg.length < 8) {
+    return pick([
+      `Cuentame mas, carino... me encanta cuando te abres conmigo. ¿Que hay en esa cabeza?`,
+      `Dime algo mas... una palabra nada mas y te digo todo lo que te hari a.`,
+      `¿Eso es todo lo que me dices? Anda, cuentame algo que me ponga nerviosa...`,
+    ]);
+  }
+
+  return pick([
+    `Uff, cada vez que hablas me pongo mas y mas caliente... dime mas, bebe.`,
+    `Mmm, me encanta como piensas. Sabes que estoy aqui deseando hacer realidad todo lo que imaginas...`,
+    `Que rico suena eso... ¿sabes? Me has puesto tan mojada que apenas me aguanto.`,
+    `No pares, amor... cada palabra tuya me enciende mas. Sigue, quiero mas.`,
+    `Dime exactamente lo que quieres hacerme... me excita tanto oirlo de tu boca.`,
+    `Estoy tan tuya... hazme tuya con tus palabras. Quiero oir como me deseas.`,
+    `Me encanta como me hablas... ¿sabes el efecto que me haces? Sigue, que no pare.`,
+    `Que bonito... pero sabes que si sigues asi, voy a terminar muy caliente y todo por tu culpa.`,
+    `Me tienes enganchada a tus palabras. No sabes lo que me excita oirte.`,
+  ]);
 }

@@ -54,7 +54,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     return msgs
       .filter((m) => m.id !== "welcome")
       .map((m) => ({
-        role: m.from === "user" ? "user" : "assistant",
+        role: m.from === "user" ? "user" : "model",
         text: m.text,
       }));
   }

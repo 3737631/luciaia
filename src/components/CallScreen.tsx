@@ -59,7 +59,7 @@ export default function CallScreen({ girl }: { girl: Girl }) {
       };
       const history: ChatMessage[] = [
         ...messages.map((m) => ({
-          role: m.from === "user" ? "user" as const : "assistant" as const,
+          role: m.from === "user" ? "user" as const : "model" as const,
           text: m.text,
         })),
         { role: "user", text },
