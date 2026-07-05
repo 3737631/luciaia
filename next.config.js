@@ -4,7 +4,7 @@ const repo = "luciaia";
 const nextConfig = {
   output: "export",
   basePath: `/${repo}`,
-  assetPrefix: `/${repo}/`,
+  assetPrefix: `/${repo}`,
   reactStrictMode: true,
   images: {
     unoptimized: true,
