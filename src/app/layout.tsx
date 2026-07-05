@@ -20,12 +20,13 @@ export default function RootLayout({
           __html: `
 (function(){
   try { if (localStorage.getItem("lunacall_age_accepted") === "true") return; } catch(e) { return; }
-  var p = location.pathname.replace(/\\/+$/, "") || "/";
-  var allowed = ["/age","/terms","/privacy","/age-notice"];
+  var base = location.pathname.match(/^\/[^/]+/)?.[0] || "";
+  var p = location.pathname.replace(/\/+$/, "") || base || "/";
+  var allowed = [base+"/age",base+"/terms",base+"/privacy",base+"/age-notice"];
   for (var i = 0; i < allowed.length; i++) {
     if (p === allowed[i]) return;
   }
-  location.replace("/age/");
+  location.replace((base||"/")+"/age/");
 })();
 `
         }} />

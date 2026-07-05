@@ -2,62 +2,81 @@
 
 Demo de chat y videollamada con chicas IA ficticias con contexto real de conversación.
 
+## Arquitectura
+
+```
+GitHub Pages (frontend estático)
+  → llama a Supabase Edge Function
+    → Edge Function llama a xAI API (Grok)
+      → respuesta con contexto real
+```
+
 ## Requisitos
 
 - Node.js 18+
 - npm
+- Cuenta en [Supabase](https://supabase.com) (plan gratuito)
+- API key de [xAI](https://console.x.ai) (con crédito)
 
-## Instalar y ejecutar
+## Setup local
+
+### 1. Variables de entorno
+
+Crea `.env.local`:
+
+```bash
+# URL de Supabase Edge Functions (local o producción)
+NEXT_PUBLIC_SUPABASE_FUNCTION_URL=http://localhost:54321/functions/v1
+```
+
+### 2. Supabase Edge Function
+
+```bash
+# Instalar Supabase CLI (https://supabase.com/docs/guides/cli)
+# Iniciar sesión
+supabase login
+
+# Iniciar entorno local
+supabase start
+
+# Configurar API key de xAI
+supabase secrets set XAI_API_KEY=tu_api_key
+supabase secrets set XAI_MODEL=grok-4.3
+
+# Iniciar función local
+supabase functions serve chat --no-verify-jwt
+```
+
+### 3. Frontend
 
 ```bash
 npm install
 npm run dev
 ```
 
-### API Key de xAI (Grok)
-
-Para que funcione la IA real con contexto:
-
-1. Crea una cuenta en https://console.x.ai y añade crédito
-2. Crea un archivo `.env.local` en la raíz del proyecto
-3. Añade:
-
-```
-XAI_API_KEY=tu_api_key
-XAI_MODEL=grok-4.3
-```
-
-4. Reinicia el servidor: `npm run dev`
-
-**Importante**: `XAI_API_KEY` solo se usa desde el servidor (API route), nunca desde el frontend. No uses `NEXT_PUBLIC_` para esta variable.
-
-Sin API key, la web usa respuestas locales de relleno sin contexto real.
-
-## Arquitectura
-
-- `POST /api/chat` — API route que llama a Grok con el historial completo
-- `src/lib/memory.ts` — sistema de memoria en localStorage por chica
-- `src/components/ChatWindow.tsx` — chat con contexto real
-- `src/components/CallScreen.tsx` — videollamada con contexto real + voz
-
-En cada mensaje se envía al servidor:
-- Mensaje actual
-- Últimos 20 mensajes de historial
-- Resumen de conversación
-- Memoria sobre el usuario extraída automáticamente
-- Datos y personalización de la chica
-
 ## Desplegar
 
+### 1. Supabase (Edge Function)
+
 ```bash
-npm run build
-npm start
+# Desplegar la función
+supabase functions deploy chat --no-verify-jwt
+
+# Configurar secrets en producción
+supabase secrets set XAI_API_KEY=tu_api_key
+supabase secrets set XAI_MODEL=grok-4.3
 ```
 
-Para desplegar, usa un host que soporte Next.js API routes (Vercel, Railway, etc.). No funciona en GitHub Pages porque necesita un servidor Node.js.
+### 2. GitHub Pages (frontend)
+
+1. En tu repo de GitHub, ve a Settings > Secrets and variables > Actions > Variables
+2. Añade `NEXT_PUBLIC_SUPABASE_FUNCTION_URL` = `https://tu-proyecto.supabase.co/functions/v1`
+3. En Settings > Pages, selecciona "GitHub Actions" como origen
+4. Pushea a `main` — el workflow despliega automáticamente
 
 ## Notas
 
 - Solo +18
 - Personajes ficticios generados por IA
 - Sin registro, sin anuncios, 100% gratis
+- API key de xAI nunca se expone al frontend

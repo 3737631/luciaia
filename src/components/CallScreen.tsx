@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { getCustomization } from "@/lib/storage";
 import { getFallbackResponse } from "@/lib/ai";
+import { getChatEndpoint } from "@/lib/api";
 import {
   getConversationHistory,
   saveConversationHistory,
@@ -82,7 +83,7 @@ export default function CallScreen({ girl }: { girl: Girl }) {
       summary,
     };
 
-    const res = await fetch("/api/chat", {
+    const res = await fetch(getChatEndpoint(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
