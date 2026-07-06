@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
     } = body;
 
     const apiKey = Deno.env.get("GROQ_API_KEY");
-    const model = Deno.env.get("GROQ_MODEL") || "llama3-8b-8192";
+    const model = Deno.env.get("GROQ_MODEL") || "llama-3.3-70b-versatile";
 
     if (!apiKey) {
       return new Response(
