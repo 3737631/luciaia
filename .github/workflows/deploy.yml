@@ -4,15 +4,13 @@ on:
   push:
     branches: [main]
 
-env:
-  NEXT_PUBLIC_SUPABASE_FUNCTION_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_FUNCTION_URL }}
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    env:
+      NEXT_PUBLIC_SUPABASE_FUNCTION_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_FUNCTION_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -20,7 +18,21 @@ jobs:
           node-version: 22
       - run: npm ci
       - run: npm run build
-      - uses: peaceiris/actions-gh-pages@v3
+      - uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./out
+          path: out
+
+  deploy:
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    env:
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
