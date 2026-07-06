@@ -1,5 +1,9 @@
 "use client";
 
+import { useState } from "react";
+import { getGirlImage } from "@/lib/images";
+import { HairOption } from "@/data/girls";
+
 interface AvatarProps {
   name: string;
   image?: string;
@@ -32,6 +36,9 @@ export default function Avatar({
 }: AvatarProps) {
   const gradientId = `grad-${name}`;
   const hairColor = hairColors[hair] ?? hairColors.moreno;
+  const [imgFailed, setImgFailed] = useState(false);
+
+  const girlImage = getGirlImage(name, hair as HairOption);
 
   return (
     <div
@@ -46,12 +53,13 @@ export default function Avatar({
           background: `radial-gradient(circle, ${accentColor}, transparent 70%)`,
         }}
       />
-      {image ? (
+      {!imgFailed ? (
         <img
-          src={image}
+          src={girlImage}
           alt={name}
           className="relative rounded-full object-cover"
           style={{ width: size, height: size }}
+          onError={() => setImgFailed(true)}
         />
       ) : (
         <svg

@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { Girl } from "@/data/girls";
+import { getGirlImage } from "@/lib/images";
 
 const cardGradients: Record<string, string> = {
   luna: "from-pink-500/30 via-purple-500/20 to-transparent",
@@ -25,10 +27,21 @@ const personalityColors: Record<string, string> = {
 
 export default function GirlCard({ girl }: { girl: Girl }) {
   const gradient = cardGradients[girl.id] || "from-pink-500/20 to-purple-500/10";
+  const [imgFailed, setImgFailed] = useState(false);
+
+  const girlImage = getGirlImage(girl.id, girl.defaultHair);
 
   return (
     <div className="girl-card">
-      <div className={`relative aspect-[4/3] w-full bg-gradient-to-b ${gradient}`}>
+      <div className={`relative aspect-[4/3] w-full bg-gradient-to-b ${gradient} overflow-hidden`}>
+        {!imgFailed ? (
+          <img
+            src={girlImage}
+            alt={girl.name}
+            className="absolute inset-0 h-full w-full object-cover transition-all duration-500 group-hover:scale-110"
+            onError={() => setImgFailed(true)}
+          />
+        ) : null}
         <div className="absolute inset-0 bg-gradient-to-t from-[#08030f] via-transparent to-transparent" />
         <div className="absolute bottom-3 left-3 right-3 flex items-start justify-between">
           <div className="flex items-center gap-2">

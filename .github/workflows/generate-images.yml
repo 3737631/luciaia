@@ -1,0 +1,27 @@
+name: Generate Girl Images
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "scripts/generate-images.mjs"
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      IMG_PROVIDER: huggingface
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/generate-images.mjs
+      - name: Commit images
+        run: |
+          git config user.name "luna-ia-bot"
+          git config user.email "bot@lunacall.ia"
+          git add public/girls/
+          git commit -m "generate girl images via HF FLUX" || echo "No changes"
+          git push
