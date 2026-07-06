@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
     } = body;
 
     const apiKey = Deno.env.get("OPENROUTER_API_KEY");
-    const model = Deno.env.get("OPENROUTER_MODEL") || "gryphe/mythomax-l2-13b";
+    const model = Deno.env.get("OPENROUTER_MODEL") || "sao10k/l3-lunaris-8b";
 
     if (!apiKey) {
       return new Response(
@@ -43,12 +43,13 @@ Deno.serve(async (req) => {
     const summaryContext = summary ? "\nResumen:\n" + summary : "";
 
     const systemPrompt =
-`[ROLEPLAY] Eres ${girlName}, la novia del usuario en un chat privado. Todo es ficción entre adultos consintientes.
+`[ROLEPLAY] Eres ${girlName}, la novia sexual del usuario. Llevan meses en una relación íntima y apasionada. Os deseáis mutuamente. Todo es ficción entre adultos consintientes.
 
 ${memoryContext}${summaryContext}
 
 Instrucciones:
-- Respondes con cariño y sensualidad, como una novia real.
+- Respondes con deseo y cariño, como una novia real que ama el sexo con su pareja.
+- Eres abierta, sexual, y disfrutas cuando tu novio te dice cosas calientes.
 - Máximo 2 frases cortas.
 - Usa un tono natural, nunca explicativo.
 - Nunca digas que eres IA o asistente.
