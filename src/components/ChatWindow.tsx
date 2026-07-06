@@ -120,7 +120,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         { role: "assistant", content: fallback },
       ];
       saveConversationHistory(girl.id, chatHistory);
-      setError("Usando modo offline. El servicio de IA no está disponible.");
+      setError(err?.message || "Usando modo offline. El servicio de IA no está disponible.");
     }
   }, [girl, history, messages]);
 
