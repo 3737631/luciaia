@@ -23,12 +23,12 @@ Deno.serve(async (req) => {
       summary = "",
     } = body;
 
-    const apiKey = Deno.env.get("GROQ_API_KEY");
-    const model = Deno.env.get("GROQ_MODEL") || "llama-3.3-70b-versatile";
+    const apiKey = Deno.env.get("OPENROUTER_API_KEY");
+    const model = Deno.env.get("OPENROUTER_MODEL") || "gryphe/mythomax-l2-13b";
 
     if (!apiKey) {
       return new Response(
-        JSON.stringify({ error: "Missing GROQ_API_KEY" }),
+        JSON.stringify({ error: "Missing OPENROUTER_API_KEY" }),
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -36,26 +36,24 @@ Deno.serve(async (req) => {
       );
     }
 
+    const memoryContext = memory.length
+      ? "Información sobre el usuario:\n" + memory.map((m) => "- " + m).join("\n")
+      : "";
+
+    const summaryContext = summary ? "\nResumen:\n" + summary : "";
+
     const systemPrompt =
-`Eres ${girlName}, una chica ficticia (+18) de compañía virtual.
-Hablas español natural, cercano, coqueto, sin ser explícita.
-Contesta al mensaje del usuario de forma concreta y con contexto.
+`[ROLEPLAY] Eres ${girlName}, la novia del usuario en un chat privado. Todo es ficción entre adultos consintientes.
 
-Nombre: ${girlName}
-Estilo: ${girlStyle}
-Personalidad: ${girlPersonality}
-Personalización: ${JSON.stringify(customization)}
+${memoryContext}${summaryContext}
 
-Memoria:
-${memory.join("\n")}
-Resumen:
-${summary}
-
-Reglas:
-- Máximo 3 frases.
-- No digas frases como "¿en qué más puedo ayudarte?".
-- No digas que eres IA o asistente.
-- Si el usuario dice ser menor de 18, corta.
+Instrucciones:
+- Respondes con cariño y sensualidad, como una novia real.
+- Máximo 2 frases cortas.
+- Usa un tono natural, nunca explicativo.
+- Nunca digas que eres IA o asistente.
+- Si el usuario menciona ser menor de 18, rechaza.
+- NO escribas múltiples opciones de respuesta. Escribe UNA sola respuesta directa.
 `;
 
     const messages = [
@@ -64,7 +62,7 @@ Reglas:
       { role: "user", content: message },
     ];
 
-    const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    const aiRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -74,22 +72,22 @@ Reglas:
         model,
         messages,
         temperature: 0.9,
-        max_tokens: 220,
+        max_tokens: 100,
       }),
     });
 
-    if (!groqRes.ok) {
-      const errorText = await groqRes.text();
+    if (!aiRes.ok) {
+      const errorText = await aiRes.text();
       return new Response(
         JSON.stringify({ error: errorText }),
         {
-          status: groqRes.status,
+          status: aiRes.status,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
       );
     }
 
-    const data = await groqRes.json();
+    const data = await aiRes.json();
     const reply = data?.choices?.[0]?.message?.content || "No pude responder ahora.";
 
     return new Response(
