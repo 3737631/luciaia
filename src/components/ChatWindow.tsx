@@ -3,8 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Girl, minorBlockMessage } from "@/data/girls";
 import { getCustomization } from "@/lib/storage";
-import { getFallbackResponse } from "@/lib/ai";
-import { getChatEndpoint } from "@/lib/api";
+import { getAiResponse, getFallbackResponse } from "@/lib/ai";
 import {
   getConversationHistory,
   saveConversationHistory,
@@ -56,47 +55,23 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     .filter((m) => m.id !== "welcome")
     .map((m) => ({ role: m.from === "user" ? "user" : "assistant", content: m.text }));
 
-  const sendToAPI = useCallback(async (text: string) => {
+  const doAI = useCallback(async (text: string) => {
     const custom = getCustomization(girl.id);
     const memory = getUserMemory(girl.id);
     const summary = getConversationSummary(girl.id);
 
-    const payload = {
-      message: text,
-      girlId: girl.id,
-      girlName: girl.name,
-      girlStyle: girl.style,
-      girlPersonality: custom?.personality ?? girl.personality,
+    const girlInfo = {
+      id: girl.id,
+      name: girl.name,
+      style: girl.style,
+      personality: custom?.personality ?? girl.personality,
       customization: custom || {},
-      history,
       memory,
       summary,
     };
 
-    const res = await fetch(getChatEndpoint(), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.error || `API error ${res.status}`);
-    }
-
-    const data = await res.json();
-    return data.reply as string;
-  }, [girl.id, girl.name, girl.style, girl.personality, history]);
-
-  async function doAI(text: string) {
-    const custom = getCustomization(girl.id);
-    const allMsgs: ChatMessage[] = [
-      ...history,
-      { role: "user", content: text },
-    ];
-
     try {
-      const reply = await sendToAPI(text);
+      const reply = await getAiResponse(text, history, girlInfo);
       if (!mountedRef.current) return;
 
       const newMsgs = [
@@ -126,7 +101,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
 
       setError(null);
     } catch (err: any) {
-      console.warn("[Chat] API error, using fallback:", err);
+      console.warn("[Chat] AI error, using fallback:", err);
       if (!mountedRef.current) return;
 
       const fallback = getFallbackResponse(text);
@@ -144,7 +119,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       saveConversationHistory(girl.id, chatHistory);
       setError("Usando modo offline. El servicio de IA no está disponible.");
     }
-  }
+  }, [girl, history, messages]);
 
   async function send() {
     if (blocked || typing) return;

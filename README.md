@@ -5,49 +5,20 @@ Demo de chat y videollamada con chicas IA ficticias con contexto real de convers
 ## Arquitectura
 
 ```
-GitHub Pages (frontend estático)
-  → llama a Supabase Edge Function
-    → Edge Function llama a xAI API (Grok)
-      → respuesta con contexto real
+GitHub Pages (frontend estático, 100% client-side)
+  → Puter.js (IA gratis desde el navegador)
+    → xAI / Grok / GPT / Claude
+      → respuestas con contexto real
 ```
+
+No necesita servidor, API keys ni backend. Puter.js usa un modelo "user-pays": el usuario de la web cubre su propio uso de IA. Sin registro obligatorio.
 
 ## Requisitos
 
 - Node.js 18+
 - npm
-- Cuenta en [Supabase](https://supabase.com) (plan gratuito)
-- API key de [xAI](https://console.x.ai) (con crédito)
 
-## Setup local
-
-### 1. Variables de entorno
-
-Crea `.env.local`:
-
-```bash
-# URL de Supabase Edge Functions (local o producción)
-NEXT_PUBLIC_SUPABASE_FUNCTION_URL=http://localhost:54321/functions/v1
-```
-
-### 2. Supabase Edge Function
-
-```bash
-# Instalar Supabase CLI (https://supabase.com/docs/guides/cli)
-# Iniciar sesión
-supabase login
-
-# Iniciar entorno local
-supabase start
-
-# Configurar API key de xAI
-supabase secrets set XAI_API_KEY=tu_api_key
-supabase secrets set XAI_MODEL=grok-4.3
-
-# Iniciar función local
-supabase functions serve chat --no-verify-jwt
-```
-
-### 3. Frontend
+## Instalar y ejecutar
 
 ```bash
 npm install
@@ -56,27 +27,10 @@ npm run dev
 
 ## Desplegar
 
-### 1. Supabase (Edge Function)
-
-```bash
-# Desplegar la función
-supabase functions deploy chat --no-verify-jwt
-
-# Configurar secrets en producción
-supabase secrets set XAI_API_KEY=tu_api_key
-supabase secrets set XAI_MODEL=grok-4.3
-```
-
-### 2. GitHub Pages (frontend)
-
-1. En tu repo de GitHub, ve a Settings > Secrets and variables > Actions > Variables
-2. Añade `NEXT_PUBLIC_SUPABASE_FUNCTION_URL` = `https://tu-proyecto.supabase.co/functions/v1`
-3. En Settings > Pages, selecciona "GitHub Actions" como origen
-4. Pushea a `main` — el workflow despliega automáticamente
+Pushea a `main` — el workflow despliega automáticamente a GitHub Pages.
 
 ## Notas
 
 - Solo +18
 - Personajes ficticios generados por IA
 - Sin registro, sin anuncios, 100% gratis
-- API key de xAI nunca se expone al frontend

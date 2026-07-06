@@ -2,8 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { getCustomization } from "@/lib/storage";
-import { getFallbackResponse } from "@/lib/ai";
-import { getChatEndpoint } from "@/lib/api";
+import { getAiResponse, getFallbackResponse } from "@/lib/ai";
 import {
   getConversationHistory,
   saveConversationHistory,
@@ -67,50 +66,24 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     window.speechSynthesis.speak(utterance);
   }
 
-  const sendToAPI = useCallback(async (text: string, history: ChatMessage[]) => {
+  const doAI = useCallback(async (text: string) => {
     const memory = getUserMemory(girl.id);
     const summary = getConversationSummary(girl.id);
 
-    const payload = {
-      message: text,
-      girlId: girl.id,
-      girlName: girl.name,
-      girlStyle: girl.style,
-      girlPersonality: custom?.personality ?? girl.personality,
+    const girlInfo = {
+      id: girl.id,
+      name: girl.name,
+      style: girl.style,
+      personality: custom?.personality ?? girl.personality,
       customization: custom || {},
-      history,
       memory,
       summary,
     };
 
-    const res = await fetch(getChatEndpoint(), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.error || `API error ${res.status}`);
-    }
-
-    const data = await res.json();
-    return data.reply as string;
-  }, [girl.id, girl.name, girl.style, girl.personality, custom]);
-
-  async function sendText() {
-    const text = textInput.trim();
-    if (!text || thinking) return;
-    setTextInput("");
-
-    const newMessages: ChatMessage[] = [...messages, { role: "user", content: text }];
-    setMessages(newMessages);
-    setThinking(true);
-
     try {
-      const reply = await sendToAPI(text, messages);
+      const reply = await getAiResponse(text, messages, girlInfo);
       const replyMessage: ChatMessage = { role: "assistant", content: reply };
-      const updatedMsgs = [...newMessages, replyMessage];
+      const updatedMsgs = [...messages, { role: "user" as const, content: text }, replyMessage];
       setMessages(updatedMsgs);
       speak(reply);
 
@@ -127,17 +100,27 @@ export default function CallScreen({ girl }: { girl: Girl }) {
         const sum = buildSummary(updatedMsgs);
         if (sum) saveConversationSummary(girl.id, sum);
       }
+
+      return reply;
     } catch (err: any) {
-      console.warn("[Call] API error, using fallback:", err);
+      console.warn("[Call] AI error, using fallback:", err);
       const fallback = getFallbackResponse(text);
       const replyMessage: ChatMessage = { role: "assistant", content: fallback };
-      const updatedMsgs = [...newMessages, replyMessage];
+      const updatedMsgs = [...messages, { role: "user" as const, content: text }, replyMessage];
       setMessages(updatedMsgs);
       speak(fallback);
       saveConversationHistory(girl.id, updatedMsgs);
-    } finally {
-      setThinking(false);
+      return fallback;
     }
+  }, [girl, custom, messages]);
+
+  async function sendText() {
+    const text = textInput.trim();
+    if (!text || thinking) return;
+    setTextInput("");
+    setThinking(true);
+    await doAI(text);
+    setThinking(false);
   }
 
   function hangUp() {
