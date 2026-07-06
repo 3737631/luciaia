@@ -160,6 +160,7 @@ export default function CallScreen({ girl }: { girl: Girl }) {
           accentColor={girl.accentColor}
           accentColorSecondary={girl.accentColorSecondary}
           hair={custom?.hair ?? girl.defaultHair}
+          outfit={custom?.outfit ?? girl.defaultOutfit}
           size={220}
           animated
           talking={talking}

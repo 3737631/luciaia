@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { getGirlImage } from "@/lib/images";
-import { HairOption } from "@/data/girls";
+import { HairOption, OutfitOption } from "@/data/girls";
 
 interface AvatarProps {
   name: string;
@@ -13,6 +13,7 @@ interface AvatarProps {
   animated?: boolean;
   talking?: boolean;
   hair?: string;
+  outfit?: string;
   className?: string;
 }
 
@@ -32,13 +33,14 @@ export default function Avatar({
   animated = false,
   talking = false,
   hair = "moreno",
+  outfit,
   className = "",
 }: AvatarProps) {
   const gradientId = `grad-${name}`;
   const hairColor = hairColors[hair] ?? hairColors.moreno;
   const [imgFailed, setImgFailed] = useState(false);
 
-  const girlImage = getGirlImage(name, hair as HairOption);
+  const girlImage = getGirlImage(name, hair as HairOption, outfit as OutfitOption);
 
   return (
     <div

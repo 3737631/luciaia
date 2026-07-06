@@ -81,6 +81,7 @@ export default function CustomizeClient({ girl }: { girl: Girl }) {
             accentColor={girl.accentColor}
             accentColorSecondary={girl.accentColorSecondary}
             hair={custom.hair}
+            outfit={custom.outfit}
             size={180}
             animated
           />
