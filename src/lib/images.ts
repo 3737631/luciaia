@@ -4,37 +4,45 @@ function assetPath(girlId: string, ...segments: string[]): string {
   return `/luciaia/girls/${girlId}/${segments.join("/")}.jpg`;
 }
 
+interface GirlDefaults {
+  hair: HairOption;
+  outfit: OutfitOption;
+  background: BackgroundOption;
+}
+
 /**
- * Resolves the girl image based on selected customization options.
- * Uses a folder structure per girl:
- *   /girls/{id}/base.jpg                 — default fallback
- *   /girls/{id}/hair/{hair}.jpg          — hair-only variant
- *   /girls/{id}/outfit/{outfit}.jpg      — outfit-only variant
- *   /girls/{id}/background/{bg}.jpg      — background-only variant
- *
- * When multiple options are changed, the image falls back to base.jpg.
- * This ensures the SAME girl (face, pose, body) is always shown —
- * only the selected attribute changes.
+ * Returns the variant image when exactly ONE attribute differs from defaults.
+ * When multiple attributes change, falls back to base.jpg to avoid identity breaks.
  */
 export function getGirlImage(
   girlId: string,
-  hair?: HairOption,
-  outfit?: OutfitOption,
-  background?: BackgroundOption,
+  hair?: HairOption | null,
+  outfit?: OutfitOption | null,
+  background?: BackgroundOption | null,
+  defaults?: GirlDefaults,
 ): string {
-  // Single-attribute changes: use the specific variant folder
-  if (hair && !outfit && !background) {
-    return assetPath(girlId, "hair", hair);
-  }
-  if (outfit && !hair && !background) {
-    return assetPath(girlId, "outfit", outfit);
-  }
-  if (background && !hair && !outfit) {
-    return assetPath(girlId, "background", background);
+  if (defaults) {
+    const hairDiff = !!hair && hair !== defaults.hair;
+    const outfitDiff = !!outfit && outfit !== defaults.outfit;
+    const bgDiff = !!background && background !== defaults.background;
+    const changed = [hairDiff, outfitDiff, bgDiff].filter(Boolean).length;
+
+    if (changed === 1) {
+      if (hairDiff) return assetPath(girlId, "hair", hair!);
+      if (outfitDiff) return assetPath(girlId, "outfit", outfit!);
+      if (bgDiff) return assetPath(girlId, "background", background!);
+    }
+    // zero or multiple changes → base (safe identity)
+    return assetPath(girlId, "base");
   }
 
-  // Multi-attribute combination or default → show base
+  // Legacy path (no defaults)
+  const hasHair = !!hair; const hasOutfit = !!outfit; const hasBg = !!background;
+  const count = [hasHair, hasOutfit, hasBg].filter(Boolean).length;
+  if (count === 1) {
+    if (hasHair) return assetPath(girlId, "hair", hair!);
+    if (hasOutfit) return assetPath(girlId, "outfit", outfit!);
+    if (hasBg) return assetPath(girlId, "background", background!);
+  }
   return assetPath(girlId, "base");
 }
-
-export { assetPath };

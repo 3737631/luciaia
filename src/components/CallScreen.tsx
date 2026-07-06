@@ -161,6 +161,9 @@ export default function CallScreen({ girl }: { girl: Girl }) {
           hair={custom?.hair ?? girl.defaultHair}
           outfit={custom?.outfit ?? girl.defaultOutfit}
           background={custom?.background ?? girl.defaultBackground}
+          defaultHair={girl.defaultHair}
+          defaultOutfit={girl.defaultOutfit}
+          defaultBackground={girl.defaultBackground}
           size={220}
           animated
           talking={talking}

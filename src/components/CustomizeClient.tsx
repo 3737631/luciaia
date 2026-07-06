@@ -82,6 +82,9 @@ export default function CustomizeClient({ girl }: { girl: Girl }) {
             hair={custom.hair}
             outfit={custom.outfit}
             background={custom.background}
+            defaultHair={girl.defaultHair}
+            defaultOutfit={girl.defaultOutfit}
+            defaultBackground={girl.defaultBackground}
             size={180}
             animated
           />
