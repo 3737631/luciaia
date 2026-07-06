@@ -14,7 +14,7 @@ export default function GirlsPage() {
         <p className="mb-10 text-center text-muted">
           Personajes ficticios generados por IA. Personalízalos antes de empezar.
         </p>
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {girls.map((girl) => (
             <GirlCard key={girl.id} girl={girl} />
           ))}

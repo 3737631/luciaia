@@ -30,10 +30,11 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   const [typing, setTyping] = useState(false);
   const [blocked, setBlocked] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [mode, setMode] = useState<"text" | "actions">("text");
+  const [mode, setMode] = useState<"text" | "actions">("actions");
   const [showModePicker, setShowModePicker] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef(true);
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
 
   useEffect(() => {
     const saved = getConversationHistory(girl.id);
@@ -45,6 +46,8 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       }));
       setMessages(msgs);
       setShowModePicker(false);
+    } else if (isMobile) {
+      setMessages([{ id: "welcome", from: "girl", text: `Hola, soy ${girl.name}. Qué bien que hayas entrado 🙂` }]);
     } else {
       setMessages([{ id: "welcome", from: "girl", text: `Hola, soy ${girl.name}. Qué bien que hayas entrado 🙂` }]);
     }
@@ -160,7 +163,6 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   }
 
   function renderText(text: string) {
-    if (mode !== "actions") return text;
     const parts = text.split(/(\*[^*]+\*)/g);
     return parts.map((part, i) => {
       if (part.startsWith("*") && part.endsWith("*")) {
@@ -229,7 +231,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       <div ref={scrollRef} className="flex-1 overflow-y-auto rounded-xl2 card-surface space-y-3 p-4">
         {messages.map((m) => (
           <div key={m.id} className={`flex animate-fadeUp ${m.from === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ${m.from === "user" ? "gradient-btn text-white" : "bg-white/10 text-ink"}`}>
+            <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${m.from === "user" ? "bg-gradient-to-r from-pink to-purple-500 text-white shadow-lg shadow-pink/20" : "bg-white/10 text-ink backdrop-blur-sm border border-white/5"}`}>
               {renderText(m.text)}
             </div>
           </div>

@@ -6,7 +6,7 @@ import { setAgeAccepted } from "@/lib/storage";
 export default function AgePage() {
   function goHome() {
     var base = window.location.pathname.replace(/\/age\/?$/, "") || "";
-    window.location.href = base + "/";
+    window.location.href = base + "/girls";
   }
 
   function confirm() {
