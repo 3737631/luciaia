@@ -156,11 +156,11 @@ export default function CallScreen({ girl }: { girl: Girl }) {
       <div className="flex flex-col items-center">
         <Avatar
           name={girl.id}
-          image={girl.image}
           accentColor={girl.accentColor}
           accentColorSecondary={girl.accentColorSecondary}
           hair={custom?.hair ?? girl.defaultHair}
           outfit={custom?.outfit ?? girl.defaultOutfit}
+          background={custom?.background ?? girl.defaultBackground}
           size={220}
           animated
           talking={talking}

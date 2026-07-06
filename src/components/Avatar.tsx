@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getGirlImage } from "@/lib/images";
-import { HairOption, OutfitOption } from "@/data/girls";
+import { HairOption, OutfitOption, BackgroundOption } from "@/data/girls";
 
 interface AvatarProps {
   name: string;
@@ -14,6 +14,7 @@ interface AvatarProps {
   talking?: boolean;
   hair?: string;
   outfit?: string;
+  background?: string;
   className?: string;
 }
 
@@ -26,21 +27,37 @@ const hairColors: Record<string, string> = {
 
 export default function Avatar({
   name,
-  image,
   accentColor,
   accentColorSecondary = "#8b5cf6",
   size = 120,
   animated = false,
   talking = false,
-  hair = "moreno",
+  hair,
   outfit,
+  background,
   className = "",
 }: AvatarProps) {
   const gradientId = `grad-${name}`;
-  const hairColor = hairColors[hair] ?? hairColors.moreno;
+  const hairColor = hairColors[hair ?? "moreno"] ?? hairColors.moreno;
   const [imgFailed, setImgFailed] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const prevSrc = useRef<string>("");
 
-  const girlImage = getGirlImage(name, hair as HairOption, outfit as OutfitOption);
+  const imgSrc = getGirlImage(
+    name,
+    hair as HairOption,
+    outfit as OutfitOption,
+    background as BackgroundOption,
+  );
+
+  // Reset loading state when source changes
+  useEffect(() => {
+    if (imgSrc !== prevSrc.current) {
+      prevSrc.current = imgSrc;
+      setLoaded(false);
+      setImgFailed(false);
+    }
+  }, [imgSrc]);
 
   return (
     <div
@@ -56,13 +73,22 @@ export default function Avatar({
         }}
       />
       {!imgFailed ? (
-        <img
-          src={girlImage}
-          alt={name}
-          className="relative rounded-full object-cover"
-          style={{ width: size, height: size }}
-          onError={() => setImgFailed(true)}
-        />
+        <div className="relative" style={{ width: size, height: size }}>
+          <div
+            className="absolute inset-0 rounded-full bg-[#1a1023]"
+            style={{ width: size, height: size }}
+          />
+          <img
+            src={imgSrc}
+            alt={name}
+            className={`relative rounded-full object-cover transition-opacity duration-300 ${
+              loaded ? "opacity-100" : "opacity-0"
+            }`}
+            style={{ width: size, height: size }}
+            onLoad={() => setLoaded(true)}
+            onError={() => setImgFailed(true)}
+          />
+        </div>
       ) : (
         <svg
           viewBox="0 0 200 200"

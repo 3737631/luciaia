@@ -29,7 +29,7 @@ export default function GirlCard({ girl }: { girl: Girl }) {
   const gradient = cardGradients[girl.id] || "from-pink-500/20 to-purple-500/10";
   const [imgFailed, setImgFailed] = useState(false);
 
-  const girlImage = getGirlImage(girl.id, girl.defaultHair, girl.defaultOutfit);
+  const girlImage = getGirlImage(girl.id);
 
   return (
     <div className="girl-card">

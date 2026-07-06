@@ -77,11 +77,11 @@ export default function CustomizeClient({ girl }: { girl: Girl }) {
           <p className="mb-6 text-muted text-sm">Personalízala antes de empezar.</p>
           <Avatar
             name={girl.id}
-            image={girl.image}
             accentColor={girl.accentColor}
             accentColorSecondary={girl.accentColorSecondary}
             hair={custom.hair}
             outfit={custom.outfit}
+            background={custom.background}
             size={180}
             animated
           />
