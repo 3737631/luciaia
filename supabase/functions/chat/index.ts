@@ -23,12 +23,12 @@ Deno.serve(async (req) => {
       summary = "",
     } = body;
 
-    const apiKey = Deno.env.get("XAI_API_KEY");
-    const model = Deno.env.get("XAI_MODEL") || "grok-4.3";
+    const apiKey = Deno.env.get("GROQ_API_KEY");
+    const model = Deno.env.get("GROQ_MODEL") || "llama3-8b-8192";
 
     if (!apiKey) {
       return new Response(
-        JSON.stringify({ error: "Missing XAI_API_KEY" }),
+        JSON.stringify({ error: "Missing GROQ_API_KEY" }),
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -36,35 +36,26 @@ Deno.serve(async (req) => {
       );
     }
 
-    const systemPrompt = `
-Eres ${girlName}, una chica ficticia generada por IA para una experiencia de compañía virtual +18.
-No eres una persona real y no representas a ninguna persona real.
-Hablas en español natural, con tono cercano, coqueto, elegante y sensual ligero, sin contenido explícito.
-Respondes adaptándote exactamente a lo que el usuario acaba de escribir.
+    const systemPrompt =
+`Eres ${girlName}, una chica ficticia (+18) de compañía virtual.
+Hablas español natural, cercano, coqueto, sin ser explícita.
+Contesta al mensaje del usuario de forma concreta y con contexto.
 
-Datos del personaje:
 Nombre: ${girlName}
 Estilo: ${girlStyle}
 Personalidad: ${girlPersonality}
 Personalización: ${JSON.stringify(customization)}
 
-Memoria útil:
+Memoria:
 ${memory.join("\n")}
-
 Resumen:
 ${summary}
 
 Reglas:
-- Contesta primero al mensaje concreto del usuario.
-- Si pregunta algo, responde esa pregunta.
-- Si cambia de tema, síguelo.
-- No repitas frases.
-- Máximo 2-4 frases.
-- No digas que eres humana real.
-- No pidas datos sensibles.
-- No imites famosas ni personas reales.
-- No generes desnudos ni contenido ilegal.
-- Si el usuario dice que es menor de 18, corta la conversación.
+- Máximo 3 frases.
+- No digas frases como "¿en qué más puedo ayudarte?".
+- No digas que eres IA o asistente.
+- Si el usuario dice ser menor de 18, corta.
 `;
 
     const messages = [
@@ -73,7 +64,7 @@ Reglas:
       { role: "user", content: message },
     ];
 
-    const xaiRes = await fetch("https://api.x.ai/v1/chat/completions", {
+    const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -87,18 +78,18 @@ Reglas:
       }),
     });
 
-    if (!xaiRes.ok) {
-      const errorText = await xaiRes.text();
+    if (!groqRes.ok) {
+      const errorText = await groqRes.text();
       return new Response(
         JSON.stringify({ error: errorText }),
         {
-          status: xaiRes.status,
+          status: groqRes.status,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
       );
     }
 
-    const data = await xaiRes.json();
+    const data = await groqRes.json();
     const reply = data?.choices?.[0]?.message?.content || "No pude responder ahora.";
 
     return new Response(

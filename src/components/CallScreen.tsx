@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { getCustomization } from "@/lib/storage";
-import { getAiResponse, getFallbackResponse, isPuterReady, isPuterSignedIn, signInToPuter } from "@/lib/ai";
+import { getFallbackResponse } from "@/lib/ai";
+import { sendChatMessage } from "@/lib/chatClient";
 import {
   getConversationHistory,
   saveConversationHistory,
@@ -36,9 +37,6 @@ export default function CallScreen({ girl }: { girl: Girl }) {
   const [lastReply, setLastReply] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [thinking, setThinking] = useState(false);
-  const [puterSignedIn, setPuterSignedIn] = useState(false);
-  const [puterOk, setPuterOk] = useState(false);
-  const [authError, setAuthError] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -49,17 +47,6 @@ export default function CallScreen({ girl }: { girl: Girl }) {
       if (last) setLastReply(last.content);
     }
   }, [girl.id]);
-
-  useEffect(() => {
-    const check = () => {
-      setPuterOk(isPuterReady());
-      setPuterSignedIn(isPuterSignedIn());
-      if (isPuterSignedIn()) setAuthError(false);
-    };
-    check();
-    const interval = setInterval(check, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     if (showTextPanel && inputRef.current) {
@@ -84,18 +71,20 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     const memory = getUserMemory(girl.id);
     const summary = getConversationSummary(girl.id);
 
-    const girlInfo = {
-      id: girl.id,
-      name: girl.name,
-      style: girl.style,
-      personality: custom?.personality ?? girl.personality,
+    const payload = {
+      message: text,
+      girlId: girl.id,
+      girlName: girl.name,
+      girlStyle: girl.style,
+      girlPersonality: custom?.personality ?? girl.personality,
       customization: custom || {},
+      history: messages,
       memory,
       summary,
     };
 
     try {
-      const reply = await getAiResponse(text, messages, girlInfo);
+      const reply = await sendChatMessage(payload);
       const replyMessage: ChatMessage = { role: "assistant", content: reply };
       const updatedMsgs = [...messages, { role: "user" as const, content: text }, replyMessage];
       setMessages(updatedMsgs);
@@ -115,15 +104,9 @@ export default function CallScreen({ girl }: { girl: Girl }) {
         if (sum) saveConversationSummary(girl.id, sum);
       }
 
-      setAuthError(false);
       return reply;
     } catch (err: any) {
       console.warn("[Call] AI error:", err);
-      if (err.message === "auth_required") {
-        setAuthError(true);
-        signInToPuter();
-        return "Necesitas iniciar sesión gratis en Puter.";
-      }
       const fallback = getFallbackResponse(text);
       const replyMessage: ChatMessage = { role: "assistant", content: fallback };
       const updatedMsgs = [...messages, { role: "user" as const, content: text }, replyMessage];
@@ -185,11 +168,6 @@ export default function CallScreen({ girl }: { girl: Girl }) {
             &ldquo;{lastReply}&rdquo;
           </p>
         )}
-        {authError && (
-          <p className="mt-3 max-w-sm text-center text-sm text-yellow-400 animate-fadeUp">
-            IA gratuita disponible. Pulsa el botón y crea una cuenta gratis en Puter.
-          </p>
-        )}
         <p className="mt-3 text-xs text-muted">
           Personaje ficticio generado por IA
         </p>
@@ -231,15 +209,6 @@ export default function CallScreen({ girl }: { girl: Girl }) {
           >
             ⌨️
           </button>
-          {!puterSignedIn && puterOk && (
-            <button
-              onClick={() => signInToPuter()}
-              className="flex h-14 w-14 items-center justify-center rounded-full bg-green-500 hover:scale-105 active:scale-95 transition-all duration-200"
-              title="Conectar IA gratis"
-            >
-              🤖
-            </button>
-          )}
           <button
             onClick={hangUp}
             className="flex h-14 w-14 items-center justify-center rounded-full bg-red-500 hover:scale-105 active:scale-95 transition-all duration-200"

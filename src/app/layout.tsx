@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import AnimatedBackground from "@/components/AnimatedBackground";
-import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "LunaCall — Chica IA ficticia por chat y videollamada",
@@ -31,7 +30,6 @@ export default function RootLayout({
 })();
 `
         }} />
-        <Script src="https://js.puter.com/v2/" strategy="beforeInteractive" />
         <AnimatedBackground />
         {children}
       </body>
