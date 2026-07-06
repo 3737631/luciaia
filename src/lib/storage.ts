@@ -26,13 +26,12 @@ function writeJSON(key: string, value: unknown) {
 
 export function hasAgeAccepted(): boolean {
   if (!isBrowser()) return false;
-  return window.localStorage.getItem("lunacall_age_accepted") === "true";
+  return sessionStorage.getItem("lunacall_age_accepted") === "true";
 }
 
 export function setAgeAccepted() {
   if (!isBrowser()) return;
-  window.localStorage.setItem("lunacall_age_accepted", "true");
-  document.cookie = "lunacall_age_accepted=true; path=/; max-age=31536000";
+  sessionStorage.setItem("lunacall_age_accepted", "true");
 }
 
 export interface Customization {
