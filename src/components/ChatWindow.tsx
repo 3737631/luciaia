@@ -30,6 +30,8 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   const [typing, setTyping] = useState(false);
   const [blocked, setBlocked] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<"text" | "actions">("text");
+  const [showModePicker, setShowModePicker] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef(true);
 
@@ -42,6 +44,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         text: m.content,
       }));
       setMessages(msgs);
+      setShowModePicker(false);
     } else {
       setMessages([{ id: "welcome", from: "girl", text: `Hola, soy ${girl.name}. Qué bien que hayas entrado 🙂` }]);
     }
@@ -71,6 +74,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       history,
       memory,
       summary,
+      mode,
     };
 
     try {
@@ -155,6 +159,50 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     setBlocked(false);
   }
 
+  function renderText(text: string) {
+    if (mode !== "actions") return text;
+    const parts = text.split(/(\*[^*]+\*)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith("*") && part.endsWith("*")) {
+        return <span key={i} className="italic text-pink/80">{part.slice(1, -1)}</span>;
+      }
+      return part;
+    });
+  }
+
+  if (showModePicker) {
+    return (
+      <div className="mx-auto flex h-[calc(100vh-64px)] max-w-sm flex-col items-center justify-center gap-6 px-4">
+        <div className="text-center">
+          <Avatar
+            name={girl.id}
+            image={girl.image}
+            accentColor={girl.accentColor}
+            accentColorSecondary={girl.accentColorSecondary}
+            size={80}
+          />
+          <h2 className="mt-4 text-xl font-bold">{girl.name}</h2>
+          <p className="mt-1 text-sm text-muted">{girl.style} · {girl.personalityLabel}</p>
+        </div>
+        <p className="text-center text-sm text-muted">Elige cómo quieres chatear:</p>
+        <button
+          onClick={() => { setMode("text"); setShowModePicker(false); }}
+          className="w-full rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-left transition hover:bg-white/10"
+        >
+          <span className="text-lg font-semibold">Chat 💬</span>
+          <p className="mt-1 text-xs text-muted">Solo texto, conversación normal</p>
+        </button>
+        <button
+          onClick={() => { setMode("actions"); setShowModePicker(false); }}
+          className="w-full rounded-2xl border border-pink/30 bg-pink/5 px-6 py-4 text-left transition hover:bg-pink/10"
+        >
+          <span className="text-lg font-semibold">Roleplay 🎭</span>
+          <p className="mt-1 text-xs text-muted">Con acciones y gestos, *se acerca y te besa*</p>
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto flex h-[calc(100vh-64px)] max-w-2xl flex-col px-4 py-4">
       <div className="mb-3 flex items-center gap-3 rounded-xl2 card-surface px-4 py-3">
@@ -167,7 +215,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         />
         <div className="flex-1">
           <p className="font-semibold">{girl.name}</p>
-          <p className="text-xs text-green-400">● online</p>
+          <p className="text-xs text-green-400">● {mode === "actions" ? "Roleplay" : "Chat"}</p>
         </div>
         <button
           onClick={clearMemory}
@@ -182,7 +230,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         {messages.map((m) => (
           <div key={m.id} className={`flex animate-fadeUp ${m.from === "user" ? "justify-end" : "justify-start"}`}>
             <div className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ${m.from === "user" ? "gradient-btn text-white" : "bg-white/10 text-ink"}`}>
-              {m.text}
+              {renderText(m.text)}
             </div>
           </div>
         ))}

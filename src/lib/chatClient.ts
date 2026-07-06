@@ -10,6 +10,7 @@ interface ChatPayload {
   history: ChatMessage[];
   memory: string[];
   summary: string;
+  mode?: "text" | "actions";
 }
 
 export async function sendChatMessage(payload: ChatPayload): Promise<string> {
