@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Girl, minorBlockMessage } from "@/data/girls";
 import { getCustomization } from "@/lib/storage";
-import { getAiResponse, getFallbackResponse } from "@/lib/ai";
+import { getFallbackResponse } from "@/lib/ai";
+import { sendChatMessage } from "@/lib/chatClient";
 import {
   getConversationHistory,
   saveConversationHistory,
@@ -60,18 +61,20 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     const memory = getUserMemory(girl.id);
     const summary = getConversationSummary(girl.id);
 
-    const girlInfo = {
-      id: girl.id,
-      name: girl.name,
-      style: girl.style,
-      personality: custom?.personality ?? girl.personality,
+    const payload = {
+      message: text,
+      girlId: girl.id,
+      girlName: girl.name,
+      girlStyle: girl.style,
+      girlPersonality: custom?.personality ?? girl.personality,
       customization: custom || {},
+      history,
       memory,
       summary,
     };
 
     try {
-      const reply = await getAiResponse(text, history, girlInfo);
+      const reply = await sendChatMessage(payload);
       if (!mountedRef.current) return;
 
       const newMsgs = [
@@ -101,7 +104,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
 
       setError(null);
     } catch (err: any) {
-      console.warn("[Chat] AI error, using fallback:", err);
+      console.warn("[Chat] API error, using fallback:", err);
       if (!mountedRef.current) return;
 
       const fallback = getFallbackResponse(text);

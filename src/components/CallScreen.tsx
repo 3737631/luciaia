@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { getCustomization } from "@/lib/storage";
-import { getAiResponse, getFallbackResponse } from "@/lib/ai";
+import { getFallbackResponse } from "@/lib/ai";
+import { sendChatMessage } from "@/lib/chatClient";
 import {
   getConversationHistory,
   saveConversationHistory,
@@ -70,18 +71,20 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     const memory = getUserMemory(girl.id);
     const summary = getConversationSummary(girl.id);
 
-    const girlInfo = {
-      id: girl.id,
-      name: girl.name,
-      style: girl.style,
-      personality: custom?.personality ?? girl.personality,
+    const payload = {
+      message: text,
+      girlId: girl.id,
+      girlName: girl.name,
+      girlStyle: girl.style,
+      girlPersonality: custom?.personality ?? girl.personality,
       customization: custom || {},
+      history: messages,
       memory,
       summary,
     };
 
     try {
-      const reply = await getAiResponse(text, messages, girlInfo);
+      const reply = await sendChatMessage(payload);
       const replyMessage: ChatMessage = { role: "assistant", content: reply };
       const updatedMsgs = [...messages, { role: "user" as const, content: text }, replyMessage];
       setMessages(updatedMsgs);
@@ -103,7 +106,7 @@ export default function CallScreen({ girl }: { girl: Girl }) {
 
       return reply;
     } catch (err: any) {
-      console.warn("[Call] AI error, using fallback:", err);
+      console.warn("[Call] API error, using fallback:", err);
       const fallback = getFallbackResponse(text);
       const replyMessage: ChatMessage = { role: "assistant", content: fallback };
       const updatedMsgs = [...messages, { role: "user" as const, content: text }, replyMessage];
