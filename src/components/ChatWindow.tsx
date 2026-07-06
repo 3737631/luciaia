@@ -3,8 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Girl, minorBlockMessage } from "@/data/girls";
 import { getCustomization } from "@/lib/storage";
-import { getFallbackResponse } from "@/lib/ai";
-import { sendChatMessage } from "@/lib/chatClient";
+import { getAiResponse, getFallbackResponse, isPuterReady, isPuterSignedIn, signInToPuter } from "@/lib/ai";
 import {
   getConversationHistory,
   saveConversationHistory,
@@ -30,6 +29,8 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   const [typing, setTyping] = useState(false);
   const [blocked, setBlocked] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [puterOk, setPuterOk] = useState(false);
+  const [puterSignedIn, setPuterSignedIn] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef(true);
 
@@ -52,6 +53,24 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, typing]);
 
+  useEffect(() => {
+    const check = () => {
+      setPuterOk(isPuterReady());
+      setPuterSignedIn(isPuterSignedIn());
+    };
+    check();
+    const interval = setInterval(check, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (puterOk && !puterSignedIn) {
+      setError("IA gratuita disponible. Haz clic en 'Conectar IA' para empezar.");
+    } else if (puterSignedIn) {
+      setError(null);
+    }
+  }, [puterOk, puterSignedIn]);
+
   const history: ChatMessage[] = messages
     .filter((m) => m.id !== "welcome")
     .map((m) => ({ role: m.from === "user" ? "user" : "assistant", content: m.text }));
@@ -61,20 +80,18 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     const memory = getUserMemory(girl.id);
     const summary = getConversationSummary(girl.id);
 
-    const payload = {
-      message: text,
-      girlId: girl.id,
-      girlName: girl.name,
-      girlStyle: girl.style,
-      girlPersonality: custom?.personality ?? girl.personality,
+    const girlInfo = {
+      id: girl.id,
+      name: girl.name,
+      style: girl.style,
+      personality: custom?.personality ?? girl.personality,
       customization: custom || {},
-      history,
       memory,
       summary,
     };
 
     try {
-      const reply = await sendChatMessage(payload);
+      const reply = await getAiResponse(text, history, girlInfo);
       if (!mountedRef.current) return;
 
       const newMsgs = [
@@ -104,8 +121,14 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
 
       setError(null);
     } catch (err: any) {
-      console.warn("[Chat] API error, using fallback:", err);
+      console.warn("[Chat] AI error:", err);
       if (!mountedRef.current) return;
+
+      if (err.message === "auth_required") {
+        setError("Necesitas iniciar sesión gratis en Puter para usar la IA.");
+        signInToPuter();
+        return;
+      }
 
       const fallback = getFallbackResponse(text);
       setMessages((m) => [
@@ -219,6 +242,14 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         >
           Enviar
         </button>
+        {!puterSignedIn && puterOk && (
+          <button
+            onClick={() => signInToPuter()}
+            className="rounded-xl bg-green-500 px-5 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 active:scale-95"
+          >
+            Conectar IA
+          </button>
+        )}
       </div>
     </div>
   );
