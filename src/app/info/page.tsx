@@ -3,13 +3,13 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import NeonButton from "@/components/NeonButton";
 
-const advantages = [
-  "Sin registro",
-  "Sin anuncios",
-  "Entra desde el móvil",
-  "100% gratis",
-  "Personajes personalizables",
-  "Chat con IA real",
+const features = [
+  { icon: "✉️", title: "Sin registro", desc: "Empieza al momento sin crear cuenta." },
+  { icon: "🚫", title: "Sin anuncios", desc: "Experiencia limpia, sin interrupciones." },
+  { icon: "🎨", title: "Personalizable", desc: "Ajusta personalidad, tono y estilo." },
+  { icon: "💬", title: "Chat con IA", desc: "Respuestas naturales con contexto real." },
+  { icon: "🔞", title: "+18", desc: "Solo para mayores de edad." },
+  { icon: "🤖", title: "Personajes IA", desc: "Todos los personajes son generados por IA." },
 ];
 
 const steps = [
@@ -25,45 +25,41 @@ export default function InfoPage() {
       <Header />
       <main className="mx-auto max-w-6xl px-5">
         <section className="py-16 text-center">
-          <p className="mb-4 text-sm text-muted">
-            Personajes ficticios generados por IA. Solo +18.
-          </p>
           <h1 className="mx-auto max-w-2xl text-4xl font-extrabold leading-tight gradient-text sm:text-5xl">
-            Elige tu chica IA y habla en segundos
+            LunaCall
           </h1>
-          <p className="mx-auto mt-5 max-w-xl text-muted">
-            Chat con IA real y videollamada simulada. Sin registro. Sin anuncios. 100% gratis.
+          <p className="mx-auto mt-4 max-w-xl text-sm text-muted">
+            Habla con personajes IA en segundos. Elige una personalidad, personalízala y empieza a chatear.
+          </p>
+          <p className="mt-2 text-xs text-muted">
+            Personajes ficticios · +18 · Sin registro
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link href="/girls">
-              <NeonButton>Probar ahora</NeonButton>
-            </Link>
-            <Link href="/girls">
-              <NeonButton variant="secondary">Ver chicas IA</NeonButton>
+              <NeonButton>Empezar ahora</NeonButton>
             </Link>
           </div>
         </section>
 
-        <section className="grid grid-cols-1 gap-4 py-10 sm:grid-cols-2 lg:grid-cols-3">
-          {advantages.map((a) => (
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {features.map((f) => (
             <div
-              key={a}
-              className="rounded-xl2 card-surface p-5 text-center font-medium hover:-translate-y-1 hover:shadow-glowSm transition-all duration-200"
+              key={f.title}
+              className="rounded-2xl card-surface p-6 text-center hover:-translate-y-1 hover:shadow-glowSm transition-all duration-200"
             >
-              {a}
+              <span className="mb-3 inline-block text-2xl">{f.icon}</span>
+              <h3 className="mb-1 text-sm font-semibold">{f.title}</h3>
+              <p className="text-xs text-muted">{f.desc}</p>
             </div>
           ))}
         </section>
 
-        <section className="py-14">
+        <section className="py-16">
           <h2 className="mb-8 text-center text-2xl font-bold">Cómo funciona</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {steps.map((s, i) => (
-              <div
-                key={s}
-                className="rounded-xl2 card-surface p-5 text-center"
-              >
-                <div className="mx-auto mb-3 flex h-9 w-9 items-center justify-center rounded-full gradient-btn text-sm font-bold">
+              <div key={s} className="rounded-2xl card-surface p-6 text-center">
+                <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full gradient-btn text-sm font-bold">
                   {i + 1}
                 </div>
                 <p className="text-sm text-muted">{s}</p>
@@ -72,8 +68,8 @@ export default function InfoPage() {
           </div>
         </section>
 
-        <section className="py-14">
-          <div className="mx-auto max-w-2xl rounded-xl2 card-surface p-8 text-center shadow-glow">
+        <section className="py-16">
+          <div className="mx-auto max-w-2xl rounded-2xl card-surface p-8 text-center shadow-glow">
             <p className="mb-2 text-sm text-pink font-semibold">Demo gratuita</p>
             <p className="mb-4 text-4xl font-extrabold gradient-text">Sin límites</p>
             <p className="mb-6 text-sm text-muted">
