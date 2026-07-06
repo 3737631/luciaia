@@ -1,7 +1,9 @@
 import { HairOption, OutfitOption, BackgroundOption } from "@/data/girls";
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
 function assetPath(girlId: string, ...segments: string[]): string {
-  return `/luciaia/girls/${girlId}/${segments.join("/")}.jpg`;
+  return `${basePath}/girls/${girlId}/${segments.join("/")}.jpg`;
 }
 
 interface GirlDefaults {
