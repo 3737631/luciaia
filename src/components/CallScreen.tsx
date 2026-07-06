@@ -81,7 +81,7 @@ export default function CallScreen({ girl }: { girl: Girl }) {
       history: messages,
       memory,
       summary,
-      mode: "text",
+      mode: "text" as const,
     };
 
     try {
