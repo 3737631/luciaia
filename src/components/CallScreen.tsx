@@ -27,15 +27,15 @@ const backgroundGradients: Record<string, string> = {
   "car-night": "from-purple/30 via-pink/10 to-bg",
 };
 
-const voiceProfiles: Record<string, { pitch: number; rate: number; nameHint: string }> = {
-  luna:  { pitch: 1.15, rate: 0.95, nameHint: "luna" },
-  nia:   { pitch: 1.05, rate: 1.05, nameHint: "nia" },
-  vera:  { pitch: 0.9,  rate: 0.85, nameHint: "vera" },
-  alma:  { pitch: 1.1,  rate: 0.9,  nameHint: "alma" },
-  kira:  { pitch: 0.95, rate: 1.0,  nameHint: "kira" },
-  maya:  { pitch: 1.2,  rate: 1.1,  nameHint: "maya" },
-  sasha: { pitch: 0.85, rate: 0.9,  nameHint: "sasha" },
-  yuki:  { pitch: 1.25, rate: 0.85, nameHint: "yuki" },
+const voiceProfiles: Record<string, { basePitch: number; rate: number; nameHint: string }> = {
+  luna:  { basePitch: 1.3, rate: 0.9,  nameHint: "luna" },
+  nia:   { basePitch: 1.1, rate: 1.05, nameHint: "nia" },
+  vera:  { basePitch: 0.85, rate: 0.85, nameHint: "vera" },
+  alma:  { basePitch: 1.15, rate: 0.9,  nameHint: "alma" },
+  kira:  { basePitch: 1.0,  rate: 1.0,  nameHint: "kira" },
+  maya:  { basePitch: 1.25, rate: 1.1,  nameHint: "maya" },
+  sasha: { basePitch: 0.8,  rate: 0.85, nameHint: "sasha" },
+  yuki:  { basePitch: 1.4,  rate: 0.8,  nameHint: "yuki" },
 };
 
 const SILENCE_TIMEOUT_MS = 1500;
@@ -56,7 +56,6 @@ export default function CallScreen({ girl }: { girl: Girl }) {
   const [showTextPanel, setShowTextPanel] = useState(false);
   const [textInput, setTextInput] = useState("");
   const [micError, setMicError] = useState<string | null>(null);
-  const [voiceReady, setVoiceReady] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
@@ -67,6 +66,7 @@ export default function CallScreen({ girl }: { girl: Girl }) {
   const mountedRef = useRef(true);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
+  const voiceIndexRef = useRef(0);
 
   const SpeechRecognition =
     (typeof window !== "undefined") &&
@@ -80,7 +80,6 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
     const loadVoices = () => {
       voicesRef.current = window.speechSynthesis.getVoices();
-      if (voicesRef.current.length > 0) setVoiceReady(true);
     };
     loadVoices();
     window.speechSynthesis.onvoiceschanged = loadVoices;
@@ -92,22 +91,25 @@ export default function CallScreen({ girl }: { girl: Girl }) {
 
     const profile = voiceProfiles[girl.id];
 
-    const preferred = voices.find((v) => {
-      const name = v.name.toLowerCase();
-      return v.lang.startsWith("es") && name.includes(profile.nameHint);
+    const exact = voices.find((v) => {
+      const n = v.name.toLowerCase();
+      return v.lang.startsWith("es") && n.includes(profile.nameHint);
     });
-    if (preferred) return preferred;
+    if (exact) return exact;
 
-    const naturalVoices = voices.filter((v) =>
-      v.lang.startsWith("es") && (v.name.toLowerCase().includes("natural") || v.name.includes("Neural") || v.name.includes("Premium"))
+    const natural = voices.filter((v) =>
+      v.lang.startsWith("es") && (v.name.toLowerCase().includes("natural") || v.name.includes("Neural") || v.name.includes("Premium") || v.name.includes("onnXML") || v.name.includes("Desktop"))
     );
-    if (naturalVoices.length > 0) return naturalVoices[0];
+    if (natural.length > 0) return natural[0];
 
-    const microsoft = voices.filter((v) => v.lang.startsWith("es") && v.name.toLowerCase().includes("microsoft"));
-    if (microsoft.length > 0) return microsoft[0];
+    const msft = voices.filter((v) => v.lang.startsWith("es") && (v.name.toLowerCase().includes("microsoft") || v.name.includes("Sabina") || v.name.includes("Helena") || v.name.includes("Teresa")));
+    if (msft.length > 0) return msft[0];
 
     const google = voices.filter((v) => v.lang.startsWith("es") && v.name.toLowerCase().includes("google"));
-    if (google.length > 0) return google[Math.floor(Math.random() * google.length)];
+    if (google.length > 0) return google[0];
+
+    const female = voices.filter((v) => v.lang.startsWith("es") && (v.name.toLowerCase().includes("female") || v.name.includes("Zira")));
+    if (female.length > 0) return female[0];
 
     return voices.find((v) => v.lang.startsWith("es")) || null;
   }
@@ -123,15 +125,92 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     const profile = voiceProfiles[girl.id] || voiceProfiles.luna;
 
     if (voice) utterance.voice = voice;
-    utterance.pitch = profile.pitch;
-    utterance.rate = profile.rate;
+    utterance.pitch = profile.basePitch + (Math.random() * 0.15 - 0.075);
+    utterance.rate = profile.rate + (Math.random() * 0.06 - 0.03);
 
     setTalking(true);
     utterance.onend = () => {
       setTalking(false);
-      setStatusText("Escuchando...");
+      if (mountedRef.current && SpeechRecognition && !recognitionRef.current) {
+        startMicInternal();
+      }
     };
     window.speechSynthesis.speak(utterance);
+  }
+
+  function startMicInternal() {
+    if (!SpeechRecognition || recognitionRef.current) return;
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.lang = "es-ES";
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognitionRef.current = recognition;
+
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
+        if (isProcessingRef.current || talking) return;
+        let interim = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            finalTranscriptRef.current += event.results[i][0].transcript + " ";
+          } else {
+            interim += event.results[i][0].transcript;
+          }
+        }
+        setInterimText(interim);
+        if (interim || finalTranscriptRef.current.trim()) {
+          resetSilenceTimer();
+        }
+      };
+
+      recognition.onerror = (err: SpeechRecognitionErrorEvent) => {
+        setListening(false);
+        if (err.error === "not-allowed") {
+          setMicError("Bloqueado. Permite el micrófono en el sitio");
+          setStatusText("Micrófono bloqueado");
+        } else if (err.error === "no-speech") {
+          setMicError("No se detecta voz. ¿Hablaste?");
+        } else if (err.error === "aborted") {
+        } else {
+          setMicError("Error de micrófono");
+          setStatusText("Micrófono no disponible");
+        }
+      };
+
+      recognition.onstart = () => {
+        setListening(true);
+        setStatusText("Escuchando...");
+        setMicError(null);
+      };
+
+      recognition.onend = () => {
+        setListening(false);
+        if (mountedRef.current && !isProcessingRef.current) {
+          try {
+            const r = new SpeechRecognition();
+            r.lang = "es-ES";
+            r.continuous = true;
+            r.interimResults = true;
+            recognitionRef.current = r;
+            r.onresult = recognition.onresult;
+            r.onerror = recognition.onerror;
+            r.onstart = recognition.onstart;
+            r.onend = recognition.onend;
+            r.start();
+          } catch {}
+        }
+      };
+
+      recognition.start();
+      return true;
+    } catch (e: any) {
+      if (e.name === "NotAllowedError" || e.name === "SecurityError") {
+        setMicError("Bloqueado. Permite el micrófono en el sitio");
+      } else {
+        setMicError("Error al iniciar micrófono");
+      }
+      return false;
+    }
   }
 
   function resetSilenceTimer() {
@@ -152,84 +231,9 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     }, SILENCE_TIMEOUT_MS);
   }
 
-  async function startMic() {
-    if (!SpeechRecognition) {
-      setMicError("Este navegador no soporta reconocimiento de voz");
-      return;
-    }
-    setMicError(null);
-    setStatusText("Solicitando micrófono...");
-
-    let stream: MediaStream | null = null;
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch {
-      setMicError("Permiso denegado. Actívalo en la configuración del navegador");
-      setStatusText("Micrófono bloqueado");
-      return;
-    }
-    stream.getTracks().forEach((t) => t.stop());
-
-    const recognition = new SpeechRecognition();
-    recognition.lang = "es-ES";
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognitionRef.current = recognition;
-
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
-      if (isProcessingRef.current || talking) return;
-      let interim = "";
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        if (event.results[i].isFinal) {
-          finalTranscriptRef.current += event.results[i][0].transcript + " ";
-        } else {
-          interim += event.results[i][0].transcript;
-        }
-      }
-      setInterimText(interim);
-      if (interim || finalTranscriptRef.current.trim()) {
-        resetSilenceTimer();
-      }
-    };
-
-    recognition.onerror = (err: SpeechRecognitionErrorEvent) => {
-      setListening(false);
-      if (err.error === "not-allowed") {
-        setMicError("Permiso denegado. Actívalo en la configuración del navegador");
-        setStatusText("Micrófono bloqueado");
-      } else if (err.error === "no-speech") {
-        setMicError("No se detectó voz. Habla más alto o cerca del micrófono");
-      } else if (err.error === "audio-capture") {
-        setMicError("No se encontró micrófono. Conecta uno e inténtalo de nuevo");
-      } else {
-        setMicError("Error del micrófono: " + err.error);
-        setStatusText("Micrófono no disponible");
-      }
-    };
-
-    recognition.onstart = () => {
-      setListening(true);
-      setStatusText("Escuchando...");
-      setMicError(null);
-    };
-
-    recognition.onend = () => {
-      setListening(false);
-      if (mountedRef.current && !isProcessingRef.current) {
-        try { recognition.start(); } catch {}
-      }
-    };
-
-    try {
-      recognition.start();
-    } catch {
-      setMicError("No se pudo iniciar el micrófono");
-    }
-  }
-
   function stopMic() {
     if (recognitionRef.current) {
-      recognitionRef.current.stop();
+      try { recognitionRef.current.abort(); } catch {}
       recognitionRef.current = null;
     }
     if (silenceTimerRef.current) {
@@ -244,16 +248,13 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     setConnected(true);
     setStatusText("Conectando...");
 
-    setTimeout(() => {
-      const welcome = `Hola, soy ${girl.name}. ¿Cómo estás?`;
-      const welcomeMsg: ChatMessage = { role: "assistant", content: welcome };
-      setMessages([welcomeMsg]);
-      speak(welcome);
+    const welcome = `Hola, soy ${girl.name}. ¿Cómo estás?`;
+    const welcomeMsg: ChatMessage = { role: "assistant", content: welcome };
+    setMessages([welcomeMsg]);
 
-      setTimeout(() => {
-        startMic();
-      }, 2000);
-    }, 500);
+    setTimeout(() => {
+      speak(welcome);
+    }, 300);
 
     timerRef.current = setInterval(() => {
       setCallDuration((d) => d + 1);
@@ -431,12 +432,12 @@ export default function CallScreen({ girl }: { girl: Girl }) {
           animated
           talking={talking}
         />
-        {micError && (
+        {micError && !listening && (
           <button
-            onClick={startMic}
+            onClick={startMicInternal}
             className="mt-4 rounded-xl bg-white/10 px-5 py-2.5 text-xs text-muted hover:bg-white/20 transition-all"
           >
-            {micError} — Toca para reintentar
+            {micError} — Toca para reactivar
           </button>
         )}
         {interimText && listening && (
@@ -476,16 +477,15 @@ export default function CallScreen({ girl }: { girl: Girl }) {
           </div>
         )}
         <div className="flex items-center justify-center gap-4">
-          {!listening && !micError && (
+          {!listening ? (
             <button
-              onClick={startMic}
+              onClick={startMicInternal}
               className="flex h-14 w-14 items-center justify-center rounded-full card-surface hover:scale-105 active:scale-95 transition-all duration-200"
               title="Activar micrófono"
             >
               🎙️
             </button>
-          )}
-          {listening && (
+          ) : (
             <button
               onClick={stopMic}
               className="flex h-14 w-14 items-center justify-center rounded-full bg-green-500 shadow-lg shadow-green-500/50 hover:scale-105 active:scale-95 transition-all duration-200"
@@ -510,10 +510,10 @@ export default function CallScreen({ girl }: { girl: Girl }) {
           </button>
         </div>
         <p className="mt-3 text-center text-xs text-muted">
-          {micError ? "Usa el teclado o activa el micrófono" :
+          {micError && !listening ? "Usa el teclado o reactiva el micrófono" :
            thinking ? "La IA está pensando..." :
            talking ? `${girl.name} está hablando...` :
-           listening ? "Habla con naturalidad, ella te escucha" :
+           listening ? "Te escucho, habla con naturalidad" :
            "Llamada en curso"}
         </p>
       </div>
