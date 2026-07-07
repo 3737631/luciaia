@@ -14,13 +14,14 @@ jobs:
       - run: supabase link --project-ref ${{ vars.SUPABASE_PROJECT_REF }}
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      - run: supabase functions deploy chat --no-verify-jwt
+      - run: supabase functions deploy --no-verify-jwt
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
       - name: Set function secrets
         run: |
           supabase secrets set OPENROUTER_API_KEY="${{ secrets.OPENROUTER_API_KEY }}"
+          supabase secrets set HUGGINGFACE_TOKEN="${{ secrets.HF_TOKEN }}"
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 

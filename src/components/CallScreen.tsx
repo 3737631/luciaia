@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { getCustomization } from "@/lib/storage";
 import { getFallbackResponse } from "@/lib/ai";
 import { sendChatMessage } from "@/lib/chatClient";
+import { sttAudio } from "@/lib/voiceClient";
 import {
   getConversationHistory,
   saveConversationHistory,
@@ -27,96 +28,101 @@ const backgroundGradients: Record<string, string> = {
   "car-night": "from-purple/30 via-pink/10 to-bg",
 };
 
-const voiceProfiles: Record<string, { basePitch: number; rate: number; nameHint: string }> = {
-  luna:  { basePitch: 1.3, rate: 0.9,  nameHint: "luna" },
-  nia:   { basePitch: 1.1, rate: 1.05, nameHint: "nia" },
-  vera:  { basePitch: 0.85, rate: 0.85, nameHint: "vera" },
-  alma:  { basePitch: 1.15, rate: 0.9,  nameHint: "alma" },
-  kira:  { basePitch: 1.0,  rate: 1.0,  nameHint: "kira" },
-  maya:  { basePitch: 1.25, rate: 1.1,  nameHint: "maya" },
-  sasha: { basePitch: 0.8,  rate: 0.85, nameHint: "sasha" },
-  yuki:  { basePitch: 1.4,  rate: 0.8,  nameHint: "yuki" },
+const voiceProfiles: Record<string, { pitch: number; rate: number }> = {
+  luna:  { pitch: 1.15, rate: 0.92 },
+  nia:   { pitch: 1.05, rate: 1.05 },
+  vera:  { pitch: 0.88, rate: 0.85 },
+  alma:  { pitch: 1.1,  rate: 0.9 },
+  kira:  { pitch: 0.95, rate: 1.0 },
+  maya:  { pitch: 1.2,  rate: 1.08 },
+  sasha: { pitch: 0.82, rate: 0.88 },
+  yuki:  { pitch: 1.3,  rate: 0.82 },
 };
 
-const SILENCE_TIMEOUT_MS = 1500;
+type CallState = "ringing" | "connecting" | "connected";
+
+const SILENCE_MS = 2000;
 
 export default function CallScreen({ girl }: { girl: Girl }) {
   const custom = getCustomization(girl.id);
   const background = custom?.background ?? girl.defaultBackground;
 
-  const [connected, setConnected] = useState(false);
+  const [callState, setCallState] = useState<CallState>("ringing");
   const [talking, setTalking] = useState(false);
-  const [listening, setListening] = useState(false);
   const [thinking, setThinking] = useState(false);
   const [lastReply, setLastReply] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [callDuration, setCallDuration] = useState(0);
-  const [statusText, setStatusText] = useState("Llamada entrante...");
+  const [statusText, setStatusText] = useState("");
   const [interimText, setInterimText] = useState("");
   const [showTextPanel, setShowTextPanel] = useState(false);
   const [textInput, setTextInput] = useState("");
   const [micError, setMicError] = useState<string | null>(null);
+  const [micActive, setMicActive] = useState(false);
+  const [voicesReady, setVoicesReady] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
   const doAIRef = useRef<((text: string) => Promise<string | undefined>) | null>(null);
-  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const finalTranscriptRef = useRef("");
-  const isProcessingRef = useRef(false);
   const mountedRef = useRef(true);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const isProcessingRef = useRef(false);
   const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
-  const voiceIndexRef = useRef(0);
-
-  const SpeechRecognition =
-    (typeof window !== "undefined") &&
-    ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
+  const lastAudioEndRef = useRef<number>(0);
+  const audioPlaybackRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    return () => { mountedRef.current = false; };
+    return () => {
+      mountedRef.current = false;
+      cleanupMic();
+      if (audioPlaybackRef.current) {
+        audioPlaybackRef.current.pause();
+        audioPlaybackRef.current = null;
+      }
+    };
   }, []);
 
   useEffect(() => {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
-    const loadVoices = () => {
+    const load = () => {
       voicesRef.current = window.speechSynthesis.getVoices();
+      if (voicesRef.current.length > 0) setVoicesReady(true);
     };
-    loadVoices();
-    window.speechSynthesis.onvoiceschanged = loadVoices;
+    load();
+    window.speechSynthesis.onvoiceschanged = load;
   }, []);
+
+  useEffect(() => {
+    if (showTextPanel && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [showTextPanel]);
 
   function findBestVoice(): SpeechSynthesisVoice | null {
     const voices = voicesRef.current;
     if (!voices.length) return null;
 
-    const profile = voiceProfiles[girl.id];
+    const es = voices.filter((v) => v.lang.startsWith("es"));
 
-    const exact = voices.find((v) => {
-      const n = v.name.toLowerCase();
-      return v.lang.startsWith("es") && n.includes(profile.nameHint);
-    });
-    if (exact) return exact;
-
-    const natural = voices.filter((v) =>
-      v.lang.startsWith("es") && (v.name.toLowerCase().includes("natural") || v.name.includes("Neural") || v.name.includes("Premium") || v.name.includes("onnXML") || v.name.includes("Desktop"))
+    const natural = es.find((v) =>
+      ["natural", "neural", "premium", "sabina", "helena", "teresa", "desktop"]
+        .some((k) => v.name.toLowerCase().includes(k))
     );
-    if (natural.length > 0) return natural[0];
+    if (natural) return natural;
 
-    const msft = voices.filter((v) => v.lang.startsWith("es") && (v.name.toLowerCase().includes("microsoft") || v.name.includes("Sabina") || v.name.includes("Helena") || v.name.includes("Teresa")));
-    if (msft.length > 0) return msft[0];
+    const msft = es.find((v) => v.name.toLowerCase().includes("microsoft"));
+    if (msft) return msft;
 
-    const google = voices.filter((v) => v.lang.startsWith("es") && v.name.toLowerCase().includes("google"));
-    if (google.length > 0) return google[0];
+    const google = es.find((v) => v.name.toLowerCase().includes("google"));
+    if (google) return google;
 
-    const female = voices.filter((v) => v.lang.startsWith("es") && (v.name.toLowerCase().includes("female") || v.name.includes("Zira")));
-    if (female.length > 0) return female[0];
-
-    return voices.find((v) => v.lang.startsWith("es")) || null;
+    return es[0] || null;
   }
 
-  function speak(text: string) {
-    setLastReply(text);
-    setStatusText("Hablando...");
+  function speakBrowser(text: string) {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
     window.speechSynthesis.cancel();
 
@@ -125,147 +131,178 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     const profile = voiceProfiles[girl.id] || voiceProfiles.luna;
 
     if (voice) utterance.voice = voice;
-    utterance.pitch = profile.basePitch + (Math.random() * 0.15 - 0.075);
-    utterance.rate = profile.rate + (Math.random() * 0.06 - 0.03);
+    utterance.pitch = profile.pitch + (Math.random() * 0.1 - 0.05);
+    utterance.rate = profile.rate;
+    utterance.volume = 1;
 
     setTalking(true);
     utterance.onend = () => {
       setTalking(false);
-      if (mountedRef.current && SpeechRecognition && !recognitionRef.current) {
-        startMicInternal();
-      }
+      setStatusText(micActive ? "Te escucho" : "");
     };
     window.speechSynthesis.speak(utterance);
   }
 
-  function startMicInternal() {
-    if (!SpeechRecognition || recognitionRef.current) return;
+  function speakViaAudio(text: string) {
+    if (audioPlaybackRef.current) {
+      audioPlaybackRef.current.pause();
+      audioPlaybackRef.current = null;
+    }
+
+    setTalking(true);
+    setStatusText("Hablando...");
+
+    import("@/lib/voiceClient").then(({ ttsText }) => {
+      ttsText(text).then(({ audio, contentType }) => {
+        if (!mountedRef.current) return;
+        const audioSrc = `data:${contentType};base64,${audio}`;
+        const el = new Audio(audioSrc);
+        audioPlaybackRef.current = el;
+        el.onended = () => {
+          setTalking(false);
+          setStatusText(micActive ? "Te escucho" : "");
+          audioPlaybackRef.current = null;
+        };
+        el.onerror = () => {
+          speakBrowser(text);
+        };
+        el.play().catch(() => speakBrowser(text));
+      }).catch(() => speakBrowser(text));
+    }).catch(() => speakBrowser(text));
+  }
+
+  function speak(text: string) {
+    setLastReply(text);
+    speakViaAudio(text);
+  }
+
+  async function requestMic(): Promise<MediaStream | null> {
     try {
-      const recognition = new SpeechRecognition();
-      recognition.lang = "es-ES";
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognitionRef.current = recognition;
-
-      recognition.onresult = (event: SpeechRecognitionEvent) => {
-        if (isProcessingRef.current || talking) return;
-        let interim = "";
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          if (event.results[i].isFinal) {
-            finalTranscriptRef.current += event.results[i][0].transcript + " ";
-          } else {
-            interim += event.results[i][0].transcript;
-          }
-        }
-        setInterimText(interim);
-        if (interim || finalTranscriptRef.current.trim()) {
-          resetSilenceTimer();
-        }
-      };
-
-      recognition.onerror = (err: SpeechRecognitionErrorEvent) => {
-        setListening(false);
-        if (err.error === "not-allowed") {
-          setMicError("Bloqueado. Permite el micrófono en el sitio");
-          setStatusText("Micrófono bloqueado");
-        } else if (err.error === "no-speech") {
-          setMicError("No se detecta voz. ¿Hablaste?");
-        } else if (err.error === "aborted") {
-        } else {
-          setMicError("Error de micrófono");
-          setStatusText("Micrófono no disponible");
-        }
-      };
-
-      recognition.onstart = () => {
-        setListening(true);
-        setStatusText("Escuchando...");
-        setMicError(null);
-      };
-
-      recognition.onend = () => {
-        setListening(false);
-        if (mountedRef.current && !isProcessingRef.current) {
-          try {
-            const r = new SpeechRecognition();
-            r.lang = "es-ES";
-            r.continuous = true;
-            r.interimResults = true;
-            recognitionRef.current = r;
-            r.onresult = recognition.onresult;
-            r.onerror = recognition.onerror;
-            r.onstart = recognition.onstart;
-            r.onend = recognition.onend;
-            r.start();
-          } catch {}
-        }
-      };
-
-      recognition.start();
-      return true;
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: 16000,
+        },
+      });
+      return stream;
     } catch (e: any) {
-      if (e.name === "NotAllowedError" || e.name === "SecurityError") {
-        setMicError("Bloqueado. Permite el micrófono en el sitio");
+      if (e.name === "NotAllowedError" || e.name === "PermissionDeniedError") {
+        setMicError("Permiso denegado. Permite el micrófono en el navegador");
+      } else if (e.name === "NotFoundError") {
+        setMicError("No se encontró micrófono. Conecta uno");
       } else {
-        setMicError("Error al iniciar micrófono");
+        setMicError("Error al acceder al micrófono");
       }
-      return false;
+      return null;
     }
   }
 
-  function resetSilenceTimer() {
-    if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-    silenceTimerRef.current = setTimeout(() => {
-      const text = finalTranscriptRef.current.trim();
-      if (text && !isProcessingRef.current && mountedRef.current) {
-        isProcessingRef.current = true;
-        finalTranscriptRef.current = "";
-        setInterimText("");
-        setThinking(true);
-        setStatusText("Pensando...");
-        doAIRef.current?.(text).finally(() => {
-          isProcessingRef.current = false;
-          setThinking(false);
-        });
-      }
-    }, SILENCE_TIMEOUT_MS);
-  }
-
-  function stopMic() {
-    if (recognitionRef.current) {
-      try { recognitionRef.current.abort(); } catch {}
-      recognitionRef.current = null;
+  function cleanupMic() {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      mediaRecorderRef.current.stop();
+    }
+    mediaRecorderRef.current = null;
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
     }
     if (silenceTimerRef.current) {
       clearTimeout(silenceTimerRef.current);
       silenceTimerRef.current = null;
     }
-    setListening(false);
+    audioChunksRef.current = [];
+    setMicActive(false);
     setInterimText("");
   }
 
-  function answerCall() {
-    setConnected(true);
-    setStatusText("Conectando...");
+  function startMicFromClick() {
+    if (isProcessingRef.current) return;
+    setMicError(null);
+    setStatusText("Conectando micrófono...");
 
-    const welcome = `Hola, soy ${girl.name}. ¿Cómo estás?`;
-    const welcomeMsg: ChatMessage = { role: "assistant", content: welcome };
-    setMessages([welcomeMsg]);
+    requestMic().then((stream) => {
+      if (!stream || !mountedRef.current) return;
+      streamRef.current = stream;
+      setMicActive(true);
+      setStatusText("Te escucho");
+      setMicError(null);
 
-    setTimeout(() => {
-      speak(welcome);
-    }, 300);
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm")
+        ? "audio/webm"
+        : MediaRecorder.isTypeSupported("audio/mp4")
+        ? "audio/mp4"
+        : "audio/webm;codecs=opus";
 
-    timerRef.current = setInterval(() => {
-      setCallDuration((d) => d + 1);
-    }, 1000);
+      const recorder = new MediaRecorder(stream, { mimeType });
+      mediaRecorderRef.current = recorder;
+      audioChunksRef.current = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+
+      recorder.onstop = async () => {
+        if (audioChunksRef.current.length === 0 || !mountedRef.current) return;
+        const blob = new Blob(audioChunksRef.current, { type: mimeType });
+        audioChunksRef.current = [];
+
+        if (isProcessingRef.current) return;
+        isProcessingRef.current = true;
+        setThinking(true);
+        setStatusText("Procesando...");
+
+        try {
+          const text = await sttAudio(blob);
+          if (text.trim() && mountedRef.current) {
+            setInterimText("");
+            setStatusText("Pensando...");
+            await doAIRef.current?.(text);
+          }
+        } catch {
+          setMicError("No se pudo transcribir. Escribe mejor");
+        }
+
+        isProcessingRef.current = false;
+        setThinking(false);
+
+        if (mountedRef.current && streamRef.current) {
+          try {
+            const r = new MediaRecorder(streamRef.current, { mimeType });
+            mediaRecorderRef.current = r;
+            audioChunksRef.current = [];
+            r.ondataavailable = recorder.ondataavailable;
+            r.onstop = recorder.onstop;
+            r.start();
+            silenceTimerRef.current = setTimeout(() => {
+              if (r.state === "recording") r.stop();
+            }, SILENCE_MS);
+          } catch {}
+        }
+      };
+
+      recorder.start();
+      silenceTimerRef.current = setTimeout(() => {
+        if (recorder.state === "recording") recorder.stop();
+      }, SILENCE_MS);
+
+      setInterval(() => {
+        if (recorder.state === "recording") {
+          recorder.stop();
+        }
+      }, SILENCE_MS);
+    });
   }
 
   useEffect(() => {
-    if (showTextPanel && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [showTextPanel]);
+    if (!micActive || !mediaRecorderRef.current) return;
+    const interval = setInterval(() => {
+      if (mediaRecorderRef.current?.state === "recording") {
+        mediaRecorderRef.current.stop();
+      }
+    }, SILENCE_MS);
+    return () => clearInterval(interval);
+  }, [micActive]);
 
   const doAI = useCallback(async (text: string) => {
     const currentHistory = getConversationHistory(girl.id);
@@ -332,9 +369,25 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     setThinking(false);
   }
 
+  function answerCall() {
+    setCallState("connecting");
+    setStatusText("Conectando...");
+    setTimeout(() => {
+      setCallState("connected");
+      const welcome = `Hola, soy ${girl.name}. ¿Cómo estás?`;
+      const welcomeMsg: ChatMessage = { role: "assistant", content: welcome };
+      setMessages([welcomeMsg]);
+      speak(welcome);
+      timerRef.current = setInterval(() => {
+        setCallDuration((d) => d + 1);
+      }, 1000);
+    }, 1500);
+  }
+
   function hangUp() {
-    stopMic();
+    cleanupMic();
     if (timerRef.current) clearInterval(timerRef.current);
+    setCallState("ringing");
     if (typeof window !== "undefined" && window.speechSynthesis) {
       window.speechSynthesis.cancel();
     }
@@ -355,7 +408,7 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   }
 
-  if (!connected) {
+  if (callState === "ringing" || callState === "connecting") {
     return (
       <div className={`relative flex min-h-screen flex-col items-center justify-center bg-gradient-to-b ${backgroundGradients[background]} px-5`}>
         <div className="flex flex-col items-center animate-fadeUp">
@@ -370,29 +423,43 @@ export default function CallScreen({ girl }: { girl: Girl }) {
               size={160}
               animated
             />
-            <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-green-500 text-xs shadow-lg shadow-green-500/50 animate-pulse">
-              <span className="h-2 w-2 rounded-full bg-white" />
-            </span>
+            {callState === "ringing" && (
+              <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-green-500 text-xs shadow-lg shadow-green-500/50 animate-pulse">
+                <span className="h-2 w-2 rounded-full bg-white" />
+              </span>
+            )}
           </div>
           <h2 className="text-2xl font-bold">{girl.name}</h2>
           <p className="mt-1 text-sm text-muted">{girl.style}</p>
-          <p className="mt-6 text-xs text-muted animate-pulse">Llamada entrante...</p>
-          <div className="mt-8 flex gap-4">
-            <button
-              onClick={hangUp}
-              className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500 hover:scale-105 active:scale-95 transition-all duration-200 shadow-lg shadow-red-500/30"
-              title="Rechazar"
-            >
-              📞
-            </button>
-            <button
-              onClick={answerCall}
-              className="flex h-16 w-16 items-center justify-center rounded-full bg-green-500 hover:scale-105 active:scale-95 transition-all duration-200 shadow-lg shadow-green-500/30 animate-float"
-              title="Contestar"
-            >
-              <span className="text-2xl">📞</span>
-            </button>
-          </div>
+          <p className="mt-6 text-xs text-muted animate-pulse">
+            {callState === "ringing" ? "Llamando..." : "Conectando..."}
+          </p>
+          {callState === "ringing" && (
+            <div className="mt-8 flex gap-4">
+              <button
+                onClick={hangUp}
+                className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500 hover:scale-105 active:scale-95 transition-all duration-200 shadow-lg shadow-red-500/30"
+                title="Rechazar"
+              >
+                <span className="text-2xl">📞</span>
+              </button>
+              <button
+                onClick={answerCall}
+                className="flex h-16 w-16 items-center justify-center rounded-full bg-green-500 hover:scale-105 active:scale-95 transition-all duration-200 shadow-lg shadow-green-500/30 animate-float"
+                title="Contestar"
+              >
+                <span className="text-2xl">📞</span>
+              </button>
+            </div>
+          )}
+          {callState === "connecting" && (
+            <div className="mt-8">
+              <div className="flex items-center gap-3 text-sm text-muted">
+                <span className="inline-block h-2 w-2 rounded-full bg-pink animate-pulse" />
+                Conectando con {girl.name}...
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -406,14 +473,13 @@ export default function CallScreen({ girl }: { girl: Girl }) {
           <p className="text-xs text-muted">{formatDuration(callDuration)}</p>
         </div>
         <div className="flex items-center gap-3">
-          <span className={`flex items-center gap-1.5 text-xs ${talking ? "text-green-400" : listening ? "text-pink" : "text-muted"}`}>
-            <span className={`inline-block h-2 w-2 rounded-full ${talking ? "bg-green-400 animate-pulse" : listening ? "bg-pink animate-pulse" : "bg-muted"}`} />
-            {statusText}
+          <span className={`flex items-center gap-1.5 text-xs ${talking ? "text-green-400" : micActive ? "text-pink" : "text-muted"}`}>
+            <span className={`inline-block h-2 w-2 rounded-full ${talking ? "bg-green-400 animate-pulse" : micActive ? "bg-pink animate-pulse" : "bg-muted"}`} />
+            {statusText || "En llamada"}
           </span>
           <button
             onClick={clearMemory}
             className="rounded-lg bg-white/10 px-3 py-1.5 text-xs text-muted hover:bg-white/20"
-            title="Borrar memoria de esta chica"
           >
             Borrar memoria
           </button>
@@ -432,20 +498,20 @@ export default function CallScreen({ girl }: { girl: Girl }) {
           animated
           talking={talking}
         />
-        {micError && !listening && (
+        {micError && !micActive && (
           <button
-            onClick={startMicInternal}
+            onClick={startMicFromClick}
             className="mt-4 rounded-xl bg-white/10 px-5 py-2.5 text-xs text-muted hover:bg-white/20 transition-all"
           >
-            {micError} — Toca para reactivar
+            {micError} — Toca para activar
           </button>
         )}
-        {interimText && listening && (
+        {interimText && (
           <p className="mt-6 max-w-sm text-center text-sm text-ink/60 animate-fadeUp italic">
             {interimText}
           </p>
         )}
-        {lastReply && !interimText && (
+        {lastReply && (
           <p className="mt-6 max-w-sm text-center text-sm text-muted animate-fadeUp">
             &ldquo;{lastReply}&rdquo;
           </p>
@@ -477,9 +543,9 @@ export default function CallScreen({ girl }: { girl: Girl }) {
           </div>
         )}
         <div className="flex items-center justify-center gap-4">
-          {!listening ? (
+          {!micActive ? (
             <button
-              onClick={startMicInternal}
+              onClick={startMicFromClick}
               className="flex h-14 w-14 items-center justify-center rounded-full card-surface hover:scale-105 active:scale-95 transition-all duration-200"
               title="Activar micrófono"
             >
@@ -487,7 +553,7 @@ export default function CallScreen({ girl }: { girl: Girl }) {
             </button>
           ) : (
             <button
-              onClick={stopMic}
+              onClick={cleanupMic}
               className="flex h-14 w-14 items-center justify-center rounded-full bg-green-500 shadow-lg shadow-green-500/50 hover:scale-105 active:scale-95 transition-all duration-200"
               title="Desactivar micrófono"
             >
@@ -510,10 +576,10 @@ export default function CallScreen({ girl }: { girl: Girl }) {
           </button>
         </div>
         <p className="mt-3 text-center text-xs text-muted">
-          {micError && !listening ? "Usa el teclado o reactiva el micrófono" :
-           thinking ? "La IA está pensando..." :
-           talking ? `${girl.name} está hablando...` :
-           listening ? "Te escucho, habla con naturalidad" :
+          {thinking ? "Pensando..." :
+           talking ? `${girl.name} habla...` :
+           micActive ? `Te escucho, habla` :
+           micError ? "Activa el mic o escribe" :
            "Llamada en curso"}
         </p>
       </div>
