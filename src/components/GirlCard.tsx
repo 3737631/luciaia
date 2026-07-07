@@ -56,7 +56,7 @@ export default function GirlCard({ girl }: { girl: Girl }) {
                 Chat
               </span>
             </Link>
-            <div className="mt-2 grid grid-cols-2 gap-2">
+            <div className="mt-2 grid grid-cols-3 gap-2">
               <Link href={`/call/${girl.id}`} onClick={(e) => e.stopPropagation()}>
                 <span className="flex h-[38px] w-full items-center justify-center rounded-2xl border border-white/10 bg-white/5 transition-all duration-200 active:scale-[0.97]">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
@@ -67,6 +67,11 @@ export default function GirlCard({ girl }: { girl: Girl }) {
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
                 </span>
               </Link>
+              <Link href={`/customize/${girl.id}`} onClick={(e) => e.stopPropagation()}>
+                <span className="flex h-[38px] w-full items-center justify-center rounded-2xl border border-white/10 bg-white/5 transition-all duration-200 active:scale-[0.97]">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                </span>
+              </Link>
             </div>
           </div>
         </div>
@@ -74,8 +79,8 @@ export default function GirlCard({ girl }: { girl: Girl }) {
 
       {/* Desktop full card */}
       <div className="hidden sm:block mx-auto w-full max-w-[420px] overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.06] shadow-2xl transition-all duration-300 hover:border-white/20 hover:shadow-[0_25px_80px_rgba(255,45,180,0.18)]">
-        <Link href={`/customize/${girl.id}`}>
-          <div className={`relative aspect-[4/5] w-full min-h-[320px] bg-gradient-to-b ${gradient}`}>
+        <div className={`relative aspect-[4/5] w-full min-h-[320px] bg-gradient-to-b ${gradient}`}>
+          <Link href={`/customize/${girl.id}`}>
             {!imgFailed ? (
               <img
                 src={girlImage}
@@ -85,19 +90,24 @@ export default function GirlCard({ girl }: { girl: Girl }) {
               />
             ) : null}
             <div className="absolute inset-0 bg-gradient-to-t from-[#08030f] via-[#08030f]/30 to-transparent opacity-80" />
-            <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="rounded-full bg-pink-500/20 px-3 py-0.5 text-[0.6rem] font-semibold uppercase tracking-wide text-pink-300 border border-pink-500/30">
-                  IA ficticia
-                </span>
-                <span className="flex items-center gap-1.5 rounded-full bg-green-500/15 px-3 py-0.5 text-[0.6rem] text-green-300 border border-green-500/25">
-                  <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
-                  Online
-                </span>
-              </div>
+          </Link>
+          <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="rounded-full bg-pink-500/20 px-3 py-0.5 text-[0.6rem] font-semibold uppercase tracking-wide text-pink-300 border border-pink-500/30">
+                IA ficticia
+              </span>
+              <span className="flex items-center gap-1.5 rounded-full bg-green-500/15 px-3 py-0.5 text-[0.6rem] text-green-300 border border-green-500/25">
+                <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
+                Online
+              </span>
             </div>
+            <Link href={`/customize/${girl.id}`} onClick={(e) => e.stopPropagation()}>
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 backdrop-blur border border-white/20 transition-all hover:bg-white/20">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              </span>
+            </Link>
           </div>
-        </Link>
+        </div>
         <div className="p-5">
           <Link href={`/customize/${girl.id}`}>
             <h3 className="text-2xl font-bold tracking-tight sm:text-3xl">{girl.name}</h3>
