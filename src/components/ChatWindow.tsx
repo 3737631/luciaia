@@ -37,7 +37,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
 
   useEffect(() => {
-    setMessages([{ id: "welcome", from: "girl", text: `Hola, soy ${girl.name}. Qué bien que hayas entrado 🙂` }]);
+    setMessages([{ id: "welcome", from: "girl", text: `Hola, soy ${girl.name}. Qué bien que hayas entrado` }]);
     return () => { mountedRef.current = false; };
   }, [girl.id, girl.name]);
 
@@ -153,7 +153,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
 
   function clearMemory() {
     clearAllMemory(girl.id);
-    setMessages([{ id: "welcome", from: "girl", text: `Hola, soy ${girl.name}. Qué bien que hayas entrado 🙂` }]);
+    setMessages([{ id: "welcome", from: "girl", text: `Hola, soy ${girl.name}. Qué bien que hayas entrado` }]);
     setError(null);
     setBlocked(false);
   }
@@ -189,14 +189,29 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
           onClick={() => { setMode("text"); setShowModePicker(false); }}
           className="w-full rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-left transition hover:bg-white/10"
         >
-          <span className="text-lg font-semibold">Chat 💬</span>
+          <span className="flex items-center gap-2 text-lg font-semibold">
+            <svg viewBox="0 0 24 24" className="h-5 w-5 text-muted" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            Chat
+          </span>
           <p className="mt-1 text-xs text-muted">Solo texto, conversación normal</p>
         </button>
         <button
           onClick={() => { setMode("actions"); setShowModePicker(false); }}
           className="w-full rounded-2xl border border-pink/30 bg-pink/5 px-6 py-4 text-left transition hover:bg-pink/10"
         >
-          <span className="text-lg font-semibold">Roleplay 🎭</span>
+          <span className="flex items-center gap-2 text-lg font-semibold">
+            <svg viewBox="0 0 24 24" className="h-5 w-5 text-pink" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/>
+              <path d="M12 8v4"/>
+              <path d="M12 12h2.5a1.5 1.5 0 0 1 0 3H12"/>
+              <path d="M9 14h-1.5a1.5 1.5 0 0 0 0 3H12"/>
+              <circle cx="19" cy="5" r="2" fill="currentColor" opacity="0.3"/>
+              <circle cx="5" cy="19" r="2" fill="currentColor" opacity="0.3"/>
+            </svg>
+            Roleplay
+          </span>
           <p className="mt-1 text-xs text-muted">Con acciones y gestos, *se acerca y te besa*</p>
         </button>
       </div>

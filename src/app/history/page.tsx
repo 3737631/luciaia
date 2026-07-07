@@ -39,7 +39,12 @@ export default function HistoryPage() {
 
         {entries.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="mb-4 text-4xl">📭</div>
+            <div className="mb-4">
+              <svg viewBox="0 0 24 24" className="h-12 w-12 text-muted/40" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="4" width="20" height="16" rx="2" />
+                <path d="M22 7l-10 7L2 7" />
+              </svg>
+            </div>
             <p className="text-lg font-semibold">No hay historial</p>
             <p className="mt-1 text-sm text-muted">
               Las conversaciones aparecerán aquí cuando cuelgues una llamada o salgas de un chat.

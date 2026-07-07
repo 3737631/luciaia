@@ -4,12 +4,12 @@ import Footer from "@/components/Footer";
 import NeonButton from "@/components/NeonButton";
 
 const features = [
-  { icon: "✉️", title: "Sin registro", desc: "Empieza al momento sin crear cuenta." },
-  { icon: "🚫", title: "Sin anuncios", desc: "Experiencia limpia, sin interrupciones." },
-  { icon: "🎨", title: "Personalizable", desc: "Ajusta personalidad, tono y estilo." },
-  { icon: "💬", title: "Chat con IA", desc: "Respuestas naturales con contexto real." },
-  { icon: "🔞", title: "+18", desc: "Solo para mayores de edad." },
-  { icon: "🤖", title: "Personajes IA", desc: "Todos los personajes son generados por IA." },
+  { icon: "mail", title: "Sin registro", desc: "Empieza al momento sin crear cuenta." },
+  { icon: "x", title: "Sin anuncios", desc: "Experiencia limpia, sin interrupciones." },
+  { icon: "edit", title: "Personalizable", desc: "Ajusta personalidad, tono y estilo." },
+  { icon: "chat", title: "Chat con IA", desc: "Respuestas naturales con contexto real." },
+  { icon: "lock", title: "+18", desc: "Solo para mayores de edad." },
+  { icon: "cpu", title: "Personajes IA", desc: "Todos los personajes son generados por IA." },
 ];
 
 const steps = [
@@ -47,7 +47,14 @@ export default function InfoPage() {
               key={f.title}
               className="rounded-2xl card-surface p-6 text-center hover:-translate-y-1 hover:shadow-glowSm transition-all duration-200"
             >
-              <span className="mb-3 inline-block text-2xl">{f.icon}</span>
+              <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/5">
+                {f.icon === "mail" && <svg viewBox="0 0 24 24" className="h-5 w-5 text-muted" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 7L2 7"/></svg>}
+                {f.icon === "x" && <svg viewBox="0 0 24 24" className="h-5 w-5 text-muted" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>}
+                {f.icon === "edit" && <svg viewBox="0 0 24 24" className="h-5 w-5 text-muted" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>}
+                {f.icon === "chat" && <svg viewBox="0 0 24 24" className="h-5 w-5 text-muted" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>}
+                {f.icon === "lock" && <svg viewBox="0 0 24 24" className="h-5 w-5 text-muted" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>}
+                {f.icon === "cpu" && <svg viewBox="0 0 24 24" className="h-5 w-5 text-muted" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>}
+              </span>
               <h3 className="mb-1 text-sm font-semibold">{f.title}</h3>
               <p className="text-xs text-muted">{f.desc}</p>
             </div>
