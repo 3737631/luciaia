@@ -40,8 +40,7 @@ const voiceProfiles: Record<string, { pitch: number; rate: number }> = {
 };
 
 type Mode = "idle" | "listening" | "processing" | "speaking";
-const CHUNK_MS = 3000;
-const SPEECH_RMS = 0.02;
+const CHUNK_MS = 2000;
 const DEBOUNCE_MS = 1200;
 
 export default function CallScreen({ girl }: { girl: Girl }) {
@@ -89,10 +88,12 @@ export default function CallScreen({ girl }: { girl: Girl }) {
   useEffect(() => {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
     const load = () => {
-      voicesRef.current = window.speechSynthesis.getVoices();
+      const v = window.speechSynthesis.getVoices();
+      if (v.length > 0) voicesRef.current = v;
     };
     load();
     window.speechSynthesis.onvoiceschanged = load;
+    setTimeout(load, 200);
   }, []);
 
   useEffect(() => {
@@ -105,16 +106,17 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     const voices = voicesRef.current;
     if (!voices.length) return null;
     const es = voices.filter((v) => v.lang.startsWith("es"));
-    const natural = es.find((v) =>
-      ["natural", "neural", "premium", "sabina", "helena", "teresa", "desktop"]
+    const neural = es.find((v) =>
+      ["neural", "natural", "premium", "good", "enhanced", "multilingual", "sabina", "helena", "teresa", "elvira", "maria", "dalia"]
         .some((k) => v.name.toLowerCase().includes(k))
     );
-    if (natural) return natural;
+    if (neural) return neural;
     const msft = es.find((v) => v.name.toLowerCase().includes("microsoft"));
     if (msft) return msft;
     const google = es.find((v) => v.name.toLowerCase().includes("google"));
     if (google) return google;
-    return es[0] || null;
+    if (es.length > 0) return es[es.length - 1];
+    return voices[voices.length - 1];
   }
 
   async function acquireMic(): Promise<MediaStream | null> {
@@ -243,27 +245,7 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     recorder.onstop = () => {
       if (!mountedRef.current || chunks.length === 0) return;
       const blob = new Blob(chunks, { type: mimeType });
-      if (!shouldListenRef.current) return;
-      blob.arrayBuffer().then((buf) => {
-        const uint8 = new Uint8Array(buf);
-        if (uint8.length < 2000) {
-          if (shouldListenRef.current) startMR();
-          return;
-        }
-        let sum = 0;
-        for (let i = 0; i < uint8.length; i++) {
-          const val = (uint8[i] - 128) / 128;
-          sum += val * val;
-        }
-        const rms = Math.sqrt(sum / uint8.length);
-        if (rms > SPEECH_RMS && shouldListenRef.current) {
-          onAudio(blob, mimeType);
-        } else if (shouldListenRef.current && mountedRef.current) {
-          startMR();
-        }
-      }).catch(() => {
-        if (shouldListenRef.current) onAudio(blob, mimeType);
-      });
+      if (shouldListenRef.current) onAudio(blob, mimeType);
     };
     try {
       recorder.start();
@@ -298,6 +280,7 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     setStatusText("Procesando...");
     sttAudio(blob).then((text) => {
       if (!mountedRef.current) return;
+      console.debug("[Call] STT transcript:", text);
       if (text.trim()) {
         setStatusText("Pensando...");
         return doAIRef.current?.(text.trim());
