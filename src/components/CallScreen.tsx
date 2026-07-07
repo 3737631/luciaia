@@ -454,57 +454,60 @@ export default function CallScreen({ girl }: { girl: Girl }) {
 
   if (callState === "ringing" || callState === "connecting") {
     return (
-      <div className={`relative flex min-h-screen flex-col items-center justify-center bg-gradient-to-b ${backgroundGradients[background]} px-5`}>
-        <div className="flex flex-col items-center animate-fadeUp">
-          <div className="relative mb-8">
-            <Avatar
-              name={girl.id}
-              accentColor={girl.accentColor}
-              accentColorSecondary={girl.accentColorSecondary}
-              hair={custom?.hair ?? girl.defaultHair}
-              outfit={custom?.outfit ?? girl.defaultOutfit}
-              background={custom?.background ?? girl.defaultBackground}
-              size={160}
-              animated
-            />
-            {callState === "ringing" && (
-              <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-green-500 text-xs shadow-lg shadow-green-500/50 animate-pulse">
-                <span className="h-2 w-2 rounded-full bg-white" />
-              </span>
-            )}
+      <div className={`relative flex min-h-screen flex-col bg-gradient-to-b ${backgroundGradients[background]}`}>
+        <div className="flex flex-1 flex-col items-center justify-center px-5">
+          <div className="flex flex-col items-center animate-fadeUp">
+            <div className="relative mb-8">
+              {callState === "ringing" && (
+                <>
+                  <div className="absolute -inset-8 rounded-full border-2 border-pink/15 animate-ping" style={{ animationDuration: "2.5s" }} />
+                  <div className="absolute -inset-4 rounded-full border border-pink/25" />
+                </>
+              )}
+              <Avatar
+                name={girl.id}
+                accentColor={girl.accentColor}
+                accentColorSecondary={girl.accentColorSecondary}
+                hair={custom?.hair ?? girl.defaultHair}
+                outfit={custom?.outfit ?? girl.defaultOutfit}
+                background={custom?.background ?? girl.defaultBackground}
+                size={180}
+                animated
+              />
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight">{girl.name}</h1>
+            <p className="mt-1 text-sm text-muted/70">{girl.style}</p>
+            <p className="mt-8 text-xs text-muted/50 tracking-widest uppercase animate-pulse">
+              {callState === "ringing" ? "Llamando..." : "Conectando..."}
+            </p>
           </div>
-          <h2 className="text-2xl font-bold">{girl.name}</h2>
-          <p className="mt-1 text-sm text-muted">{girl.style}</p>
-          <p className="mt-6 text-xs text-muted animate-pulse">
-            {callState === "ringing" ? "Llamando..." : "Conectando..."}
-          </p>
-          {callState === "ringing" && (
-            <div className="mt-8 flex gap-4">
-              <button
-                onClick={hangUp}
-                className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500 hover:scale-105 active:scale-95 transition-all duration-200 shadow-lg shadow-red-500/30"
-                title="Rechazar"
-              >
-                <span className="text-2xl">📞</span>
-              </button>
-              <button
-                onClick={answerCall}
-                className="flex h-16 w-16 items-center justify-center rounded-full bg-green-500 hover:scale-105 active:scale-95 transition-all duration-200 shadow-lg shadow-green-500/30 animate-float"
-                title="Contestar"
-              >
-                <span className="text-2xl">📞</span>
-              </button>
-            </div>
-          )}
-          {callState === "connecting" && (
-            <div className="mt-8">
-              <div className="flex items-center gap-3 text-sm text-muted">
-                <span className="inline-block h-2 w-2 rounded-full bg-pink animate-pulse" />
-                Conectando con {girl.name}...
-              </div>
-            </div>
-          )}
         </div>
+        {callState === "ringing" && (
+          <div className="flex items-center justify-center gap-16 pb-16">
+            <button
+              onClick={hangUp}
+              className="flex flex-col items-center gap-2 group"
+            >
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500 shadow-lg shadow-red-500/40 transition-transform active:scale-90 group-hover:scale-105">
+                <svg viewBox="0 0 24 24" className="h-7 w-7 text-white" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" transform="rotate(135 12 12)" />
+                </svg>
+              </div>
+              <span className="text-xs text-muted font-medium">Rechazar</span>
+            </button>
+            <button
+              onClick={answerCall}
+              className="flex flex-col items-center gap-2 group"
+            >
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-r from-pink to-purple shadow-lg shadow-pink/40 transition-transform active:scale-90 group-hover:scale-105 animate-pulse">
+                <svg viewBox="0 0 24 24" className="h-7 w-7 text-white" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+                </svg>
+              </div>
+              <span className="text-xs text-muted font-medium">Contestar</span>
+            </button>
+          </div>
+        )}
       </div>
     );
   }
