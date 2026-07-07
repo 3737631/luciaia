@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
     const { action } = body;
 
     if (action === "stt") {
-      const { audio } = body;
+      const { audio, mimeType } = body;
       if (!audio) {
         return new Response(JSON.stringify({ error: "Missing audio" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
@@ -26,12 +26,13 @@ Deno.serve(async (req) => {
 
       const audioBinary = Uint8Array.from(atob(audio), (c) => c.charCodeAt(0));
       const model = Deno.env.get("STT_MODEL") || "openai/whisper-large-v3";
+      const contentType = mimeType || "audio/webm";
 
       const hfRes = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${hfToken}`,
-          "Content-Type": "audio/webm",
+          "Content-Type": contentType,
         },
         body: audioBinary,
       });

@@ -16,7 +16,7 @@ export async function sttAudio(audioBlob: Blob): Promise<string> {
   const res = await fetch(`${endpoint}/voice`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "stt", audio: base64 }),
+    body: JSON.stringify({ action: "stt", audio: base64, mimeType: audioBlob.type }),
   });
 
   if (!res.ok) {
