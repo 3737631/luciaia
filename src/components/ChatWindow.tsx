@@ -220,7 +220,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
 
   return (
     <div className="mx-auto flex h-[calc(100vh-64px)] max-w-2xl flex-col px-4 py-4">
-      <div className="mb-3 flex items-center gap-3 rounded-xl2 card-surface px-4 py-3">
+      <div className="mb-3 flex items-center gap-3 rounded-xl3 glass p-4">
         <Avatar
           name={girl.id}
           accentColor={girl.accentColor}
@@ -228,22 +228,21 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
           hair={girl.defaultHair}
           outfit={girl.defaultOutfit}
           background={girl.defaultBackground}
-          size={44}
+          size={40}
         />
-        <div className="flex-1">
-          <p className="font-semibold">{girl.name}</p>
-          <p className="text-xs text-green-400">● {mode === "actions" ? "Roleplay" : "Chat"}</p>
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold tracking-tight">{girl.name}</p>
+          <p className="text-xs text-green-400/80">● {mode === "actions" ? "Roleplay" : "Chat"}</p>
         </div>
         <button
           onClick={clearMemory}
-          className="rounded-lg bg-white/10 px-3 py-1.5 text-xs text-muted hover:bg-white/20"
-          title="Borrar memoria de esta chica"
+          className="rounded-xl bg-white/10 px-3 py-1.5 text-xs text-muted hover:bg-white/20 transition-all active:scale-95 shrink-0"
         >
           Borrar memoria
         </button>
       </div>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto rounded-xl2 card-surface space-y-3 p-4">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto rounded-xl3 glass p-5 space-y-4">
         {messages.map((m) => (
           <div key={m.id} className={`flex animate-fadeUp ${m.from === "user" ? "justify-end" : "justify-start"}`}>
             <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${m.from === "user" ? "bg-gradient-to-r from-pink to-purple-500 text-white shadow-lg shadow-pink/20" : "bg-white/10 text-ink backdrop-blur-sm border border-white/5"}`}>
@@ -253,7 +252,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         ))}
         {typing && (
           <div className="flex justify-start">
-            <div className="rounded-2xl bg-white/10 px-4 py-2 text-sm text-muted">
+            <div className="rounded-2xl bg-white/10 px-4 py-2.5 text-sm text-muted/80 border border-white/5">
               {girl.name} está escribiendo
               <span className="ml-1 inline-flex">
                 <span className="animate-pulseGlow">.</span>
@@ -264,7 +263,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
           </div>
         )}
         {error && (
-          <p className="py-2 text-center text-xs text-muted">{error}</p>
+          <p className="py-2 text-center text-xs text-muted/60">{error}</p>
         )}
       </div>
 
@@ -275,12 +274,12 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && send()}
           placeholder={blocked ? "Chat bloqueado" : "Escribe un mensaje..."}
-          className="min-h-[48px] flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 text-sm outline-none focus:border-pink/50 disabled:opacity-40"
+          className="min-h-[48px] flex-1 rounded-2xl border border-white/10 glass px-4 text-sm outline-none focus:border-pink/50 disabled:opacity-40"
         />
         <button
           onClick={send}
           disabled={blocked || typing}
-          className="rounded-xl bg-gradient-to-r from-pink to-purple-500 px-5 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+          className="rounded-2xl bg-gradient-to-r from-pink to-purple-500 px-5 py-3 text-sm font-semibold text-white transition-all hover:shadow-lg hover:shadow-pink-500/25 active:scale-95 disabled:opacity-40"
         >
           Enviar
         </button>

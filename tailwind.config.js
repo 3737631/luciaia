@@ -16,10 +16,13 @@ module.exports = {
       },
       borderRadius: {
         xl2: "24px",
+        xl3: "32px",
       },
       boxShadow: {
         glow: "0 0 40px rgba(255, 45, 149, 0.25), 0 0 80px rgba(139, 92, 246, 0.15)",
         glowSm: "0 0 20px rgba(255, 45, 149, 0.35)",
+        glass: "0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06)",
+        card: "0 4px 24px rgba(0,0,0,0.3)",
       },
       keyframes: {
         float: {
