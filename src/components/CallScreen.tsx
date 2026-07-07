@@ -30,14 +30,18 @@ export default function CallScreen({ girl }: { girl: Girl }) {
   const custom = getCustomization(girl.id);
   const background = custom?.background ?? girl.defaultBackground;
 
-  const [micOn, setMicOn] = useState(true);
+  const [micOn, setMicOn] = useState(false);
   const [showTextPanel, setShowTextPanel] = useState(false);
   const [textInput, setTextInput] = useState("");
   const [talking, setTalking] = useState(false);
   const [lastReply, setLastReply] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [thinking, setThinking] = useState(false);
+  const [listening, setListening] = useState(false);
+  const [interimText, setInterimText] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const doAIRef = useRef<((text: string) => Promise<string | undefined>) | null>(null);
 
   useEffect(() => {
     const saved = getConversationHistory(girl.id);
@@ -66,6 +70,57 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     utterance.onend = () => setTalking(false);
     window.speechSynthesis.speak(utterance);
   }
+
+  const SpeechRecognition =
+    (typeof window !== "undefined") &&
+    ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
+
+  useEffect(() => {
+    if (!micOn || !SpeechRecognition) return;
+    const recognition = new SpeechRecognition();
+    recognition.lang = "es-ES";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognitionRef.current = recognition;
+
+    let finalTranscript = "";
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      let interim = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript + " ";
+        } else {
+          interim += event.results[i][0].transcript;
+        }
+      }
+      setInterimText(interim);
+      if (finalTranscript.trim()) {
+        const text = finalTranscript.trim();
+        finalTranscript = "";
+        setInterimText("");
+        setThinking(true);
+        doAIRef.current?.(text).finally(() => setThinking(false));
+      }
+    };
+
+    recognition.onerror = () => {
+      setListening(false);
+      setMicOn(false);
+    };
+
+    recognition.onstart = () => setListening(true);
+    recognition.onend = () => {
+      setListening(false);
+      if (micOn) recognition.start();
+    };
+
+    recognition.start();
+    return () => {
+      recognition.stop();
+      recognitionRef.current = null;
+    };
+  }, [micOn, SpeechRecognition]);
 
   const doAI = useCallback(async (text: string) => {
     const memory = getUserMemory(girl.id);
@@ -118,6 +173,8 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     }
   }, [girl, custom, messages]);
 
+  doAIRef.current = doAI;
+
   async function sendText() {
     const text = textInput.trim();
     if (!text || thinking) return;
@@ -165,7 +222,12 @@ export default function CallScreen({ girl }: { girl: Girl }) {
           animated
           talking={talking}
         />
-        {lastReply && (
+        {listening && interimText && (
+          <p className="mt-6 max-w-sm text-center text-sm text-ink/60 animate-fadeUp italic">
+            {interimText}
+          </p>
+        )}
+        {lastReply && !listening && (
           <p className="mt-6 max-w-sm text-center text-sm text-muted animate-fadeUp">
             &ldquo;{lastReply}&rdquo;
           </p>
@@ -199,10 +261,11 @@ export default function CallScreen({ girl }: { girl: Girl }) {
         <div className="flex items-center justify-center gap-4">
           <button
             onClick={() => setMicOn((v) => !v)}
-            className="flex h-14 w-14 items-center justify-center rounded-full card-surface hover:scale-105 active:scale-95 transition-all duration-200"
-            title={micOn ? "Micrófono activado" : "Micrófono silenciado"}
+            className={`flex h-14 w-14 items-center justify-center rounded-full transition-all duration-200 hover:scale-105 active:scale-95 ${listening ? "bg-green-500 shadow-lg shadow-green-500/50" : "card-surface"}`}
+            disabled={!SpeechRecognition}
+            title={listening ? "Escuchando..." : micOn ? "Micrófono activado" : "Micrófono silenciado"}
           >
-            {micOn ? "🎙️" : "🔇"}
+            {listening ? "🎤" : micOn ? "🎙️" : "🔇"}
           </button>
           <button
             onClick={() => setShowTextPanel((v) => !v)}
@@ -220,7 +283,7 @@ export default function CallScreen({ girl }: { girl: Girl }) {
           </button>
         </div>
         <p className="mt-2 text-center text-xs text-muted">
-          {micOn ? "Micrófono activado" : "Micrófono silenciado"}
+          {listening ? "Habla ahora..." : micOn ? "Micrófono activado" : "Micrófono silenciado"}
         </p>
       </div>
     </div>
