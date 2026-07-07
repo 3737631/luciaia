@@ -72,6 +72,7 @@ Deno.serve(async (req) => {
               input: text,
               voice: "nova",
               response_format: "mp3",
+              instructions: "Habla de forma natural, cálida y cercana, con entonación expresiva, como una chica joven hablando por teléfono con un amigo.",
             }),
           });
 

@@ -72,11 +72,56 @@ export default function CallScreen({ girl }: { girl: Girl }) {
   const speechBufferRef = useRef("");
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const speakTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const ringbackRef = useRef<{ ctx: AudioContext; osc1: OscillatorNode; osc2: OscillatorNode; gain: GainNode } | null>(null);
+
+  function startRingback() {
+    if (ringbackRef.current) return;
+    try {
+      const ctx = new AudioContext();
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc1.type = "sine";
+      osc1.frequency.value = 440;
+      osc2.type = "sine";
+      osc2.frequency.value = 480;
+      gain.gain.value = 0;
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(ctx.destination);
+      osc1.start();
+      osc2.start();
+      ringbackRef.current = { ctx, osc1, osc2, gain };
+      const now = ctx.currentTime;
+      const cycle = (t: number) => {
+        if (!ringbackRef.current) return;
+        gain.gain.setValueAtTime(0.2, now + t);
+        gain.gain.setValueAtTime(0, now + t + 2);
+      };
+      for (let i = 0; i < 30; i++) cycle(i * 6);
+    } catch {}
+  }
+
+  function stopRingback() {
+    if (ringbackRef.current) {
+      try {
+        ringbackRef.current.osc1.stop();
+        ringbackRef.current.osc2.stop();
+        ringbackRef.current.ctx.close();
+      } catch {}
+      ringbackRef.current = null;
+    }
+  }
 
   function ph(m: Mode) {
     modeRef.current = m;
     setMode(m);
   }
+
+  useEffect(() => {
+    if (callState === "ringing") startRingback();
+    else stopRingback();
+  }, [callState]);
 
   useEffect(() => {
     return () => {
@@ -424,6 +469,7 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     if (typeof window !== "undefined" && window.speechSynthesis) {
       window.speechSynthesis.cancel();
     }
+    stopRingback();
   }
 
   function stopRecorder() {
@@ -590,14 +636,21 @@ export default function CallScreen({ girl }: { girl: Girl }) {
             className="flex h-14 w-14 items-center justify-center rounded-full card-surface hover:scale-105 active:scale-95 transition-all duration-200"
             title="Escribir"
           >
-            ⌨️
+            <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="6" width="20" height="12" rx="2" />
+              <path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01" />
+              <path d="M6 14h.01M10 14h.01M14 14h.01M18 14h.01" />
+              <path d="M6 18v2" />
+            </svg>
           </button>
           <button
             onClick={hangUp}
             className="flex h-14 w-14 items-center justify-center rounded-full bg-red-500 hover:scale-105 active:scale-95 transition-all duration-200"
             title="Colgar"
           >
-            📞
+            <svg viewBox="0 0 24 24" className="h-6 w-6 text-white" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+            </svg>
           </button>
         </div>
         <p className="mt-3 text-center text-xs text-muted">
