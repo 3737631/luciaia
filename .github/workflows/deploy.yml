@@ -49,9 +49,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    env:
-      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v3.0.2-node.24
+        uses: actions/deploy-pages@v4
