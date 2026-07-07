@@ -15,9 +15,6 @@ interface AvatarProps {
   hair?: string;
   outfit?: string;
   background?: string;
-  defaultHair?: string;
-  defaultOutfit?: string;
-  defaultBackground?: string;
   className?: string;
 }
 
@@ -38,9 +35,6 @@ export default function Avatar({
   hair,
   outfit,
   background,
-  defaultHair,
-  defaultOutfit,
-  defaultBackground,
   className = "",
 }: AvatarProps) {
   const gradientId = `grad-${name}`;
@@ -49,18 +43,13 @@ export default function Avatar({
   const [loaded, setLoaded] = useState(false);
   const prevSrc = useRef<string>("");
 
-  const defaults = defaultHair && defaultOutfit && defaultBackground
-    ? { hair: defaultHair as HairOption, outfit: defaultOutfit as OutfitOption, background: defaultBackground as BackgroundOption }
-    : undefined;
   const imgSrc = getGirlImage(
     name,
     hair as HairOption,
     outfit as OutfitOption,
     background as BackgroundOption,
-    defaults,
   );
 
-  // Reset loading state when source changes
   useEffect(() => {
     if (imgSrc !== prevSrc.current) {
       prevSrc.current = imgSrc;

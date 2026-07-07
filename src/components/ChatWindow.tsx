@@ -178,9 +178,11 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         <div className="text-center">
           <Avatar
             name={girl.id}
-            image={girl.image}
             accentColor={girl.accentColor}
             accentColorSecondary={girl.accentColorSecondary}
+            hair={girl.defaultHair}
+            outfit={girl.defaultOutfit}
+            background={girl.defaultBackground}
             size={80}
           />
           <h2 className="mt-4 text-xl font-bold">{girl.name}</h2>
@@ -210,9 +212,11 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       <div className="mb-3 flex items-center gap-3 rounded-xl2 card-surface px-4 py-3">
         <Avatar
           name={girl.id}
-          image={girl.image}
           accentColor={girl.accentColor}
           accentColorSecondary={girl.accentColorSecondary}
+          hair={girl.defaultHair}
+          outfit={girl.defaultOutfit}
+          background={girl.defaultBackground}
           size={44}
         />
         <div className="flex-1">

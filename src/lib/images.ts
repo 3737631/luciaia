@@ -2,49 +2,18 @@ import { HairOption, OutfitOption, BackgroundOption } from "@/data/girls";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
-function assetPath(girlId: string, ...segments: string[]): string {
-  return `${basePath}/girls/${girlId}/${segments.join("/")}.jpg`;
-}
-
-interface GirlDefaults {
-  hair: HairOption;
-  outfit: OutfitOption;
-  background: BackgroundOption;
-}
-
 /**
- * Returns the variant image when exactly ONE attribute differs from defaults.
- * When multiple attributes change, falls back to base.jpg to avoid identity breaks.
+ * Returns the exact combo image for the given attributes.
+ * Every possible (hair × outfit × background) combination has its own image.
  */
 export function getGirlImage(
   girlId: string,
-  hair?: HairOption | null,
-  outfit?: OutfitOption | null,
-  background?: BackgroundOption | null,
-  defaults?: GirlDefaults,
+  hair?: HairOption | string | null,
+  outfit?: OutfitOption | string | null,
+  background?: BackgroundOption | string | null,
 ): string {
-  if (defaults) {
-    const hairDiff = !!hair && hair !== defaults.hair;
-    const outfitDiff = !!outfit && outfit !== defaults.outfit;
-    const bgDiff = !!background && background !== defaults.background;
-    const changed = [hairDiff, outfitDiff, bgDiff].filter(Boolean).length;
-
-    if (changed === 1) {
-      if (hairDiff) return assetPath(girlId, "hair", hair!);
-      if (outfitDiff) return assetPath(girlId, "outfit", outfit!);
-      if (bgDiff) return assetPath(girlId, "background", background!);
-    }
-    // zero or multiple changes → base (safe identity)
-    return assetPath(girlId, "base");
-  }
-
-  // Legacy path (no defaults)
-  const hasHair = !!hair; const hasOutfit = !!outfit; const hasBg = !!background;
-  const count = [hasHair, hasOutfit, hasBg].filter(Boolean).length;
-  if (count === 1) {
-    if (hasHair) return assetPath(girlId, "hair", hair!);
-    if (hasOutfit) return assetPath(girlId, "outfit", outfit!);
-    if (hasBg) return assetPath(girlId, "background", background!);
-  }
-  return assetPath(girlId, "base");
+  const h = hair ?? "moreno";
+  const o = outfit ?? "elegante";
+  const b = background ?? "neon-room";
+  return `${basePath}/girls/${girlId}/${h}_${o}_${b}.jpg`;
 }
