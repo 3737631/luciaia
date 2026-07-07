@@ -58,7 +58,32 @@ Deno.serve(async (req) => {
 
       const apiKey = Deno.env.get("OPENROUTER_API_KEY");
 
-      // Try OpenRouter TTS first
+      // Try ElevenLabs via OpenRouter (most realistic)
+      if (apiKey) {
+        try {
+          const ttsRes = await fetch("https://openrouter.ai/api/v1/audio/speech", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "elevenlabs/eleven-turbo-v2",
+              input: text,
+              voice: "EXAVITQu4vrVxn15KGsZ",
+              response_format: "mp3",
+            }),
+          });
+
+          if (ttsRes.ok) {
+            const audioBuffer = await ttsRes.arrayBuffer();
+            const base64Audio = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
+            return new Response(JSON.stringify({ audio: base64Audio, contentType: "audio/mp3" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+        } catch {}
+      }
+
+      // Try OpenAI via OpenRouter
       if (apiKey) {
         try {
           const ttsRes = await fetch("https://openrouter.ai/api/v1/audio/speech", {
@@ -70,9 +95,8 @@ Deno.serve(async (req) => {
             body: JSON.stringify({
               model: "openai/gpt-4o-mini-tts-2025-12-15",
               input: text,
-              voice: "nova",
+              voice: "shimmer",
               response_format: "mp3",
-              instructions: "Habla de forma natural, cálida y cercana, con entonación expresiva, como una chica joven hablando por teléfono con un amigo.",
             }),
           });
 
