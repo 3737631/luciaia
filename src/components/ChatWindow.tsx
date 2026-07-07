@@ -232,7 +232,8 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
 
   return (
     <div className="mx-auto flex h-[calc(100vh-64px)] max-w-2xl flex-col px-4 py-4">
-      <div className="mb-3 flex items-center gap-3 rounded-xl3 glass p-4">
+      {/* Header */}
+      <div className="mb-3 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 shadow-lg">
         <Avatar
           name={girl.id}
           accentColor={girl.accentColor}
@@ -240,28 +241,45 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
           hair={girl.defaultHair}
           outfit={girl.defaultOutfit}
           background={girl.defaultBackground}
-          size={40}
+          size={44}
         />
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="font-semibold tracking-tight">{girl.name}</p>
-          <p className="text-xs text-green-400/80">● {mode === "actions" ? "Roleplay" : "Chat"}</p>
+          <p className="flex items-center gap-1 text-xs text-green-400/80">
+            <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
+            {girl.name} está conectada
+          </p>
         </div>
         <button
           onClick={clearMemory}
           className="rounded-xl bg-white/10 px-3 py-1.5 text-xs text-muted hover:bg-white/20 transition-all active:scale-95 shrink-0"
         >
-          Borrar memoria
+          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
         </button>
       </div>
 
-      <div ref={scrollRef} className="flex-1 overflow-x-hidden overflow-y-auto rounded-xl3 glass p-5 space-y-4">
+      {/* Messages */}
+      <div ref={scrollRef} className="flex-1 overflow-x-hidden overflow-y-auto space-y-3 rounded-2xl border border-white/[0.05] bg-white/[0.02] p-4 shadow-inner">
         {messages.map((m) => (
           <div key={m.id} className={`flex animate-fadeUp ${m.from === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${m.from === "user" ? "bg-gradient-to-r from-pink to-purple-500 text-white shadow-lg shadow-pink/20" : "bg-white/10 text-ink backdrop-blur-sm border border-white/5"}`}>
+            <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${m.from === "user" ? "bg-gradient-to-r from-pink to-purple-500 text-white shadow-lg shadow-pink/15" : "bg-white/10 text-ink backdrop-blur-sm border border-white/[0.06]"}`}>
               {renderText(m.text)}
             </div>
           </div>
         ))}
+        {!typing && !blocked && messages.length <= 1 && (
+          <div className="flex flex-wrap gap-2 pt-2">
+            {["Háblame suave", "Sorpréndeme", "Roleplay", "Conóceme"].map((label) => (
+              <button
+                key={label}
+                onClick={() => { setInput(label); }}
+                className="rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2 text-xs font-medium text-muted/80 transition-all hover:border-white/25 hover:text-white active:scale-95"
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
         {typing && (
           <div className="flex justify-start">
             <div className="rounded-2xl bg-white/10 px-4 py-2.5 text-sm text-muted/80 border border-white/5">
@@ -279,6 +297,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         )}
       </div>
 
+      {/* Input */}
       <div className="mt-3 flex gap-2">
         <input
           value={input}
@@ -286,12 +305,12 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && send()}
           placeholder={blocked ? "Chat bloqueado" : "Escribe un mensaje..."}
-          className="min-h-[48px] flex-1 rounded-2xl border border-white/10 glass px-4 text-[16px] outline-none focus:border-pink/50 disabled:opacity-40"
+          className="min-h-[48px] flex-1 rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-[16px] outline-none focus:border-pink/50 disabled:opacity-40"
         />
         <button
           onClick={send}
           disabled={blocked || typing}
-          className="rounded-2xl bg-gradient-to-r from-pink to-purple-500 px-5 py-3 text-sm font-semibold text-white transition-all hover:shadow-lg hover:shadow-pink-500/25 active:scale-95 disabled:opacity-40"
+          className="rounded-2xl bg-gradient-to-r from-pink to-purple-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-pink/20 transition-all hover:shadow-xl hover:shadow-pink/25 active:scale-95 disabled:opacity-40"
         >
           Enviar
         </button>
