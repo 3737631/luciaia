@@ -57,33 +57,45 @@ Deno.serve(async (req) => {
       }
 
       const apiKey = Deno.env.get("OPENROUTER_API_KEY");
-      if (!apiKey) {
-        return new Response(JSON.stringify({ error: "Missing OPENROUTER_API_KEY" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+      // Try OpenRouter TTS first
+      if (apiKey) {
+        try {
+          const ttsRes = await fetch("https://openrouter.ai/api/v1/audio/speech", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "openai/gpt-4o-mini-tts-2025-12-15",
+              input: text,
+              voice: "nova",
+              response_format: "mp3",
+            }),
+          });
+
+          if (ttsRes.ok) {
+            const audioBuffer = await ttsRes.arrayBuffer();
+            const base64Audio = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
+            return new Response(JSON.stringify({ audio: base64Audio, contentType: "audio/mp3" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+        } catch {}
       }
 
-      const ttsRes = await fetch("https://openrouter.ai/api/v1/audio/speech", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "openai/tts-1",
-          input: text,
-          voice: "nova",
-          response_format: "mp3",
-        }),
-      });
+      // Fallback: Google Translate TTS (free, no key needed)
+      try {
+        const gttsRes = await fetch(`https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=es&client=tw-ob`, {
+          headers: { "User-Agent": "Mozilla/5.0" },
+        });
+        if (gttsRes.ok) {
+          const audioBuffer = await gttsRes.arrayBuffer();
+          const base64Audio = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
+          return new Response(JSON.stringify({ audio: base64Audio, contentType: "audio/mpeg" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+      } catch {}
 
-      if (!ttsRes.ok) {
-        const errText = await ttsRes.text();
-        return new Response(JSON.stringify({ error: `TTS error: ${errText}` }), { status: ttsRes.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      }
-
-      const audioBuffer = await ttsRes.arrayBuffer();
-      const base64Audio = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
-
-      return new Response(JSON.stringify({ audio: base64Audio, contentType: "audio/mp3" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ error: "No TTS method available" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     return new Response(JSON.stringify({ error: "Unknown action" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
