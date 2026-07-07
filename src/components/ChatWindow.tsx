@@ -6,6 +6,7 @@ import { getCustomization } from "@/lib/storage";
 import { getFallbackResponse } from "@/lib/ai";
 import { sendChatMessage } from "@/lib/chatClient";
 import {
+  getConversationHistory,
   saveConversationHistory,
   getConversationSummary,
   saveConversationSummary,
@@ -37,7 +38,18 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
 
   useEffect(() => {
-    setMessages([{ id: "welcome", from: "girl", text: `Hola, soy ${girl.name}. Qué bien que hayas entrado` }]);
+    const saved = getConversationHistory(girl.id);
+    if (saved.length > 0) {
+      const msgs = saved.map((m, i) => ({
+        id: `saved_${i}`,
+        from: m.role === "user" ? "user" as const : "girl" as const,
+        text: m.content,
+      }));
+      setMessages(msgs);
+      setShowModePicker(false);
+    } else {
+      setMessages([{ id: "welcome", from: "girl", text: `Hola, soy ${girl.name}. Qué bien que hayas entrado` }]);
+    }
     return () => { mountedRef.current = false; };
   }, [girl.id, girl.name]);
 
