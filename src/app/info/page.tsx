@@ -23,8 +23,8 @@ export default function InfoPage() {
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-6xl px-5">
-        <section className="py-20 text-center">
+      <main className="mx-auto max-w-6xl overflow-x-hidden px-4 pb-24 sm:px-5">
+        <section className="py-16 text-center sm:py-20">
           <h1 className="mx-auto max-w-2xl text-5xl font-extrabold leading-[1.1] gradient-text sm:text-6xl">
             LunaCall
           </h1>
@@ -61,7 +61,7 @@ export default function InfoPage() {
           ))}
         </section>
 
-        <section className="py-20">
+        <section className="py-16 sm:py-20">
           <h2 className="mb-3 text-center text-2xl font-bold tracking-tight">Cómo funciona</h2>
           <p className="mb-10 text-center text-sm text-muted/70">Empieza en segundos, sin complicaciones</p>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -76,8 +76,8 @@ export default function InfoPage() {
           </div>
         </section>
 
-        <section className="py-20">
-          <div className="mx-auto max-w-lg rounded-xl3 glass p-10 text-center shadow-glow">
+        <section className="py-16 sm:py-20">
+          <div className="mx-auto max-w-lg rounded-xl3 glass p-6 text-center shadow-glow sm:p-10">
             <p className="mb-2 text-sm text-pink font-semibold tracking-wide uppercase">Demo gratuita</p>
             <p className="mb-4 text-5xl font-extrabold gradient-text">Sin límites</p>
             <p className="mb-8 text-sm text-muted/70 leading-relaxed">

@@ -254,7 +254,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         </button>
       </div>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto rounded-xl3 glass p-5 space-y-4">
+      <div ref={scrollRef} className="flex-1 overflow-x-hidden overflow-y-auto rounded-xl3 glass p-5 space-y-4">
         {messages.map((m) => (
           <div key={m.id} className={`flex animate-fadeUp ${m.from === "user" ? "justify-end" : "justify-start"}`}>
             <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${m.from === "user" ? "bg-gradient-to-r from-pink to-purple-500 text-white shadow-lg shadow-pink/20" : "bg-white/10 text-ink backdrop-blur-sm border border-white/5"}`}>

@@ -69,9 +69,9 @@ export default function CustomizeClient({ girl }: { girl: Girl }) {
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-3xl px-5 py-10">
+      <main className="mx-auto max-w-3xl overflow-x-hidden px-4 pb-24 pt-6 sm:px-5 sm:py-10">
         <div
-          className={`rounded-xl2 card-surface p-8 mb-8 text-center bg-gradient-to-b ${backgroundGradients[custom.background]}`}
+          className={`rounded-xl2 card-surface p-6 mb-8 text-center bg-gradient-to-b sm:p-8 ${backgroundGradients[custom.background]}`}
         >
           <h1 className="text-2xl font-bold">{girl.name}</h1>
           <p className="mb-6 text-muted text-sm">Personalízala antes de empezar.</p>

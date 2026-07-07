@@ -21,7 +21,7 @@ export default function HistoryPage() {
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-3xl px-5 py-20">
+      <main className="mx-auto max-w-3xl overflow-x-hidden px-4 pb-24 pt-6 sm:px-5 sm:py-20">
         <div className="mb-10 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight gradient-text">Historial</h1>
