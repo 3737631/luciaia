@@ -303,9 +303,10 @@ export default function CallScreen({ girl }: { girl: Girl }) {
         return doAIRef.current?.(text.trim());
       }
       acquireMicAndListen();
-    }).catch(() => {
+    }).catch((err) => {
+      console.error("[Call] STT error:", err);
       if (mountedRef.current) {
-        setMicError("No te escucho bien. Usa el teclado");
+        setMicError("Error de audio. Usa el teclado");
         ph("idle");
       }
     }).finally(() => {
