@@ -19,66 +19,35 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ error: "Missing audio" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
-      const hfToken = Deno.env.get("HUGGINGFACE_TOKEN") || Deno.env.get("HF_TOKEN");
-      if (!hfToken) {
-        return new Response(JSON.stringify({ error: "Missing HUGGINGFACE_TOKEN" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      const groqKey = Deno.env.get("GROQ_API_KEY");
+      if (!groqKey) {
+        return new Response(JSON.stringify({ error: "Missing GROQ_API_KEY" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
       const audioBinary = Uint8Array.from(atob(audio), (c) => c.charCodeAt(0));
-      const model = Deno.env.get("STT_MODEL") || "openai/whisper-large-v3";
-      const contentType = mimeType || "audio/webm";
+      const ext = mimeType?.includes("mp4") ? "m4a" : mimeType?.includes("webm") ? "webm" : mimeType?.includes("aac") ? "aac" : mimeType?.includes("mpeg") ? "mp3" : mimeType?.includes("wav") ? "wav" : "webm";
 
-      const hfRes = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
+      const formData = new FormData();
+      formData.append("file", new Blob([audioBinary], { type: mimeType || "audio/webm" }), `audio.${ext}`);
+      formData.append("model", Deno.env.get("STT_MODEL") || "whisper-large-v3");
+      formData.append("language", "es");
+      formData.append("response_format", "json");
+
+      const groqRes = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${hfToken}`,
-          "Content-Type": contentType,
-        },
-        body: audioBinary,
+        headers: { Authorization: `Bearer ${groqKey}` },
+        body: formData,
       });
 
-      if (!hfRes.ok) {
-        const errText = await hfRes.text();
-        return new Response(JSON.stringify({ error: `HF STT error: ${errText}` }), { status: hfRes.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      if (!groqRes.ok) {
+        const errText = await groqRes.text();
+        return new Response(JSON.stringify({ error: `Groq STT error: ${errText}` }), { status: groqRes.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
-      const hfData = await hfRes.json();
-      const text = hfData.text || "";
+      const data = await groqRes.json();
+      const text = data.text || "";
 
       return new Response(JSON.stringify({ text }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    if (action === "tts") {
-      const { text } = body;
-      if (!text) {
-        return new Response(JSON.stringify({ error: "Missing text" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      }
-
-      const hfToken = Deno.env.get("HUGGINGFACE_TOKEN") || Deno.env.get("HF_TOKEN");
-      if (!hfToken) {
-        return new Response(JSON.stringify({ error: "Missing HUGGINGFACE_TOKEN" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      }
-
-      const model = Deno.env.get("TTS_MODEL") || "facebook/mms-tts-spa";
-
-      const hfRes = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${hfToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ inputs: text }),
-      });
-
-      if (!hfRes.ok) {
-        const errText = await hfRes.text();
-        return new Response(JSON.stringify({ error: `HF TTS error: ${errText}` }), { status: hfRes.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      }
-
-      const audioBuffer = await hfRes.arrayBuffer();
-      const base64Audio = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
-
-      return new Response(JSON.stringify({ audio: base64Audio, contentType: hfRes.headers.get("content-type") || "audio/flac" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     return new Response(JSON.stringify({ error: "Unknown action" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
