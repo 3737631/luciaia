@@ -1,0 +1,597 @@
+[
+  {
+    "girl": "luna",
+    "file": "moreno_casual_beach-night",
+    "bad": true,
+    "reason": "off_center_v(dy=0.20)",
+    "confidence": 0.9938677549362183,
+    "detail": "conf=0.994 box=(237,78,113,173) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "moreno_casual_car-night",
+    "bad": true,
+    "reason": "off_center_v(dy=0.22)",
+    "confidence": 0.9970605969429016,
+    "detail": "conf=0.997 box=(272,60,145,183) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "moreno_casual_neon-room",
+    "bad": true,
+    "reason": "face_cut_top, off_center_v(dy=0.22)",
+    "confidence": 0.9958490133285522,
+    "detail": "conf=0.996 box=(314,49,126,196) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "moreno_casual_studio",
+    "bad": true,
+    "reason": "off_center_v(dy=0.22)",
+    "confidence": 0.9977598190307617,
+    "detail": "conf=0.998 box=(281,51,144,199) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "moreno_elegante_beach-night",
+    "bad": true,
+    "reason": "multiple_faces(3)",
+    "confidence": 0.9851051568984985
+  },
+  {
+    "girl": "luna",
+    "file": "moreno_elegante_car-night",
+    "bad": true,
+    "reason": "off_center_v(dy=0.23)",
+    "confidence": 0.9892303347587585,
+    "detail": "conf=0.989 box=(279,51,142,189) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "moreno_elegante_neon-room",
+    "bad": true,
+    "reason": "face_cut_top, off_center_v(dy=0.23)",
+    "confidence": 0.9955187439918518,
+    "detail": "conf=0.996 box=(317,50,116,184) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "moreno_elegante_studio",
+    "bad": true,
+    "reason": "off_center_v(dy=0.22)",
+    "confidence": 0.9943908452987671,
+    "detail": "conf=0.994 box=(273,55,149,187) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "moreno_fiesta_beach-night",
+    "bad": true,
+    "reason": "off_center_v(dy=0.21)",
+    "confidence": 0.9911929368972778,
+    "detail": "conf=0.991 box=(239,72,112,172) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "moreno_fiesta_car-night",
+    "bad": true,
+    "reason": "off_center_v(dy=0.22)",
+    "confidence": 0.9926233291625977,
+    "detail": "conf=0.993 box=(277,60,141,178) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "moreno_fiesta_neon-room",
+    "bad": true,
+    "reason": "face_cut_top, off_center_v(dy=0.23)",
+    "confidence": 0.9962775111198425,
+    "detail": "conf=0.996 box=(314,44,121,195) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "moreno_fiesta_studio",
+    "bad": true,
+    "reason": "off_center_v(dy=0.22)",
+    "confidence": 0.9934768676757812,
+    "detail": "conf=0.993 box=(275,52,150,189) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "pelirrojo_bikini-suave_car-night",
+    "bad": true,
+    "reason": "off_center_v(dy=0.22)",
+    "confidence": 0.9976305365562439,
+    "detail": "conf=0.998 box=(307,55,131,193) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "pelirrojo_casual_beach-night",
+    "bad": true,
+    "reason": "off_center_v(dy=0.22)",
+    "confidence": 0.9954233765602112,
+    "detail": "conf=0.995 box=(244,57,121,189) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "pelirrojo_casual_car-night",
+    "bad": true,
+    "reason": "off_center_v(dy=0.22)",
+    "confidence": 0.9970845580101013,
+    "detail": "conf=0.997 box=(307,54,125,184) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "pelirrojo_casual_neon-room",
+    "bad": true,
+    "reason": "off_center_v(dy=0.22)",
+    "confidence": 0.9971143007278442,
+    "detail": "conf=0.997 box=(311,53,124,192) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "pelirrojo_casual_studio",
+    "bad": true,
+    "reason": "face_cut_top, off_center_v(dy=0.23)",
+    "confidence": 0.9967443943023682,
+    "detail": "conf=0.997 box=(291,50,140,189) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "pelirrojo_elegante_beach-night",
+    "bad": true,
+    "reason": "off_center_v(dy=0.22)",
+    "confidence": 0.9889364242553711,
+    "detail": "conf=0.989 box=(238,72,123,163) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "pelirrojo_elegante_car-night",
+    "bad": true,
+    "reason": "multiple_faces(3)",
+    "confidence": 0.9916673898696899
+  },
+  {
+    "girl": "luna",
+    "file": "pelirrojo_elegante_neon-room",
+    "bad": true,
+    "reason": "face_cut_top, off_center_v(dy=0.23)",
+    "confidence": 0.9964470863342285,
+    "detail": "conf=0.996 box=(314,47,117,186) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "pelirrojo_elegante_studio",
+    "bad": true,
+    "reason": "off_center_v(dy=0.23)",
+    "confidence": 0.9914819002151489,
+    "detail": "conf=0.991 box=(277,50,151,188) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "pelirrojo_fiesta_beach-night",
+    "bad": true,
+    "reason": "off_center_v(dy=0.22)",
+    "confidence": 0.9940802454948425,
+    "detail": "conf=0.994 box=(236,67,122,170) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "pelirrojo_fiesta_car-night",
+    "bad": true,
+    "reason": "off_center_v(dy=0.23)",
+    "confidence": 0.9952357411384583,
+    "detail": "conf=0.995 box=(307,53,123,182) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "pelirrojo_fiesta_neon-room",
+    "bad": true,
+    "reason": "off_center_v(dy=0.23)",
+    "confidence": 0.9955528974533081,
+    "detail": "conf=0.996 box=(310,54,120,184) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "pelirrojo_fiesta_studio",
+    "bad": true,
+    "reason": "off_center_v(dy=0.22)",
+    "confidence": 0.9936394691467285,
+    "detail": "conf=0.994 box=(276,53,154,187) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "rosa_bikini-suave_car-night",
+    "bad": true,
+    "reason": "off_center_v(dy=0.21)",
+    "confidence": 0.9973001480102539,
+    "detail": "conf=0.997 box=(314,61,121,191) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "rosa_casual_beach-night",
+    "bad": true,
+    "reason": "off_center_v(dy=0.22)",
+    "confidence": 0.9934666156768799,
+    "detail": "conf=0.993 box=(244,60,131,186) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "rosa_casual_car-night",
+    "bad": true,
+    "reason": "off_center_v(dy=0.22)",
+    "confidence": 0.9943679571151733,
+    "detail": "conf=0.994 box=(310,64,127,178) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "rosa_casual_neon-room",
+    "bad": true,
+    "reason": "off_center_v(dy=0.22)",
+    "confidence": 0.996199905872345,
+    "detail": "conf=0.996 box=(311,53,122,198) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "rosa_casual_studio",
+    "bad": true,
+    "reason": "off_center_v(dy=0.22)",
+    "confidence": 0.9945197105407715,
+    "detail": "conf=0.995 box=(310,55,119,185) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "rosa_elegante_beach-night",
+    "bad": true,
+    "reason": "off_center_v(dy=0.23)",
+    "confidence": 0.9918951988220215,
+    "detail": "conf=0.992 box=(243,54,120,183) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "rosa_elegante_car-night",
+    "bad": true,
+    "reason": "off_center_v(dy=0.23)",
+    "confidence": 0.9936831593513489,
+    "detail": "conf=0.994 box=(316,56,116,172) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "rosa_elegante_neon-room",
+    "bad": true,
+    "reason": "multiple_faces(3)",
+    "confidence": 0.9962471723556519
+  },
+  {
+    "girl": "luna",
+    "file": "rosa_elegante_studio",
+    "bad": true,
+    "reason": "off_center_v(dy=0.23)",
+    "confidence": 0.9896999001502991,
+    "detail": "conf=0.990 box=(311,55,114,173) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "rosa_fiesta_beach-night",
+    "bad": true,
+    "reason": "off_center_v(dy=0.22)",
+    "confidence": 0.9940001368522644,
+    "detail": "conf=0.994 box=(239,56,110,184) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "rosa_fiesta_car-night",
+    "bad": true,
+    "reason": "off_center_v(dy=0.22)",
+    "confidence": 0.9900261163711548,
+    "detail": "conf=0.990 box=(308,58,124,176) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "rosa_fiesta_neon-room",
+    "bad": true,
+    "reason": "off_center_v(dy=0.22)",
+    "confidence": 0.9951364994049072,
+    "detail": "conf=0.995 box=(308,52,121,191) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "rosa_fiesta_studio",
+    "bad": true,
+    "reason": "off_center_v(dy=0.23)",
+    "confidence": 0.9942308664321899,
+    "detail": "conf=0.994 box=(306,53,123,180) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "rubio_bikini-suave_car-night",
+    "bad": true,
+    "reason": "off_center_v(dy=0.22)",
+    "confidence": 0.9949547648429871,
+    "detail": "conf=0.995 box=(312,59,121,185) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "rubio_casual_beach-night",
+    "bad": true,
+    "reason": "off_center_v(dy=0.22)",
+    "confidence": 0.9874976873397827,
+    "detail": "conf=0.987 box=(242,53,130,194) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "rubio_casual_car-night",
+    "bad": true,
+    "reason": "off_center_v(dy=0.22)",
+    "confidence": 0.9940632581710815,
+    "detail": "conf=0.994 box=(307,59,124,180) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "rubio_casual_neon-room",
+    "bad": true,
+    "reason": "off_center_v(dy=0.22)",
+    "confidence": 0.9899779558181763,
+    "detail": "conf=0.990 box=(312,56,119,190) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "rubio_casual_studio",
+    "bad": true,
+    "reason": "off_center_v(dy=0.23)",
+    "confidence": 0.9964649677276611,
+    "detail": "conf=0.996 box=(301,53,126,183) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "rubio_elegante_beach-night",
+    "bad": true,
+    "reason": "off_center_v(dy=0.23)",
+    "confidence": 0.992210865020752,
+    "detail": "conf=0.992 box=(246,54,132,183) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "rubio_elegante_car-night",
+    "bad": true,
+    "reason": "off_center_v(dy=0.23)",
+    "confidence": 0.9940658807754517,
+    "detail": "conf=0.994 box=(318,55,111,172) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "rubio_elegante_neon-room",
+    "bad": true,
+    "reason": "off_center_v(dy=0.23)",
+    "confidence": 0.992990255355835,
+    "detail": "conf=0.993 box=(314,50,115,182) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "rubio_elegante_studio",
+    "bad": true,
+    "reason": "face_cut_top, off_center_v(dy=0.24)",
+    "confidence": 0.9781143665313721,
+    "detail": "conf=0.978 box=(310,42,106,176) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "rubio_fiesta_beach-night",
+    "bad": true,
+    "reason": "off_center_v(dy=0.22)",
+    "confidence": 0.9919299483299255,
+    "detail": "conf=0.992 box=(237,58,117,181) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "rubio_fiesta_car-night",
+    "bad": true,
+    "reason": "off_center_v(dy=0.23)",
+    "confidence": 0.989622950553894,
+    "detail": "conf=0.990 box=(307,56,123,178) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "rubio_fiesta_neon-room",
+    "bad": true,
+    "reason": "off_center_v(dy=0.23)",
+    "confidence": 0.9914491176605225,
+    "detail": "conf=0.991 box=(309,52,118,185) img=705x836"
+  },
+  {
+    "girl": "luna",
+    "file": "rubio_fiesta_studio",
+    "bad": true,
+    "reason": "face_cut_top, off_center_v(dy=0.23)",
+    "confidence": 0.996172308921814,
+    "detail": "conf=0.996 box=(295,46,117,186) img=705x836"
+  },
+  {
+    "girl": "nia",
+    "file": "moreno_elegante_car-night",
+    "bad": true,
+    "reason": "multiple_faces(3)",
+    "confidence": 0.9746514558792114
+  },
+  {
+    "girl": "alma",
+    "file": "moreno_elegante_studio",
+    "bad": true,
+    "reason": "off_center_v(dy=0.21)",
+    "confidence": 0.9967228770256042,
+    "detail": "conf=0.997 box=(285,68,117,190) img=705x836"
+  },
+  {
+    "girl": "alma",
+    "file": "moreno_fiesta_studio",
+    "bad": true,
+    "reason": "off_center_v(dy=0.21)",
+    "confidence": 0.9968655705451965,
+    "detail": "conf=0.997 box=(286,61,125,195) img=705x836"
+  },
+  {
+    "girl": "alma",
+    "file": "pelirrojo_elegante_studio",
+    "bad": true,
+    "reason": "off_center_v(dy=0.21)",
+    "confidence": 0.9965101480484009,
+    "detail": "conf=0.997 box=(282,66,120,193) img=705x836"
+  },
+  {
+    "girl": "alma",
+    "file": "pelirrojo_fiesta_studio",
+    "bad": true,
+    "reason": "off_center_v(dy=0.21)",
+    "confidence": 0.9971271753311157,
+    "detail": "conf=0.997 box=(285,63,125,191) img=705x836"
+  },
+  {
+    "girl": "alma",
+    "file": "rosa_elegante_studio",
+    "bad": true,
+    "reason": "off_center_v(dy=0.21)",
+    "confidence": 0.9964501261711121,
+    "detail": "conf=0.996 box=(294,59,111,193) img=705x836"
+  },
+  {
+    "girl": "alma",
+    "file": "rubio_elegante_studio",
+    "bad": true,
+    "reason": "off_center_v(dy=0.21)",
+    "confidence": 0.9959368705749512,
+    "detail": "conf=0.996 box=(292,61,111,192) img=705x836"
+  },
+  {
+    "girl": "alma",
+    "file": "rubio_fiesta_studio",
+    "bad": true,
+    "reason": "off_center_v(dy=0.21)",
+    "confidence": 0.9964902400970459,
+    "detail": "conf=0.996 box=(289,62,123,189) img=705x836"
+  },
+  {
+    "girl": "kira",
+    "file": "moreno_bikini-suave_beach-night",
+    "bad": true,
+    "reason": "face_cut_top",
+    "confidence": 0.9865638017654419,
+    "detail": "conf=0.987 box=(257,46,190,269) img=705x836"
+  },
+  {
+    "girl": "kira",
+    "file": "moreno_bikini-suave_studio",
+    "bad": true,
+    "reason": "face_cut_top",
+    "confidence": 0.9882957339286804,
+    "detail": "conf=0.988 box=(252,50,186,277) img=705x836"
+  },
+  {
+    "girl": "kira",
+    "file": "moreno_casual_car-night",
+    "bad": true,
+    "reason": "off_center_v(dy=0.22)",
+    "confidence": 0.9329794645309448,
+    "detail": "conf=0.933 box=(315,67,105,170) img=705x836"
+  },
+  {
+    "girl": "kira",
+    "file": "moreno_elegante_beach-night",
+    "bad": true,
+    "reason": "face_cut_top",
+    "confidence": 0.9810080528259277,
+    "detail": "conf=0.981 box=(257,45,189,270) img=705x836"
+  },
+  {
+    "girl": "kira",
+    "file": "moreno_elegante_studio",
+    "bad": true,
+    "reason": "face_cut_top",
+    "confidence": 0.9489810466766357,
+    "detail": "conf=0.949 box=(251,46,178,281) img=705x836"
+  },
+  {
+    "girl": "kira",
+    "file": "moreno_fiesta_beach-night",
+    "bad": true,
+    "reason": "face_cut_top",
+    "confidence": 0.9780188798904419,
+    "detail": "conf=0.978 box=(258,44,189,265) img=705x836"
+  },
+  {
+    "girl": "kira",
+    "file": "pelirrojo_bikini-suave_beach-night",
+    "bad": true,
+    "reason": "face_cut_top",
+    "confidence": 0.9619541168212891,
+    "detail": "conf=0.962 box=(261,46,182,264) img=705x836"
+  },
+  {
+    "girl": "kira",
+    "file": "pelirrojo_bikini-suave_studio",
+    "bad": true,
+    "reason": "face_cut_top",
+    "confidence": 0.9511509537696838,
+    "detail": "conf=0.951 box=(258,49,181,273) img=705x836"
+  },
+  {
+    "girl": "kira",
+    "file": "pelirrojo_casual_car-night",
+    "bad": true,
+    "reason": "off_center_v(dy=0.23)",
+    "confidence": 0.9161295890808105,
+    "detail": "conf=0.916 box=(308,59,96,169) img=705x836"
+  },
+  {
+    "girl": "kira",
+    "file": "pelirrojo_elegante_beach-night",
+    "bad": true,
+    "reason": "face_cut_top",
+    "confidence": 0.8804975152015686,
+    "detail": "conf=0.880 box=(264,44,176,270) img=705x836"
+  },
+  {
+    "girl": "kira",
+    "file": "pelirrojo_elegante_studio",
+    "bad": true,
+    "reason": "face_cut_top",
+    "confidence": 0.848770797252655,
+    "detail": "conf=0.849 box=(260,32,163,290) img=705x836"
+  },
+  {
+    "girl": "kira",
+    "file": "pelirrojo_fiesta_studio",
+    "bad": true,
+    "reason": "face_cut_top",
+    "confidence": 0.9630644917488098,
+    "detail": "conf=0.963 box=(260,49,184,273) img=705x836"
+  },
+  {
+    "girl": "kira",
+    "file": "rosa_casual_car-night",
+    "bad": true,
+    "reason": "off_center_v(dy=0.22)",
+    "confidence": 0.9914233088493347,
+    "detail": "conf=0.991 box=(299,54,99,185) img=705x836"
+  },
+  {
+    "girl": "kira",
+    "file": "rubio_casual_beach-night",
+    "bad": true,
+    "reason": "off_center_v(dy=0.20)",
+    "confidence": 0.9922695159912109,
+    "detail": "conf=0.992 box=(283,65,107,203) img=705x836"
+  },
+  {
+    "girl": "kira",
+    "file": "rubio_casual_car-night",
+    "bad": true,
+    "reason": "off_center_v(dy=0.22)",
+    "confidence": 0.9307653903961182,
+    "detail": "conf=0.931 box=(313,69,92,165) img=705x836"
+  },
+  {
+    "girl": "sasha",
+    "file": "rosa_elegante_beach-night",
+    "bad": true,
+    "reason": "multiple_faces(3)",
+    "confidence": 0.9841132760047913
+  }
+]
