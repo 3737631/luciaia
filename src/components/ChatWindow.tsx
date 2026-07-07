@@ -286,7 +286,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && send()}
           placeholder={blocked ? "Chat bloqueado" : "Escribe un mensaje..."}
-          className="min-h-[48px] flex-1 rounded-2xl border border-white/10 glass px-4 text-sm outline-none focus:border-pink/50 disabled:opacity-40"
+          className="min-h-[48px] flex-1 rounded-2xl border border-white/10 glass px-4 text-[16px] outline-none focus:border-pink/50 disabled:opacity-40"
         />
         <button
           onClick={send}
