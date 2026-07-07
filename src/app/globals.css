@@ -2,7 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-html,
+html {
+  background-color: #08030f;
+}
+
 body {
   width: 100%;
   max-width: 100vw;
