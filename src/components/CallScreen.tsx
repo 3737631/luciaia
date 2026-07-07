@@ -117,16 +117,37 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     return es[0] || null;
   }
 
+  async function acquireMic(): Promise<MediaStream | null> {
+    try {
+      return await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (e: any) {
+      if (e.name === "NotAllowedError") setMicError("Permiso denegado. Toca para activar");
+      else if (e.name === "NotFoundError") setMicError("No hay micrófono");
+      else setMicError("Error al abrir micrófono");
+      return null;
+    }
+  }
+
+  function releaseMic() {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+  }
+
   function speak(text: string, onDone?: () => void) {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
     shouldListenRef.current = false;
     stopRecorder();
     stopSpeechRecognition();
+    releaseMic();
     ph("speaking");
     setStatusText("Hablando...");
     setLastReply(text);
     window.speechSynthesis.cancel();
-    const done = onDone || (() => { if (mountedRef.current) startListening(); });
+    const done = onDone || (() => {
+      if (mountedRef.current) acquireMicAndListen();
+    });
     const utterance = new SpeechSynthesisUtterance(text);
     const voice = findBestVoice();
     const profile = voiceProfiles[girl.id] || voiceProfiles.luna;
@@ -141,61 +162,23 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     speakTimerRef.current = setTimeout(done, text.length * 60 + 2000);
   }
 
-  function cleanup() {
-    shouldListenRef.current = false;
-    stopRecorder();
-    stopSpeechRecognition();
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((t) => t.stop());
-      streamRef.current = null;
-    }
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-      debounceTimerRef.current = null;
-    }
-    speechBufferRef.current = "";
-    if (speakTimerRef.current) {
-      clearTimeout(speakTimerRef.current);
-      speakTimerRef.current = null;
-    }
-    if (typeof window !== "undefined" && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-    }
-  }
-
-  function stopRecorder() {
-    if (recorderRef.current && recorderRef.current.state !== "inactive") {
-      recorderRef.current.stop();
-    }
-    recorderRef.current = null;
-  }
-
-  function stopSpeechRecognition() {
-    if (recognitionRef.current) {
-      try { recognitionRef.current.stop(); } catch {}
-      recognitionRef.current = null;
-    }
-  }
-
-  async function requestMic(): Promise<MediaStream | null> {
-    try {
-      return await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: true, noiseSuppression: true },
-      });
-    } catch (e: any) {
-      if (e.name === "NotAllowedError") setMicError("Permiso denegado");
-      else if (e.name === "NotFoundError") setMicError("No hay micrófono");
-      else setMicError("Error al abrir micrófono");
-      return null;
+  async function acquireMicAndListen() {
+    if (!mountedRef.current) return;
+    const stream = await acquireMic();
+    if (stream && mountedRef.current) {
+      streamRef.current = stream;
+      startListening();
+    } else if (mountedRef.current) {
+      ph("idle");
     }
   }
 
   function startListening() {
     if (!streamRef.current || !mountedRef.current) return;
+    if (shouldListenRef.current) return;
     shouldListenRef.current = true;
     ph("listening");
     setStatusText("Te escucho");
-
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SR) {
       startSR(new SR());
@@ -208,7 +191,6 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = "es-ES";
-
     recognition.onresult = (event: SpeechRecognitionEvent) => {
       if (!shouldListenRef.current || modeRef.current !== "listening") return;
       let final = "";
@@ -226,7 +208,6 @@ export default function CallScreen({ girl }: { girl: Girl }) {
         if (t.trim() && modeRef.current === "listening") onSpeech(t.trim());
       }, DEBOUNCE_MS);
     };
-
     recognition.onend = () => {
       const t = speechBufferRef.current;
       if (t.trim() && modeRef.current === "listening") {
@@ -236,11 +217,9 @@ export default function CallScreen({ girl }: { girl: Girl }) {
         try { recognition.start(); } catch { startMR(); }
       }
     };
-
     recognition.onerror = () => {
       if (shouldListenRef.current) startMR();
     };
-
     recognitionRef.current = recognition;
     try { recognition.start(); } catch { startMR(); }
   }
@@ -248,22 +227,29 @@ export default function CallScreen({ girl }: { girl: Girl }) {
   function startMR() {
     if (!streamRef.current) return;
     stopRecorder();
-
     const mimeType = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/aac", "audio/mpeg"]
       .find((t) => MediaRecorder.isTypeSupported(t)) || "audio/webm";
-
     const chunks: Blob[] = [];
-    const recorder = new MediaRecorder(streamRef.current, { mimeType });
+    let recorder: MediaRecorder;
+    try {
+      recorder = new MediaRecorder(streamRef.current, { mimeType });
+    } catch {
+      setMicError("Mic no disponible. Usa el teclado");
+      ph("idle");
+      return;
+    }
     recorderRef.current = recorder;
-
     recorder.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
-
     recorder.onstop = () => {
       if (!mountedRef.current || chunks.length === 0) return;
       const blob = new Blob(chunks, { type: mimeType });
+      if (!shouldListenRef.current) return;
       blob.arrayBuffer().then((buf) => {
         const uint8 = new Uint8Array(buf);
-        if (uint8.length < 2000) return;
+        if (uint8.length < 2000) {
+          if (shouldListenRef.current) startMR();
+          return;
+        }
         let sum = 0;
         for (let i = 0; i < uint8.length; i++) {
           const val = (uint8[i] - 128) / 128;
@@ -279,11 +265,15 @@ export default function CallScreen({ girl }: { girl: Girl }) {
         if (shouldListenRef.current) onAudio(blob, mimeType);
       });
     };
-
-    recorder.start();
-    setTimeout(() => {
-      if (recorder.state === "recording") recorder.stop();
-    }, CHUNK_MS);
+    try {
+      recorder.start();
+      setTimeout(() => {
+        if (recorder.state === "recording") recorder.stop();
+      }, CHUNK_MS);
+    } catch {
+      setMicError("Error al grabar. Usa el teclado");
+      ph("idle");
+    }
   }
 
   function onSpeech(text: string) {
@@ -307,13 +297,15 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     setThinking(true);
     setStatusText("Procesando...");
     sttAudio(blob).then((text) => {
-      if (text.trim() && mountedRef.current) {
+      if (!mountedRef.current) return;
+      if (text.trim()) {
         setStatusText("Pensando...");
         return doAIRef.current?.(text.trim());
       }
+      acquireMicAndListen();
     }).catch(() => {
       if (mountedRef.current) {
-        setMicError("No te escucho bien");
+        setMicError("No te escucho bien. Usa el teclado");
         ph("idle");
       }
     }).finally(() => {
@@ -325,7 +317,6 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     const currentHistory = getConversationHistory(girl.id);
     const memory = getUserMemory(girl.id);
     const summary = getConversationSummary(girl.id);
-
     const payload = {
       message: text,
       girlId: girl.id,
@@ -338,7 +329,6 @@ export default function CallScreen({ girl }: { girl: Girl }) {
       summary,
       mode: "text" as const,
     };
-
     try {
       const reply = await sendChatMessage(payload);
       if (!mountedRef.current) return;
@@ -380,6 +370,7 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     shouldListenRef.current = false;
     stopRecorder();
     stopSpeechRecognition();
+    releaseMic();
     setStatusText("Pensando...");
     await doAI(text);
   }
@@ -387,21 +378,17 @@ export default function CallScreen({ girl }: { girl: Girl }) {
   function answerCall() {
     setCallState("connecting");
     setStatusText("Conectando...");
-    requestMic().then((stream) => {
-      if (!stream || !mountedRef.current) return;
-      streamRef.current = stream;
-      setTimeout(() => {
-        if (!mountedRef.current) return;
-        setCallState("connected");
-        const welcome = `Hola, soy ${girl.name}. ¿Cómo estás?`;
-        const welcomeMsg: ChatMessage = { role: "assistant", content: welcome };
-        setMessages([welcomeMsg]);
-        timerRef.current = setInterval(() => {
-          setCallDuration((d) => d + 1);
-        }, 1000);
-        speak(welcome);
-      }, 1500);
-    });
+    setTimeout(() => {
+      if (!mountedRef.current) return;
+      setCallState("connected");
+      const welcome = `Hola, soy ${girl.name}. ¿Cómo estás?`;
+      const welcomeMsg: ChatMessage = { role: "assistant", content: welcome };
+      setMessages([welcomeMsg]);
+      timerRef.current = setInterval(() => {
+        setCallDuration((d) => d + 1);
+      }, 1000);
+      speak(welcome);
+    }, 500);
   }
 
   function hangUp() {
@@ -412,6 +399,39 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     saveToHistory(girl.id, girl.name, messages);
     const base = process.env.NEXT_PUBLIC_BASE_PATH || "";
     window.location.href = `${base}/girls`;
+  }
+
+  function cleanup() {
+    shouldListenRef.current = false;
+    stopRecorder();
+    stopSpeechRecognition();
+    releaseMic();
+    speechBufferRef.current = "";
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+    if (speakTimerRef.current) {
+      clearTimeout(speakTimerRef.current);
+      speakTimerRef.current = null;
+    }
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+  }
+
+  function stopRecorder() {
+    if (recorderRef.current && recorderRef.current.state !== "inactive") {
+      try { recorderRef.current.stop(); } catch {}
+    }
+    recorderRef.current = null;
+  }
+
+  function stopSpeechRecognition() {
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch {}
+      recognitionRef.current = null;
+    }
   }
 
   function clearMemory() {
@@ -518,10 +538,10 @@ export default function CallScreen({ girl }: { girl: Girl }) {
         />
         {micError && mode !== "listening" && (
           <button
-            onClick={startListening}
+            onClick={() => { setMicError(null); acquireMicAndListen(); }}
             className="mt-4 rounded-xl bg-white/10 px-5 py-2.5 text-xs text-muted hover:bg-white/20 transition-all"
           >
-            {micError} — Toca para activar mic
+            {micError} — Toca para intentar
           </button>
         )}
         {lastReply && (
@@ -575,7 +595,7 @@ export default function CallScreen({ girl }: { girl: Girl }) {
           {mode === "speaking" ? `${girl.name} habla...` :
            mode === "listening" ? "Te escucho, habla" :
            mode === "processing" ? "Pensando..." :
-           micError ? "Activa el mic o escribe" :
+           micError ? "Toca el botón para activar mic" :
            "Llamada en curso"}
         </p>
       </div>
