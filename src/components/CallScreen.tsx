@@ -14,6 +14,7 @@ import {
   extractMemoryFromMessages,
   buildSummary,
   clearAllMemory,
+  saveToHistory,
   ChatMessage,
 } from "@/lib/memory";
 import { Girl } from "@/data/girls";
@@ -61,18 +62,10 @@ export default function CallScreen({ girl }: { girl: Girl }) {
   }, []);
 
   useEffect(() => {
-    const saved = getConversationHistory(girl.id);
-    setMessages(saved);
-    if (saved.length === 0) {
-      const welcome = `Hola, soy ${girl.name}. ¿Cómo estás?`;
-      const welcomeMsg: ChatMessage = { role: "assistant", content: welcome };
-      setMessages([welcomeMsg]);
-      saveConversationHistory(girl.id, [welcomeMsg]);
-      setTimeout(() => speak(welcome), 800);
-    } else {
-      const last = [...saved].reverse().find((m) => m.role === "assistant");
-      if (last) setLastReply(last.content);
-    }
+    const welcome = `Hola, soy ${girl.name}. ¿Cómo estás?`;
+    const welcomeMsg: ChatMessage = { role: "assistant", content: welcome };
+    setMessages([welcomeMsg]);
+    setTimeout(() => speak(welcome), 800);
   }, [girl.id, girl.name]);
 
   useEffect(() => {
@@ -126,8 +119,23 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     }, SILENCE_TIMEOUT_MS);
   }
 
-  function startListening() {
+  async function requestMicPermission(): Promise<boolean> {
+    if (!navigator.mediaDevices?.getUserMedia) return !!SpeechRecognition;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach((t) => t.stop());
+      return true;
+    } catch {
+      setStatusText("Permiso de micrófono denegado");
+      return false;
+    }
+  }
+
+  async function startListening() {
     if (!SpeechRecognition || recognitionRef.current) return;
+    setStatusText("Solicitando micrófono...");
+    const granted = await requestMicPermission();
+    if (!granted) return;
     const recognition = new SpeechRecognition();
     recognition.lang = "es-ES";
     recognition.continuous = true;
@@ -150,9 +158,13 @@ export default function CallScreen({ girl }: { girl: Girl }) {
       }
     };
 
-    recognition.onerror = () => {
+    recognition.onerror = (err: SpeechRecognitionErrorEvent) => {
       setListening(false);
-      setStatusText("Micrófono no disponible");
+      if (err.error === "not-allowed") {
+        setStatusText("Bloquea el micrófono en el navegador");
+      } else {
+        setStatusText("Micrófono no disponible");
+      }
     };
 
     recognition.onstart = () => {
@@ -265,7 +277,9 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     if (typeof window !== "undefined" && window.speechSynthesis) {
       window.speechSynthesis.cancel();
     }
-    window.location.href = "/girls";
+    saveToHistory(girl.id, girl.name, messages);
+    const base = process.env.NEXT_PUBLIC_BASE_PATH || "";
+    window.location.href = `${base}/girls`;
   }
 
   function clearMemory() {

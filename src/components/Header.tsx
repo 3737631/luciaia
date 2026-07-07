@@ -16,6 +16,9 @@ export default function Header() {
           <Link href="/girls" className="text-ink font-medium transition-colors">
             Chicas IA
           </Link>
+          <Link href="/history" className="hover:text-ink transition-colors">
+            Historial
+          </Link>
           <Link href="/info" className="hover:text-ink transition-colors">
             Info
           </Link>

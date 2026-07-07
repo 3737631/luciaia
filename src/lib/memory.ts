@@ -106,6 +106,54 @@ export function buildSummary(messages: ChatMessage[]): string {
   return summary.length > 300 ? summary.slice(0, 300) + "..." : summary;
 }
 
+export interface HistoryEntry {
+  id: string;
+  girlId: string;
+  girlName: string;
+  timestamp: number;
+  preview: string;
+  messages: ChatMessage[];
+}
+
+function historyKey(): string {
+  return "lunacall_history";
+}
+
+export function saveToHistory(girlId: string, girlName: string, messages: ChatMessage[]): void {
+  if (typeof window === "undefined" || messages.length < 2) return;
+  try {
+    const raw = localStorage.getItem(historyKey());
+    const list: HistoryEntry[] = raw ? JSON.parse(raw) : [];
+    const preview = messages
+      .filter((m) => m.role === "user")
+      .slice(-1)[0]?.content.slice(0, 80) || "Conversación";
+    list.unshift({
+      id: `${girlId}_${Date.now()}`,
+      girlId,
+      girlName,
+      timestamp: Date.now(),
+      preview,
+      messages: messages.slice(-40),
+    });
+    localStorage.setItem(historyKey(), JSON.stringify(list.slice(0, 50)));
+  } catch {}
+}
+
+export function getHistory(): HistoryEntry[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(historyKey());
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function clearHistory(): void {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(historyKey());
+}
+
 export function clearAllMemory(girlId: string): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem(storageKey(girlId, "history"));
