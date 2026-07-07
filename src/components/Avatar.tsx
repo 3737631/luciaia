@@ -6,7 +6,6 @@ import { HairOption, OutfitOption, BackgroundOption } from "@/data/girls";
 
 interface AvatarProps {
   name: string;
-  image?: string;
   accentColor: string;
   accentColorSecondary?: string;
   size?: number;

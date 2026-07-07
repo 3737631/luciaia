@@ -12,6 +12,8 @@ const cardGradients: Record<string, string> = {
   alma: "from-amber-500/25 via-orange-500/15 to-transparent",
   kira: "from-red-500/25 via-rose-500/15 to-transparent",
   maya: "from-indigo-500/25 via-violet-500/15 to-transparent",
+  sasha: "from-amber-600/25 via-yellow-500/15 to-transparent",
+  yuki: "from-pink-400/25 via-fuchsia-500/15 to-transparent",
 };
 
 const personalities = [

@@ -16,7 +16,6 @@ export interface Girl {
   defaultBackground: BackgroundOption;
   defaultOutfit: OutfitOption;
   voiceLineExamples: string[];
-  image: string;
 }
 
 export const girls: Girl[] = [
@@ -37,7 +36,6 @@ export const girls: Girl[] = [
       "Cuéntame algo de ti.",
       "Me encanta cuando me escribes así.",
     ],
-    image: "/girls/luna.jpg",
   },
   {
     id: "nia",
@@ -56,7 +54,6 @@ export const girls: Girl[] = [
       "Me gusta tu energía.",
       "¿Jugamos o hablamos primero?",
     ],
-    image: "/girls/nia.jpg",
   },
   {
     id: "vera",
@@ -75,7 +72,6 @@ export const girls: Girl[] = [
       "Me gusta cuando prestas atención.",
       "Hoy vas a hacerme caso, ¿no?",
     ],
-    image: "/girls/vera.jpg",
   },
   {
     id: "alma",
@@ -94,7 +90,6 @@ export const girls: Girl[] = [
       "Cuéntame algo de ti, quiero conocerte mejor.",
       "Me encanta cuando me escribes así.",
     ],
-    image: "/girls/alma.jpg",
   },
   {
     id: "kira",
@@ -113,7 +108,6 @@ export const girls: Girl[] = [
       "Relájate, yo llevo la conversación.",
       "Me gusta cuando prestas atención.",
     ],
-    image: "/girls/kira.jpg",
   },
   {
     id: "maya",
@@ -132,7 +126,42 @@ export const girls: Girl[] = [
       "Podemos hablar un rato, pero no te me pongas nervioso.",
       "Me gusta tu energía.",
     ],
-    image: "/girls/maya.jpg",
+  },
+  {
+    id: "sasha",
+    name: "Sasha",
+    style: "Curvas de ébano",
+    personality: "atrevida",
+    personalityLabel: "Segura y fogosa",
+    accentColor: "#d97706",
+    accentColorSecondary: "#f59e0b",
+    description: "Segura de sí misma, con una presencia que llena la habitación. Sabe lo que quiere.",
+    defaultHair: "moreno",
+    defaultBackground: "neon-room",
+    defaultOutfit: "elegante",
+    voiceLineExamples: [
+      "¿Te gusta lo que ves?",
+      "Acércate, no muerdo… mucho.",
+      "Hoy me siento poderosa.",
+    ],
+  },
+  {
+    id: "yuki",
+    name: "Yuki",
+    style: "Dulce tentación",
+    personality: "timida",
+    personalityLabel: "Dulce y tímida",
+    accentColor: "#f472b6",
+    accentColorSecondary: "#e879f9",
+    description: "Tímida pero con una mirada que engancha. Se abre contigo poco a poco.",
+    defaultHair: "moreno",
+    defaultBackground: "neon-room",
+    defaultOutfit: "casual",
+    voiceLineExamples: [
+      "Hola… no esperaba verte tan pronto.",
+      "Me pongo nerviosa cuando me miras así.",
+      "Tú primero, no sé qué decir…",
+    ],
   },
 ];
 
