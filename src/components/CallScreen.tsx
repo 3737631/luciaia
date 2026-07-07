@@ -137,19 +137,12 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     }
   }
 
-  function speak(text: string, onDone?: () => void) {
-    if (typeof window === "undefined" || !window.speechSynthesis) return;
-    shouldListenRef.current = false;
-    stopRecorder();
-    stopSpeechRecognition();
-    releaseMic();
-    ph("speaking");
-    setStatusText("Hablando...");
-    setLastReply(text);
+  function speakBrowser(text: string, done: () => void) {
+    if (!window.speechSynthesis) { done(); return; }
+    if (voicesRef.current.length === 0) {
+      voicesRef.current = window.speechSynthesis.getVoices();
+    }
     window.speechSynthesis.cancel();
-    const done = onDone || (() => {
-      if (mountedRef.current) acquireMicAndListen();
-    });
     const utterance = new SpeechSynthesisUtterance(text);
     const voice = findBestVoice();
     const profile = voiceProfiles[girl.id] || voiceProfiles.luna;
@@ -162,6 +155,35 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     window.speechSynthesis.speak(utterance);
     if (speakTimerRef.current) clearTimeout(speakTimerRef.current);
     speakTimerRef.current = setTimeout(done, text.length * 60 + 2000);
+  }
+
+  function speak(text: string, onDone?: () => void) {
+    if (typeof window === "undefined") return;
+    shouldListenRef.current = false;
+    stopRecorder();
+    stopSpeechRecognition();
+    releaseMic();
+    ph("speaking");
+    setStatusText("Hablando...");
+    setLastReply(text);
+    window.speechSynthesis.cancel();
+    const done = onDone || (() => {
+      if (mountedRef.current) acquireMicAndListen();
+    });
+    import("@/lib/voiceClient").then(({ ttsText }) => {
+      ttsText(text).then((result) => {
+        if (!mountedRef.current) return;
+        const audioSrc = `data:${result.contentType};base64,${result.audio}`;
+        const el = new Audio(audioSrc);
+        el.onended = done;
+        el.onerror = () => { if (mountedRef.current) speakBrowser(text, done); };
+        el.play().catch(() => { if (mountedRef.current) speakBrowser(text, done); });
+      }).catch(() => {
+        if (mountedRef.current) speakBrowser(text, done);
+      });
+    }).catch(() => {
+      if (mountedRef.current) speakBrowser(text, done);
+    });
   }
 
   async function acquireMicAndListen() {

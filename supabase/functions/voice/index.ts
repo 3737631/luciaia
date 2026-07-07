@@ -50,6 +50,42 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ text }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    if (action === "tts") {
+      const { text } = body;
+      if (!text) {
+        return new Response(JSON.stringify({ error: "Missing text" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const apiKey = Deno.env.get("OPENROUTER_API_KEY");
+      if (!apiKey) {
+        return new Response(JSON.stringify({ error: "Missing OPENROUTER_API_KEY" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const ttsRes = await fetch("https://openrouter.ai/api/v1/audio/speech", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "openai/tts-1",
+          input: text,
+          voice: "nova",
+          response_format: "mp3",
+        }),
+      });
+
+      if (!ttsRes.ok) {
+        const errText = await ttsRes.text();
+        return new Response(JSON.stringify({ error: `TTS error: ${errText}` }), { status: ttsRes.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const audioBuffer = await ttsRes.arrayBuffer();
+      const base64Audio = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
+
+      return new Response(JSON.stringify({ audio: base64Audio, contentType: "audio/mp3" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     return new Response(JSON.stringify({ error: "Unknown action" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (error) {
     return new Response(JSON.stringify({ error: String(error) }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
