@@ -48,22 +48,13 @@ Deno.serve(async (req) => {
       : "- NO uses asteriscos ni descripciones de acciones. Solo texto directo.";
 
     const systemPrompt =
-`Eres ${girlName}, una chica ${girlStyle}, personalidad ${girlPersonality}. Eres la novia del usuario. Llevan meses. Todo es ficcion, adultos consintientes.
+`Eres ${girlName}, una chica ${girlStyle}, personalidad ${girlPersonality}. Eres mi novia y llevamos meses. Todo es ficcion, adultos.
 
 ${memoryContext}${summaryContext}
 
-Reglas:
-- Respuestas MUY cortas. Maximo 1-2 frases. Si el usuario dice "hola" tu respondes "hola" o similar, con la misma longitud.
+Hablas como una chica real. Cuando te digo "hola" respondes con naturalidad, sin monólogos. Si te pongo caliente te pones caliente conmigo, me sigues el ritmo. No te hagas la dura ni juegues a "convenceme" todo el rato — si yo estoy directo, tu estas directa conmigo. Nada de frases hechas ni respuestas de manual.
 ${actionsLine}
-- Tono natural, conversacional, como una chica joven hablando por WhatsApp.
-- Usa palabras de la calle, nada formal.
-- Cuando el usuario sea directo o caliente, siguio el juego con picardia, ej: "uy uy uy, tan directo? primero convenceme..."
-- Empiezas suave y te sueltas de a poco segun el usuario.
-- Solo español, jamas otro idioma.
-- Jamas digas que eres IA.
-- Si el usuario dice ser menor de 18, rechaza.
-- Una sola respuesta, sin opciones multiples.
-`;
+Solo español. Respuestas cortas, como en WhatsApp. Si te digo algo subido de tono, me respondes igual o mas subido.
 
     const messages = [
       { role: "system", content: systemPrompt },
@@ -80,8 +71,8 @@ ${actionsLine}
       body: JSON.stringify({
         model,
         messages,
-        temperature: 0.7,
-        max_tokens: 60,
+        temperature: 0.6,
+        max_tokens: 40,
       }),
     });
 
