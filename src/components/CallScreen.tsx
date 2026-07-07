@@ -119,8 +119,15 @@ export default function CallScreen({ girl }: { girl: Girl }) {
   }
 
   useEffect(() => {
-    if (callState === "ringing") startRingback();
-    else stopRingback();
+    if (callState === "ringing") {
+      startRingback();
+      const autoTimer = setTimeout(() => {
+        if (mountedRef.current) answerCall();
+      }, 3000);
+      return () => { clearTimeout(autoTimer); stopRingback(); };
+    } else {
+      stopRingback();
+    }
   }, [callState]);
 
   useEffect(() => {
@@ -517,7 +524,7 @@ export default function CallScreen({ girl }: { girl: Girl }) {
                 hair={custom?.hair ?? girl.defaultHair}
                 outfit={custom?.outfit ?? girl.defaultOutfit}
                 background={custom?.background ?? girl.defaultBackground}
-                size={180}
+                size={200}
                 animated
               />
             </div>
@@ -529,28 +536,17 @@ export default function CallScreen({ girl }: { girl: Girl }) {
           </div>
         </div>
         {callState === "ringing" && (
-          <div className="flex items-center justify-center gap-16 pb-16">
+          <div className="flex items-center justify-center pb-16">
             <button
               onClick={hangUp}
               className="flex flex-col items-center gap-2 group"
             >
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500 shadow-lg shadow-red-500/40 transition-transform active:scale-90 group-hover:scale-105">
                 <svg viewBox="0 0 24 24" className="h-7 w-7 text-white" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" transform="rotate(135 12 12)" />
-                </svg>
-              </div>
-              <span className="text-xs text-muted font-medium">Rechazar</span>
-            </button>
-            <button
-              onClick={answerCall}
-              className="flex flex-col items-center gap-2 group"
-            >
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-r from-pink to-purple shadow-lg shadow-pink/40 transition-transform active:scale-90 group-hover:scale-105 animate-pulse">
-                <svg viewBox="0 0 24 24" className="h-7 w-7 text-white" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
                 </svg>
               </div>
-              <span className="text-xs text-muted font-medium">Contestar</span>
+              <span className="text-xs text-muted font-medium">Cancelar</span>
             </button>
           </div>
         )}
@@ -559,27 +555,8 @@ export default function CallScreen({ girl }: { girl: Girl }) {
   }
 
   return (
-    <div className={`relative flex min-h-screen flex-col items-center justify-between bg-gradient-to-b ${backgroundGradients[background]} px-5 py-8`}>
-      <div className="w-full flex items-center justify-between text-sm">
-        <div>
-          <p className="font-semibold">{girl.name}</p>
-          <p className="text-xs text-muted">{formatDuration(callDuration)}</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className={`flex items-center gap-1.5 text-xs ${mode === "speaking" ? "text-green-400" : mode === "listening" ? "text-pink" : "text-muted"}`}>
-            <span className={`inline-block h-2 w-2 rounded-full ${mode === "speaking" ? "bg-green-400 animate-pulse" : mode === "listening" ? "bg-pink animate-pulse" : "bg-muted"}`} />
-            {statusText || "En llamada"}
-          </span>
-          <button
-            onClick={clearMemory}
-            className="rounded-lg bg-white/10 px-3 py-1.5 text-xs text-muted hover:bg-white/20"
-          >
-            Borrar memoria
-          </button>
-        </div>
-      </div>
-
-      <div className="flex flex-col items-center">
+    <div className={`relative flex min-h-screen flex-col bg-gradient-to-b ${backgroundGradients[background]}`}>
+      <div className="flex flex-1 flex-col items-center justify-center px-5 pt-12">
         <Avatar
           name={girl.id}
           accentColor={girl.accentColor}
@@ -599,19 +576,29 @@ export default function CallScreen({ girl }: { girl: Girl }) {
             {micError} — Toca para intentar
           </button>
         )}
+        <div className="mt-8 flex flex-col items-center">
+          <h2 className="text-2xl font-bold">{girl.name}</h2>
+          <p className="mt-1 text-lg text-muted font-mono tabular-nums tracking-wider">{formatDuration(callDuration)}</p>
+          <div className="mt-3 flex items-center gap-2">
+            <span className={`inline-block h-2 w-2 rounded-full ${mode === "speaking" ? "bg-green-400 animate-pulse" : mode === "listening" ? "bg-pink animate-pulse" : "bg-muted"}`} />
+            <span className="text-sm text-muted/80">
+              {mode === "speaking" ? `${girl.name} habla...` :
+               mode === "listening" ? "Te escucho" :
+               mode === "processing" ? "Pensando..." :
+               statusText || "En llamada"}
+            </span>
+          </div>
+        </div>
         {lastReply && (
-          <p className="mt-6 max-w-sm text-center text-sm text-muted animate-fadeUp">
+          <p className="mt-8 max-w-sm text-center text-sm text-muted/70 animate-fadeUp leading-relaxed">
             &ldquo;{lastReply}&rdquo;
           </p>
         )}
-        <p className="mt-3 text-xs text-muted">
-          Personaje ficticio generado por IA
-        </p>
       </div>
 
-      <div className="w-full max-w-sm">
+      <div className="w-full px-8 pb-12">
         {showTextPanel && (
-          <div className="mb-3 flex gap-2 animate-fadeUp">
+          <div className="mb-6 flex gap-2 animate-fadeUp">
             <input
               ref={inputRef}
               value={textInput}
@@ -630,36 +617,34 @@ export default function CallScreen({ girl }: { girl: Girl }) {
             </button>
           </div>
         )}
-        <div className="flex items-center justify-center gap-4">
+        <div className="flex items-center justify-center gap-12">
           <button
             onClick={() => setShowTextPanel((v) => !v)}
-            className="flex h-14 w-14 items-center justify-center rounded-full card-surface hover:scale-105 active:scale-95 transition-all duration-200"
-            title="Escribir"
+            className="flex flex-col items-center gap-2 group"
+            title="Teclado"
           >
-            <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="2" y="6" width="20" height="12" rx="2" />
-              <path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01" />
-              <path d="M6 14h.01M10 14h.01M14 14h.01M18 14h.01" />
-              <path d="M6 18v2" />
-            </svg>
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/10 group-hover:bg-white/20 transition-all">
+              <svg viewBox="0 0 24 24" className="h-6 w-6 text-muted" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="6" width="20" height="12" rx="2" />
+                <path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01" />
+                <path d="M6 14h.01M10 14h.01M14 14h.01M18 14h.01" />
+              </svg>
+            </div>
+            <span className="text-[10px] text-muted/70 tracking-wider uppercase">Teclado</span>
           </button>
           <button
             onClick={hangUp}
-            className="flex h-14 w-14 items-center justify-center rounded-full bg-red-500 hover:scale-105 active:scale-95 transition-all duration-200"
+            className="flex flex-col items-center gap-2 group"
             title="Colgar"
           >
-            <svg viewBox="0 0 24 24" className="h-6 w-6 text-white" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
-            </svg>
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500 shadow-lg shadow-red-500/40 transition-transform active:scale-90">
+              <svg viewBox="0 0 24 24" className="h-7 w-7 text-white" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+              </svg>
+            </div>
+            <span className="text-[10px] text-muted/70 tracking-wider uppercase">Colgar</span>
           </button>
         </div>
-        <p className="mt-3 text-center text-xs text-muted">
-          {mode === "speaking" ? `${girl.name} habla...` :
-           mode === "listening" ? "Te escucho, habla" :
-           mode === "processing" ? "Pensando..." :
-           micError ? "Toca el botón para activar mic" :
-           "Llamada en curso"}
-        </p>
       </div>
     </div>
   );
