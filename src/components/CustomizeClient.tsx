@@ -18,13 +18,6 @@ const hairOptions = [
   { value: "rosa", label: "Rosa neón" },
 ];
 
-const backgroundOptions = [
-  { value: "neon-room", label: "Habitación neón" },
-  { value: "beach-night", label: "Playa de noche" },
-  { value: "studio", label: "Estudio moderno" },
-  { value: "car-night", label: "Coche nocturno" },
-];
-
 const poseOptions = [
   { value: "toalla", label: "Toalla mojada" },
   { value: "estrellas", label: "Pegatinas de estrellas" },
@@ -116,12 +109,6 @@ export default function CustomizeClient({ girl }: { girl: Girl }) {
             options={hairOptions}
             selected={custom.hair}
             onSelect={(v) => update("hair", v)}
-          />
-          <OptionGroup
-            label="Fondo"
-            options={backgroundOptions}
-            selected={custom.background}
-            onSelect={(v) => update("background", v)}
           />
           <OptionGroup
             label="Poses y cuerpo"
