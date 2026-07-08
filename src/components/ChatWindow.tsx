@@ -54,7 +54,14 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   }, []);
 
   useEffect(() => {
-    setMessages([{ id: "welcome", from: "girl", text: `Hola, soy ${girl.name}. Qué bien que hayas entrado` }]);
+    const welcomes = [
+      `Hola, soy ${girl.name}. Qué bien que hayas entrado`,
+      `¡Hey! Soy ${girl.name}, me alegra verte por aquí`,
+      `${girl.name} al habla... justo estaba pensando en ti`,
+      `Hola, ¿recuerdas a ${girl.name}? Pasa, siéntete como en casa`,
+      `Soy ${girl.name}. Estaba esperando a que entrases...`,
+    ];
+    setMessages([{ id: "welcome", from: "girl", text: welcomes[Math.floor(Math.random() * welcomes.length)] }]);
     return () => { mountedRef.current = false; };
   }, [girl.id, girl.name]);
 
@@ -75,7 +82,8 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     setMode("actions");
     setShowModePicker(false);
     setCustomScenario(girl.story);
-    setMessages([{ id: "welcome", from: "girl", text: girl.roleplayGreeting }]);
+    const pick = girl.roleplayGreetings[Math.floor(Math.random() * girl.roleplayGreetings.length)];
+    setMessages([{ id: "welcome", from: "girl", text: pick }]);
   }
 
   const history: ChatMessage[] = messages
