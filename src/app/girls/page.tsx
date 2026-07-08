@@ -26,6 +26,9 @@ export default function GirlsPage() {
 
   useEffect(() => {
     setCustomGirlsList(getCustomGirls());
+    function onCreated() { setCustomGirlsList(getCustomGirls()); }
+    window.addEventListener("customGirlCreated", onCreated);
+    return () => window.removeEventListener("customGirlCreated", onCreated);
   }, []);
 
   const allGirls = [...customGirlsList.map((c) => ({ ...c, _custom: true })), ...girls];

@@ -61,6 +61,7 @@ export interface CustomGirlData {
   pose: string;
   personality: string;
   baseId: string;
+  imageUrl?: string;
 }
 
 export function getCustomGirls(): CustomGirlData[] {

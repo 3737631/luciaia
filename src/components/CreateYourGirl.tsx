@@ -68,6 +68,12 @@ export default function CreateYourGirl() {
   const [roleplayDesc, setRoleplayDesc] = useState("");
   const [done, setDone] = useState(false);
 
+  function buildPrompt(desc: string): string {
+    return encodeURIComponent(
+      `photorealistic cinematic portrait of a stunning sensual woman, ${desc}, beautiful detailed face, seductive expression, professional studio lighting, intimate atmosphere, high quality, 8k, sharp focus`
+    );
+  }
+
   function handleCreate() {
     if (!girlDesc.trim() && !roleplayDesc.trim()) return;
     const id = generateId();
@@ -77,6 +83,10 @@ export default function CreateYourGirl() {
     const background = pickBackground(girlDesc || roleplayDesc);
     const pose = pickPose(girlDesc || roleplayDesc);
     const story = roleplayDesc.trim() || `Tu nueva creación, ${name}, te espera para pasar una noche inolvidable.`;
+    const prompt = buildPrompt(girlDesc || roleplayDesc);
+    const imageUrl = `https://image.pollinations.ai/prompt/${prompt}?width=512&height=640&nofeed=true`;
+    const customScenario = JSON.stringify({ girl: girlDesc.trim(), roleplay: roleplayDesc.trim() });
+    localStorage.setItem("custom_scenario", customScenario);
     saveCustomGirl({
       id,
       name,
@@ -90,7 +100,9 @@ export default function CreateYourGirl() {
       pose,
       personality: "atrevida",
       baseId,
+      imageUrl,
     });
+    window.dispatchEvent(new CustomEvent("customGirlCreated"));
     setDone(true);
   }
 
