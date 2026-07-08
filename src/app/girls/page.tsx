@@ -85,7 +85,7 @@ export default function GirlsPage() {
               <div className="character-card overflow-hidden">
                 <div className="relative aspect-[4/5] w-full overflow-hidden">
                   <img
-                    src={getGirlImage(featured.id, featured.defaultHair, featured.defaultOutfit, featured.defaultBackground)}
+                    src={getGirlImage(featured.id, featured.defaultHair, featured.defaultPose, featured.defaultBackground)}
                     alt={featured.name}
                     className="h-full w-full object-cover object-top transition-transform duration-500 hover:scale-105"
                   />
@@ -122,7 +122,7 @@ export default function GirlsPage() {
                   <div className="story-ring flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
                     <div className="h-full w-full overflow-hidden rounded-full bg-[#101018]">
                       <img
-                        src={getGirlImage(girl.id, girl.defaultHair, girl.defaultOutfit, girl.defaultBackground)}
+                        src={getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground)}
                         alt={girl.name}
                         className="h-full w-full object-cover object-top"
                       />
