@@ -23,6 +23,11 @@ const hairColors: Record<string, string> = {
   rubio: "#e8c77e",
   pelirrojo: "#b0492f",
   rosa: "#ff6fb5",
+  azul: "#4a90d9",
+  verde: "#4caf50",
+  cafe: "#6d4c2a",
+  negro: "#1a1a1a",
+  blanco: "#e8e0d4",
 };
 
 export default function Avatar({
