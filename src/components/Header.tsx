@@ -48,18 +48,18 @@ export default function Header() {
               className="flex h-7 w-7 items-center justify-center rounded-full bg-white/[0.04] text-white/50 transition hover:bg-white/[0.08] hover:text-white/80 sm:h-8 sm:w-8"
               title={userGender === "hombre" ? "Hombre" : "Mujer"}
             >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <span className="text-xs font-bold">{userGender === "hombre" ? "♂" : "♀"}</span>
             </button>
             {showGender && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowGender(false)} />
                 <div className="absolute right-0 top-9 z-50 w-28 rounded-xl border border-white/[0.10] bg-[#16161d] p-1 shadow-premium">
                   <button onClick={() => setGender("hombre")} className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs transition ${userGender === "hombre" ? "bg-[#ff3b7f]/20 text-white" : "text-white/50 hover:text-white"}`}>
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <span className="text-sm">♂</span>
                     Hombre
                   </button>
                   <button onClick={() => setGender("mujer")} className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs transition ${userGender === "mujer" ? "bg-[#ff3b7f]/20 text-white" : "text-white/50 hover:text-white"}`}>
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <span className="text-sm">♀</span>
                     Mujer
                   </button>
                 </div>
