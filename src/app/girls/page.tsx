@@ -1,23 +1,13 @@
 "use client";
 
-import { useState, useRef } from "react";
-import Link from "next/link";
+import { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import GirlCard from "@/components/GirlCard";
-import { getGirlImage } from "@/lib/images";
+import HeroShowcaseCarousel from "@/components/HeroShowcaseCarousel";
+import StoriesRow from "@/components/StoriesRow";
+import ExperiencesRow from "@/components/ExperiencesRow";
 import { girls } from "@/data/girls";
-
-const storyOffers = [
-  "1ª semana gratis",
-  "80% descuento",
-  "Chat ilimitado",
-  "2x1 videollamada",
-  "Pack bienvenida",
-  "Acceso anticipado",
-  "VIP prueba",
-  "30% personalizar",
-];
 
 const filters = ["Todas", "Coquetas", "Gamer", "Misteriosas", "Dulces", "Atrevidas"];
 
@@ -30,7 +20,6 @@ const faqs = [
 
 export default function GirlsPage() {
   const [activeFilter, setActiveFilter] = useState("Todas");
-  const storiesRef = useRef<HTMLDivElement>(null);
 
   const filtered = activeFilter === "Todas"
     ? girls
@@ -39,111 +28,24 @@ export default function GirlsPage() {
         g.personality?.includes(activeFilter.replace(/s$/, "").toLowerCase())
       );
 
-  const featured = girls[0];
-
   return (
     <>
       <Header />
-      <main className="min-h-screen overflow-x-hidden">
-        {/* Hero */}
-        <section
-          className="relative mx-4 mt-6 overflow-hidden sm:mx-6 lg:mx-8"
-          style={{
-            border: "1px solid rgba(255,255,255,0.12)",
-            borderRadius: 32,
-            background:
-              "linear-gradient(135deg, rgba(255,255,255,0.09), rgba(255,255,255,0.025)), radial-gradient(circle at top left, rgba(255,43,134,0.28), transparent 36%), radial-gradient(circle at bottom right, rgba(255,122,61,0.20), transparent 34%)",
-            boxShadow: "0 24px 80px rgba(0,0,0,0.45)",
-          }}
-        >
-          <div className="relative flex flex-col gap-6 p-6 sm:p-8 lg:flex-row lg:items-center lg:gap-10">
-            <div className="flex-1">
-              <h1 className="text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
-                Chatea con chicas{' '}
-                <span className="bg-gradient-to-r from-pink via-hotPink to-pinkLight bg-clip-text text-transparent">IA ficticias</span>
-              </h1>
-              <p className="mt-2 max-w-lg text-sm text-white/60 sm:text-base">
-                Personaliza su estilo, tono y personalidad. Sin registro, sin límites, sin pagos.
-              </p>
-              <div className="mt-5 flex flex-wrap items-center gap-3">
-                <Link
-                  href="#personajes"
-                  className="btn-primary inline-flex h-11 items-center justify-center px-6 text-sm font-bold"
-                >
-                  Empezar ahora
-                </Link>
-                <Link
-                  href="#personajes"
-                  className="inline-flex h-11 items-center justify-center rounded-full border border-white/[0.12] bg-white/[0.04] px-6 text-sm font-medium text-white/80 backdrop-blur-sm transition-all hover:bg-white/[0.08] active:scale-[0.97]"
-                >
-                  Ver personajes
-                </Link>
-              </div>
-            </div>
-            {/* Right card - desktop only */}
-            <div className="hidden lg:relative lg:block lg:w-72 xl:w-80">
-              <div className="character-card overflow-hidden">
-                <div className="relative aspect-[4/5] w-full overflow-hidden">
-                  <img
-                    src={getGirlImage(featured.id, featured.defaultHair, featured.defaultPose, featured.defaultBackground)}
-                    alt={featured.name}
-                    className="h-full w-full object-cover object-top transition-transform duration-500 hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-4 pt-12">
-                    <div className="mb-1 flex items-center gap-1.5">
-                      <span className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
-                      <span className="text-[0.5rem] font-semibold tracking-wide text-green-400 uppercase">Online ahora</span>
-                    </div>
-                    <h3 className="text-lg font-bold drop-shadow-lg">{featured.name}</h3>
-                    <p className="text-xs text-white/60">{featured.style}</p>
-                  </div>
-                </div>
-                <div className="p-3">
-                  <Link href={`/chat/${featured.id}`} className="btn-primary flex h-9 w-full items-center justify-center text-[0.65rem] font-bold">
-                    Chatear ahora
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Ofertas / Historias estilo Instagram */}
-        <section className="mt-10 px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-6xl">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold tracking-tight sm:text-xl">Ofertas</h2>
-              <span className="text-[0.55rem] font-medium text-pink/80 sm:text-xs">Tiempo limitado</span>
-            </div>
-            <div ref={storiesRef} className="flex gap-4 overflow-x-auto pb-2 scrollbar-none">
-              {girls.map((girl, i) => (
-                <Link key={girl.id} href={`/chat/${girl.id}`} className="group flex shrink-0 flex-col items-center gap-2">
-                  <div className="story-ring flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
-                    <div className="h-full w-full overflow-hidden rounded-full bg-[#101018]">
-                      <img
-                        src={getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground)}
-                        alt={girl.name}
-                        className="h-full w-full object-cover object-top"
-                      />
-                    </div>
-                  </div>
-                  <span className="max-w-[72px] truncate text-center text-[0.5rem] font-semibold text-pinkLight leading-tight sm:text-[0.55rem]">
-                    {storyOffers[i % storyOffers.length]}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
+      <main className="min-h-screen overflow-x-hidden" style={{ background: "#0b0b0f" }}>
+        {/* === NEW TOP SECTION === */}
+        <div style={{ padding: "18px 0 0" }} className="sm:pt-7">
+          <HeroShowcaseCarousel />
+          <StoriesRow />
+          <ExperiencesRow />
+        </div>
 
         {/* Personajes */}
         <section id="personajes" className="mt-10 px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-6xl">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-lg font-bold tracking-tight sm:text-xl">Personajes</h2>
-                <p className="mt-0.5 text-xs text-muted sm:text-sm">Elige tu favorita y empieza a chatear</p>
+                <h2 className="text-lg font-bold tracking-tight text-white sm:text-xl">Personajes</h2>
+                <p className="mt-0.5 text-xs text-white/50 sm:text-sm">Elige tu favorita y empieza a chatear</p>
               </div>
             </div>
 
@@ -155,8 +57,8 @@ export default function GirlsPage() {
                   onClick={() => setActiveFilter(f)}
                   className={`shrink-0 rounded-full border px-4 py-1.5 text-[0.6rem] font-medium transition-all sm:text-xs ${
                     activeFilter === f
-                      ? "border-pink/40 bg-gradient-to-r from-pink/20 to-hotPink/20 text-pink"
-                      : "border-white/[0.12] bg-white/[0.04] text-muted hover:border-white/25 hover:text-white"
+                      ? "border-[#ff3b7f]/40 bg-[#ff3b7f]/15 text-[#ff3b7f]"
+                      : "border-white/[0.10] bg-white/[0.04] text-white/50 hover:border-white/25 hover:text-white"
                   }`}
                 >
                   {f}
@@ -172,7 +74,7 @@ export default function GirlsPage() {
                 ))
               ) : (
                 <div className="col-span-full py-12 text-center">
-                  <p className="text-sm text-muted">No hay personajes con ese estilo</p>
+                  <p className="text-sm text-white/50">No hay personajes con ese estilo</p>
                 </div>
               )}
             </div>
@@ -182,19 +84,19 @@ export default function GirlsPage() {
         {/* FAQ */}
         <section className="mt-12 px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl">
-            <h2 className="text-center text-lg font-bold tracking-tight sm:text-xl">Preguntas frecuentes</h2>
+            <h2 className="text-center text-lg font-bold tracking-tight text-white sm:text-xl">Preguntas frecuentes</h2>
             <div className="mt-6 space-y-3">
               {faqs.map((faq) => (
                 <details
                   key={faq.q}
-                  className="group rounded-[22px] border border-white/[0.12] bg-white/[0.04] backdrop-blur-sm transition-all duration-200"
+                  className="group rounded-[22px] border border-white/[0.10] bg-white/[0.04] backdrop-blur-sm transition-all duration-200"
                 >
-                  <summary className="flex cursor-pointer items-center justify-between px-4 py-3.5 text-sm font-medium transition-colors sm:text-base">
+                  <summary className="flex cursor-pointer items-center justify-between px-4 py-3.5 text-sm font-medium text-white transition-colors sm:text-base">
                     {faq.q}
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 text-muted transition-transform duration-200 group-open:rotate-180"><path d="M6 9l6 6 6-6"/></svg>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 text-white/40 transition-transform duration-200 group-open:rotate-180"><path d="M6 9l6 6 6-6"/></svg>
                   </summary>
                   <div className="border-t border-white/[0.06] px-4 py-3.5">
-                    <p className="text-xs leading-relaxed text-muted sm:text-sm">{faq.a}</p>
+                    <p className="text-xs leading-relaxed text-white/50 sm:text-sm">{faq.a}</p>
                   </div>
                 </details>
               ))}
@@ -204,16 +106,16 @@ export default function GirlsPage() {
 
         {/* Footer info block */}
         <section className="mt-12 px-4 pb-8 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-3xl rounded-[26px] border border-white/[0.12] bg-white/[0.04] p-6 text-center backdrop-blur-sm sm:p-10">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-pink/20 to-hotPink/20">
-              <svg viewBox="0 0 24 24" className="h-5 w-5 text-pink" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          <div className="mx-auto max-w-3xl rounded-[26px] border border-white/[0.10] bg-white/[0.04] p-6 text-center backdrop-blur-sm sm:p-10">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#ff3b7f]/20 to-[#ff7a3d]/20">
+              <svg viewBox="0 0 24 24" className="h-5 w-5 text-[#ff3b7f]" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
             </div>
-            <h2 className="text-xl font-bold tracking-tight sm:text-2xl">NuviaChat</h2>
-            <p className="mt-2 text-sm leading-relaxed text-muted">
+            <h2 className="text-xl font-bold tracking-tight text-white sm:text-2xl">NuviaChat</h2>
+            <p className="mt-2 text-sm leading-relaxed text-white/50">
               Conversaciones IA personalizadas. Elige entre nuestras chicas ficticias, personaliza su estilo y personalidad,
               y empieza a chatear o llamar al instante. Sin registro, sin límites, sin anuncios.
             </p>
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-xs text-muted">
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-xs text-white/50">
               <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1">+18</span>
               <span className="text-white/20">·</span>
               <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1">Personajes IA ficticios</span>
