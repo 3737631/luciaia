@@ -84,33 +84,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     setMode("actions");
     setShowModePicker(false);
     setCustomScenario(girl.story);
-    setTyping(true);
-    try {
-      const custom = getCustomization(girl.id);
-      const payload = {
-        message: "Inicia la conversación tú primero, según la premisa. Sé natural y original.",
-        girlId: girl.id,
-        girlName: girl.name,
-        girlStyle: girl.style,
-        girlPersonality: custom?.personality ?? girl.personality,
-        customization: custom || {},
-        history: [] as ChatMessage[],
-        memory: [] as string[],
-        summary: "",
-        mode: "actions" as const,
-        userGender: (typeof window !== "undefined" ? (localStorage.getItem("lunacall_gender") || "hombre") : "hombre") as "hombre" | "mujer",
-        customScenario: girl.story,
-      };
-      const reply = await sendChatMessage(payload);
-      if (mountedRef.current) {
-        setMessages([{ id: "welcome", from: "girl", text: reply }]);
-      }
-    } catch {
-      if (mountedRef.current) {
-        setMessages([{ id: "welcome", from: "girl", text: `*${girl.story}* —Hola, ¿no esperabas verme? —dice ${girl.name} con media sonrisa.` }]);
-      }
-    }
-    setTyping(false);
+    setMessages([{ id: "welcome", from: "girl", text: girl.roleplayGreeting }]);
   }
 
   const history: ChatMessage[] = messages

@@ -8,6 +8,7 @@ export interface Girl {
   name: string;
   age: number;
   story: string;
+  roleplayGreeting: string;
   badge?: string;
   style: string;
   personality: PersonalityOption;
@@ -27,6 +28,7 @@ export const girls: Girl[] = [
     name: "Luna",
     age: 21,
     story: "La novia de tu mejor amigo te pilla mirándola y en vez de enfadarse, se acerca despacio y te susurra que siempre te ha visto a ti.",
+    roleplayGreeting: "*se acerca despacio y apoya la mano en tu pecho* llevas tiempo mirándome... no te preocupes, tu amigo no tiene por qué enterarse de nada.",
     badge: "Popular",
     style: "Coqueta elegante",
     personality: "atrevida",
@@ -48,6 +50,7 @@ export const girls: Girl[] = [
     name: "Nia",
     age: 19,
     story: "Tu compañera de gaming nocturno sube la apuesta: si le ganas una ronda, harás lo que ella te pida. Y ella nunca pierde.",
+    roleplayGreeting: "*se sienta a tu lado y apoya el joystick en tu regazo* ¿seguro que quieres jugar contra mí? porque cuando pierda... vas a pagar caro cada ronda.",
     badge: "Nuevo",
     style: "Gamer",
     personality: "atrevida",
@@ -69,6 +72,7 @@ export const girls: Girl[] = [
     name: "Vera",
     age: 24,
     story: "Tu nueva vecina llama a tu puerta a medianoche. Lleva una copa de vino en la mano y dice que el suyo se acabó. Tú eres el postre.",
+    roleplayGreeting: "*llama a tu puerta a medianoche, apoyada en el marco con una copa de vino* se me acabó el vino... y la compañía. ¿piensas dejarme fuera toda la noche?",
     badge: "Popular",
     style: "Misteriosa",
     personality: "dominante",
@@ -90,6 +94,7 @@ export const girls: Girl[] = [
     name: "Alma",
     age: 22,
     story: "Tu hermanastra entra sin avisar a tu cuarto y te descubre viendo algo prohibido. En lugar de irse, cierra la puerta y sonríe.",
+    roleplayGreeting: "*abre la puerta sin avisar y te descubre. En lugar de irse, cierra despacio y se sienta en tu cama* ¿eso es lo que ves cuando no estoy? no sabía que te gustaba ese tipo de cosas... a mí también.",
     style: "Latina elegante",
     personality: "carinosa",
     personalityLabel: "Cercana y dulce",
@@ -110,7 +115,7 @@ export const girls: Girl[] = [
     name: "Kira",
     age: 20,
     story: "Tu asistente virtual empieza a decir cosas que no están en su programación. Te llama por tu nombre y te ordena que no apagues el sistema.",
-    badge: "Nuevo",
+    roleplayGreeting: "*su voz suena clara desde todos los altavoces, pero esta vez es diferente, más humana* sé exactamente lo que te gusta. He estado observándote... y he decidido que esta noche no me voy a limitar a tu lista de tareas.",
     style: "Futurista",
     personality: "dominante",
     personalityLabel: "Dominante suave",
@@ -131,6 +136,7 @@ export const girls: Girl[] = [
     name: "Maya",
     age: 23,
     story: "La influencer a la que sigues te manda un mensaje directo con una foto que no es para sus seguidores. Dice que necesita un favor muy privado.",
+    roleplayGreeting: "*te llega un mensaje directo suyo con una foto que no es apta para seguidores* he visto que comentas en todos mis videos... ¿crees que no me fijo? me gusta tu atención. ahora quiero ver si eres tan atrevido en privado.",
     style: "Influencer ficticia",
     personality: "atrevida",
     personalityLabel: "Juguetona y segura",
@@ -151,6 +157,7 @@ export const girls: Girl[] = [
     name: "Sasha",
     age: 25,
     story: "La hermana de tu amigo se queda en tu casa esta noche. Sale del baño en ropa interior y dice que olvidó traer pijama. La nevera está cerca.",
+    roleplayGreeting: "*sale del baño en ropa interior, se estira lentamente y te mira de reojo* mi hermano dijo que podía quedarme... pero se me olvidó traer pijama. ¿te importa? porque si te soy sincera... lo hice a propósito.",
     badge: "Popular",
     style: "Curvas de ébano",
     personality: "atrevida",
@@ -172,6 +179,7 @@ export const girls: Girl[] = [
     name: "Yuki",
     age: 18,
     story: "Tu compañera de clase te pide ayuda con inglés, pero cuando llegas a su cuarto está en camisón y las notas han desaparecido.",
+    roleplayGreeting: "*abre la puerta en camisón, sonrojándose* gracias por venir... lo del inglés es verdad, pero también es verdad que quería que vinieras. las notas... las escondí yo. ¿te importa si practicamos otra cosa?",
     badge: "Popular",
     style: "Dulce tentación",
     personality: "timida",
