@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import GirlCard from "@/components/GirlCard";
+import CustomGirlCard from "@/components/CustomGirlCard";
 import HeroShowcaseCarousel from "@/components/HeroShowcaseCarousel";
 import StoriesRow from "@/components/StoriesRow";
 import CreateYourGirl from "@/components/CreateYourGirl";
 import { girls } from "@/data/girls";
+import { getCustomGirls } from "@/lib/storage";
 
 const filters = ["Todas", "Coquetas", "Gamer", "Misteriosas", "Dulces", "Atrevidas"];
 
@@ -20,11 +22,18 @@ const faqs = [
 
 export default function GirlsPage() {
   const [activeFilter, setActiveFilter] = useState("Todas");
+  const [customGirlsList, setCustomGirlsList] = useState<ReturnType<typeof getCustomGirls>>([]);
+
+  useEffect(() => {
+    setCustomGirlsList(getCustomGirls());
+  }, []);
+
+  const allGirls = [...customGirlsList.map((c) => ({ ...c, _custom: true })), ...girls];
 
   const filtered = activeFilter === "Todas"
-    ? girls
-    : girls.filter((g) =>
-        g.style?.toLowerCase().includes(activeFilter.replace(/s$/, "").toLowerCase()) ||
+    ? allGirls
+    : allGirls.filter((g) =>
+        "_custom" in g || g.style?.toLowerCase().includes(activeFilter.replace(/s$/, "").toLowerCase()) ||
         g.personality?.includes(activeFilter.replace(/s$/, "").toLowerCase())
       );
 
@@ -69,9 +78,13 @@ export default function GirlsPage() {
             {/* Grid */}
             <div className="mt-5 grid grid-cols-2 gap-3 max-[380px]:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-4">
               {filtered.length > 0 ? (
-                filtered.map((girl) => (
-                  <GirlCard key={girl.id} girl={girl} />
-                ))
+                filtered.map((girl) =>
+                  "_custom" in girl ? (
+                    <CustomGirlCard key={girl.id} data={girl as any} />
+                  ) : (
+                    <GirlCard key={girl.id} girl={girl as any} />
+                  )
+                )
               ) : (
                 <div className="col-span-full py-12 text-center">
                   <p className="text-sm text-white/50">No hay personajes con ese estilo</p>

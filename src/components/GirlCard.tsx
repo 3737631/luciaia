@@ -1,13 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Girl } from "@/data/girls";
 import { getGirlImage } from "@/lib/images";
+import { getCustomization } from "@/lib/storage";
 
 export default function GirlCard({ girl }: { girl: Girl }) {
   const [imgFailed, setImgFailed] = useState(false);
-  const girlImage = getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground);
+  const [girlImage, setGirlImage] = useState(getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground));
+
+  useEffect(() => {
+    const custom = getCustomization(girl.id);
+    if (custom) {
+      setGirlImage(getGirlImage(girl.id, custom.hair, custom.pose, custom.background));
+    } else {
+      setGirlImage(getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground));
+    }
+  }, [girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground]);
 
   return (
     <div className="group character-card overflow-hidden">

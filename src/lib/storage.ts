@@ -47,3 +47,30 @@ export function getCustomization(id: string): Customization | null {
 export function saveCustomization(id: string, custom: Customization) {
   writeJSON(`lunacall_custom_${id}`, custom);
 }
+
+export interface CustomGirlData {
+  id: string;
+  name: string;
+  age: number;
+  story: string;
+  description: string;
+  girlDesc: string;
+  roleplayDesc: string;
+  hair: string;
+  background: string;
+  pose: string;
+  personality: string;
+  baseId: string;
+}
+
+export function getCustomGirls(): CustomGirlData[] {
+  return readJSON<CustomGirlData[]>("lunacall_custom_girls", []);
+}
+
+export function saveCustomGirl(girl: CustomGirlData) {
+  const list = getCustomGirls();
+  const idx = list.findIndex((g) => g.id === girl.id);
+  if (idx >= 0) list[idx] = girl;
+  else list.push(girl);
+  writeJSON("lunacall_custom_girls", list);
+}
