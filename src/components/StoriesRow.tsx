@@ -2,31 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import { girls, Girl } from "@/data/girls";
-
-const STORY_SCENES: Record<string, { scene: string; seed: number }> = {
-  luna:  { scene: "girl taking a mirror selfie in a neon-lit bedroom, phone hiding face, wearing a black corset, mirror reflection shows full body", seed: 4201 },
-  nia:   { scene: "girl taking a mirror selfie at a gaming desk with RGB lights, phone in hand, wearing a cropped gamer tee and shorts, mirror shows full body", seed: 5202 },
-  vera:  { scene: "girl taking a mirror selfie in a dark hallway at midnight, leaning against door frame, wearing a silk robe, mirror reflection", seed: 6203 },
-  alma:  { scene: "girl taking a mirror selfie on a beach at sunset, wearing a white cover-up, holding phone, mirror frame on sand shows full reflection", seed: 7204 },
-  kira:  { scene: "girl taking a mirror selfie in a futuristic high-tech room with holographic lights, wearing metallic dress, phone covers face", seed: 8205 },
-  maya:  { scene: "girl taking a mirror selfie inside a luxury sports car at night, wearing a sequin dress, city lights in background", seed: 9206 },
-  sasha: { scene: "girl taking a mirror selfie in a nightclub bathroom mirror, wearing a tight dress, dim purple lighting, full body reflection", seed: 10207 },
-  yuki:  { scene: "girl taking a mirror selfie in a cozy bedroom with fairy lights, wearing an oversized sweater and thigh socks, cute pose", seed: 11208 },
-};
-
-function getStoryImageUrl(girlId: string): string {
-  const s = STORY_SCENES[girlId];
-  if (!s) return "";
-  const prompt = encodeURIComponent(
-    `instagram story mirror selfie, ${s.scene}, ` +
-    `photorealistic, detailed skin texture, natural skin, soft lighting, ` +
-    `shot on iPhone 15 Pro, warm tones, cinematic, high quality, intimate candid moment, ` +
-    `NO cartoon, NO drawing, NO 3d render, NO anime`
-  );
-  const negative = encodeURIComponent("cartoon, anime, drawing, painting, 3d render, illustration, watermark, text, low quality");
-  return `https://image.pollinations.ai/prompt/${prompt}?width=512&height=640&nofeed=true&seed=${s.seed}&negative=${negative}`;
-}
+import { girls } from "@/data/girls";
+import { getGirlImage } from "@/lib/images";
 
 export default function StoriesRow() {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -137,11 +114,10 @@ export default function StoriesRow() {
                 style={{ borderColor: "#0b0b0f", background: "#ff0f70" }}
               />
               <img
-                src={getStoryImageUrl(girl.id)}
+                src={getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground)}
                 alt={girl.name}
                 className="h-full w-full rounded-full object-cover"
                 style={{ border: "3px solid #0b0b0f", background: "#222" }}
-                loading="lazy"
               />
             </div>
             <span className="max-w-[66px] truncate text-center font-bold text-white/80">
@@ -191,7 +167,7 @@ export default function StoriesRow() {
             <div className="absolute top-3 left-0 right-0 z-20 flex items-center justify-between px-3">
               <div className="flex items-center gap-2">
                 <img
-                  src={getStoryImageUrl(activeGirl.id)}
+                  src={getGirlImage(activeGirl.id, activeGirl.defaultHair, activeGirl.defaultPose, activeGirl.defaultBackground)}
                   alt=""
                   className="h-8 w-8 rounded-full border-2 border-white/30 object-cover"
                 />
@@ -205,15 +181,18 @@ export default function StoriesRow() {
               </button>
             </div>
 
-            {/* Image */}
+            {/* Image - use full image for story */}
             <img
-              src={getStoryImageUrl(activeGirl.id)}
+              src={getGirlImage(activeGirl.id, activeGirl.defaultHair, "bata", activeGirl.defaultBackground)}
               alt={activeGirl.name}
               className="h-full w-full object-cover"
             />
 
             {/* Gradient bottom */}
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-6 pt-16">
+              <p className="mb-3 text-center text-sm leading-relaxed text-white/90 drop-shadow-lg">
+                {activeGirl.story}
+              </p>
               <Link
                 href={`/chat/${activeGirl.id}`}
                 onClick={closeStories}
