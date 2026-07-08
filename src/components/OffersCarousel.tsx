@@ -58,7 +58,7 @@ function badgeStyles(type: string) {
   }
 }
 
-export default function OffersCarousel() {
+export default function OffersCarousel({ onClose }: { onClose?: () => void }) {
   const [active, setActive] = useState(2);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -156,7 +156,7 @@ export default function OffersCarousel() {
     resetAutoplay();
   };
 
-  return (
+  const content = (
     <section className="relative overflow-hidden px-4 py-14 sm:px-6 sm:py-16"
       style={{
         background:
@@ -284,4 +284,22 @@ export default function OffersCarousel() {
       </div>
     </section>
   );
+
+  if (onClose) {
+    return (
+      <div className="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-black/70 backdrop-blur-md" onClick={onClose}>
+        <div className="relative w-full max-w-6xl animate-modalIn" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={onClose}
+            className="absolute right-6 top-6 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-white/[0.14] bg-white/[0.08] text-white backdrop-blur-lg transition hover:bg-white/[0.15]"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+          </button>
+          {content}
+        </div>
+      </div>
+    );
+  }
+
+  return content;
 }

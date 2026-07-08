@@ -5,7 +5,6 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import GirlCard from "@/components/GirlCard";
-import OffersCarousel from "@/components/OffersCarousel";
 import { getGirlImage } from "@/lib/images";
 import { girls } from "@/data/girls";
 
@@ -97,8 +96,7 @@ export default function GirlsPage() {
           </div>
         </section>
 
-        {/* Offers Carousel premium */}
-        <OffersCarousel />
+        {/* spacer after hero */}
 
         {/* Personajes */}
         <section id="personajes" className="mt-10 px-4 sm:px-6 lg:px-8">
