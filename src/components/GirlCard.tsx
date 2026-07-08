@@ -38,10 +38,10 @@ export default function GirlCard({ girl }: { girl: Girl }) {
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
           {/* Top status dot + edit */}
           <div className="absolute left-3 right-3 top-3 flex items-start justify-between">
-            <span className="flex h-2.5 w-2.5 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.6)] animate-pulse" />
+            <span className="flex h-4 w-4 rounded-full bg-green-400 shadow-[0_0_12px_rgba(74,222,128,0.8)] animate-pulse border-2 border-black/30" />
             <Link
               href={`/customize/${girl.id}`}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 backdrop-blur-sm text-white/70 hover:bg-white/20 hover:text-white transition-all active:scale-90 opacity-0 group-hover:opacity-100"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-black/40 backdrop-blur-sm text-white hover:bg-pink/60 hover:text-white transition-all active:scale-90"
               title="Personalizar"
               onClick={(e) => e.stopPropagation()}
             >
