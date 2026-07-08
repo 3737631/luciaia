@@ -11,7 +11,7 @@ export default function Footer() {
             <span className="flex h-8 w-8 items-center justify-center rounded-full gradient-btn text-[0.6rem] font-bold">
               LC
             </span>
-            <span className="text-sm font-semibold tracking-tight">LunaCall</span>
+            <span className="text-sm font-semibold tracking-tight">NuviaChat</span>
           </div>
           <div className="flex flex-wrap gap-4 text-sm text-muted">
             <Link href="/terms" className="hover:text-ink transition-colors">
@@ -26,7 +26,7 @@ export default function Footer() {
           </div>
         </div>
         <p className="mt-6 max-w-xl text-xs text-muted leading-relaxed">
-          LunaCall usa personajes ficticios generados por IA. No representa personas reales.
+          NuviaChat usa personajes ficticios generados por IA. No representa personas reales.
           Todo el contenido es ficción entre adultos consintientes. Solo para mayores de 18 años.
         </p>
       </div>

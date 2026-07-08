@@ -9,8 +9,7 @@ module.exports = {
       colors: {
         bg: "#08030f",
         purple: "#8b5cf6",
-        pink: "#d91a6a",
-        rose: "#b8145a",
+        pink: "#ff2d95",
         blue: "#38bdf8",
         ink: "#f8fafc",
         muted: "#a1a1aa",

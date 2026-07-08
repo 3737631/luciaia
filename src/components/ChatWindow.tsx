@@ -33,16 +33,9 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<"text" | "actions">("actions");
   const [showModePicker, setShowModePicker] = useState(true);
-  const [userGender, setUserGender] = useState<"hombre" | "mujer">("hombre");
-  const [showGenderPicker, setShowGenderPicker] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef(true);
   const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
-
-  useEffect(() => {
-    const savedGender = localStorage.getItem("lunacall_gender");
-    if (savedGender === "hombre" || savedGender === "mujer") setUserGender(savedGender);
-  }, []);
 
   useEffect(() => {
     const saved = getConversationHistory(girl.id);
@@ -59,12 +52,6 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     }
     return () => { mountedRef.current = false; };
   }, [girl.id, girl.name]);
-
-  function setGender(g: "hombre" | "mujer") {
-    setUserGender(g);
-    localStorage.setItem("lunacall_gender", g);
-    setShowGenderPicker(false);
-  }
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -99,7 +86,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       memory,
       summary,
       mode,
-      userGender,
+      userGender: (typeof window !== "undefined" ? (localStorage.getItem("lunacall_gender") || "hombre") : "hombre") as "hombre" | "mujer",
     };
 
     try {
@@ -259,41 +246,10 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         />
         <div className="min-w-0 flex-1">
           <p className="font-semibold tracking-tight">{girl.name}</p>
-          <div className="flex items-center gap-2">
-            <p className="flex items-center gap-1 text-xs text-green-400/80">
-              <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
-              Conectada
-            </p>
-            <span className="text-[0.55rem] text-muted/30">|</span>
-            <div className="relative">
-              <button
-                onClick={() => setShowGenderPicker(!showGenderPicker)}
-                className="flex items-center gap-1 text-[0.65rem] text-muted/60 hover:text-white transition-colors"
-              >
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mr-0.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                {userGender === "hombre" ? "Hombre" : "Mujer"}
-                <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
-              </button>
-              {showGenderPicker && (
-                <div className="absolute left-0 top-5 z-50 w-32 rounded-xl border border-white/10 bg-[#0f0518] p-1 shadow-2xl">
-                  <button
-                    onClick={() => setGender("hombre")}
-                    className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs transition ${userGender === "hombre" ? "bg-pink/20 text-white" : "text-muted hover:text-white"}`}
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                    Hombre
-                  </button>
-                  <button
-                    onClick={() => setGender("mujer")}
-                    className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs transition ${userGender === "mujer" ? "bg-pink/20 text-white" : "text-muted hover:text-white"}`}
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                    Mujer
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
+          <p className="flex items-center gap-1 text-xs text-green-400/80">
+            <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
+            Conectada
+          </p>
         </div>
         <button
           onClick={clearMemory}
@@ -302,9 +258,6 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
           <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
         </button>
       </div>
-      {showGenderPicker && (
-        <div className="fixed inset-0 z-40" onClick={() => setShowGenderPicker(false)} />
-      )}
 
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-x-hidden overflow-y-auto space-y-3 rounded-2xl border border-white/[0.05] bg-white/[0.02] p-4 shadow-inner">

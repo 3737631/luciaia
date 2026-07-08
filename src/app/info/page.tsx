@@ -26,7 +26,7 @@ export default function InfoPage() {
       <main className="mx-auto max-w-6xl overflow-x-hidden px-4 pb-24 sm:px-5">
         <section className="py-16 text-center sm:py-20">
           <h1 className="mx-auto max-w-2xl text-5xl font-extrabold leading-[1.1] gradient-text sm:text-6xl">
-            LunaCall
+            NuviaChat
           </h1>
           <p className="mx-auto mt-5 max-w-lg text-base text-muted/80 leading-relaxed">
             Habla con personajes IA en segundos. Elige, personaliza y chatea o llama sin límites.

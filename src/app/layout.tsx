@@ -6,7 +6,7 @@ import AnimatedBackground from "@/components/AnimatedBackground";
 const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "LunaCall — Chica IA ficticia por chat y videollamada",
+  title: "NuviaChat — Chica IA ficticia por chat y videollamada",
   description:
     "Prueba una experiencia +18 con personajes IA ficticios. Chat, voz y videollamada simulada. Sin registro y sin anuncios.",
 };
