@@ -1,6 +1,6 @@
 export type HairOption = "moreno" | "rubio" | "pelirrojo" | "rosa";
 export type BackgroundOption = "neon-room" | "beach-night" | "studio" | "car-night";
-export type OutfitOption = "elegante" | "casual" | "fiesta" | "bikini-suave";
+export type PoseOption = "toalla" | "estrellas" | "tanga" | "bata";
 export type PersonalityOption = "carinosa" | "timida" | "atrevida" | "dominante";
 
 export interface Girl {
@@ -14,7 +14,7 @@ export interface Girl {
   description: string;
   defaultHair: HairOption;
   defaultBackground: BackgroundOption;
-  defaultOutfit: OutfitOption;
+  defaultPose: PoseOption;
   voiceLineExamples: string[];
 }
 
@@ -30,7 +30,7 @@ export const girls: Girl[] = [
     description: "Le encanta la conversación cercana y un poco de coqueteo elegante.",
     defaultHair: "moreno",
     defaultBackground: "neon-room",
-    defaultOutfit: "elegante",
+    defaultPose: "toalla",
     voiceLineExamples: [
       "Me gusta que hayas vuelto.",
       "Cuéntame algo de ti.",
@@ -48,7 +48,7 @@ export const girls: Girl[] = [
     description: "Directa, competitiva y con un sentido del humor muy suyo.",
     defaultHair: "rosa",
     defaultBackground: "neon-room",
-    defaultOutfit: "casual",
+    defaultPose: "tanga",
     voiceLineExamples: [
       "Has entrado rápido… eso me gusta.",
       "Me gusta tu energía.",
@@ -66,7 +66,7 @@ export const girls: Girl[] = [
     description: "Habla poco, pero cada frase pesa. Le gusta llevar la conversación.",
     defaultHair: "pelirrojo",
     defaultBackground: "studio",
-    defaultOutfit: "elegante",
+    defaultPose: "bata",
     voiceLineExamples: [
       "Relájate, yo llevo la conversación.",
       "Me gusta cuando prestas atención.",
@@ -84,7 +84,7 @@ export const girls: Girl[] = [
     description: "Cálida y cercana, siempre pendiente de cómo estás de verdad.",
     defaultHair: "moreno",
     defaultBackground: "beach-night",
-    defaultOutfit: "casual",
+    defaultPose: "estrellas",
     voiceLineExamples: [
       "Me gusta que hayas vuelto.",
       "Cuéntame algo de ti, quiero conocerte mejor.",
@@ -102,7 +102,7 @@ export const girls: Girl[] = [
     description: "Segura de sí misma, con un estilo directo pero siempre suave.",
     defaultHair: "rosa",
     defaultBackground: "studio",
-    defaultOutfit: "fiesta",
+    defaultPose: "tanga",
     voiceLineExamples: [
       "Hoy vas a hacerme caso, ¿no?",
       "Relájate, yo llevo la conversación.",
@@ -120,7 +120,7 @@ export const girls: Girl[] = [
     description: "Juguetona, con mucha confianza y siempre con ganas de charlar.",
     defaultHair: "rubio",
     defaultBackground: "car-night",
-    defaultOutfit: "fiesta",
+    defaultPose: "bata",
     voiceLineExamples: [
       "Has entrado rápido… eso me gusta.",
       "Podemos hablar un rato, pero no te me pongas nervioso.",
@@ -138,7 +138,7 @@ export const girls: Girl[] = [
     description: "Segura de sí misma, con una presencia que llena la habitación. Sabe lo que quiere.",
     defaultHair: "moreno",
     defaultBackground: "neon-room",
-    defaultOutfit: "elegante",
+    defaultPose: "estrellas",
     voiceLineExamples: [
       "¿Te gusta lo que ves?",
       "Acércate, no muerdo… mucho.",
@@ -156,7 +156,7 @@ export const girls: Girl[] = [
     description: "Tímida pero con una mirada que engancha. Se abre contigo poco a poco.",
     defaultHair: "moreno",
     defaultBackground: "neon-room",
-    defaultOutfit: "casual",
+    defaultPose: "toalla",
     voiceLineExamples: [
       "Hola… no esperaba verte tan pronto.",
       "Me pongo nerviosa cuando me miras así.",

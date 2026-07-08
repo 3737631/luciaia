@@ -2,12 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import OffersCarousel from "@/components/OffersCarousel";
 
 export default function Header() {
   const [userGender, setUserGender] = useState<"hombre" | "mujer">("hombre");
   const [showGenderPicker, setShowGenderPicker] = useState(false);
-  const [showPremium, setShowPremium] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("lunacall_gender");
@@ -73,13 +71,6 @@ export default function Header() {
               </>
             )}
           </div>
-          <button
-            onClick={() => setShowPremium(true)}
-            className="flex h-8 items-center justify-center gap-1 rounded-lg border border-pink/30 bg-pink/10 px-2.5 text-[0.6rem] font-semibold text-pink transition hover:bg-pink/20 sm:h-9 sm:gap-1.5 sm:px-3 sm:text-xs"
-          >
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            Premium
-          </button>
           <Link
             href="/girls"
             className="btn-primary flex h-8 items-center justify-center px-4 text-[0.65rem] font-bold sm:h-9 sm:px-5 sm:text-xs"
@@ -91,7 +82,6 @@ export default function Header() {
           </Link>
         </div>
       </div>
-      {showPremium && <OffersCarousel onClose={() => setShowPremium(false)} />}
     </header>
   );
 }

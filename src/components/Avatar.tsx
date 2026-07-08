@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { getGirlImage } from "@/lib/images";
-import { HairOption, OutfitOption, BackgroundOption } from "@/data/girls";
+import { HairOption, PoseOption, BackgroundOption } from "@/data/girls";
 
 interface AvatarProps {
   name: string;
@@ -12,7 +12,7 @@ interface AvatarProps {
   animated?: boolean;
   talking?: boolean;
   hair?: string;
-  outfit?: string;
+  pose?: string;
   background?: string;
   className?: string;
 }
@@ -32,7 +32,7 @@ export default function Avatar({
   animated = false,
   talking = false,
   hair,
-  outfit,
+  pose,
   background,
   className = "",
 }: AvatarProps) {
@@ -45,7 +45,7 @@ export default function Avatar({
   const imgSrc = getGirlImage(
     name,
     hair as HairOption,
-    outfit as OutfitOption,
+    pose as PoseOption,
     background as BackgroundOption,
   );
 

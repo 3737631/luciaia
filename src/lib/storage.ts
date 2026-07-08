@@ -20,7 +20,6 @@ function writeJSON(key: string, value: unknown) {
   try {
     window.localStorage.setItem(key, JSON.stringify(value));
   } catch {
-    // storage unavailable, fail silently
   }
 }
 
@@ -37,7 +36,7 @@ export function setAgeAccepted() {
 export interface Customization {
   hair: string;
   background: string;
-  outfit: string;
+  pose: string;
   personality: string;
 }
 

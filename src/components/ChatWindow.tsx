@@ -190,7 +190,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
             accentColor={girl.accentColor}
             accentColorSecondary={girl.accentColorSecondary}
             hair={girl.defaultHair}
-            outfit={girl.defaultOutfit}
+            pose={girl.defaultPose}
             background={girl.defaultBackground}
             size={80}
           />
@@ -240,7 +240,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
           accentColor={girl.accentColor}
           accentColorSecondary={girl.accentColorSecondary}
           hair={girl.defaultHair}
-          outfit={girl.defaultOutfit}
+          pose={girl.defaultPose}
           background={girl.defaultBackground}
           size={44}
         />

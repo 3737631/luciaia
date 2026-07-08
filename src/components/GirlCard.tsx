@@ -7,7 +7,7 @@ import { getGirlImage } from "@/lib/images";
 
 export default function GirlCard({ girl }: { girl: Girl }) {
   const [imgFailed, setImgFailed] = useState(false);
-  const girlImage = getGirlImage(girl.id, girl.defaultHair, girl.defaultOutfit, girl.defaultBackground);
+  const girlImage = getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground);
 
   return (
     <div className="group character-card overflow-hidden">

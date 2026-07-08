@@ -5,6 +5,8 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "../public/girls");
 
+const QUALITY = "photorealistic, ultra detailed face and skin texture, 8K resolution RAW photo, sharp focus on eyes and face, perfectly symmetrical facial features, flawless natural skin with healthy glow, no blemishes, no deformities or distortions, perfect human anatomy, natural beauty, cinematic quality, professional studio lighting";
+
 const GIRLS = [
   // ── LUNA ── Latina curvilínea, voluptuosa, piel canela ──
   {
@@ -17,10 +19,10 @@ const GIRLS = [
       rosa: "long straight neon pink silky hair",
     },
     outfit: {
-      elegante: "wearing elegant black lace lingerie set with garter belt and fishnet stockings, seductive confidence",
-      casual: "wearing a very tight white ribbed crop top that emphasizes her curves and low-rise skinny jeans",
-      fiesta: "wearing a dazzling silver sequin mini dress with plunging neckline and thigh-high slit",
-      "bikini-suave": "wearing a minimal black string bikini that shows off her full curves",
+      toalla: "fresh out of the shower, wrapped in a tiny white towel barely covering her huge caramel breasts, wet skin glistening with water droplets running down her neck and shoulders, towel tucked precariously just above her wide hips, looking over her shoulder at camera with a teasing seductive smile, steam rising around her, sensual post-shower glow",
+      estrellas: "completely topless except for glittery star-shaped pasties covering her nipples, wearing only a tiny black lace thong, hands on her wide hips showing off her extreme hourglass figure, full body on display, golden hour sunlight streaming through a window creating a warm glow on her caramel skin, confident sultry gaze directly at camera",
+      tanga: "lying face down on rumpled black silk sheets, wearing only a minuscule black string thong that disappears between her large rounded glutes, her back arched seductively, looking back at the camera over her shoulder with a mischievous playful smirk, her long dark hair cascading down her spine, soft morning light filtering through sheer curtains",
+      bata: "reclining sideways on a plush velvet chaise lounge, wearing a sheer floor-length white silk robe hanging wide open to reveal black lace lingerie, one strap teasingly falling off her shoulder, her long legs elegantly crossed with one heel dangling from her toes, looking at camera through heavy-lidded eyes with a dreamy seductive expression, moody candlelit atmosphere",
     },
     background: {
       "neon-room": "standing in a pink neon-lit bedroom with LED strips behind her, moody sensual atmosphere",
@@ -40,10 +42,10 @@ const GIRLS = [
       rosa: "long wavy neon pink hair with subtle highlights",
     },
     outfit: {
-      elegante: "wearing elegant black lace lingerie set with garter belt, playful innocent vibe",
-      casual: "wearing a tight vintage gamer girl t-shirt tied at the waist and denim shorts",
-      fiesta: "wearing a sparkly purple sequin party dress with sweetheart neckline",
-      "bikini-suave": "wearing a black string bikini set, playful smile",
+      toalla: "fresh from the shower, wrapped in a fluffy white towel secured just above her breasts, her fair skin glowing and slightly pink from the warm water, towel clinging to her curves, wet hair slicked back, looking over her shoulder with a shy but playful smile, steam and water droplets on her skin, innocent but sensual post-shower moment",
+      estrellas: "wearing only shimmering silver star-shaped pasties covering her nipples and a tiny white lace thong, her fit athletic body fully exposed, one hand running through her wet hair, the other resting on her hip, sun-kissed freckles visible across her nose, a playful innocent smile contrasting with her revealing outfit, natural daylight streaming in",
+      tanga: "bent over a gaming desk wearing only a tiny pink string thong, her round perky glutes fully on display, looking back at the camera with a cheeky grin, RGB gaming setup glowing around her, one knee resting on her gaming chair, playful and confident vibe, cool blue and purple neon lighting creating a cyberpunk atmosphere",
+      bata: "sitting cross-legged on a gaming chair, wearing an oversized open silk robe in pastel pink that falls off one shoulder revealing a delicate bralette and lace panties, biting her lower lip playfully while looking at the camera, a gaming controller resting in her lap, bedroom neon lights creating a cozy intimate atmosphere",
     },
     background: {
       "neon-room": "standing in a gaming room with RGB LED strips on walls, gaming chair behind her, cozy setup",
@@ -63,10 +65,10 @@ const GIRLS = [
       rosa: "long straight pastel pink hair",
     },
     outfit: {
-      elegante: "wearing sophisticated black lace lingerie with garter belt, dark mysterious allure",
-      casual: "wearing a black leather jacket over a lace top and ripped skinny jeans, boots",
-      fiesta: "wearing a sultry dark red velvet dress with deep neckline and slit",
-      "bikini-suave": "wearing a black string bikini, pale skin contrasting dark fabric",
+      toalla: "emerging from a steam-filled bathroom, wrapped in a dark grey towel that contrasts with her porcelain pale skin, towel wrapped high showing her long legs, wet hair clinging to her face and neck, water droplets on her pale shoulders, her intense dark eyes staring directly at the camera with a mysterious sultry expression, dramatic shadows playing across her face",
+      estrellas: "wearing only black star-shaped pasties covering her nipples and a high-cut black lace thong, her pale ethereal body completely on display, standing in a shaft of moonlight, one arm raised above her head, the other resting on her hip, her intense gaze piercing the camera, long dark hair flowing, dramatic chiaroscuro lighting creating deep shadows across her curves",
+      tanga: "kneeling on a dark velvet ottoman, wearing only a tiny black satin thong, her pale full glutes prominently displayed, torso twisted to look back at camera with a dark seductive stare, one hand resting on her thigh, long dark hair covering part of her face, moody atmospheric lighting with deep shadows, femme fatale energy radiating",
+      bata: "reclining on a dark leather chaise longue, wearing a sheer black silk robe tied loosely at the waist, gaping open to reveal most of her pale body with black lace lingerie underneath, one leg extended along the chaise, the other bent at the knee, her head tilted back slightly, looking down at the camera with a dominant predatory gaze, dim candlelit room, shadows dancing across her porcelain skin",
     },
     background: {
       "neon-room": "standing in a dark moody room with pink neon accent lighting, shadows, mysterious atmosphere",
@@ -86,10 +88,10 @@ const GIRLS = [
       rosa: "long curly neon pink voluminous hair",
     },
     outfit: {
-      elegante: "wearing elegant white lace lingerie set that barely contains her curves, garter belt",
-      casual: "wearing a very tight white summer blouse unbuttoned showing cleavage and denim shorts",
-      fiesta: "wearing a bright red bodycon dress with deep plunge neckline, hugging every curve",
-      "bikini-suave": "wearing a white string bikini that struggles to contain her XXL curves",
+      toalla: "fresh out of a steamy shower, wrapped in a white towel that barely contains her enormous XXL breasts, the towel stretched tight across her chest, wet tan skin gleaming with water droplets, her voluminous curly hair damp and tousled, looking at the camera with a warm inviting smile, towel sitting dangerously low on her wide hips, sensual curves on full display, soft warm bathroom lighting",
+      estrellas: "wearing only large gold star-shaped pasties barely covering her enormous nipples and a tiny gold chain belt with a matching thong, her massive XXL breasts and extreme curves completely on display, her hands holding her hair up above her head, pushing her chest forward, warm golden sunlight illuminating her tan skin, a confident radiant smile, curves spilling in every direction",
+      tanga: "lying on her stomach across a tropical print bedspread, wearing only a tiny white string thong that struggles to contain her massive glutes, her extreme hourglass shape visible from every angle, looking back at the camera with a sweet warm smile over her shoulder, her massive breasts pressing into the bed beneath her, tropical sunlight streaming through bamboo blinds creating warm stripes across her body",
+      bata: "leaning against a doorway wearing a sheer turquoise silk robe that barely closes over her XXL curves, the fabric straining across her massive chest with a single tie holding it together, her curly hair cascading over her shoulders, one leg peeking out from the robe slit, looking at the camera with a warm seductive smile, golden hour light creating a halo around her, curves exploding from every opening of the robe",
     },
     background: {
       "neon-room": "standing in a warm pink neon-lit bedroom with tropical decorations and mirror wall",
@@ -109,10 +111,10 @@ const GIRLS = [
       rosa: "long messy neon pink hair with cyberpunk style",
     },
     outfit: {
-      elegante: "wearing futuristic black lace lingerie set with holographic details, garter belt",
-      casual: "wearing a cyberpunk style cropped jacket over a mesh top and vinyl leggings, combat boots",
-      fiesta: "wearing a holographic iridescent sequin dress with asymmetric neckline",
-      "bikini-suave": "wearing a metallic-finish black string bikini, alternative edge",
+      toalla: "stepping out of a chrome-and-neon bathroom, wrapped in a holographic metallic-print towel that shifts colors, her pale cyberpunk body dripping wet, water droplets catching the neon light like diamonds, towel wrapped dangerously low on her hips, her sharp ice blue eyes staring directly at the camera with rebellious attitude, steam mixing with neon light creating an ethereal glow",
+      estrellas: "wearing only holographic iridescent star pasties covering her nipples and a matching metallic thong, her fit toned body completely exposed, cyberpunk body modifications visible, standing with legs apart in a powerful confident stance, arms crossed beneath her chest pushing up her breasts, piercing blue eyes challenging the camera, purple and pink neon lights creating a futuristic glow across her pale skin",
+      tanga: "bent forward over a neon-lit motorcycle, wearing only a tiny metallic silver thong, her toned athletic glutes on full display, looking back at the camera with a rebellious smirk, holographic tattoos catching the neon light, her messy cyberpunk hair falling forward, futuristic city lights reflecting off her damp skin in the background, night cyberpunk atmosphere with rain-slicked streets",
+      bata: "sitting on a neon-lit platform wearing a sheer iridescent cyberpunk robe made of holographic fabric that shifts colors as she moves, the robe completely open showing her toned body in metallic lingerie, one leg pulled up to her chest, the other dangling, looking directly at the camera with an intense rebellious stare, holographic projections swirling around her, futuristic cyberpunk bedroom with glowing panels",
     },
     background: {
       "neon-room": "standing in a cyberpunk room with holographic neon displays, purple-pink LED strips",
@@ -132,10 +134,10 @@ const GIRLS = [
       rosa: "long straight neon pink hair with baby lights",
     },
     outfit: {
-      elegante: "wearing luxurious black lace lingerie set with garter belt, glamorous pose",
-      casual: "wearing a tight white crop top with matching high-waist yoga leggings, fit vibe",
-      fiesta: "wearing a glittering gold bodycon mini dress with plunging V-neckline",
-      "bikini-suave": "wearing a black string bikini set, influencer beach aesthetic",
+      toalla: "just stepped out of a marble bathroom, wrapped in a plush white hotel towel that barely contains her bronzed curves, towel cinched above her large breasts, water droplets sparkling on her sun-kissed skin like glitter, her perfectly styled hair pulled up in a messy bun, looking over her shoulder with a glamorous influencer pout, soft diffused bathroom lighting creating a luxurious spa atmosphere",
+      estrellas: "wearing only rose-gold star pasties covering her nipples and a tiny matching thong with a 'VIP' charm, her perfectly contoured influencer body on full display, one hand on her hip pushing out her curves, the other holding her phone camera for a mirror selfie pose, full glam makeup and glossy lips, perfect ring light catching her bronzed skin, luxurious bedroom with designer bags in background",
+      tanga: "doing an yoga pose on a marble floor, bent forward with legs spread, wearing only a tiny peach-colored seamless thong, her perfectly shaped glutes lifted and on full display, upper body twisted to look back at the camera with a flawless pout, her hair swept to one side, wearing full glam makeup even in this position, natural sunlight streaming through floor-to-ceiling windows, luxury penthouse aesthetic",
+      bata: "lounging across a king-sized bed with white silk sheets, wearing a sheer champagne-colored silk robe tied loosely, completely open to reveal a lacy babydoll underneath, her long blonde hair fanned out on the pillow, one hand resting behind her head, the other tracing down her body, looking at the camera with a soft glamorous smile, morning light filtering through sheer curtains, luxurious hotel suite vibe",
     },
     background: {
       "neon-room": "standing in a pink neon-lit bedroom with luxury decor, mirror wall, glamorous vibe",
@@ -155,10 +157,10 @@ const GIRLS = [
       rosa: "long pastel pink curly hair with defined curls",
     },
     outfit: {
-      elegante: "wearing elegant black lace lingerie set with garter belt, chocolate skin glowing against black lace",
-      casual: "wearing a very tight white crop top showing cleavage and low-rise jeans, curvy confidence",
-      fiesta: "wearing a stunning gold sequin bodycon dress with deep V neckline, curves on display",
-      "bikini-suave": "wearing a minimal white string bikini that contrasts beautifully with dark skin",
+      toalla: "emerging from a steam room, wrapped in a gold-rimmed white towel that struggles to contain her enormous XXL curves, her dark chocolate skin glistening with moisture, water droplets catching the light like golden beads on her skin, her voluminous natural curls damp and defined, looking at the camera with a confident knowing smile, steam swirling around her creating a luxurious spa atmosphere, her massive breasts pushing against the damp towel",
+      estrellas: "wearing only gold glitter star pasties covering her nipples and a tiny gold chain-link thong, her extreme hourglass curves completely on display, her hands raised above her head showcasing her enormous breasts and tiny waist, golden hour sunlight creating a radiant halo around her dark skin, a powerful confident smile, her natural curls flowing, African art and luxury decor visible around her",
+      tanga: "kneeling on a plush fur rug, wearing only a tiny leopard-print thong, her massive perfectly rounded glutes on full display, her upper body twisted powerfully to look back at the camera with a confident seductive gaze that commands attention, one hand resting on her hip, the other touching her hair, warm golden lighting making her dark skin glow like melted chocolate, luxury apartment aesthetic",
+      bata: "standing in a doorway with arms crossed beneath her enormous chest, wearing a sheer gold silk robe that hangs completely open revealing every curve of her body with only a tiny gold thong underneath, her natural afro framing her face like a crown, looking directly at the camera with a powerful confident expression that says she owns the room, warm amber lighting creating deep shadows that emphasize every curve, luxurious vibe with gold accents everywhere",
     },
     background: {
       "neon-room": "standing in a warm amber neon-lit bedroom with gold accents, luxurious vibe",
@@ -178,10 +180,10 @@ const GIRLS = [
       rosa: "long straight pastel pink silky hair",
     },
     outfit: {
-      elegante: "wearing delicate black lace lingerie set with garter belt, innocent yet seductive",
-      casual: "wearing a very tight white cropped baby tee and low-rise denim skirt, cute and sexy",
-      fiesta: "wearing a stunning black satin mini dress with side cutouts and high slit",
-      "bikini-suave": "wearing a minimal black string bikini set, porcelain skin glowing",
+      toalla: "just stepped out of an ofuro bath, wrapped in a soft white towel that contrasts with her porcelain skin, her large breasts pressing against the damp fabric, wet hair slicked back with a few strands framing her face, her cheeks flushed pink from the hot bath, looking at the camera with a shy innocent smile through lowered lashes, delicate water droplets on her shoulders, steam creating a soft dreamy atmosphere, traditional japanese wooden bath visible behind her",
+      estrellas: "wearing only delicate pink cherry blossom star pasties covering her nipples and a tiny white lace thong with a small bow at the hip, her porcelain doll-like body on display, standing with her hands clasped behind her back pushing her chest forward slightly, tilting her head with a shy coy smile, her long dark hair flowing, soft pink sakura petals floating around her, dreamy romantic atmosphere with pink and purple tones",
+      tanga: "lying on her stomach across a silk futon, wearing only a tiny white lace thong with a bow on each hip, her delicate but shapely glutes on display, looking back at the camera with wide innocent eyes and a small shy smile, one hand covering her mouth as if giggling, her long hair spread across the pillow, soft pink lighting creating a dreamy kawaii atmosphere, paper lanterns and cherry blossom decor in the background",
+      bata: "sitting on a window seat overlooking Tokyo at night, wearing a sheer white silk robe with embroidered cherry blossoms, the robe open to reveal her pale body in delicate white lace lingerie, her legs pulled up to her chest with her chin resting on her knees, looking out the window with a dreamy expression then glancing at the camera with a soft shy smile, city lights twinkling behind her, romantic moonlit atmosphere",
     },
     background: {
       "neon-room": "standing in a pink neon-lit room with paper lanterns, cute kawaii aesthetic",
@@ -191,8 +193,6 @@ const GIRLS = [
     },
   },
 ];
-
-const SUFFIX = "looking directly at camera with a confident sensual expression, standing pose showcasing her full body from mid-thigh up, centered perfectly in frame, studio quality professional photoshoot lighting, photorealistic, ultra detailed face and skin texture, 8K resolution RAW photo, sharp focus on eyes and face, perfectly symmetrical facial features, flawless natural skin with healthy glow, no blemishes, no deformities or distortions, perfect human anatomy, natural beauty, editorial photography style, cinematic quality";
 
 async function generateImage(prompt, seed, outputPath) {
   const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=864&height=1024&seed=${seed}&nologo=true&model=flux`;
@@ -239,7 +239,7 @@ async function main() {
       for (const ok of outfitKeys) {
         for (const bk of bgKeys) {
           const fileName = `${hk}_${ok}_${bk}.jpg`;
-          const prompt = `${girl.face}, ${girl.hair[hk]}, ${girl.outfit[ok]}, ${girl.background[bk]}, ${SUFFIX}`;
+          const prompt = `${girl.face}, ${girl.hair[hk]}, ${girl.outfit[ok]}, ${girl.background[bk]}, ${QUALITY}`;
           await gen(fileName, prompt, girl.seed);
           await new Promise(r => setTimeout(r, 1500));
         }
