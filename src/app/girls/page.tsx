@@ -69,7 +69,13 @@ export default function GirlsPage() {
             {/* Grid */}
             <div className="mt-5 grid grid-cols-2 gap-3 max-[380px]:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-4">
               {filtered.length > 0 ? (
-                filtered.map((girl) => <GirlCard key={girl.id} girl={girl} />)
+                filtered.map((girl) =>
+                  "_custom" in girl ? (
+                    <CustomGirlCard key={girl.id} data={girl as any} onDelete={() => setCustomGirlsList(getCustomGirls())} />
+                  ) : (
+                    <GirlCard key={girl.id} girl={girl as any} />
+                  )
+                )
               ) : (
                 <div className="col-span-full py-12 text-center">
                   <p className="text-sm text-white/50">No hay personajes con ese estilo</p>

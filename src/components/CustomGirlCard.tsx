@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CustomGirlData } from "@/lib/storage";
+import { CustomGirlData, deleteCustomGirl } from "@/lib/storage";
 import { getGirlImage } from "@/lib/images";
 
-export default function CustomGirlCard({ data }: { data: CustomGirlData }) {
+export default function CustomGirlCard({ data, onDelete }: { data: CustomGirlData; onDelete?: () => void }) {
   const [imgFailed, setImgFailed] = useState(false);
   const imgSrc = data.imageUrl || getGirlImage(data.baseId || "luna", data.hair, data.pose, data.background);
 
@@ -35,9 +35,18 @@ export default function CustomGirlCard({ data }: { data: CustomGirlData }) {
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
           <div className="absolute left-3 right-3 top-3 flex items-start justify-between">
             <span className="flex h-4 w-4 rounded-full bg-green-400 shadow-[0_0_12px_rgba(74,222,128,0.8)] animate-pulse border-2 border-black/30" />
-            <span className="rounded-full border border-pink-400/40 bg-gradient-to-r from-pink-500/40 to-purple-500/30 px-2 py-0.5 text-[0.5rem] font-bold tracking-wide uppercase text-pink-300">
-              CREADA
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="rounded-full border border-pink-400/40 bg-gradient-to-r from-pink-500/40 to-purple-500/30 px-2 py-0.5 text-[0.5rem] font-bold tracking-wide uppercase text-pink-300">
+                CREADA
+              </span>
+              <button
+                onClick={(e) => { e.preventDefault(); deleteCustomGirl(data.id); onDelete?.(); }}
+                className="flex h-6 w-6 items-center justify-center rounded-full bg-red-500/20 border border-red-500/30 text-red-400 hover:bg-red-500/40 transition-all active:scale-90"
+                title="Eliminar"
+              >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </button>
+            </div>
           </div>
           <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5">
             <h3

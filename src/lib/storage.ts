@@ -75,3 +75,8 @@ export function saveCustomGirl(girl: CustomGirlData) {
   else list.push(girl);
   writeJSON("lunacall_custom_girls", list);
 }
+
+export function deleteCustomGirl(id: string) {
+  const list = getCustomGirls().filter((g) => g.id !== id);
+  writeJSON("lunacall_custom_girls", list);
+}
