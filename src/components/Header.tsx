@@ -9,10 +9,17 @@ export default function Header() {
   const [userGender, setUserGender] = useState<"hombre" | "mujer">("hombre");
   const [showGender, setShowGender] = useState(false);
   const [showMobileNav, setShowMobileNav] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("lunacall_gender");
     if (saved === "hombre" || saved === "mujer") setUserGender(saved);
+  }, []);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   function setGender(g: "hombre" | "mujer") {
@@ -22,13 +29,19 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 h-14 border-b border-white/[0.06] bg-[#0b0b0f] sm:h-16">
+    <header
+      className={`sticky top-0 z-50 border-b border-white/[0.06] transition-all duration-300 ${
+        scrolled
+          ? "h-12 bg-[#0b0b0f]/80 backdrop-blur-xl shadow-[0_4px_30px_rgba(0,0,0,0.3)] sm:h-14"
+          : "h-14 bg-[#0b0b0f] sm:h-16"
+      }`}
+    >
       <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-3 sm:px-6">
-        <Link href="/girls" className="flex items-center gap-1.5 sm:gap-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[#ff3b7f] to-[#ff7a3d] sm:h-8 sm:w-8">
-            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="currentColor" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <Link href="/girls" className={`flex items-center gap-1.5 sm:gap-2 transition-all duration-300 ${scrolled ? "scale-90" : "scale-100"}`}>
+          <span className={`flex items-center justify-center rounded-full bg-gradient-to-br from-[#ff3b7f] to-[#ff7a3d] transition-all duration-300 ${scrolled ? "h-6 w-6 sm:h-6 sm:w-6" : "h-7 w-7 sm:h-8 sm:w-8"}`}>
+            <svg viewBox="0 0 24 24" className={`transition-all duration-300 ${scrolled ? "h-3 w-3" : "h-3.5 w-3.5 sm:h-4 sm:w-4"}`} fill="currentColor" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
           </span>
-          <span className="text-sm font-bold tracking-tight sm:text-base">NuviaChat</span>
+          <span className={`font-bold tracking-tight transition-all duration-300 ${scrolled ? "text-xs sm:text-sm" : "text-sm sm:text-base"}`}>NuviaChat</span>
         </Link>
 
         <nav className="hidden sm:flex sm:items-center sm:gap-6">
@@ -105,7 +118,11 @@ export default function Header() {
           </Link>
           <Link
             href="/girls"
-            className="flex h-8 items-center justify-center rounded-full bg-gradient-to-r from-[#ff3b7f] to-[#ff7a3d] px-2 text-[0.5rem] font-bold text-white shadow-[0_0_20px_rgba(255,59,127,0.35)] transition hover:shadow-[0_0_28px_rgba(255,59,127,0.5)] sm:px-4 sm:text-xs"
+            className={`flex items-center justify-center rounded-full bg-gradient-to-r from-[#ff3b7f] to-[#ff7a3d] font-bold text-white shadow-[0_0_20px_rgba(255,59,127,0.35)] transition-all duration-300 hover:shadow-[0_0_28px_rgba(255,59,127,0.5)] active:scale-95 ${
+              scrolled
+                ? "h-9 px-4 text-xs sm:px-5 sm:text-sm shadow-[0_0_30px_rgba(255,59,127,0.5)]"
+                : "h-8 px-2 text-[0.5rem] sm:px-4 sm:text-xs"
+            }`}
             title="Crear cuenta gratuita"
           >
             <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 sm:hidden" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>

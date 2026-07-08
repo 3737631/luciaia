@@ -74,15 +74,35 @@ const ALL_SLIDES: Record<string, StorySlide[]> = { ...FALLBACK_ALL_SLIDES,
   ],
 };
 
+function shouldBeOnline(): boolean {
+  return Math.random() < 0.6;
+}
+
+function hasNewStory(): boolean {
+  return Math.random() < 0.35;
+}
+
 export default function StoriesRow() {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [slideIdx, setSlideIdx] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+  const [onlineMap] = useState<Record<string, boolean>>(() => {
+    const m: Record<string, boolean> = {};
+    girls.forEach((g) => { m[g.id] = shouldBeOnline(); });
+    return m;
+  });
+  const [newStoryMap] = useState<Record<string, boolean>>(() => {
+    const m: Record<string, boolean> = {};
+    girls.forEach((g) => { m[g.id] = hasNewStory(); });
+    return m;
+  });
 
   const progressVal = useRef(0);
   const timer = useRef<ReturnType<typeof setInterval>>();
   const activeIndexRef = useRef<number | null>(null);
   const slideIdxRef = useRef(0);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => { activeIndexRef.current = activeIndex; }, [activeIndex]);
   useEffect(() => { slideIdxRef.current = slideIdx; }, [slideIdx]);
@@ -190,8 +210,62 @@ export default function StoriesRow() {
   const slides = activeGirl ? (ALL_SLIDES[activeGirl.id] || []) : [];
   const currentSlide = slides[slideIdx];
 
+  function handlePointerDown(i: number) {
+    longPressTimer.current = setTimeout(() => {
+      setPreviewIndex(i);
+      setTimeout(() => {
+        setPreviewIndex(null);
+        openStory(i);
+      }, 800);
+    }, 500);
+  }
+
+  function handlePointerUp(i: number) {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = undefined;
+    }
+    if (previewIndex !== null) {
+      setPreviewIndex(null);
+    } else {
+      openStory(i);
+    }
+  }
+
+  function handlePointerLeave() {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = undefined;
+    }
+    setPreviewIndex(null);
+  }
+
   return (
     <>
+      <style>{`
+        @keyframes gradientRotate {
+          0% { filter: hue-rotate(0deg); }
+          100% { filter: hue-rotate(360deg); }
+        }
+        @keyframes pulseDot {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.7; transform: scale(1.15); }
+        }
+        @keyframes unseenRing {
+          0% { box-shadow: 0 0 0 0 rgba(255,59,127,0.5); }
+          70% { box-shadow: 0 0 0 6px rgba(255,59,127,0); }
+          100% { box-shadow: 0 0 0 0 rgba(255,59,127,0); }
+        }
+        .gradient-rotate {
+          animation: gradientRotate 3s linear infinite;
+        }
+        .dot-online {
+          animation: pulseDot 2s ease-in-out infinite;
+        }
+        .ring-new {
+          animation: unseenRing 2s ease-out infinite;
+        }
+      `}</style>
       <div
         className="flex gap-4 overflow-x-auto px-4 sm:gap-5 sm:px-6 lg:px-8"
         style={{
@@ -204,33 +278,46 @@ export default function StoriesRow() {
         {girls.map((girl, i) => (
           <button
             key={girl.id}
-            onClick={() => openStory(i)}
-            className="flex shrink-0 flex-col items-center text-white"
+            onMouseDown={() => handlePointerDown(i)}
+            onMouseUp={() => handlePointerUp(i)}
+            onMouseLeave={handlePointerLeave}
+            onTouchStart={() => handlePointerDown(i)}
+            onTouchEnd={() => handlePointerUp(i)}
+            className="flex shrink-0 flex-col items-center text-white relative"
             style={{ width: 72, fontSize: 12 }}
           >
             <div
-              className="relative mx-auto mb-2"
+              className={`relative mx-auto mb-2 ${newStoryMap[girl.id] ? "ring-new" : ""}`}
               style={{
                 width: 66,
                 height: 66,
-                padding: 4,
+                padding: 3,
                 borderRadius: "50%",
-                background: "linear-gradient(135deg, #ff3b7f, #ff0f70, #ff7a3d)",
-                boxShadow: "0 0 24px rgba(255,59,127,0.45)",
+                background: onlineMap[girl.id]
+                  ? "linear-gradient(135deg, #ff3b7f, #ff0f70, #ff7a3d)"
+                  : "rgba(255,255,255,0.15)",
                 transition: "transform 0.22s ease",
               }}
               onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.06)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
             >
-              <div
-                className="absolute right-[3px] top-[3px] z-10 h-3 w-3 rounded-full border-2"
-                style={{ borderColor: "#0b0b0f", background: "#ff0f70" }}
-              />
+              {onlineMap[girl.id] && (
+                <div
+                  className="dot-online absolute -bottom-[1px] -right-[1px] z-10 h-3.5 w-3.5 rounded-full border-[2.5px]"
+                  style={{ borderColor: "#0b0b0f", background: "#31c24d", boxShadow: "0 0 8px rgba(49,194,77,0.7)" }}
+                />
+              )}
+              {newStoryMap[girl.id] && (
+                <div
+                  className="absolute inset-0 rounded-full"
+                  style={{ boxShadow: "0 0 0 0 rgba(255,59,127,0.5)" }}
+                />
+              )}
               <img
                 src={getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground)}
                 alt={girl.name}
                 className="h-full w-full rounded-full object-cover"
-                style={{ border: "3px solid #0b0b0f", background: "#222" }}
+                style={{ border: "2px solid #0b0b0f", background: "#222" }}
               />
             </div>
             <span className="max-w-[66px] truncate text-center font-bold text-white/80">
@@ -239,6 +326,33 @@ export default function StoriesRow() {
           </button>
         ))}
       </div>
+
+      {previewIndex !== null && (
+        <div
+          className="fixed z-50"
+          style={{
+            top: "40%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            pointerEvents: "none",
+          }}
+        >
+          <div
+            className="rounded-2xl overflow-hidden shadow-2xl"
+            style={{ width: 160, border: "2px solid rgba(255,255,255,0.15)" }}
+          >
+            <img
+              src={getGirlImage(girls[previewIndex].id, girls[previewIndex].defaultHair, girls[previewIndex].defaultPose, girls[previewIndex].defaultBackground)}
+              alt={girls[previewIndex].name}
+              className="w-full object-cover"
+              style={{ height: 200 }}
+            />
+            <div className="bg-black/80 px-3 py-2 text-center">
+              <span className="text-sm font-bold text-white">{girls[previewIndex].name}</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stories Overlay */}
       {activeGirl && currentSlide && (
@@ -293,7 +407,7 @@ export default function StoriesRow() {
               </button>
             </div>
 
-            {/* Story image - loads instantly from local */}
+            {/* Story image */}
             <img
               src={getGirlImage(activeGirl.id, currentSlide.hair, currentSlide.pose, currentSlide.bg)}
               alt={activeGirl.name}
