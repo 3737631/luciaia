@@ -5,10 +5,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import GirlCard from "@/components/GirlCard";
 import HeroShowcaseCarousel from "@/components/HeroShowcaseCarousel";
-import CustomGirlCard from "@/components/CustomGirlCard";
-import CreateYourGirl from "@/components/CreateYourGirl";
 import { girls } from "@/data/girls";
-import { getCustomGirls } from "@/lib/storage";
 
 const maleIds = new Set(["axel", "liam"]);
 const maleChars = girls.filter((g) => maleIds.has(g.id));
