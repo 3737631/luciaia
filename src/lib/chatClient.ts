@@ -11,6 +11,7 @@ interface ChatPayload {
   memory: string[];
   summary: string;
   mode?: "text" | "actions";
+  userGender?: "hombre" | "mujer";
 }
 
 export async function sendChatMessage(payload: ChatPayload): Promise<string> {

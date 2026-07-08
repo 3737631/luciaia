@@ -386,6 +386,7 @@ export default function CallScreen({ girl }: { girl: Girl }) {
       memory,
       summary,
       mode: "text" as const,
+      userGender: (localStorage.getItem("lunacall_gender") || "hombre") as "hombre" | "mujer",
     };
     try {
       const reply = await sendChatMessage(payload);

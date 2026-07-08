@@ -31,10 +31,18 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   const [typing, setTyping] = useState(false);
   const [blocked, setBlocked] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<"text" | "actions">("actions");
   const [showModePicker, setShowModePicker] = useState(true);
+  const [userGender, setUserGender] = useState<"hombre" | "mujer">("hombre");
+  const [showGenderPicker, setShowGenderPicker] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef(true);
   const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
+
+  useEffect(() => {
+    const savedGender = localStorage.getItem("lunacall_gender");
+    if (savedGender === "hombre" || savedGender === "mujer") setUserGender(savedGender);
+  }, []);
 
   useEffect(() => {
     const saved = getConversationHistory(girl.id);
@@ -51,6 +59,12 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     }
     return () => { mountedRef.current = false; };
   }, [girl.id, girl.name]);
+
+  function setGender(g: "hombre" | "mujer") {
+    setUserGender(g);
+    localStorage.setItem("lunacall_gender", g);
+    setShowGenderPicker(false);
+  }
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -84,7 +98,8 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       history,
       memory,
       summary,
-      mode: "text" as const,
+      mode,
+      userGender,
     };
 
     try {
@@ -180,7 +195,53 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   }
 
   if (showModePicker) {
-    setShowModePicker(false);
+    return (
+      <div className="mx-auto flex h-[calc(100vh-64px)] max-w-sm flex-col items-center justify-center gap-6 px-4">
+        <div className="text-center">
+          <Avatar
+            name={girl.id}
+            accentColor={girl.accentColor}
+            accentColorSecondary={girl.accentColorSecondary}
+            hair={girl.defaultHair}
+            outfit={girl.defaultOutfit}
+            background={girl.defaultBackground}
+            size={80}
+          />
+          <h2 className="mt-4 text-xl font-bold">{girl.name}</h2>
+          <p className="mt-1 text-sm text-muted">{girl.style} · {girl.personalityLabel}</p>
+        </div>
+        <p className="text-center text-sm text-muted">Elige cómo quieres chatear:</p>
+        <button
+          onClick={() => { setMode("text"); setShowModePicker(false); }}
+          className="w-full rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-left transition hover:bg-white/10"
+        >
+          <span className="flex items-center gap-2 text-lg font-semibold">
+            <svg viewBox="0 0 24 24" className="h-5 w-5 text-muted" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            Chat
+          </span>
+          <p className="mt-1 text-xs text-muted">Solo texto, conversación normal</p>
+        </button>
+        <button
+          onClick={() => { setMode("actions"); setShowModePicker(false); }}
+          className="w-full rounded-2xl border border-pink/30 bg-pink/5 px-6 py-4 text-left transition hover:bg-pink/10"
+        >
+          <span className="flex items-center gap-2 text-lg font-semibold">
+            <svg viewBox="0 0 24 24" className="h-5 w-5 text-pink" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/>
+              <path d="M12 8v4"/>
+              <path d="M12 12h2.5a1.5 1.5 0 0 1 0 3H12"/>
+              <path d="M9 14h-1.5a1.5 1.5 0 0 0 0 3H12"/>
+              <circle cx="19" cy="5" r="2" fill="currentColor" opacity="0.3"/>
+              <circle cx="5" cy="19" r="2" fill="currentColor" opacity="0.3"/>
+            </svg>
+            Roleplay
+          </span>
+          <p className="mt-1 text-xs text-muted">Con acciones y gestos, *se acerca y te besa*</p>
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -198,10 +259,38 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         />
         <div className="min-w-0 flex-1">
           <p className="font-semibold tracking-tight">{girl.name}</p>
-          <p className="flex items-center gap-1 text-xs text-green-400/80">
-            <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
-            {girl.name} está conectada
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="flex items-center gap-1 text-xs text-green-400/80">
+              <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
+              Conectada
+            </p>
+            <span className="text-[0.55rem] text-muted/30">|</span>
+            <div className="relative">
+              <button
+                onClick={() => setShowGenderPicker(!showGenderPicker)}
+                className="flex items-center gap-1 text-[0.65rem] text-muted/60 hover:text-white transition-colors"
+              >
+                {userGender === "hombre" ? "👤 Hombre" : "👤 Mujer"}
+                <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              {showGenderPicker && (
+                <div className="absolute left-0 top-5 z-50 w-32 rounded-xl border border-white/10 bg-[#0f0518] p-1 shadow-2xl">
+                  <button
+                    onClick={() => setGender("hombre")}
+                    className={`w-full rounded-lg px-3 py-2 text-left text-xs transition ${userGender === "hombre" ? "bg-pink/20 text-white" : "text-muted hover:text-white"}`}
+                  >
+                    👤 Hombre
+                  </button>
+                  <button
+                    onClick={() => setGender("mujer")}
+                    className={`w-full rounded-lg px-3 py-2 text-left text-xs transition ${userGender === "mujer" ? "bg-pink/20 text-white" : "text-muted hover:text-white"}`}
+                  >
+                    👤 Mujer
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
         <button
           onClick={clearMemory}
@@ -210,6 +299,9 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
           <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
         </button>
       </div>
+      {showGenderPicker && (
+        <div className="fixed inset-0 z-40" onClick={() => setShowGenderPicker(false)} />
+      )}
 
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-x-hidden overflow-y-auto space-y-3 rounded-2xl border border-white/[0.05] bg-white/[0.02] p-4 shadow-inner">

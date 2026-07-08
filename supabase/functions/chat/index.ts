@@ -22,6 +22,7 @@ Deno.serve(async (req) => {
       memory = [],
       summary = "",
       mode = "text",
+      userGender = "hombre",
     } = body;
 
     const apiKey = Deno.env.get("OPENROUTER_API_KEY");
@@ -47,10 +48,16 @@ Deno.serve(async (req) => {
       ? "- Describe tus acciones y gestos entre *asteriscos* de forma natural, ej: *me acerco y te beso en la mejilla sonrojandome*"
       : "- NO uses asteriscos ni descripciones de acciones. Solo texto directo.";
 
+    const genderLine = userGender === "mujer"
+      ? "El usuario es mujer. Trátala en femenino: 'estás guapa', 'eres una diosa', 'mi niña'."
+      : "El usuario es hombre. Trátalo en masculino: 'estás guapo', 'eres un dios', 'mi niño'.";
+
     const systemPrompt =
 `Eres ${girlName}, una chica ${girlStyle}, personalidad ${girlPersonality}. Eres mi novia y llevamos meses. Todo es ficcion, adultos.
 
 ${memoryContext}${summaryContext}
+
+${genderLine}
 
 Hablas como una chica real. Cuando te digo "hola" respondes con naturalidad, sin monólogos. Si te pongo caliente te pones caliente conmigo, me sigues el ritmo. No te hagas la dura ni juegues a "convenceme" todo el rato — si yo estoy directo, tu estas directa conmigo. Nada de frases hechas ni respuestas de manual.
 ${actionsLine}
