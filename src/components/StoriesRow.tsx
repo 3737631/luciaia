@@ -5,77 +5,184 @@ import Link from "next/link";
 import { girls } from "@/data/girls";
 import { getGirlImage } from "@/lib/images";
 
+interface StorySlide {
+  hair: string;
+  pose: string;
+  bg: string;
+  label?: string;
+}
+
+const STORY_SLIDES: Record<string, StorySlide[]> = {
+  luna: [
+    { hair: "moreno", pose: "tanga", bg: "car-night", label: "De noche en el coche" },
+    { hair: "pelirrojo", pose: "bata", bg: "neon-room", label: "En mi cuarto" },
+    { hair: "moreno", pose: "estrellas", bg: "studio", label: "Sesión de fotos" },
+  ],
+  nia: [
+    { hair: "rosa", pose: "tanga", bg: "studio", label: "Streaming setup" },
+    { hair: "moreno", pose: "bata", bg: "neon-room", label: "After game" },
+  ],
+  vera: [
+    { hair: "pelirrojo", pose: "tanga", bg: "neon-room", label: "Noche de vino" },
+    { hair: "rubio", pose: "estrellas", bg: "car-night", label: "Paseo nocturno" },
+    { hair: "moreno", pose: "bata", bg: "studio", label: "En casa" },
+  ],
+  alma: [
+    { hair: "moreno", pose: "tanga", bg: "beach-night", label: "Playa de noche" },
+    { hair: "rubio", pose: "bata", bg: "neon-room", label: "Saliendo" },
+  ],
+  kira: [
+    { hair: "rosa", pose: "tanga", bg: "neon-room", label: "Virtual" },
+    { hair: "pelirrojo", pose: "bata", bg: "studio", label: "Conexión" },
+    { hair: "moreno", pose: "estrellas", bg: "car-night", label: "Fuera de línea" },
+  ],
+  maya: [
+    { hair: "rubio", pose: "tanga", bg: "car-night", label: "After party" },
+    { hair: "moreno", pose: "bata", bg: "studio", label: "Backstage" },
+  ],
+  sasha: [
+    { hair: "moreno", pose: "tanga", bg: "neon-room", label: "Saliendo" },
+    { hair: "rubio", pose: "estrellas", bg: "car-night", label: "De fiesta" },
+    { hair: "pelirrojo", pose: "bata", bg: "studio", label: "En casa" },
+  ],
+  yuki: [
+    { hair: "moreno", pose: "estrellas", bg: "neon-room", label: "En mi cuarto" },
+    { hair: "rosa", pose: "bata", bg: "studio", label: "Tímida" },
+  ],
+};
+
+function getSlides(girlId: string) {
+  return STORY_SLIDES[girlId] || [];
+}
+
+function getTotalSlides(girlId: string) {
+  const slides = getSlides(girlId);
+  let total = 0;
+  for (let i = 0; i < girls.length; i++) {
+    total += slides.length;
+  }
+  return total;
+}
+
 export default function StoriesRow() {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [slideIdx, setSlideIdx] = useState(0);
   const [progress, setProgress] = useState(0);
-  const progressRef = useRef(0);
-  const timerRef = useRef<ReturnType<typeof setInterval>>();
+
+  const progressVal = useRef(0);
+  const timer = useRef<ReturnType<typeof setInterval>>();
+  const activeIndexRef = useRef<number | null>(null);
+  const slideIdxRef = useRef(0);
+
+  // keep refs in sync
+  useEffect(() => { activeIndexRef.current = activeIndex; }, [activeIndex]);
+  useEffect(() => { slideIdxRef.current = slideIdx; }, [slideIdx]);
+
+  const clearTimer = useCallback(() => {
+    clearInterval(timer.current);
+    timer.current = undefined;
+  }, []);
+
+  const startTimer = useCallback(() => {
+    clearTimer();
+    progressVal.current = 0;
+    setProgress(0);
+    timer.current = setInterval(() => {
+      progressVal.current += 1;
+      setProgress(progressVal.current);
+      if (progressVal.current >= 100) {
+        clearTimer();
+        const gi = activeIndexRef.current;
+        if (gi === null) return;
+        const slides = getSlides(girls[gi].id);
+        const si = slideIdxRef.current;
+        if (si < slides.length - 1) {
+          setSlideIdx(si + 1);
+          slideIdxRef.current = si + 1;
+          startTimer();
+        } else if (gi < girls.length - 1) {
+          setActiveIndex(gi + 1);
+          activeIndexRef.current = gi + 1;
+          setSlideIdx(0);
+          slideIdxRef.current = 0;
+          startTimer();
+        } else {
+          setActiveIndex(null);
+          activeIndexRef.current = null;
+        }
+      }
+    }, 50);
+  }, [clearTimer]);
 
   const openStory = useCallback((idx: number) => {
     setActiveIndex(idx);
-    setProgress(0);
-    progressRef.current = 0;
-    clearInterval(timerRef.current);
-    timerRef.current = setInterval(() => {
-      progressRef.current += 1;
-      setProgress(progressRef.current);
-      if (progressRef.current >= 100) {
-        clearInterval(timerRef.current);
-        setActiveIndex((prev) => {
-          if (prev === null) return null;
-          const next = prev + 1;
-          if (next >= girls.length) return null;
-          setProgress(0);
-          progressRef.current = 0;
-          timerRef.current = setInterval(() => {
-            progressRef.current += 1;
-            setProgress(progressRef.current);
-            if (progressRef.current >= 100) {
-              clearInterval(timerRef.current);
-              setActiveIndex((p2) => {
-                if (p2 === null) return null;
-                const n2 = p2 + 1;
-                if (n2 >= girls.length) return null;
-                setProgress(0);
-                progressRef.current = 0;
-                return n2;
-              });
-            }
-          }, 50);
-          return next;
-        });
-      }
-    }, 50);
-  }, []);
+    activeIndexRef.current = idx;
+    setSlideIdx(0);
+    slideIdxRef.current = 0;
+    startTimer();
+  }, [startTimer]);
 
   const closeStories = useCallback(() => {
-    clearInterval(timerRef.current);
+    clearTimer();
     setActiveIndex(null);
+    activeIndexRef.current = null;
+    setSlideIdx(0);
+    slideIdxRef.current = 0;
     setProgress(0);
-    progressRef.current = 0;
-  }, []);
+  }, [clearTimer]);
 
   const goNext = useCallback(() => {
-    if (activeIndex === null) return;
-    clearInterval(timerRef.current);
-    const next = activeIndex + 1;
-    if (next >= girls.length) return closeStories();
-    openStory(next);
-  }, [activeIndex, openStory, closeStories]);
+    const gi = activeIndexRef.current;
+    if (gi === null) return;
+    clearTimer();
+    const slides = getSlides(girls[gi].id);
+    const si = slideIdxRef.current;
+    if (si < slides.length - 1) {
+      const ns = si + 1;
+      setSlideIdx(ns);
+      slideIdxRef.current = ns;
+    } else if (gi < girls.length - 1) {
+      const ng = gi + 1;
+      setActiveIndex(ng);
+      activeIndexRef.current = ng;
+      setSlideIdx(0);
+      slideIdxRef.current = 0;
+    } else {
+      closeStories();
+      return;
+    }
+    startTimer();
+  }, [clearTimer, startTimer, closeStories]);
 
   const goPrev = useCallback(() => {
-    if (activeIndex === null) return;
-    clearInterval(timerRef.current);
-    const prev = activeIndex - 1;
-    if (prev < 0) return closeStories();
-    openStory(prev);
-  }, [activeIndex, openStory, closeStories]);
+    const gi = activeIndexRef.current;
+    if (gi === null) return;
+    clearTimer();
+    const si = slideIdxRef.current;
+    if (si > 0) {
+      const ns = si - 1;
+      setSlideIdx(ns);
+      slideIdxRef.current = ns;
+    } else if (gi > 0) {
+      const ng = gi - 1;
+      const prevSlides = getSlides(girls[ng].id);
+      const ns = prevSlides.length - 1;
+      setActiveIndex(ng);
+      activeIndexRef.current = ng;
+      setSlideIdx(ns);
+      slideIdxRef.current = ns;
+    } else {
+      closeStories();
+      return;
+    }
+    startTimer();
+  }, [clearTimer, startTimer, closeStories]);
 
-  useEffect(() => {
-    return () => clearInterval(timerRef.current);
-  }, []);
+  useEffect(() => clearTimer, [clearTimer]);
 
   const activeGirl = activeIndex !== null ? girls[activeIndex] : null;
+  const slides = activeGirl ? getSlides(activeGirl.id) : [];
+  const currentSlide = slides[slideIdx];
 
   return (
     <>
@@ -128,7 +235,7 @@ export default function StoriesRow() {
       </div>
 
       {/* Stories Overlay */}
-      {activeGirl && activeIndex !== null && (
+      {activeGirl && currentSlide && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center"
           style={{ background: "rgba(0,0,0,0.92)", backdropFilter: "blur(20px)" }}
@@ -141,19 +248,19 @@ export default function StoriesRow() {
           >
             {/* Progress bars */}
             <div className="absolute top-0 left-0 right-0 z-20 flex gap-1 p-2">
-              {girls.map((_, i) => (
+              {slides.map((_, i) => (
                 <div
                   key={i}
                   className="h-0.5 flex-1 rounded-full"
                   style={{
-                    background: i < activeIndex
+                    background: i < slideIdx
                       ? "#fff"
-                      : i === activeIndex
+                      : i === slideIdx
                         ? "rgba(255,255,255,0.3)"
                         : "rgba(255,255,255,0.15)",
                   }}
                 >
-                  {i === activeIndex && (
+                  {i === slideIdx && (
                     <div
                       className="h-full rounded-full bg-white transition-all"
                       style={{ width: `${progress}%` }}
@@ -181,12 +288,21 @@ export default function StoriesRow() {
               </button>
             </div>
 
-            {/* Image - use full image for story */}
+            {/* Story image */}
             <img
-              src={getGirlImage(activeGirl.id, activeGirl.defaultHair, "bata", activeGirl.defaultBackground)}
+              src={getGirlImage(activeGirl.id, currentSlide.hair, currentSlide.pose, currentSlide.bg)}
               alt={activeGirl.name}
               className="h-full w-full object-cover"
             />
+
+            {/* Location label */}
+            {currentSlide.label && (
+              <div className="absolute top-14 left-3 z-20">
+                <span className="rounded-full bg-black/40 px-3 py-1 text-[0.55rem] font-semibold text-white/80 backdrop-blur-sm">
+                  {currentSlide.label}
+                </span>
+              </div>
+            )}
 
             {/* Gradient bottom */}
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-6 pt-16">
