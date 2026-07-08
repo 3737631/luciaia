@@ -1,23 +1,13 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import GirlCard from "@/components/GirlCard";
+import OffersCarousel from "@/components/OffersCarousel";
 import { getGirlImage } from "@/lib/images";
 import { girls } from "@/data/girls";
-
-const storyOffers = [
-  "1ª semana gratis",
-  "80% descuento",
-  "Chat ilimitado",
-  "2x1 videollamada",
-  "Pack bienvenida",
-  "Acceso anticipado",
-  "VIP prueba",
-  "30% personalizar",
-];
 
 const filters = ["Todas", "Coquetas", "Gamer", "Misteriosas", "Dulces", "Atrevidas"];
 
@@ -30,8 +20,6 @@ const faqs = [
 
 export default function GirlsPage() {
   const [activeFilter, setActiveFilter] = useState("Todas");
-  const storiesRef = useRef<HTMLDivElement>(null);
-
   const filtered = activeFilter === "Todas"
     ? girls
     : girls.filter((g) =>
@@ -109,33 +97,8 @@ export default function GirlsPage() {
           </div>
         </section>
 
-        {/* Ofertas / Historias estilo Instagram */}
-        <section className="mt-10 px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-6xl">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold tracking-tight sm:text-xl">Ofertas</h2>
-              <span className="text-[0.55rem] font-medium text-pink/80 sm:text-xs">Tiempo limitado</span>
-            </div>
-            <div ref={storiesRef} className="flex gap-4 overflow-x-auto pb-2 scrollbar-none">
-              {girls.map((girl, i) => (
-                <Link key={girl.id} href={`/chat/${girl.id}`} className="group flex shrink-0 flex-col items-center gap-2">
-                  <div className="story-ring flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
-                    <div className="h-full w-full overflow-hidden rounded-full bg-[#101018]">
-                      <img
-                        src={getGirlImage(girl.id, girl.defaultHair, girl.defaultOutfit, girl.defaultBackground)}
-                        alt={girl.name}
-                        className="h-full w-full object-cover object-top"
-                      />
-                    </div>
-                  </div>
-                  <span className="max-w-[72px] truncate text-center text-[0.5rem] font-semibold text-pinkLight leading-tight sm:text-[0.55rem]">
-                    {storyOffers[i % storyOffers.length]}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
+        {/* Offers Carousel premium */}
+        <OffersCarousel />
 
         {/* Personajes */}
         <section id="personajes" className="mt-10 px-4 sm:px-6 lg:px-8">
