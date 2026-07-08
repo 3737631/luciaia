@@ -1,16 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Girl } from "@/data/girls";
-import { getGirlImage, getGirlImageFallback } from "@/lib/images";
+import { getGirlImage } from "@/lib/images";
 import { getCustomization } from "@/lib/storage";
 
 export default function GirlCard({ girl }: { girl: Girl }) {
-  const [imgFailed, setImgFailed] = useState(false);
   const [girlImage, setGirlImage] = useState("");
-  const attemptRef = useRef(0);
-  const preloadedRef = useRef(false);
+  const mountedRef = useRef(false);
 
   function getImage() {
     const custom = getCustomization(girl.id);
@@ -18,45 +16,34 @@ export default function GirlCard({ girl }: { girl: Girl }) {
     return getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground);
   }
 
-  const refresh = useCallback(() => {
-    attemptRef.current = 0;
-    setImgFailed(false);
-    setGirlImage(getImage() + "?t=" + Date.now());
-  }, [girl.id]);
-
   useEffect(() => {
-    refresh();
-  }, [refresh]);
-
-  function handleImgError() {
-    attemptRef.current++;
-    if (attemptRef.current <= 2) {
-      const custom = getCustomization(girl.id);
-      const h = custom?.hair ?? girl.defaultHair;
-      const p = custom?.pose ?? girl.defaultPose;
-      const b = custom?.background ?? girl.defaultBackground;
-      setGirlImage(getGirlImageFallback(girl.id, h, p, b) + "&retry=" + attemptRef.current);
-    } else {
-      setImgFailed(true);
-    }
-  }
+    mountedRef.current = true;
+    const url = getImage();
+    // Preload the image via JS
+    const img = new Image();
+    img.src = url;
+    img.onload = () => {
+      if (mountedRef.current) setGirlImage(url);
+    };
+    img.onerror = () => {
+      // Retry with a different seed if it fails
+      const retryUrl = url.includes("&seed=")
+        ? url.replace(/&seed=\d+/, "&seed=" + (Date.now() % 99999 + 1))
+        : url + "&seed=" + (Date.now() % 99999 + 1);
+      img.src = retryUrl;
+      img.onerror = () => {
+        if (mountedRef.current) setGirlImage(url);
+      };
+      img.onload = () => {
+        if (mountedRef.current) setGirlImage(retryUrl);
+      };
+    };
+    return () => { mountedRef.current = false; };
+  }, [girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground]);
 
   function handleEditClick(e: React.MouseEvent) {
     e.stopPropagation();
     e.preventDefault();
-    // Preload the customized image for instant load on customize page
-    if (!preloadedRef.current) {
-      preloadedRef.current = true;
-      const custom = getCustomization(girl.id);
-      const url = custom
-        ? getGirlImage(girl.id, custom.hair, custom.pose, custom.background)
-        : getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground);
-      const link = document.createElement("link");
-      link.rel = "preload";
-      link.as = "image";
-      link.href = url;
-      document.head.appendChild(link);
-    }
     window.location.href = `/customize/${girl.id}`;
   }
 
@@ -64,19 +51,11 @@ export default function GirlCard({ girl }: { girl: Girl }) {
     <div className="group character-card overflow-hidden">
       <Link href={`/customize/${girl.id}`} className="block">
         <div className="relative aspect-[4/5] w-full overflow-hidden">
-          {!imgFailed ? (
-            <img
-              key={attemptRef.current}
-              src={girlImage}
-              alt={girl.name}
-              className="h-full w-full object-cover object-top transition-all duration-700 ease-out group-hover:scale-105"
-              onError={handleImgError}
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-[#101018]">
-              <span className="text-[0.6rem] text-muted">Sin imagen</span>
-            </div>
-          )}
+          <img
+            src={girlImage}
+            alt={girl.name}
+            className="h-full w-full object-cover object-top transition-all duration-700 ease-out group-hover:scale-105"
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
           {/* Top status dot + edit */}
           <div className="absolute left-3 right-3 top-3 flex items-start justify-between">
