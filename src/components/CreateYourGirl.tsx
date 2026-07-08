@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { saveCustomGirl } from "@/lib/storage";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { saveCustomGirl, getCustomGirls, CustomGirlData } from "@/lib/storage";
 
 function generateId(): string {
   return "custom_" + Math.random().toString(36).slice(2, 8);
@@ -25,69 +25,54 @@ function generateAge(): number {
   return 18 + Math.floor(Math.random() * 7);
 }
 
-function pickBaseGirl(desc: string): string {
+function buildPrompt(desc: string): string {
   const words = desc.toLowerCase();
-  if (words.includes("morena") || words.includes("moreno")) return "luna";
-  if (words.includes("rubia") || words.includes("rubio")) return "maya";
-  if (words.includes("pelirroja") || words.includes("pelirrojo")) return "vera";
-  if (words.includes("rosa")) return "kira";
-  if (words.includes("enfermera") || words.includes("doctora")) return "alma";
-  if (words.includes("gamer") || words.includes("videojuego")) return "nia";
-  if (words.includes("punk") || words.includes("rock")) return "kira";
-  return ["luna", "nia", "vera", "alma", "kira", "maya", "sasha", "yuki"][Math.floor(Math.random() * 8)];
-}
 
-function pickHair(desc: string): string {
-  const words = desc.toLowerCase();
-  if (words.includes("morena") || words.includes("moreno") || words.includes("negra") || words.includes("negro") || words.includes("castaña") || words.includes("castaño")) return "moreno";
-  if (words.includes("rubia") || words.includes("rubio") || words.includes("dorada") || words.includes("dorado")) return "rubio";
-  if (words.includes("pelirroja") || words.includes("pelirrojo") || words.includes("roja") || words.includes("rojo")) return "pelirrojo";
-  if (words.includes("rosa") || words.includes("neón") || words.includes("neon")) return "rosa";
-  return "moreno";
-}
+  let clothing = "wearing only a tiny thong bikini and revealing lingerie, high heels";
+  if (words.includes("uniforme")) clothing = "wearing a tight revealing uniform";
+  else if (words.includes("vestido")) clothing = "wearing a tight short dress";
+  else if (words.includes("bata")) clothing = "wearing a sheer silk robe open";
+  else if (words.includes("abrigo")) clothing = "wearing only a long open coat";
+  else if (words.includes("desnuda") || words.includes("desnudo"))
+    clothing = "nude but covered with hands or silk, no visible nipples or genitals";
 
-function pickBackground(desc: string): string {
-  const words = desc.toLowerCase();
-  if (words.includes("playa") || words.includes("mar") || words.includes("noche")) return "beach-night";
-  if (words.includes("coche") || words.includes("carro") || words.includes("carr") || words.includes("nocturno")) return "car-night";
-  if (words.includes("estudio") || words.includes("foto") || words.includes("fondo")) return "studio";
-  return "neon-room";
-}
+  let body = "slim body, small natural breasts, toned";
+  if (words.includes("tetas grandes") || words.includes("curvas") || words.includes("curvy") || words.includes("culo grande") || words.includes("nalgas grandes"))
+    body = "curvy body, large breasts, big round butt";
+  else if (words.includes("delgada") || words.includes("fina") || words.includes("flaca"))
+    body = "very slim body, very small breasts";
+  else if (words.includes("gordita") || words.includes("rellenita"))
+    body = "plus size body, full thick curves";
 
-function pickPose(desc: string): string {
-  const words = desc.toLowerCase();
-  if (words.includes("bata") || words.includes("abierta") || words.includes("salida")) return "bata";
-  if (words.includes("tanga") || words.includes("nalgas") || words.includes("cul") || words.includes("cuerda")) return "tanga";
-  if (words.includes("estrella") || words.includes("pegatina")) return "estrellas";
-  return "toalla";
+  let pose = "full body shot, standing pose, looking at camera";
+  if (words.includes("sentada") || words.includes("silla")) pose = "sitting on a chair, full body, legs crossed";
+  else if (words.includes("cama") || words.includes("acostada")) pose = "lying seductively on a bed, full body";
+  else if (words.includes("de rodillas")) pose = "kneeling on the floor, full body";
+
+  return encodeURIComponent(
+    `ultra realistic full body photo of a stunning breathtaking woman, ${desc}, ${clothing}, ${body}, ${pose}, hyperrealistic skin texture, professional studio photography, cinematic lighting, sharp focus, 8k, highly detailed, intimate boudoir style, natural expression`
+  );
 }
 
 export default function CreateYourGirl() {
-  const router = useRouter();
   const [girlDesc, setGirlDesc] = useState("");
   const [roleplayDesc, setRoleplayDesc] = useState("");
-  const [done, setDone] = useState(false);
+  const [customGirls, setCustomGirls] = useState<CustomGirlData[]>([]);
 
-  function buildPrompt(desc: string): string {
-    return encodeURIComponent(
-      `photorealistic cinematic portrait of a stunning sensual woman, ${desc}, beautiful detailed face, seductive expression, professional studio lighting, intimate atmosphere, high quality, 8k, sharp focus`
-    );
-  }
+  useEffect(() => {
+    setCustomGirls(getCustomGirls());
+  }, []);
 
   function handleCreate() {
     if (!girlDesc.trim() && !roleplayDesc.trim()) return;
     const id = generateId();
     const name = generateName(girlDesc || roleplayDesc);
-    const baseId = pickBaseGirl(girlDesc || roleplayDesc);
-    const hair = pickHair(girlDesc || roleplayDesc);
-    const background = pickBackground(girlDesc || roleplayDesc);
-    const pose = pickPose(girlDesc || roleplayDesc);
     const story = roleplayDesc.trim() || `Tu nueva creación, ${name}, te espera para pasar una noche inolvidable.`;
     const prompt = buildPrompt(girlDesc || roleplayDesc);
-    const imageUrl = `https://image.pollinations.ai/prompt/${prompt}?width=512&height=640&nofeed=true`;
+    const imageUrl = `https://image.pollinations.ai/prompt/${prompt}?width=512&height=640&nofeed=true&seed=${Date.now()}`;
     const customScenario = JSON.stringify({ girl: girlDesc.trim(), roleplay: roleplayDesc.trim() });
     localStorage.setItem("custom_scenario", customScenario);
-    saveCustomGirl({
+    const newGirl: CustomGirlData = {
       id,
       name,
       age: generateAge(),
@@ -95,87 +80,33 @@ export default function CreateYourGirl() {
       description: girlDesc.trim() || name,
       girlDesc: girlDesc.trim(),
       roleplayDesc: roleplayDesc.trim(),
-      hair,
-      background,
-      pose,
+      hair: "moreno",
+      background: "neon-room",
+      pose: "toalla",
       personality: "atrevida",
-      baseId,
+      baseId: "luna",
       imageUrl,
-    });
-    window.dispatchEvent(new CustomEvent("customGirlCreated"));
-    setDone(true);
-  }
-
-  if (done) {
-    return (
-      <div
-        className="px-4 sm:px-6 lg:px-8"
-        style={{ maxWidth: 1180, margin: "20px auto 0" }}
-      >
-        <div
-          className="rounded-2xl p-6 sm:p-8 text-center"
-          style={{
-            background:
-              "linear-gradient(135deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02))",
-            border: "1px solid rgba(255,255,255,0.10)",
-          }}
-        >
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-pink/20 to-purple/20">
-            <svg viewBox="0 0 24 24" className="h-6 w-6 text-pink" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-              <polyline points="22 4 12 14.01 9 11.01"/>
-            </svg>
-          </div>
-          <p className="text-lg font-bold text-white">¡Chica creada!</p>
-          <p className="mt-1 text-sm text-white/60">
-            Tu personaje aparecerá en la cuadrícula con su imagen personalizada.
-          </p>
-          <button
-            onClick={() => router.push("/girls")}
-            className="btn-primary mt-4 h-11 px-8 text-sm font-bold"
-          >
-            Ver en la cuadrícula
-          </button>
-          <button
-            onClick={() => {
-              setDone(false);
-              setGirlDesc("");
-              setRoleplayDesc("");
-            }}
-            className="mt-3 block w-full text-center text-xs text-pink/60 hover:text-pink transition-colors"
-          >
-            Crear otra chica
-          </button>
-        </div>
-      </div>
-    );
+    };
+    saveCustomGirl(newGirl);
+    setCustomGirls(getCustomGirls());
+    setGirlDesc("");
+    setRoleplayDesc("");
   }
 
   return (
-    <div
-      className="px-4 sm:px-6 lg:px-8"
-      style={{ maxWidth: 1180, margin: "20px auto 0" }}
-    >
+    <div className="px-4 sm:px-6 lg:px-8" style={{ maxWidth: 1180, margin: "20px auto 0" }}>
       <h2
         className="font-black tracking-tighter text-white"
-        style={{
-          fontSize: "clamp(28px, 4vw, 38px)",
-          letterSpacing: "-0.05em",
-          margin: "0 0 8px",
-        }}
+        style={{ fontSize: "clamp(28px, 4vw, 38px)", letterSpacing: "-0.05em", margin: "0 0 8px" }}
       >
         Crea tu propia chica
       </h2>
       <p className="mb-4 text-sm text-white/50" style={{ marginTop: 0 }}>
-        Describe a tu chica ideal y el roleplay que imaginas. Se generará una tarjeta personalizada con imagen.
+        Describe a tu chica ideal y el roleplay. Se generará una imagen realista de cuerpo entero con IA.
       </p>
       <div
         className="rounded-2xl p-5 sm:p-6"
-        style={{
-          background:
-            "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))",
-          border: "1px solid rgba(255,255,255,0.08)",
-        }}
+        style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))", border: "1px solid rgba(255,255,255,0.08)" }}
       >
         <label className="mb-1.5 block text-xs font-semibold text-white/70 uppercase tracking-wider">
           Describe a tu chica
@@ -204,6 +135,73 @@ export default function CreateYourGirl() {
         >
           Crear chica personalizada
         </button>
+      </div>
+
+      {customGirls.length > 0 && (
+        <div className="mt-8">
+          <h3 className="mb-4 font-bold tracking-tight text-white" style={{ fontSize: "clamp(18px, 3vw, 24px)", letterSpacing: "-0.03em" }}>
+            Tus creaciones
+          </h3>
+          <div className="flex gap-4 overflow-x-auto pb-3 scrollbar-none">
+            {customGirls.map((girl) => (
+              <CustomCard key={girl.id} data={girl} />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CustomCard({ data }: { data: CustomGirlData }) {
+  const [imgFailed, setImgFailed] = useState(false);
+  const imgSrc = data.imageUrl || "";
+
+  function handleChat() {
+    localStorage.setItem("custom_scenario", JSON.stringify({ girl: data.girlDesc, roleplay: data.roleplayDesc }));
+  }
+
+  return (
+    <div className="group shrink-0 character-card overflow-hidden" style={{ flex: "0 0 220px" }}>
+      <Link href="/chat/luna" onClick={handleChat} className="block">
+        <div className="relative aspect-[4/5] w-full overflow-hidden" style={{ height: 275 }}>
+          {imgSrc && !imgFailed ? (
+            <img
+              src={imgSrc}
+              alt={data.name}
+              className="h-full w-full object-cover object-top transition-all duration-700 ease-out group-hover:scale-105"
+              onError={() => setImgFailed(true)}
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-pink/20 to-purple/20">
+              <span className="text-[0.6rem] text-white/40">Generando...</span>
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+          <div className="absolute left-2.5 top-2.5">
+            <span className="flex h-3.5 w-3.5 rounded-full bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.8)] animate-pulse border-2 border-black/30" />
+          </div>
+          <div className="absolute bottom-0 left-0 right-0 p-3">
+            <h3
+              className="font-black leading-none tracking-tighter text-white"
+              style={{ fontSize: "clamp(15px, 3vw, 20px)", textShadow: "0 2px 10px rgba(0,0,0,0.7)", letterSpacing: "-0.02em" }}
+            >
+              {data.name}{" "}
+              <span className="font-bold text-white/80" style={{ fontSize: "0.8em" }}>{data.age}</span>
+            </h3>
+            <p
+              className="mt-1 leading-snug text-white/80 line-clamp-2"
+              style={{ fontSize: "clamp(10px, 2vw, 12px)", textShadow: "0 1px 6px rgba(0,0,0,0.5)" }}
+            >
+              {data.story || data.description}
+            </p>
+          </div>
+        </div>
+      </Link>
+      <div className="p-2.5">
+        <Link href="/chat/luna" onClick={handleChat} className="btn-primary flex h-8 w-full items-center justify-center text-[0.55rem] font-bold">
+          Chatear con ella
+        </Link>
       </div>
     </div>
   );
