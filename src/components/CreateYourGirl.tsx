@@ -48,31 +48,50 @@ function generateAge(): number {
 function buildPrompt(desc: string): string {
   const words = desc.toLowerCase();
 
-  let clothing = "wearing only a tiny thong bikini and revealing sheer lingerie, high heels";
-  if (words.includes("uniforme")) clothing = "wearing a tight revealing uniform";
-  else if (words.includes("vestido")) clothing = "wearing a tight short dress";
-  else if (words.includes("bata")) clothing = "wearing a sheer silk robe open";
-  else if (words.includes("abrigo")) clothing = "wearing only a long open coat";
+  let clothing = "red lace lingerie set, thigh-high stockings, stiletto heels";
+  if (words.includes("uniforme")) clothing = "tight white nurse uniform with unbuttoned top, sheer stockings, heels";
+  else if (words.includes("vestido")) clothing = "tight black mini dress, strappy high heels";
+  else if (words.includes("bata")) clothing = "sheer silk robe loosely tied, lacy underwear underneath, heels";
+  else if (words.includes("abrigo")) clothing = "long open trench coat, nothing underneath, high heels";
+  else if (words.includes("bikini") || words.includes("bañador") || words.includes("traje de baño"))
+    clothing = "tiny string bikini, high heels";
+  else if (words.includes("pijama") || words.includes("camisón"))
+    clothing = "silk baby doll nightie, lace trim";
 
-  let body = "slim body, small natural breasts, toned";
-  if (words.includes("tetas grandes") || words.includes("curvas") || words.includes("curvy") || words.includes("culo grande") || words.includes("nalgas grandes"))
-    body = "curvy body, large breasts, big round butt";
+  let body = "slim toned figure, medium breasts, perky";
+  if (words.includes("tetas grandes") || words.includes("curvas") || words.includes("curvy") || words.includes("culo grande") || words.includes("nalgas grandes") || words.includes("voluptuosa"))
+    body = "curvy hourglass, large firm breasts, wide hips, big round glutes";
   else if (words.includes("delgada") || words.includes("fina") || words.includes("flaca"))
-    body = "very slim body, very small breasts";
-  else if (words.includes("gordita") || words.includes("rellenita"))
-    body = "plus size body, full thick curves";
+    body = "very slender, small breasts, thin waist";
+  else if (words.includes("gordita") || words.includes("rellenita") || words.includes("llenita"))
+    body = "plus size thick figure, full hips, big thighs";
 
-  let pose = "full body shot, standing pose, looking at camera";
-  if (words.includes("sentada") || words.includes("silla")) pose = "sitting on a chair, full body, legs crossed";
-  else if (words.includes("cama") || words.includes("acostada")) pose = "lying seductively on a bed, full body";
-  else if (words.includes("de rodillas")) pose = "kneeling on the floor, full body";
+  let pose = "full body, standing, looking at camera, both arms and legs visible";
+  if (words.includes("sentada") || words.includes("silla")) pose = "full body visible, sitting on a chair, legs crossed";
+  else if (words.includes("cama") || words.includes("acostada")) pose = "full body, lying on a bed, legs extended";
+  else if (words.includes("de rodillas")) pose = "full body, kneeling on the floor";
+  else if (words.includes("espejo")) pose = "full body, taking mirror selfie with phone in hand";
 
-  return encodeURIComponent(
-    `adult woman 20 years old, ultra realistic 4k photo, ${desc}, ${clothing}, ${body}, ${pose}, ` +
-    `shot on Sony A7R IV 85mm f/1.4, Kodak Portra 400 film grain, fashion editorial photography, ` +
-    `natural skin texture, pores visible, subsurface scattering, professional studio lighting, ` +
-    `cinematic volumetric light, hyperdetailed, sharp focus, intimate boudoir style, natural expression`
+  const positive = encodeURIComponent(
+    `ultra realistic photo of a beautiful adult woman 20 years old, ${desc}, ${clothing}, ${body}, ${pose}, ` +
+    `photorealistic skin texture, visible pores, natural skin details, soft subsurface scattering, ` +
+    `shot on Hasselblad X1D II 90mm f/2.8, professional studio lighting, soft key light, ` +
+    `cinematic color grade, sharp focus, high detail skin, natural expression, confident seductive gaze, ` +
+    `complete full body composition, all four limbs visible and correctly formed, ` +
+    `wearing proper clothing covering nipples and pubic area, realistic anatomy, ` +
+    `sensual intimate atmosphere, tasteful boudoir style`
   );
+
+  const negative = encodeURIComponent(
+    "nude, topless, exposed breasts, nipples, areola, pubic hair, see-through, " +
+    "missing limbs, missing arms, missing legs, deformed hands, bad anatomy, " +
+    "cropped body, amputated, disfigured, ugly, mutated, extra limbs, " +
+    "cartoon, anime, drawing, painting, 3d render, illustration, oil painting, " +
+    "watermark, text, blurry, low resolution, low quality, oversaturated, " +
+    "bad proportions, distorted face, unnatural"
+  );
+
+  return `${positive}&negative=${negative}`;
 }
 
 export default function CreateYourGirl() {
@@ -101,8 +120,8 @@ export default function CreateYourGirl() {
     const id = generateId();
     const name = generateName(girlDesc || roleplayDesc);
     const story = roleplayDesc.trim() || `Tu nueva creación, ${name}, te espera para pasar una noche inolvidable.`;
-    const prompt = buildPrompt(girlDesc || roleplayDesc);
-    const imageUrl = `https://image.pollinations.ai/prompt/${prompt}?width=512&height=640&nofeed=true&seed=${Date.now()}`;
+    const params = buildPrompt(girlDesc || roleplayDesc);
+    const imageUrl = `https://image.pollinations.ai/prompt/${params}&width=512&height=640&nofeed=true&seed=${Date.now()}`;
     const customScenario = JSON.stringify({ girl: girlDesc.trim(), roleplay: roleplayDesc.trim() });
     localStorage.setItem("custom_scenario", customScenario);
     const newGirl: CustomGirlData = {

@@ -1,8 +1,31 @@
 "use client";
 
 import Link from "next/link";
-import { getGirlImage } from "@/lib/images";
 import { girls } from "@/data/girls";
+
+const STORY_SCENES: Record<string, { scene: string; seed: number }> = {
+  luna:  { scene: "girl taking a mirror selfie in a neon-lit bedroom, phone hiding face, wearing a black corset, mirror reflection shows full body", seed: 4201 },
+  nia:   { scene: "girl taking a mirror selfie at a gaming desk with RGB lights, phone in hand, wearing a cropped gamer tee and shorts, mirror shows full body", seed: 5202 },
+  vera:  { scene: "girl taking a mirror selfie in a dark hallway at midnight, leaning against door frame, wearing a silk robe, mirror reflection", seed: 6203 },
+  alma:  { scene: "girl taking a mirror selfie on a beach at sunset, wearing a white cover-up, holding phone, mirror frame on sand shows full reflection", seed: 7204 },
+  kira:  { scene: "girl taking a mirror selfie in a futuristic high-tech room with holographic lights, wearing metallic dress, phone covers face", seed: 8205 },
+  maya:  { scene: "girl taking a mirror selfie inside a luxury sports car at night, wearing a sequin dress, city lights in background", seed: 9206 },
+  sasha: { scene: "girl taking a mirror selfie in a nightclub bathroom mirror, wearing a tight dress, dim purple lighting, full body reflection", seed: 10207 },
+  yuki:  { scene: "girl taking a mirror selfie in a cozy bedroom with fairy lights, wearing an oversized sweater and thigh socks, cute pose", seed: 11208 },
+};
+
+function getStoryImage(girlId: string): string {
+  const s = STORY_SCENES[girlId];
+  if (!s) return "";
+  const prompt = encodeURIComponent(
+    `instagram story mirror selfie, ${s.scene}, ` +
+    `photorealistic, detailed skin texture, natural skin, soft lighting, ` +
+    `shot on iPhone 15 Pro, warm tones, cinematic, high quality, intimate candid moment, ` +
+    `NO cartoon, NO drawing, NO 3d render, NO anime`
+  );
+  const negative = encodeURIComponent("cartoon, anime, drawing, painting, 3d render, illustration, watermark, text, low quality");
+  return `https://image.pollinations.ai/prompt/${prompt}?width=512&height=640&nofeed=true&seed=${s.seed}&negative=${negative}`;
+}
 
 export default function StoriesRow() {
   return (
@@ -15,7 +38,6 @@ export default function StoriesRow() {
         scrollbarWidth: "none",
       }}
     >
-      {/* This is for the "new" badge dot - all new for now */}
       {girls.map((girl) => (
         <Link
           key={girl.id}
@@ -37,16 +59,16 @@ export default function StoriesRow() {
             onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.06)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
           >
-            {/* "new" dot */}
             <div
               className="absolute right-[3px] top-[3px] z-10 h-3 w-3 rounded-full border-2"
               style={{ borderColor: "#0b0b0f", background: "#ff0f70" }}
             />
             <img
-              src={getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground)}
+              src={getStoryImage(girl.id)}
               alt={girl.name}
               className="h-full w-full rounded-full object-cover"
               style={{ border: "3px solid #0b0b0f", background: "#222" }}
+              loading="lazy"
             />
           </div>
           <span className="max-w-[66px] truncate text-center font-bold text-white/80">
