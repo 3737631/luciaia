@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 import GirlCard from "@/components/GirlCard";
 import HeroShowcaseCarousel from "@/components/HeroShowcaseCarousel";
 import StoriesRow from "@/components/StoriesRow";
-import ExperiencesRow from "@/components/ExperiencesRow";
+import CreateYourGirl from "@/components/CreateYourGirl";
 import { girls } from "@/data/girls";
 
 const filters = ["Todas", "Coquetas", "Gamer", "Misteriosas", "Dulces", "Atrevidas"];
@@ -36,7 +36,7 @@ export default function GirlsPage() {
         <div style={{ padding: "18px 0 0" }} className="sm:pt-7">
           <HeroShowcaseCarousel />
           <StoriesRow />
-          <ExperiencesRow />
+          <CreateYourGirl />
         </div>
 
         {/* Personajes */}

@@ -33,9 +33,23 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<"text" | "actions">("actions");
   const [showModePicker, setShowModePicker] = useState(true);
+  const [customScenario, setCustomScenario] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef(true);
   const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
+
+  useEffect(() => {
+    const raw = localStorage.getItem("custom_scenario");
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        const parts = [];
+        if (parsed.girl) parts.push("Chica: " + parsed.girl);
+        if (parsed.roleplay) parts.push("Roleplay: " + parsed.roleplay);
+        setCustomScenario(parts.join("\n"));
+      } catch {}
+    }
+  }, []);
 
   useEffect(() => {
     const saved = getConversationHistory(girl.id);
@@ -87,6 +101,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       summary,
       mode,
       userGender: (typeof window !== "undefined" ? (localStorage.getItem("lunacall_gender") || "hombre") : "hombre") as "hombre" | "mujer",
+      customScenario: customScenario || undefined,
     };
 
     try {
@@ -138,7 +153,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       saveConversationHistory(girl.id, chatHistory);
       setError(err?.message || "Usando modo offline.");
     }
-  }, [girl, history, messages]);
+  }, [girl, history, messages, customScenario]);
 
   async function send() {
     if (blocked || typing) return;
@@ -162,6 +177,14 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     setTyping(true);
     await doAI(text);
     setTyping(false);
+  }
+
+  function requestImage() {
+    if (blocked || typing) return;
+    const text = "Pídeme una foto";
+    setMessages((m) => [...m, { id: crypto.randomUUID(), from: "user" as const, text }]);
+    setTyping(true);
+    doAI(text).finally(() => setTyping(false));
   }
 
   function clearMemory() {
@@ -314,6 +337,18 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
           placeholder={blocked ? "Chat bloqueado" : "Escribe un mensaje..."}
           className="min-h-[48px] flex-1 rounded-2xl border border-white/[0.06] bg-white/[0.04] px-4 text-[16px] outline-none focus:border-pink/50 disabled:opacity-40 transition-colors"
         />
+        <button
+          onClick={requestImage}
+          disabled={blocked || typing}
+          className="rounded-2xl border border-white/[0.10] bg-white/[0.04] px-3 py-3 text-muted hover:bg-white/[0.08] hover:text-white transition-all active:scale-95 disabled:opacity-40 shrink-0"
+          title="Pídeme una foto"
+        >
+          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+        </button>
         <button
           onClick={send}
           disabled={blocked || typing}

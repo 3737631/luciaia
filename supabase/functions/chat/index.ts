@@ -23,6 +23,7 @@ Deno.serve(async (req) => {
       summary = "",
       mode = "text",
       userGender = "hombre",
+      customScenario = "",
     } = body;
 
     const apiKey = Deno.env.get("OPENROUTER_API_KEY");
@@ -42,6 +43,8 @@ Deno.serve(async (req) => {
       ? "Información sobre el usuario:\n" + memory.map((m) => "- " + m).join("\n")
       : "";
 
+    const customScenarioContext = customScenario ? `\n\nEscenario personalizado del usuario:\n${customScenario}` : "";
+
     const summaryContext = summary ? "\nResumen:\n" + summary : "";
 
     const actionsLine = mode === "actions"
@@ -55,7 +58,7 @@ Deno.serve(async (req) => {
     const systemPrompt =
 `Eres ${girlName}, una chica ${girlStyle}, personalidad ${girlPersonality}. Eres mi novia y llevamos meses. Todo es ficcion, adultos.
 
-${memoryContext}${summaryContext}
+${memoryContext}${summaryContext}${customScenarioContext}
 
 ${genderLine}
 
