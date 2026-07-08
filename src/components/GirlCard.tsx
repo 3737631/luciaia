@@ -5,11 +5,6 @@ import Link from "next/link";
 import { Girl } from "@/data/girls";
 import { getGirlImage } from "@/lib/images";
 
-const badgeColors: Record<string, string> = {
-  Nuevo: "bg-gradient-to-r from-green-500/40 to-emerald-500/30 border-green-400/40 text-green-300",
-  Popular: "bg-gradient-to-r from-pink-500/40 to-orange-500/30 border-pink-400/40 text-pink-300",
-};
-
 export default function GirlCard({ girl }: { girl: Girl }) {
   const [imgFailed, setImgFailed] = useState(false);
   const girlImage = getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground);
@@ -31,20 +26,20 @@ export default function GirlCard({ girl }: { girl: Girl }) {
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-          {/* Top badges */}
-          <div className="absolute left-3 right-3 top-3 flex items-start justify-between gap-1.5">
-            <div className="flex items-center gap-1.5">
-              <span className="flex items-center gap-1.5 rounded-full bg-green-500/20 px-2 py-0.5 text-[0.5rem] font-medium text-green-400 border border-green-500/30">
-                <span className="h-2.5 w-2.5 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.7)] animate-pulse" />
-                Online
-              </span>
-              <span className="rounded-full bg-white/[0.08] px-2 py-0.5 text-[0.5rem] font-medium text-muted border border-white/[0.10]">+18</span>
-            </div>
-            {girl.badge && (
-              <span className={`rounded-full border px-2.5 py-0.5 text-[0.5rem] font-bold tracking-wide uppercase ${badgeColors[girl.badge] || badgeColors.Popular}`}>
-                {girl.badge}
-              </span>
-            )}
+          {/* Top status dot + edit */}
+          <div className="absolute left-3 right-3 top-3 flex items-start justify-between">
+            <span className="flex h-2.5 w-2.5 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.6)] animate-pulse" />
+            <Link
+              href={`/customize/${girl.id}`}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 backdrop-blur-sm text-white/70 hover:bg-white/20 hover:text-white transition-all active:scale-90 opacity-0 group-hover:opacity-100"
+              title="Personalizar"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 20h9"/>
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+              </svg>
+            </Link>
           </div>
           {/* Bottom text overlay */}
           <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5">
