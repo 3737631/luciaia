@@ -95,7 +95,7 @@ export default function CustomizeClient({ girl }: { girl: Girl }) {
         <div className="grid gap-6 sm:grid-cols-5 sm:gap-8">
           {/* Preview */}
           <div className="sm:col-span-2">
-            <div className={`sticky top-20 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b ${backgroundGradients[custom.background]}`}>
+            <div className={`sticky top-20 overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-b ${backgroundGradients[custom.background]}`}>
               <div className="flex flex-col items-center p-6 text-center">
                 <Avatar
                   name={girl.id}
@@ -121,7 +121,7 @@ export default function CustomizeClient({ girl }: { girl: Girl }) {
             </div>
 
             {/* Hair */}
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <div className="rounded-xl border border-white/[0.06] bg-[#14141c] p-4">
               <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted/50">Pelo</p>
               <div className="grid grid-cols-2 gap-2">
                 {hairOptions.map((opt) => (
@@ -136,7 +136,7 @@ export default function CustomizeClient({ girl }: { girl: Girl }) {
             </div>
 
             {/* Background */}
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <div className="rounded-xl border border-white/[0.06] bg-[#14141c] p-4">
               <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted/50">Escenario</p>
               <div className="grid grid-cols-2 gap-2">
                 {backgroundOptions.map((opt) => (
@@ -151,7 +151,7 @@ export default function CustomizeClient({ girl }: { girl: Girl }) {
             </div>
 
             {/* Outfit */}
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <div className="rounded-xl border border-white/[0.06] bg-[#14141c] p-4">
               <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted/50">Ropa</p>
               <div className="grid grid-cols-2 gap-2">
                 {outfitOptions.map((opt) => (
@@ -166,7 +166,7 @@ export default function CustomizeClient({ girl }: { girl: Girl }) {
             </div>
 
             {/* Personality */}
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <div className="rounded-xl border border-white/[0.06] bg-[#14141c] p-4">
               <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted/50">Personalidad</p>
               <div className="grid grid-cols-2 gap-2">
                 {personalityOptions.map((opt) => (
@@ -183,7 +183,7 @@ export default function CustomizeClient({ girl }: { girl: Girl }) {
         </div>
 
         {/* Fixed bottom CTA */}
-        <div className="fixed bottom-0 left-0 right-0 border-t border-white/10 bg-[#08030f]/95 backdrop-blur-lg px-4 py-4 sm:static sm:mt-8 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none">
+        <div className="fixed bottom-0 left-0 right-0 border-t border-white/[0.06] bg-[#14141c]/95 backdrop-blur-lg px-4 py-4 sm:static sm:mt-8 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none">
           <div className="mx-auto max-w-5xl sm:max-w-none">
             <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
               <NeonButton onClick={() => router.push(`/chat/${girl.id}`)} fullWidth>
