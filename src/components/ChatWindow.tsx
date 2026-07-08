@@ -270,22 +270,25 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
                 onClick={() => setShowGenderPicker(!showGenderPicker)}
                 className="flex items-center gap-1 text-[0.65rem] text-muted/60 hover:text-white transition-colors"
               >
-                {userGender === "hombre" ? "👤 Hombre" : "👤 Mujer"}
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mr-0.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                {userGender === "hombre" ? "Hombre" : "Mujer"}
                 <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
               </button>
               {showGenderPicker && (
                 <div className="absolute left-0 top-5 z-50 w-32 rounded-xl border border-white/10 bg-[#0f0518] p-1 shadow-2xl">
                   <button
                     onClick={() => setGender("hombre")}
-                    className={`w-full rounded-lg px-3 py-2 text-left text-xs transition ${userGender === "hombre" ? "bg-pink/20 text-white" : "text-muted hover:text-white"}`}
+                    className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs transition ${userGender === "hombre" ? "bg-pink/20 text-white" : "text-muted hover:text-white"}`}
                   >
-                    👤 Hombre
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    Hombre
                   </button>
                   <button
                     onClick={() => setGender("mujer")}
-                    className={`w-full rounded-lg px-3 py-2 text-left text-xs transition ${userGender === "mujer" ? "bg-pink/20 text-white" : "text-muted hover:text-white"}`}
+                    className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs transition ${userGender === "mujer" ? "bg-pink/20 text-white" : "text-muted hover:text-white"}`}
                   >
-                    👤 Mujer
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    Mujer
                   </button>
                 </div>
               )}
