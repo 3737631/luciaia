@@ -2,39 +2,42 @@ import { HairOption, PoseOption, BackgroundOption } from "@/data/girls";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
-const SIMPLE_PROMPTS: Record<string, string> = {
-  luna: "a stunning beautiful latina woman with long dark hair, natural beauty",
-  nia: "a cute girl with pink hair, gamer style, freckles, natural look",
-  vera: "a gorgeous redhead woman with green eyes and freckles, elegant",
-  alma: "a beautiful latina woman with curly dark hair, glowing skin",
-  kira: "a futuristic woman with short pink bob hair, cyberpunk aesthetic",
-  maya: "a gorgeous blonde woman with blue eyes, glamorous fashion",
-  sasha: "a stunning curvy black woman with braids, warm confident smile",
-  yuki: "a cute japanese girl with long black hair and bangs, shy smile",
-  axel: "a handsome muscular hispanic man with brown hair and beard",
-  liam: "a handsome young black man with curly hair, warm smile",
-  sakura: "anime magical girl with long flowing pink hair, sparkling blue eyes",
-  yumi: "anime catgirl with blue hair and cat ears, playful expression",
-  rin: "anime tsundere girl with brown twin tails and red ribbons",
-};
+// Characters that have high quality SDXL images (1.3MB+) already generated
+const SDXL_CHARS = ["axel", "liam"];
 
 const ANIME_CHARS = ["sakura", "yumi", "rin"];
 
-function getSeed(girlId: string, hair: string, pose: string, bg: string): number {
-  let s = 0;
-  for (let i = 0; i < girlId.length; i++) s += girlId.charCodeAt(i);
-  for (let i = 0; i < hair.length; i++) s += hair.charCodeAt(i);
-  for (let i = 0; i < pose.length; i++) s += pose.charCodeAt(i);
-  for (let i = 0; i < bg.length; i++) s += bg.charCodeAt(i);
-  return s % 100000;
+function charDesc(id: string): string {
+  const map: Record<string, string> = {
+    luna: "stunning Latina woman with long dark hair, perfect skin, beautiful face",
+    nia: "cute girl with pink hair, light freckles, natural beauty, youthful",
+    vera: "gorgeous redhead woman with green eyes, freckles, elegant, model look",
+    alma: "beautiful Latina woman with voluminous curly dark hair, radiant glow",
+    kira: "futuristic woman with short pink bob hair, sharp features, cyber chic",
+    maya: "gorgeous blonde woman with blue eyes, glamorous, high fashion",
+    sasha: "stunning curvy black woman with braids, confident smile, radiant skin",
+    yuki: "cute Japanese girl with long black hair and bangs, shy sweet face",
+    axel: "handsome muscular Hispanic man with brown hair, trimmed beard, masculine",
+    liam: "handsome young black man with curly black hair, warm friendly smile",
+    sakura: "beautiful anime magical girl with long flowing pink hair, big sparkly blue eyes",
+    yumi: "cute anime catgirl with blue hair and fluffy cat ears, playful golden eyes",
+    rin: "beautiful anime tsundere girl with brown twin tails and red ribbons, amber eyes",
+  };
+  return map[id] ?? "beautiful person, perfect face";
 }
 
 const NEGATIVE = encodeURIComponent(
-  "deformed, bad anatomy, disfigured, ugly, distorted, mutated, malformed, " +
-  "missing limbs, extra limbs, fused limbs, bad proportions, weird face, " +
-  "asymmetrical face, cartoon, anime, drawing, painting, low quality, blurry, " +
+  "deformed body, bad anatomy, disfigured, ugly, mutated, malformed, " +
+  "missing limbs, extra limbs, fused limbs, bad proportions, distorted face, " +
+  "asymmetrical face, weird eyes, wrong eyes, closed eyes, blurry, low quality, " +
   "watermark, text, logo, signature, nipples, nude, topless, explicit"
 );
+
+function getSeed(girlId: string, hair: string, pose: string, bg: string): number {
+  let s = 0;
+  for (const ch of girlId + hair + pose + bg) s += ch.charCodeAt(0);
+  return (s % 90000) + 10000;
+}
 
 export function getGirlImage(
   girlId: string,
@@ -46,7 +49,13 @@ export function getGirlImage(
   const p = pose ?? "toalla";
   const b = background ?? "neon-room";
 
-  return `${basePath}/girls/${girlId}/${h}_${p}_${b}.jpg`;
+  // Characters with SDXL images use local file
+  if (SDXL_CHARS.includes(girlId)) {
+    return `${basePath}/girls/${girlId}/${h}_${p}_${b}.jpg`;
+  }
+
+  // All other characters use Pollinations directly (skip slow local fallback)
+  return getPollinationsUrl(girlId, h, p, b);
 }
 
 export function getGirlImageFallback(
@@ -58,14 +67,28 @@ export function getGirlImageFallback(
   const h = hair ?? "moreno";
   const p = pose ?? "toalla";
   const b = background ?? "neon-room";
+  return getPollinationsUrl(girlId, h, p, b, getSeed(girlId, h, p, b) + 777);
+}
 
-  const seed = getSeed(girlId, h, p, b);
-  const description = SIMPLE_PROMPTS[girlId] ?? "a beautiful portrait of a woman";
-  const style = ANIME_CHARS.includes(girlId) ? "anime style, anime art, anime portrait" : "photorealistic, ultra realistic, portrait photography";
-  const category = ANIME_CHARS.includes(girlId) ? "anime" : "realistic woman";
+function getPollinationsUrl(
+  girlId: string,
+  hair: string,
+  pose: string,
+  bg: string,
+  seed?: number,
+): string {
+  const s = seed ?? getSeed(girlId, hair, pose, bg);
+  const isAnime = ANIME_CHARS.includes(girlId);
+  const desc = charDesc(girlId);
 
-  const prompt = encodeURIComponent(
-    `${description}, ${h} hair, ${style}, ${category}, professional portrait, sharp focus on face, perfect face, symmetrical features, beautiful details, elegant lighting, masterful composition`
-  );
-  return `https://image.pollinations.ai/prompt/${prompt}?width=768&height=960&nofeed=true&seed=${seed}&negative=${NEGATIVE}`;
+  const basePrompt = isAnime
+    ? `anime portrait of ${desc}, anime art style, beautiful detailed eyes, vibrant colors, clean sharp lineart, masterful anime illustration, perfect face`
+    : `portrait of ${desc}, ${hair} hair, photorealistic, ultra realistic, professional studio portrait, sharp focus on face, perfect symmetrical face, flawless skin, elegant natural makeup, soft natural lighting, high quality photography, 8K`;
+
+  const prompt = encodeURIComponent(`${basePrompt}, highly detailed, perfect anatomy, no deformities`);
+
+  const w = isAnime ? 768 : 896;
+  const h = isAnime ? 960 : 1152;
+
+  return `https://image.pollinations.ai/prompt/${prompt}?width=${w}&height=${h}&nofeed=true&seed=${s}&negative=${NEGATIVE}`;
 }

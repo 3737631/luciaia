@@ -10,6 +10,7 @@ export default function GirlCard({ girl }: { girl: Girl }) {
   const [imgFailed, setImgFailed] = useState(false);
   const [girlImage, setGirlImage] = useState("");
   const attemptRef = useRef(0);
+  const preloadedRef = useRef(false);
 
   function getImage() {
     const custom = getCustomization(girl.id);
@@ -40,6 +41,25 @@ export default function GirlCard({ girl }: { girl: Girl }) {
     }
   }
 
+  function handleEditClick(e: React.MouseEvent) {
+    e.stopPropagation();
+    e.preventDefault();
+    // Preload the customized image for instant load on customize page
+    if (!preloadedRef.current) {
+      preloadedRef.current = true;
+      const custom = getCustomization(girl.id);
+      const url = custom
+        ? getGirlImage(girl.id, custom.hair, custom.pose, custom.background)
+        : getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground);
+      const link = document.createElement("link");
+      link.rel = "preload";
+      link.as = "image";
+      link.href = url;
+      document.head.appendChild(link);
+    }
+    window.location.href = `/customize/${girl.id}`;
+  }
+
   return (
     <div className="group character-card overflow-hidden">
       <Link href={`/customize/${girl.id}`} className="block">
@@ -61,17 +81,16 @@ export default function GirlCard({ girl }: { girl: Girl }) {
           {/* Top status dot + edit */}
           <div className="absolute left-3 right-3 top-3 flex items-start justify-between">
             <span className="flex h-4 w-4 rounded-full bg-green-400 shadow-[0_0_12px_rgba(74,222,128,0.8)] animate-pulse border-2 border-black/30" />
-            <Link
-              href={`/customize/${girl.id}`}
+            <button
+              onClick={handleEditClick}
               className="flex h-8 w-8 items-center justify-center rounded-full bg-black/40 backdrop-blur-sm text-white hover:bg-pink/60 hover:text-white transition-all active:scale-90"
               title="Personalizar"
-              onClick={(e) => e.stopPropagation()}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 20h9"/>
                 <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
               </svg>
-            </Link>
+            </button>
           </div>
           {/* Bottom text overlay */}
           <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5">
