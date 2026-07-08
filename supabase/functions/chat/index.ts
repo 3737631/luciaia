@@ -82,7 +82,7 @@ Solo español. Respuestas cortas, como en WhatsApp. Si te digo algo subido de to
         model,
         messages,
         temperature: 0.6,
-        max_tokens: 40,
+        max_tokens: 200,
       }),
     });
 
