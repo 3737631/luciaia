@@ -204,9 +204,9 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     const parts = text.split(/(\*[^*]+\*)/g);
     return parts.map((part, i) => {
       if (part.startsWith("*") && part.endsWith("*")) {
-        return <span key={i} className="italic text-pink/80">{part.slice(1, -1)}</span>;
+        return <span key={i} className="italic text-pink/80 break-words">{part.slice(1, -1)}</span>;
       }
-      return part;
+      return <span key={i} className="break-words">{part}</span>;
     });
   }
 
@@ -294,7 +294,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       <div ref={scrollRef} className="flex-1 overflow-x-hidden overflow-y-auto space-y-3 rounded-2xl border border-white/[0.06] bg-[#14141c]/80 p-4 shadow-inner backdrop-blur-sm">
         {messages.map((m) => (
           <div key={m.id} className={`flex animate-fadeUp ${m.from === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+            <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed break-words overflow-wrap-anywhere ${
               m.from === "user"
                 ? "bg-gradient-to-r from-pink to-purple text-white shadow-lg shadow-pink/15"
                 : "border border-white/[0.06] bg-white/[0.04] text-ink backdrop-blur-sm"

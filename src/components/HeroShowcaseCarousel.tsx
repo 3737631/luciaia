@@ -6,10 +6,10 @@ import Link from "next/link";
 const slides = [
   {
     id: 0,
-    title: "70% OFF",
-    subtitle: "Oferta especial por tiempo limitado. Disfruta de todas las funciones premium con un 70% de descuento.",
-    badge: "OFERTA",
-    cta: "Aprovechar ahora",
+    title: "1ª Semana Gratis",
+    subtitle: "Tu primera semana completamente gratis. Sin compromiso, sin tarjeta, sin límites. Pruébalo hoy.",
+    badge: "GRATIS",
+    cta: "Comenzar ahora",
     href: "#personajes",
   },
   {
