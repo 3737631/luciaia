@@ -7,26 +7,26 @@ import { getGirlImage } from "@/lib/images";
 const slides = [
   {
     id: 0,
-    title: "Nuevas historias disponibles",
-    subtitle: "Descubre escenas, chats y momentos nuevos con tus personajes favoritos.",
-    badge: "¡NUEVO!",
-    cta: "Ver ahora",
+    title: "🔥 70% OFF",
+    subtitle: "Oferta especial por tiempo limitado. Disfruta de todas las funciones premium con un 70% de descuento.",
+    badge: "OFERTA",
+    cta: "Aprovechar ahora",
     href: "#personajes",
   },
   {
     id: 1,
-    title: "Personajes destacados",
-    subtitle: "Elige una personalidad y empieza una conversación privada al instante.",
-    badge: "TOP",
-    cta: "Explorar",
+    title: "Crea tu propio roleplay",
+    subtitle: "Describe la escena que siempre has imaginado y la IA lo hará realidad. Tú pones el guión.",
+    badge: "NUEVO",
+    cta: "Crear roleplay",
     href: "#personajes",
   },
   {
     id: 2,
-    title: "Crea tu chica IA",
-    subtitle: "Personaliza estilo, actitud, fondo y forma de hablar.",
-    badge: "PRO",
-    cta: "Crear ahora",
+    title: "Chicas en vivo ahora",
+    subtitle: "Conecta en tiempo real con tu personaje favorito. Siente la conversación como nunca antes.",
+    badge: "EN VIVO",
+    cta: "Probar ahora",
     href: "#personajes",
   },
 ];
@@ -73,7 +73,11 @@ export default function HeroShowcaseCarousel() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [next]);
 
-  const placeholderImg = getGirlImage("luna", "moreno", "toalla", "neon-room");
+  const imgs = [
+    getGirlImage("maya", "rubio", "bata", "car-night"),
+    getGirlImage("kira", "rosa", "tanga", "studio"),
+    getGirlImage("sasha", "moreno", "estrellas", "neon-room"),
+  ];
 
   return (
     <div
@@ -107,17 +111,19 @@ export default function HeroShowcaseCarousel() {
               pointerEvents: i === active ? "auto" : "none",
             }}
           >
-            {/* Placeholder image - REPLACE with real banners later */}
             <img
-              src={placeholderImg}
+              src={imgs[i]}
               alt={s.title}
               className="h-full w-full object-cover"
             />
             <div
               className="absolute inset-0"
               style={{
-                background:
-                  "linear-gradient(90deg, rgba(0,0,0,0.75), rgba(0,0,0,0.22), rgba(0,0,0,0.55)), radial-gradient(circle at 80% 30%, rgba(255,59,127,0.32), transparent 35%)",
+                background: i === 0
+                  ? "linear-gradient(90deg, rgba(0,0,0,0.50), rgba(0,0,0,0.10), rgba(0,0,0,0.35)), radial-gradient(circle at 70% 40%, rgba(255,59,127,0.25), transparent 40%)"
+                  : i === 1
+                  ? "linear-gradient(90deg, rgba(0,0,0,0.45), rgba(0,0,0,0.08), rgba(0,0,0,0.30)), radial-gradient(circle at 30% 60%, rgba(168,85,247,0.20), transparent 40%)"
+                  : "linear-gradient(90deg, rgba(0,0,0,0.50), rgba(0,0,0,0.10), rgba(0,0,0,0.35)), radial-gradient(circle at 80% 20%, rgba(255,122,61,0.25), transparent 40%)",
               }}
             />
             <div
