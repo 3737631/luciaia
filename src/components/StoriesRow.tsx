@@ -6,207 +6,73 @@ import { girls } from "@/data/girls";
 import { getGirlImage } from "@/lib/images";
 
 interface StorySlide {
-  prompt: string;
-  seed: number;
+  hair: string;
+  pose: string;
+  bg: string;
+  label: string;
 }
 
-const STORIES: Record<string, StorySlide[]> = {
-  luna: [
-    {
-      seed: 9101,
-      prompt:
-        "mirror selfie of a stunning 22yo brunette woman in a bedroom, wearing a black lace bralette and high-waisted jeans, " +
-        "holding smartphone in front of her face, mirror reflects her full body and the messy bed behind, " +
-        "warm golden hour lighting through window, soft natural skin texture, visible pores, " +
-        "photorealistic, ultra detailed skin, sharp focus, iPhone photo style, candid moment, " +
-        "intimate atmosphere, beautiful face, perfect body proportions, all limbs visible"
-    },
-    {
-      seed: 9102,
-      prompt:
-        "bathroom mirror selfie of a gorgeous 22yo brunette woman after shower, wearing only a white towel wrapped around her body, " +
-        "steam on mirror partially obscuring reflection, phone held up, wet hair, droplets on skin, " +
-        "soft vanity lighting, dewy skin, hyper realistic skin texture, natural beauty, " +
-        "photorealistic, 8K detail, film grain, candid, intimate, full body reflection visible"
-    },
-    {
-      seed: 9103,
-      prompt:
-        "full length mirror selfie of a beautiful 22yo dark-haired woman in a walk-in closet, wearing a slinky black dress, " +
-        "high heels, taking a mirror selfie with phone, surrounded by clothes and shoe racks, " +
-        "warm ambient lighting, photorealistic skin detail, soft subsurface scattering, " +
-        "natural pose, elegant, confident, sharp focus, candid mirror photo style, all limbs visible"
-    },
+const FALLBACK_ALL_SLIDES: Record<string, StorySlide[]> = {
+  axel: [
+    { hair: "cafe", pose: "ropa", bg: "studio", label: "Gimnasio vacío" },
+    { hair: "negro", pose: "casual", bg: "car-night", label: "Después del entrenamiento" },
   ],
-  nia: [
-    {
-      seed: 9201,
-      prompt:
-        "mirror selfie of a cute 20yo girl with pink hair in a gaming room, wearing a cropped white t-shirt and shorts, " +
-        "RGB LED strips on walls reflecting in the mirror, phone in hand covering face, " +
-        "full body in mirror reflection, gaming chair visible behind her, " +
-        "photorealistic skin texture, visible pores, natural lighting with blue/pink ambient glow, " +
-        "sharp focus, candid selfie style, detailed skin, teen girl next door look, all limbs visible"
-    },
-    {
-      seed: 9202,
-      prompt:
-        "mirror selfie of a young woman with pink hair in a messy bedroom, sitting cross-legged on the floor in front of a mirror, " +
-        "wearing baggy hoodie and thigh-high socks, phone in one hand, peace sign with other hand, " +
-        "strand lights on wall behind her, cozy warm atmosphere, soft natural lighting, " +
-        "hyper realistic skin texture, youthful glow, candid photo style, photorealistic, " +
-        "all limbs visible, full body in reflection"
-    },
+  liam: [
+    { hair: "negro", pose: "casual", bg: "neon-room", label: "Noche de pelis" },
+    { hair: "cafe", pose: "ropa", bg: "studio", label: "Relajado" },
   ],
-  vera: [
-    {
-      seed: 9301,
-      prompt:
-        "mirror selfie of a mysterious 24yo redhead woman in a dimly lit hallway, leaning against the wall, " +
-        "wearing a burgundy silk robe loosely tied, phone in hand partially hiding face, " +
-        "full body reflection in an ornate floor mirror, moody lighting, shadows, " +
-        "intense green eyes visible above phone, photorealistic skin texture, pores visible, " +
-        "intimate atmosphere, sharp focus, film grain, candid, sensual but classy, all limbs visible"
-    },
-    {
-      seed: 9302,
-      prompt:
-        "bathroom mirror selfie of a stunning redhead woman in her late 20s, wearing only a sheer black negligee, " +
-        "leaning toward mirror, phone capturing reflection, soft candlelit bathroom, " +
-        "steam creating atmospheric haze, wet hair, dewy glowing skin, " +
-        "hyper realistic, detailed skin pores, subsurface scattering, intimate moody lighting, " +
-        "photorealistic texture, 8K quality, sensual but tasteful, full body visible"
-    },
-    {
-      seed: 9303,
-      prompt:
-        "full length mirror selfie of a gorgeous redhead woman in a luxury bedroom, wearing a satin cami and lace shorts, " +
-        "posing naturally with phone in hand, her reflection shows hourglass figure, " +
-        "soft morning light through curtains, warm tones, photorealistic skin detail, " +
-        "visible skin texture, natural lighting, sharp focus, intimate candid moment, all limbs visible"
-    },
+  sakura: [
+    { hair: "rosa", pose: "bata", bg: "studio", label: "Dimensión mágica" },
+    { hair: "azul", pose: "tanga", bg: "neon-room", label: "Portal estelar" },
   ],
-  alma: [
-    {
-      seed: 9401,
-      prompt:
-        "mirror selfie of a beautiful 22yo Latina woman on a beach boardwalk at golden hour, wearing a white crochet cover-up, " +
-        "phone in hand covering face, full body reflection in a large beachfront mirror, " +
-        "ocean sunset behind her in the mirror reflection, warm golden light, " +
-        "photorealistic skin, glowing complexion, natural texture visible, " +
-        "soft wind blowing her hair, candid, dreamy atmosphere, all limbs visible"
-    },
-    {
-      seed: 9402,
-      prompt:
-        "mirror selfie of a gorgeous Latina woman in a boutique hotel room, wearing a red satin slip dress, " +
-        "standing in front of an antique mirror, phone held up, full body reflection, " +
-        "soft warm hotel lighting, luxurious atmosphere, photorealistic skin detail, " +
-        "visible pores, natural texture, sharp focus, candid selfie style, elegant, confident, all limbs visible"
-    },
+  yumi: [
+    { hair: "azul", pose: "bata", bg: "neon-room", label: "Noche de mimos" },
+    { hair: "rosa", pose: "tanga", bg: "studio", label: "Jugando" },
   ],
-  kira: [
-    {
-      seed: 9501,
-      prompt:
-        "mirror selfie of a futuristic 20yo woman with pink hair in a high-tech room, wearing a metallic silver bodysuit, " +
-        "holographic blue and purple lights reflecting in floor-to-ceiling mirrors, " +
-        "phone in hand, full body reflection, cyberpunk aesthetic, neon lighting, " +
-        "photorealistic skin texture, glowing highlights on skin, sharp focus, " +
-        "ultra detailed, sci-fi glam, all limbs visible"
-    },
-    {
-      seed: 9502,
-      prompt:
-        "mirror selfie of a girl with pink hair in a minimalist white room with neon strip lights, wearing an oversized techwear jacket and shorts, " +
-        "phone covering face, mirror shows full body, cool blue and pink lighting, " +
-        "photorealistic, detailed skin texture, soft subsurface scattering, " +
-        "candid selfie style, sharp focus, modern aesthetic, all limbs visible"
-    },
-    {
-      seed: 9503,
-      prompt:
-        "bathroom mirror selfie of a young woman with pink hair, wearing a black lace bodysuit, " +
-        "leaning toward mirror, phone in hand, dramatic lighting from above, " +
-        "dark atmosphere with neon purple edge lighting, photorealistic skin, " +
-        "detailed pores, natural texture, moody, sensual but tasteful, all limbs visible"
-    },
-  ],
-  maya: [
-    {
-      seed: 9601,
-      prompt:
-        "car mirror selfie of a gorgeous blonde influencer inside a luxury sports car at night, " +
-        "wearing a sparkling gold sequin dress, taking a selfie using the rearview mirror, " +
-        "city lights glowing through car windows, diamond jewelry catching light, " +
-        "photorealistic skin texture, perfect makeup, glamorous, soft flash lighting, " +
-        "ultra detailed, sharp focus, candid luxury lifestyle, all limbs visible"
-    },
-    {
-      seed: 9602,
-      prompt:
-        "elevator mirror selfie of a stunning blonde woman in a silver mini dress and stilettos, " +
-        "taking a selfie in the mirror, phone in hand, full body reflection, " +
-        "warm elevator lighting, glamorous night out vibe, photorealistic skin detail, " +
-        "visible pores, natural skin texture, sharp focus, confident pose, all limbs visible"
-    },
-  ],
-  sasha: [
-    {
-      seed: 9701,
-      prompt:
-        "nightclub bathroom mirror selfie of a stunning curvy woman with dark skin and braids, " +
-        "wearing a tight leopard print dress, leaning toward mirror with phone in hand, " +
-        "dim purple and pink club lighting, her reflection shows full curvy body, " +
-        "photorealistic skin, glowing complexion, visible skin texture, " +
-        "confident pose, sensual but classy, all limbs visible"
-    },
-    {
-      seed: 9702,
-      prompt:
-        "full length mirror selfie of a gorgeous curvy woman with braids, wearing a black lace teddy, " +
-        "in a bedroom with warm candlelight, phone in hand partly covering face, " +
-        "full body reflection, soft moody lighting, photorealistic skin, " +
-        "curvy hourglass figure visible, intimate atmosphere, tasteful boudoir, all limbs visible"
-    },
-    {
-      seed: 9703,
-      prompt:
-        "mirror selfie of a confident curvy woman in a walk-in closet, wearing an oversized designer blazer and nothing else, " +
-        "phone capturing reflection, tall floor mirror, surrounded by designer bags and clothes, " +
-        "soft natural light from window, photorealistic skin detail, visible pores, " +
-        "confident empowered pose, luxury lifestyle aesthetic, all limbs visible"
-    },
-  ],
-  yuki: [
-    {
-      seed: 9801,
-      prompt:
-        "mirror selfie of a shy cute 19yo brunette girl in a cozy bedroom with fairy lights, " +
-        "wearing an oversized cream knit sweater and no pants, standing in front of a mirror, " +
-        "phone covering her blushing face, warm string lights reflecting in mirror, " +
-        "soft warm lighting, photorealistic skin, natural glow, visible skin texture, " +
-        "cute innocent vibe, cozy atmosphere, all limbs visible"
-    },
-    {
-      seed: 9802,
-      prompt:
-        "full length mirror selfie of a cute young brunette in a sundress, standing in a sunlit bedroom, " +
-        "taking a selfie with phone, mirror shows her full body and a neatly made bed behind, " +
-        "bright natural daylight, photorealistic skin detail, soft texture, " +
-        "fresh natural look, no heavy makeup, girl next door aesthetic, all limbs visible"
-    },
+  rin: [
+    { hair: "negro", pose: "ropa", bg: "studio", label: "Después de clase" },
+    { hair: "moreno", pose: "casual", bg: "neon-room", label: "Fin de semana" },
   ],
 };
 
-function getStoryImageUrl(girlId: string, slide: StorySlide): string {
-  const negative = encodeURIComponent(
-    "cartoon, anime, drawing, painting, 3d render, illustration, CG, " +
-    "bad anatomy, missing limbs, deformed, disfigured, ugly, low quality, " +
-    "blurry, watermark, text, logo, nude, nipples, topless, explicit"
-  );
-  return `https://image.pollinations.ai/prompt/${encodeURIComponent(slide.prompt)}?width=576&height=768&seed=${slide.seed}&nofeed=true&negative=${negative}`;
-}
+const ALL_SLIDES: Record<string, StorySlide[]> = { ...FALLBACK_ALL_SLIDES,
+  luna: [
+    { hair: "moreno", pose: "tanga", bg: "car-night", label: "De noche en el coche" },
+    { hair: "pelirrojo", pose: "bata", bg: "neon-room", label: "En mi cuarto" },
+    { hair: "moreno", pose: "estrellas", bg: "studio", label: "Sesión de fotos" },
+  ],
+  nia: [
+    { hair: "rosa", pose: "tanga", bg: "studio", label: "Streaming setup" },
+    { hair: "moreno", pose: "bata", bg: "neon-room", label: "After game" },
+  ],
+  vera: [
+    { hair: "pelirrojo", pose: "tanga", bg: "neon-room", label: "Noche de vino" },
+    { hair: "rubio", pose: "estrellas", bg: "car-night", label: "Paseo nocturno" },
+    { hair: "moreno", pose: "bata", bg: "studio", label: "En casa" },
+  ],
+  alma: [
+    { hair: "moreno", pose: "tanga", bg: "beach-night", label: "Playa de noche" },
+    { hair: "rubio", pose: "bata", bg: "neon-room", label: "Saliendo" },
+  ],
+  kira: [
+    { hair: "rosa", pose: "tanga", bg: "neon-room", label: "Virtual" },
+    { hair: "pelirrojo", pose: "bata", bg: "studio", label: "Conexión" },
+    { hair: "moreno", pose: "estrellas", bg: "car-night", label: "Fuera de línea" },
+  ],
+  maya: [
+    { hair: "rubio", pose: "tanga", bg: "car-night", label: "After party" },
+    { hair: "moreno", pose: "bata", bg: "studio", label: "Backstage" },
+  ],
+  sasha: [
+    { hair: "moreno", pose: "tanga", bg: "neon-room", label: "Saliendo" },
+    { hair: "rubio", pose: "estrellas", bg: "car-night", label: "De fiesta" },
+    { hair: "pelirrojo", pose: "bata", bg: "studio", label: "En casa" },
+  ],
+  yuki: [
+    { hair: "moreno", pose: "estrellas", bg: "neon-room", label: "En mi cuarto" },
+    { hair: "rosa", pose: "bata", bg: "studio", label: "Tímida" },
+  ],
+};
 
 export default function StoriesRow() {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -237,7 +103,7 @@ export default function StoriesRow() {
         clearTimer();
         const gi = activeIndexRef.current;
         if (gi === null) return;
-        const slides = STORIES[girls[gi].id] || [];
+        const slides = ALL_SLIDES[girls[gi].id] || [];
         const si = slideIdxRef.current;
         if (si < slides.length - 1) {
           setSlideIdx(si + 1);
@@ -279,7 +145,7 @@ export default function StoriesRow() {
     const gi = activeIndexRef.current;
     if (gi === null) return;
     clearTimer();
-    const slides = STORIES[girls[gi].id] || [];
+    const slides = ALL_SLIDES[girls[gi].id] || [];
     const si = slideIdxRef.current;
     if (si < slides.length - 1) {
       setSlideIdx(si + 1);
@@ -306,7 +172,7 @@ export default function StoriesRow() {
       slideIdxRef.current = si - 1;
     } else if (gi > 0) {
       const ng = gi - 1;
-      const prevSlides = STORIES[girls[ng].id] || [];
+      const prevSlides = ALL_SLIDES[girls[ng].id] || [];
       setActiveIndex(ng);
       activeIndexRef.current = ng;
       setSlideIdx(prevSlides.length - 1);
@@ -321,7 +187,7 @@ export default function StoriesRow() {
   useEffect(() => clearTimer, [clearTimer]);
 
   const activeGirl = activeIndex !== null ? girls[activeIndex] : null;
-  const slides = activeGirl ? (STORIES[activeGirl.id] || []) : [];
+  const slides = activeGirl ? (ALL_SLIDES[activeGirl.id] || []) : [];
   const currentSlide = slides[slideIdx];
 
   return (
@@ -427,11 +293,19 @@ export default function StoriesRow() {
               </button>
             </div>
 
-            {/* Story image with shimmer loading */}
-              <StoryImage
-                src={getStoryImageUrl(activeGirl.id, currentSlide)}
-                alt={activeGirl.name}
-              />
+            {/* Story image - loads instantly from local */}
+            <img
+              src={getGirlImage(activeGirl.id, currentSlide.hair, currentSlide.pose, currentSlide.bg)}
+              alt={activeGirl.name}
+              className="h-full w-full object-cover"
+            />
+
+            {/* Location label */}
+            <div className="absolute top-14 left-3 z-20">
+              <span className="rounded-full bg-black/50 px-3 py-1 text-[0.55rem] font-semibold text-white/90 backdrop-blur-sm">
+                {currentSlide.label}
+              </span>
+            </div>
 
             {/* Gradient bottom */}
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-6 pt-16">
@@ -460,43 +334,5 @@ export default function StoriesRow() {
         </div>
       )}
     </>
-  );
-}
-
-function StoryImage({ src, alt }: { src: string; alt: string }) {
-  const [loaded, setLoaded] = useState(false);
-  const [error, setError] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
-
-  useEffect(() => {
-    timerRef.current = setTimeout(() => {
-      if (!loaded) setError(true);
-    }, 20000);
-    return () => clearTimeout(timerRef.current);
-  }, [src]);
-
-  return (
-    <div className="absolute inset-0 top-0">
-      {!loaded && !error && (
-        <div className="h-full w-full animate-pulse shimmer-bg flex items-center justify-center">
-          <div className="flex flex-col items-center gap-3">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-pink/40 border-t-pink" />
-            <span className="text-[0.55rem] font-semibold text-pink/60 tracking-widest uppercase">Generando imagen...</span>
-          </div>
-        </div>
-      )}
-      {error && (
-        <div className="h-full w-full flex items-center justify-center" style={{ background: "#1a1a24" }}>
-          <p className="text-xs text-white/40">No se pudo cargar la imagen</p>
-        </div>
-      )}
-      <img
-        src={src}
-        alt={alt}
-        className={`h-full w-full object-cover transition-opacity duration-700 ${loaded ? "opacity-100" : "opacity-0 absolute"}`}
-        onLoad={() => setLoaded(true)}
-        onError={() => { setError(true); setLoaded(true); }}
-      />
-    </div>
   );
 }
