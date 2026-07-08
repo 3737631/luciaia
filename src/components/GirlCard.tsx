@@ -7,10 +7,10 @@ import { getGirlImage } from "@/lib/images";
 import { getCustomization } from "@/lib/storage";
 
 export default function GirlCard({ girl }: { girl: Girl }) {
-  const [girlImage, setGirlImage] = useState("");
-  const mountedRef = useRef(false);
+  const [src, setSrc] = useState("");
+  const mountedRef = useRef(true);
 
-  function getImage() {
+  function getUrl() {
     const custom = getCustomization(girl.id);
     if (custom) return getGirlImage(girl.id, custom.hair, custom.pose, custom.background);
     return getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground);
@@ -18,50 +18,39 @@ export default function GirlCard({ girl }: { girl: Girl }) {
 
   useEffect(() => {
     mountedRef.current = true;
-    const url = getImage();
-    // Preload the image via JS
+    const url = getUrl();
     const img = new Image();
-    img.src = url;
-    img.onload = () => {
-      if (mountedRef.current) setGirlImage(url);
-    };
+    img.crossOrigin = "anonymous";
+    img.onload = () => { if (mountedRef.current) setSrc(url); };
     img.onerror = () => {
-      // Retry with a different seed if it fails
-      const retryUrl = url.includes("&seed=")
-        ? url.replace(/&seed=\d+/, "&seed=" + (Date.now() % 99999 + 1))
-        : url + "&seed=" + (Date.now() % 99999 + 1);
-      img.src = retryUrl;
-      img.onerror = () => {
-        if (mountedRef.current) setGirlImage(url);
-      };
-      img.onload = () => {
-        if (mountedRef.current) setGirlImage(retryUrl);
-      };
+      // Retry with different seed
+      const retry = url.replace(/seed=\d+/, "seed=" + (Date.now() % 99999 + 1));
+      const img2 = new Image();
+      img2.crossOrigin = "anonymous";
+      img2.onload = () => { if (mountedRef.current) setSrc(retry); };
+      img2.onerror = () => { if (mountedRef.current) setSrc(url); };
+      img2.src = retry;
     };
+    img.src = url;
     return () => { mountedRef.current = false; };
   }, [girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground]);
-
-  function handleEditClick(e: React.MouseEvent) {
-    e.stopPropagation();
-    e.preventDefault();
-    window.location.href = `/customize/${girl.id}`;
-  }
 
   return (
     <div className="group character-card overflow-hidden">
       <Link href={`/customize/${girl.id}`} className="block">
-        <div className="relative aspect-[4/5] w-full overflow-hidden">
+        <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#12121a]">
           <img
-            src={girlImage}
+            src={src}
             alt={girl.name}
+            fetchPriority="high"
             className="h-full w-full object-cover object-top transition-all duration-700 ease-out group-hover:scale-105"
+            style={{ opacity: src ? 1 : 0 }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-          {/* Top status dot + edit */}
           <div className="absolute left-3 right-3 top-3 flex items-start justify-between">
             <span className="flex h-4 w-4 rounded-full bg-green-400 shadow-[0_0_12px_rgba(74,222,128,0.8)] animate-pulse border-2 border-black/30" />
             <button
-              onClick={handleEditClick}
+              onClick={(e) => { e.stopPropagation(); e.preventDefault(); window.location.href = `/customize/${girl.id}`; }}
               className="flex h-8 w-8 items-center justify-center rounded-full bg-black/40 backdrop-blur-sm text-white hover:bg-pink/60 hover:text-white transition-all active:scale-90"
               title="Personalizar"
             >
@@ -71,7 +60,6 @@ export default function GirlCard({ girl }: { girl: Girl }) {
               </svg>
             </button>
           </div>
-          {/* Bottom text overlay */}
           <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5">
             <h3
               className="font-black leading-none tracking-tighter text-white sm:leading-[28px]"

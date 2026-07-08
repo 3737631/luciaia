@@ -2,43 +2,35 @@ import { HairOption, PoseOption, BackgroundOption } from "@/data/girls";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
-// Characters that have high quality SDXL images (1.3MB+) already generated
 const SDXL_CHARS = ["axel", "liam"];
 
-// All characters except SDXL ones will use Pollinations AI for the circle image
-const AI_CHARS = ["luna", "nia", "vera", "alma", "kira", "maya", "sasha", "yuki", "sakura", "yumi", "rin"];
-
-const ANIME_CHARS = ["sakura", "yumi", "rin"];
-
-function charDesc(id: string): string {
-  const map: Record<string, string> = {
-    luna: "stunning Latina woman with long dark hair, perfect skin, beautiful face",
-    nia: "cute girl with pink hair, light freckles, natural beauty, youthful",
-    vera: "gorgeous redhead woman with green eyes, freckles, elegant, model look",
-    alma: "beautiful Latina woman with voluminous curly dark hair, radiant glow",
-    kira: "futuristic woman with short pink bob hair, sharp features, cyber chic",
-    maya: "gorgeous blonde woman with blue eyes, glamorous, high fashion",
-    sasha: "stunning curvy black woman with braids, confident smile, radiant skin",
-    yuki: "cute Japanese girl with long black hair and bangs, shy sweet face",
-    axel: "handsome muscular Hispanic man with brown hair, trimmed beard, masculine",
-    liam: "handsome young black man with curly black hair, warm friendly smile",
-    sakura: "beautiful anime magical girl with long flowing pink hair, big sparkly blue eyes",
-    yumi: "cute anime catgirl with blue hair and fluffy cat ears, playful golden eyes",
-    rin: "beautiful anime tsundere girl with brown twin tails and red ribbons, amber eyes",
-  };
-  return map[id] ?? "beautiful person, perfect face";
-}
-
 const NEGATIVE = encodeURIComponent(
-  "deformed body, bad anatomy, disfigured, ugly, mutated, malformed, " +
-  "missing limbs, extra limbs, fused limbs, bad proportions, distorted face, " +
-  "asymmetrical face, weird eyes, wrong eyes, closed eyes, blurry, low quality, " +
-  "watermark, text, logo, signature, nipples, nude, topless, explicit"
+  "deformed,bad anatomy,disfigured,ugly,distorted,malformed,missing limbs," +
+  "extra limbs,weird face,asymmetric face,blurry,low quality,watermark,text," +
+  "logo,signature,cartoon,anime,drawing,painting,3d"
 );
+
+const PROMPTS: Record<string, string> = {
+  luna: "professional portrait of a beautiful Latina woman with long dark hair, flawless skin, perfect symmetrical face, natural makeup, soft studio lighting, sharp focus on eyes, hyperrealistic, 8K",
+  nia: "portrait of a cute girl with pink hair, light freckles, natural beauty, youthful face, soft smile, studio lighting, professional photography, sharp focus, hyperrealistic, 8K",
+  vera: "portrait of a stunning redhead woman with green eyes and freckles, elegant, model, professional fashion photography, studio lighting, sharp focus, hyperrealistic, 8K",
+  alma: "portrait of a beautiful Latina woman with curly dark hair, glowing radiant skin, warm smile, natural lighting, professional photography, sharp focus on eyes, hyperrealistic, 8K",
+  kira: "portrait of a futuristic woman with short pink bob hair, sharp features, cyber chic, studio lighting, professional fashion photography, hyperrealistic, 8K",
+  maya: "portrait of a gorgeous blonde woman with blue eyes, glamorous, high fashion model, studio lighting, professional photography, sharp focus, hyperrealistic, 8K",
+  sasha: "portrait of a stunning curvy black woman with braids, confident smile, glowing radiant skin, professional studio lighting, sharp focus on eyes, hyperrealistic, 8K",
+  yuki: "portrait of a cute Japanese girl with long black hair and bangs, shy sweet smile, soft natural lighting, professional photography, sharp focus, hyperrealistic, 8K",
+  axel: "portrait of a handsome muscular Hispanic man with brown hair and trimmed beard, masculine features, confident smile, studio lighting, professional photography, sharp focus, hyperrealistic, 8K",
+  liam: "portrait of a handsome young black man with curly black hair, warm friendly smile, professional studio lighting, sharp focus, hyperrealistic, 8K",
+  sakura: "anime portrait of a magical girl with long pink hair and sparkly blue eyes, anime style, beautiful detailed eyes, vibrant colors, clean lineart",
+  yumi: "anime portrait of a catgirl with blue hair and fluffy cat ears, playful golden eyes, anime style, beautiful detailed eyes, vibrant colors",
+  rin: "anime portrait of a tsundere girl with brown twin tails and red ribbons, amber eyes, pouty expression, anime style, beautiful detailed eyes",
+};
+
+const ANIME = new Set(["sakura", "yumi", "rin"]);
 
 function getSeed(girlId: string, hair: string, pose: string, bg: string): number {
   let s = 0;
-  for (const ch of girlId + hair + pose + bg) s += ch.charCodeAt(0);
+  for (const ch of girlId + hair + pose + bg) s = (s * 31 + ch.charCodeAt(0)) & 0x7fffffff;
   return (s % 90000) + 10000;
 }
 
@@ -52,18 +44,15 @@ export function getGirlImage(
   const p = pose ?? "toalla";
   const b = background ?? "neon-room";
 
-  // Characters with SDXL images use local file
   if (SDXL_CHARS.includes(girlId)) {
     return `${basePath}/girls/${girlId}/${h}_${p}_${b}.jpg`;
   }
 
-  // Characters without SDXL use Pollinations AI for high quality
-  if (AI_CHARS.includes(girlId)) {
-    return getPollinationsUrl(girlId, h, p, b);
-  }
-
-  // Fallback for any unknown character
-  return `${basePath}/girls/${girlId}/${h}_${p}_${b}.jpg`;
+  const prompt = PROMPTS[girlId] ?? "professional portrait of a beautiful woman, hyperrealistic, 8K";
+  const s = getSeed(girlId, h, p, b);
+  const style = ANIME.has(girlId) ? "" : "photorealistic,studio portrait,soft lighting,";
+  const encoded = encodeURIComponent(`${prompt},${style}detailed face,perfect anatomy,no defects`);
+  return `https://image.pollinations.ai/prompt/${encoded}?width=768&height=960&nofeed=true&seed=${s}&negative=${NEGATIVE}`;
 }
 
 export function getGirlImageFallback(
@@ -75,30 +64,8 @@ export function getGirlImageFallback(
   const h = hair ?? "moreno";
   const p = pose ?? "toalla";
   const b = background ?? "neon-room";
-  // Always return Pollinations as fallback (never show "Sin imagen")
-  const seed = (getSeed(girlId, h, p, b) % 80000) + 20000 + Date.now() % 1000;
-  return getPollinationsUrl(girlId, h, p, b, seed);
-}
-
-function getPollinationsUrl(
-  girlId: string,
-  hair: string,
-  pose: string,
-  bg: string,
-  seed?: number,
-): string {
-  const s = seed ?? getSeed(girlId, hair, pose, bg);
-  const isAnime = ANIME_CHARS.includes(girlId);
-  const desc = charDesc(girlId);
-
-  const basePrompt = isAnime
-    ? `anime portrait of ${desc}, anime art style, beautiful detailed eyes, vibrant colors, clean sharp lineart, masterful anime illustration, perfect face`
-    : `portrait of ${desc}, ${hair} hair, photorealistic, ultra realistic, professional studio portrait, sharp focus on face, perfect symmetrical face, flawless skin, elegant natural makeup, soft natural lighting, high quality photography, 8K`;
-
-  const prompt = encodeURIComponent(`${basePrompt}, highly detailed, perfect anatomy, no deformities`);
-
-  const w = isAnime ? 768 : 896;
-  const h = isAnime ? 960 : 1152;
-
-  return `https://image.pollinations.ai/prompt/${prompt}?width=${w}&height=${h}&nofeed=true&seed=${s}&negative=${NEGATIVE}`;
+  const prompt = PROMPTS[girlId] ?? "professional portrait, beautiful face, hyperrealistic, 8K";
+  const s = (getSeed(girlId, h, p, b) % 50000) + 50000 + (Date.now() % 500);
+  const encoded = encodeURIComponent(prompt);
+  return `https://image.pollinations.ai/prompt/${encoded}?width=768&height=960&nofeed=true&seed=${s}&negative=${NEGATIVE}`;
 }
