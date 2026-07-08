@@ -7,24 +7,31 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        bg: "#0a0a0f",
-        surface: "#14141c",
+        bg: "#07070b",
+        surface: "#101018",
         purple: "#8b5cf6",
-        pink: "#ff2e88",
-        pinkLight: "#ff5fb2",
+        pink: "#ff2b86",
+        hotPink: "#ff4db3",
+        orange: "#ff7a3d",
+        yellow: "#ffd166",
+        green: "#32d583",
         blue: "#38bdf8",
         ink: "#ffffff",
-        muted: "#a1a1b5",
+        muted: "rgba(255,255,255,0.66)",
       },
       borderRadius: {
         xl2: "24px",
         xl3: "32px",
+        "4xl": "48px",
       },
       boxShadow: {
-        glow: "0 0 40px rgba(255, 45, 149, 0.25), 0 0 80px rgba(139, 92, 246, 0.15)",
-        glowSm: "0 0 20px rgba(255, 45, 149, 0.35)",
+        glow: "0 0 40px rgba(255, 43, 134, 0.25), 0 0 80px rgba(139, 92, 246, 0.15)",
+        glowSm: "0 0 20px rgba(255, 43, 134, 0.35)",
         glass: "0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06)",
         card: "0 4px 24px rgba(0,0,0,0.3)",
+        premium: "0 24px 80px rgba(0,0,0,0.45)",
+        pinkGlow: "0 14px 38px rgba(255,43,134,0.28)",
+        pinkGlowHover: "0 18px 48px rgba(255,43,134,0.38)",
       },
       keyframes: {
         float: {
