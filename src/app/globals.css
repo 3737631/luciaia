@@ -89,14 +89,14 @@ body::before {
 }
 
 .gradient-text {
-  background: linear-gradient(90deg, #ff2d95, #8b5cf6);
+  background: linear-gradient(90deg, #d91a6a, #7c3aed);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
 .gradient-btn {
-  background: linear-gradient(90deg, #ff2d95, #8b5cf6);
+  background: linear-gradient(90deg, #d91a6a, #7c3aed);
 }
 
 .shimmer-bg {

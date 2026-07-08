@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import AnimatedBackground from "@/components/AnimatedBackground";
+
+const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "LunaCall — Chica IA ficticia por chat y videollamada",
@@ -15,7 +18,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body className="min-h-screen bg-bg text-ink antialiased">
+      <body className={`${jakarta.className} min-h-screen bg-bg text-ink antialiased`}>
         <script dangerouslySetInnerHTML={{
           __html: `
 (function(){

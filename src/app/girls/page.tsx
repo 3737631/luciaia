@@ -19,7 +19,7 @@ export default function GirlsPage() {
             <div className="mx-auto max-w-xl text-center">
               <h1 className="text-3xl font-extrabold leading-[1.15] tracking-tight sm:text-5xl">
                 Chatea con{' '}
-                <span className="bg-gradient-to-r from-pink to-purple-500 bg-clip-text text-transparent">ellas</span>
+                <span className="bg-gradient-to-r from-pink to-purple bg-clip-text text-transparent">ellas</span>
               </h1>
               <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted/70">
                 Elige, personaliza y conversa. Sin registro.
@@ -27,7 +27,7 @@ export default function GirlsPage() {
               <div className="mt-6">
                 <Link
                   href="#girls"
-                  className="inline-flex h-12 items-center justify-center rounded-2xl bg-gradient-to-r from-pink to-purple-500 px-8 text-sm font-bold shadow-lg shadow-pink-500/25 transition-all duration-200 hover:shadow-xl hover:shadow-pink-500/30 active:scale-[0.97]"
+                  className="inline-flex h-12 items-center justify-center rounded-2xl bg-gradient-to-r from-pink to-purple px-8 text-sm font-bold shadow-lg shadow-pink/25 transition-all duration-200 hover:shadow-xl hover:shadow-pink/30 active:scale-[0.97]"
                 >
                   Ver chicas
                 </Link>

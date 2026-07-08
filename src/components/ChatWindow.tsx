@@ -262,7 +262,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       <div ref={scrollRef} className="flex-1 overflow-x-hidden overflow-y-auto space-y-3 rounded-2xl border border-white/[0.05] bg-white/[0.02] p-4 shadow-inner">
         {messages.map((m) => (
           <div key={m.id} className={`flex animate-fadeUp ${m.from === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${m.from === "user" ? "bg-gradient-to-r from-pink to-purple-500 text-white shadow-lg shadow-pink/15" : "bg-white/10 text-ink backdrop-blur-sm border border-white/[0.06]"}`}>
+            <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${m.from === "user" ? "bg-gradient-to-r from-pink to-purple text-white shadow-lg shadow-pink/15" : "bg-white/10 text-ink backdrop-blur-sm border border-white/[0.06]"}`}>
               {renderText(m.text)}
             </div>
           </div>
