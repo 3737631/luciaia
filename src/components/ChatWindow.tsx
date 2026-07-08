@@ -53,7 +53,6 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
 
   useEffect(() => {
     const saved = getConversationHistory(girl.id);
-    const roleplayStory = localStorage.getItem("lunacall_roleplay");
     if (saved.length > 0) {
       const msgs = saved.map((m, i) => ({
         id: `saved_${i}`,
@@ -61,12 +60,6 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         text: m.content,
       }));
       setMessages(msgs);
-      setShowModePicker(false);
-    } else if (roleplayStory) {
-      localStorage.removeItem("lunacall_roleplay");
-      setCustomScenario(roleplayStory);
-      setMessages([{ id: "welcome", from: "girl", text: `*${roleplayStory}* ${girl.name} te mira con una sonrisa cómplice. —¿No esperabas verme, verdad? —dice en voz baja, acercándose un paso.` }]);
-      setMode("actions");
       setShowModePicker(false);
     } else {
       setMessages([{ id: "welcome", from: "girl", text: `Hola, soy ${girl.name}. Qué bien que hayas entrado` }]);
@@ -86,6 +79,39 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       if (chatMsgs.length > 1) saveToHistory(girl.id, girl.name, chatMsgs);
     };
   }, []);
+
+  async function startRoleplay() {
+    setMode("actions");
+    setShowModePicker(false);
+    setCustomScenario(girl.story);
+    setTyping(true);
+    try {
+      const custom = getCustomization(girl.id);
+      const payload = {
+        message: "Inicia la conversación tú primero, según la premisa. Sé natural y original.",
+        girlId: girl.id,
+        girlName: girl.name,
+        girlStyle: girl.style,
+        girlPersonality: custom?.personality ?? girl.personality,
+        customization: custom || {},
+        history: [] as ChatMessage[],
+        memory: [] as string[],
+        summary: "",
+        mode: "actions" as const,
+        userGender: (typeof window !== "undefined" ? (localStorage.getItem("lunacall_gender") || "hombre") : "hombre") as "hombre" | "mujer",
+        customScenario: girl.story,
+      };
+      const reply = await sendChatMessage(payload);
+      if (mountedRef.current) {
+        setMessages([{ id: "welcome", from: "girl", text: reply }]);
+      }
+    } catch {
+      if (mountedRef.current) {
+        setMessages([{ id: "welcome", from: "girl", text: `*${girl.story}* —Hola, ¿no esperabas verme? —dice ${girl.name} con media sonrisa.` }]);
+      }
+    }
+    setTyping(false);
+  }
 
   const history: ChatMessage[] = messages
     .filter((m) => m.id !== "welcome")
@@ -241,7 +267,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
           <p className="mt-1 text-xs text-muted">Solo texto, conversación normal</p>
         </button>
         <button
-          onClick={() => { setMode("actions"); setShowModePicker(false); }}
+          onClick={() => startRoleplay()}
           className="w-full rounded-2xl border border-pink/30 bg-pink/[0.07] px-6 py-4 text-left transition hover:bg-pink/15"
         >
           <span className="flex items-center gap-2 text-lg font-semibold">
@@ -255,7 +281,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
             </svg>
             Roleplay
           </span>
-          <p className="mt-1 text-xs text-muted">Con acciones y gestos, *se acerca y te besa*</p>
+          <p className="mt-1 text-xs text-muted">{girl.story}</p>
         </button>
       </div>
     );

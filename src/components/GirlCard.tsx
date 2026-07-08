@@ -80,15 +80,6 @@ export default function GirlCard({ girl }: { girl: Girl }) {
         <Link href={`/chat/${girl.id}`} className="btn-primary flex h-9 flex-1 items-center justify-center text-[0.6rem] font-bold sm:text-xs">
           Chatear
         </Link>
-        <Link
-          href={`/chat/${girl.id}`}
-          onClick={(e) => { localStorage.setItem("lunacall_roleplay", girl.story); }}
-          className="flex h-9 shrink-0 items-center gap-1 rounded-full border border-pink-500/30 bg-pink-500/20 px-3 text-[0.55rem] font-bold text-pink-400 transition hover:bg-pink-500/30 sm:px-3.5 sm:text-[0.65rem]"
-          title="Roleplay"
-        >
-          <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/><path d="M12 8v4"/><path d="M12 12h2.5a1.5 1.5 0 0 1 0 3H12"/><path d="M9 14h-1.5a1.5 1.5 0 0 0 0 3H12"/></svg>
-          Roleplay
-        </Link>
         <Link href={`/call/${girl.id}`} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-green-500/30 bg-green-500/20 text-green-400 transition hover:bg-green-500/30 sm:w-10" title="Llamada">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
         </Link>
