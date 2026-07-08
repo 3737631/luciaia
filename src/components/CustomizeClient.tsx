@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import Avatar from "@/components/Avatar";
 import NeonButton from "@/components/NeonButton";
 import { OptionGroup } from "@/components/CustomizationPanel";
 import { Girl } from "@/data/girls";
 import { Customization, getCustomization, saveCustomization } from "@/lib/storage";
-import { getGirlImage } from "@/lib/images";
 
 const maleIds = new Set(["axel", "liam"]);
 const animeIds = new Set(["sakura", "yumi", "rin"]);
@@ -118,21 +118,7 @@ export default function CustomizeClient({ girl }: { girl: Girl }) {
     pose: girl.defaultPose,
     personality: girl.personality,
   });
-  const [imgLoaded, setImgLoaded] = useState(false);
-  const [imgFailed, setImgFailed] = useState(false);
-  const prevKey = useRef("");
-
-  const imgKey = `${custom.hair}-${custom.pose}-${custom.background}`;
-
-  useEffect(() => {
-    if (imgKey !== prevKey.current) {
-      prevKey.current = imgKey;
-      setImgLoaded(false);
-      setImgFailed(false);
-    }
-  }, [imgKey]);
-
-  const imgSrc = getGirlImage(girl.id, custom.hair, custom.pose, custom.background);
+  const [imgKey, setImgKey] = useState(0);
 
   useEffect(() => {
     const existing = getCustomization(girl.id);
@@ -143,6 +129,7 @@ export default function CustomizeClient({ girl }: { girl: Girl }) {
     const updated = { ...custom, [field]: value };
     setCustom(updated);
     saveCustomization(girl.id, updated);
+    setImgKey((k) => k + 1);
   }
 
   return (
@@ -154,33 +141,17 @@ export default function CustomizeClient({ girl }: { girl: Girl }) {
         >
           <h1 className="text-2xl font-bold">{girl.name}</h1>
           <p className="mb-6 text-muted text-sm">{isMale ? "Personalízalo antes de empezar." : "Personalízala antes de empezar."}</p>
-          <div className="relative mx-auto flex items-center justify-center overflow-hidden rounded-2xl"
-            style={{ width: 220, height: 280 }}>
-            {!imgLoaded && !imgFailed && (
-              <div className="absolute inset-0 flex items-center justify-center bg-[#1a1023]">
-                <svg className="h-8 w-8 animate-spin text-pink/60" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="31.4 31.4" strokeLinecap="round" />
-                </svg>
-              </div>
-            )}
-            {imgFailed ? (
-              <div className="flex h-full w-full items-center justify-center bg-[#1a1023] text-muted/60 text-sm px-4 text-center">
-                Generando imagen...
-                <svg className="ml-2 h-4 w-4 animate-spin text-pink/60" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="31.4 31.4" strokeLinecap="round" />
-                </svg>
-              </div>
-            ) : (
-              <img
-                key={imgKey}
-                src={imgSrc}
-                alt={`${girl.name} ${custom.hair} ${custom.pose}`}
-                className={`h-full w-full object-cover transition-opacity duration-300 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
-                onLoad={() => setImgLoaded(true)}
-                onError={() => { setImgFailed(true); setImgLoaded(false); }}
-              />
-            )}
-          </div>
+          <Avatar
+            key={imgKey}
+            name={girl.id}
+            accentColor={girl.accentColor}
+            accentColorSecondary={girl.accentColorSecondary}
+            hair={custom.hair}
+            pose={custom.pose}
+            background={custom.background}
+            size={180}
+            animated
+          />
         </div>
 
         <div className="rounded-xl2 card-surface p-6">
