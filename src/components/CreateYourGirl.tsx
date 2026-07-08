@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import { saveCustomGirl, getCustomGirls, deleteCustomGirl, CustomGirlData } from "@/lib/storage";
 
 const MINOR_WORDS = [
@@ -94,56 +95,62 @@ function buildPrompt(desc: string): string {
   return `${positive}&negative=${negative}`;
 }
 
+type WizardStep = "describe" | "personality" | "generating" | "done";
+
 export default function CreateYourGirl() {
   const [girlDesc, setGirlDesc] = useState("");
   const [roleplayDesc, setRoleplayDesc] = useState("");
   const [customGirls, setCustomGirls] = useState<CustomGirlData[]>([]);
-  const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
+  const [step, setStep] = useState<WizardStep>("describe");
+  const [selectedPersonality, setSelectedPersonality] = useState("");
+  const [currentName, setCurrentName] = useState("");
 
   useEffect(() => {
     setCustomGirls(getCustomGirls());
   }, []);
 
-  function handleCreate() {
+  function handleDescribeNext() {
     setError("");
     if (!girlDesc.trim() && !roleplayDesc.trim()) return;
-
     const combined = (girlDesc + " " + roleplayDesc).trim();
     const blockReason = containsMinorReferences(combined);
-    if (blockReason) {
-      setError(blockReason);
-      return;
-    }
+    if (blockReason) { setError(blockReason); return; }
+    setCurrentName(generateName(girlDesc || roleplayDesc));
+    setStep("personality");
+  }
 
-    setCreating(true);
+  function handlePersonalityNext() {
+    setStep("generating");
     const id = generateId();
-    const name = generateName(girlDesc || roleplayDesc);
+    const name = currentName;
     const story = roleplayDesc.trim() || `Tu nueva creación, ${name}, te espera para pasar una noche inolvidable.`;
     const params = buildPrompt(girlDesc || roleplayDesc);
     const imageUrl = `https://image.pollinations.ai/prompt/${params}&width=512&height=640&nofeed=true&seed=${Date.now()}`;
     const customScenario = JSON.stringify({ girl: girlDesc.trim(), roleplay: roleplayDesc.trim() });
     localStorage.setItem("custom_scenario", customScenario);
     const newGirl: CustomGirlData = {
-      id,
-      name,
-      age: generateAge(),
-      story,
+      id, name, age: generateAge(), story,
       description: girlDesc.trim() || name,
-      girlDesc: girlDesc.trim(),
-      roleplayDesc: roleplayDesc.trim(),
-      hair: "moreno",
-      background: "neon-room",
-      pose: "toalla",
-      personality: "atrevida",
-      baseId: "luna",
-      imageUrl,
+      girlDesc: girlDesc.trim(), roleplayDesc: roleplayDesc.trim(),
+      hair: "moreno", background: "neon-room", pose: "toalla",
+      personality: selectedPersonality || "atrevida",
+      baseId: "luna", imageUrl,
     };
-    saveCustomGirl(newGirl);
-    setCustomGirls(getCustomGirls());
+    setTimeout(() => {
+      saveCustomGirl(newGirl);
+      setCustomGirls(getCustomGirls());
+      setStep("done");
+    }, 2000);
+  }
+
+  function handleReset() {
     setGirlDesc("");
     setRoleplayDesc("");
-    setTimeout(() => setCreating(false), 500);
+    setError("");
+    setStep("describe");
+    setSelectedPersonality("");
+    setCurrentName("");
   }
 
   return (
@@ -155,44 +162,150 @@ export default function CreateYourGirl() {
         Crea tu propia chica
       </h2>
       <p className="mb-4 text-sm text-white/50" style={{ marginTop: 0 }}>
-        Describe a tu chica ideal y el roleplay. Se generará una imagen hiperrealista con IA.
+        Asistente paso a paso para crear tu chica ideal.
       </p>
+
       <div
         className="rounded-2xl p-5 sm:p-6"
         style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))", border: "1px solid rgba(255,255,255,0.08)" }}
       >
-        {error && (
-          <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs text-red-300">
-            {error}
-          </div>
-        )}
-        <label className="mb-1.5 block text-xs font-semibold text-white/70 uppercase tracking-wider">
-          Describe a tu chica
-        </label>
-        <textarea
-          value={girlDesc}
-          onChange={(e) => { setError(""); setGirlDesc(e.target.value); }}
-          placeholder="Ej: Una enfermera de noche, pelo negro, mirada intensa, uniforme blanco ajustado..."
-          rows={3}
-          className="w-full rounded-xl border border-white/[0.10] bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-pink/50 resize-none transition-colors placeholder:text-white/25"
-        />
-        <label className="mb-1.5 mt-4 block text-xs font-semibold text-white/70 uppercase tracking-wider">
-          Describe el roleplay
-        </label>
-        <textarea
-          value={roleplayDesc}
-          onChange={(e) => { setError(""); setRoleplayDesc(e.target.value); }}
-          placeholder="Ej: Me tiene atado a la cama del hospital, se sienta sobre mí y me susurra que nadie va a interrumpirnos..."
-          rows={3}
-          className="w-full rounded-xl border border-white/[0.10] bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-pink/50 resize-none transition-colors placeholder:text-white/25"
-        />
-        <button
-          onClick={handleCreate}
-          disabled={(!girlDesc.trim() && !roleplayDesc.trim()) || creating}
-          className="btn-primary mt-4 h-11 px-6 text-sm font-bold disabled:opacity-40"
-        >
-          {creating ? "Creando..." : "Crear chica personalizada"}
-        </button>
+        {/* Step indicator */}
+        <div className="mb-6 flex items-center gap-2">
+          {(["describe", "personality", "generating"] as const).map((s, i) => (
+            <div key={s} className="flex items-center gap-2">
+              <div className={`flex h-7 w-7 items-center justify-center rounded-full text-[0.55rem] font-bold transition-all duration-300 ${
+                step === s ? "bg-pink text-white shadow-[0_0_16px_rgba(255,59,127,0.5)]" :
+                ["generating", "done"].includes(step) && i <= 1 ? "bg-green-500/30 text-green-400" : "bg-white/[0.06] text-white/40"
+              }`}>
+                {["generating", "done"].includes(step) && i <= 1 ? "✓" : i + 1}
+              </div>
+              {i < 2 && <div className={`h-px w-8 sm:w-12 ${["generating", "done"].includes(step) && i < 1 ? "bg-green-500/50" : "bg-white/[0.08]"}`} />}
+            </div>
+          ))}
+        </div>
+
+        <AnimatePresence mode="wait">
+          {step === "describe" && (
+            <motion.div key="describe" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}>
+              {error && (
+                <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs text-red-300">{error}</div>
+              )}
+              <p className="mb-4 text-sm font-semibold text-white/80">Paso 1: Describe a tu chica</p>
+              <label className="mb-1.5 block text-xs font-semibold text-white/70 uppercase tracking-wider">Apariencia</label>
+              <textarea
+                value={girlDesc}
+                onChange={(e) => { setError(""); setGirlDesc(e.target.value); }}
+                placeholder="Ej: Una enfermera de noche, pelo negro, mirada intensa, uniforme blanco ajustado..."
+                rows={3}
+                className="w-full rounded-xl border border-white/[0.10] bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-pink/50 resize-none transition-colors placeholder:text-white/25"
+              />
+              <label className="mb-1.5 mt-4 block text-xs font-semibold text-white/70 uppercase tracking-wider">Roleplay (opcional)</label>
+              <textarea
+                value={roleplayDesc}
+                onChange={(e) => { setError(""); setRoleplayDesc(e.target.value); }}
+                placeholder="Ej: Me tiene atado a la cama del hospital, se sienta sobre mí..."
+                rows={3}
+                className="w-full rounded-xl border border-white/[0.10] bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-pink/50 resize-none transition-colors placeholder:text-white/25"
+              />
+              <button
+                onClick={handleDescribeNext}
+                disabled={!girlDesc.trim() && !roleplayDesc.trim()}
+                className="btn-primary mt-4 h-11 px-6 text-sm font-bold disabled:opacity-40 active:scale-95 transition-all"
+              >
+                Siguiente →
+              </button>
+            </motion.div>
+          )}
+
+          {step === "personality" && (
+            <motion.div key="personality" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}>
+              <p className="mb-3 text-sm font-semibold text-white/80">Paso 2: Elige su personalidad</p>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { value: "carinosa", label: "Cariñosa", icon: "🥰", desc: "Dulce, cercana, siempre pendiente de ti" },
+                  { value: "atrevida", label: "Atrevida", icon: "🔥", desc: "Directa, juguetona, te mantiene enganchado" },
+                  { value: "timida", label: "Tímida", icon: "💕", desc: "Se abre poco a poco, vergonzosa pero intensa" },
+                  { value: "dominante", label: "Dominante", icon: "👑", desc: "Sabe lo que quiere, lleva la conversación" },
+                ].map((p) => (
+                  <button
+                    key={p.value}
+                    onClick={() => setSelectedPersonality(p.value)}
+                    className={`rounded-xl border p-4 text-left transition-all active:scale-95 ${
+                      selectedPersonality === p.value
+                        ? "border-pink/40 bg-pink/10 text-white shadow-[0_0_20px_rgba(255,59,127,0.15)]"
+                        : "border-white/[0.10] bg-white/[0.04] text-white/70 hover:border-white/25"
+                    }`}
+                  >
+                    <span className="text-2xl">{p.icon}</span>
+                    <p className="mt-1 text-sm font-bold">{p.label}</p>
+                    <p className="mt-0.5 text-[0.55rem] text-white/50">{p.desc}</p>
+                  </button>
+                ))}
+              </div>
+              <div className="mt-4 flex gap-3">
+                <button onClick={() => setStep("describe")} className="h-11 rounded-xl border border-white/[0.10] bg-white/[0.04] px-5 text-sm text-white/60 transition hover:text-white active:scale-95">
+                  ← Atrás
+                </button>
+                <button
+                  onClick={handlePersonalityNext}
+                  className="btn-primary h-11 flex-1 text-sm font-bold active:scale-95 transition-all"
+                >
+                  {selectedPersonality ? `Crear a ${currentName}` : "Crear sin personalidad"}
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {step === "generating" && (
+            <motion.div key="generating" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="flex flex-col items-center py-8">
+              <motion.div
+                className="h-16 w-16 rounded-full border-2 border-pink/40 border-t-pink"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              />
+              <motion.p
+                className="mt-4 text-sm font-semibold text-pink"
+                animate={{ opacity: [1, 0.5, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              >
+                Generando a {currentName}...
+              </motion.p>
+              <motion.div className="mt-6 flex gap-1">
+                {[0, 1, 2, 3].map((i) => (
+                  <motion.div
+                    key={i}
+                    className="h-2 w-2 rounded-full bg-pink/60"
+                    animate={{ y: [0, -8, 0] }}
+                    transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.15 }}
+                  />
+                ))}
+              </motion.div>
+              <p className="mt-4 text-[0.55rem] text-white/40">La IA está creando su imagen y personalidad...</p>
+            </motion.div>
+          )}
+
+          {step === "done" && (
+            <motion.div key="done" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4 }}>
+              <div className="flex flex-col items-center py-4">
+                <motion.div
+                  className="flex h-14 w-14 items-center justify-center rounded-full bg-green-500/20"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 10 }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </motion.div>
+                <p className="mt-3 text-lg font-bold text-white">{currentName} ha sido creada</p>
+                <p className="mt-1 text-xs text-white/50">Aparecerá en la sección Tus creaciones</p>
+                <button onClick={handleReset} className="btn-primary mt-5 h-10 px-6 text-sm font-bold active:scale-95 transition-all">
+                  Crear otra chica
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {customGirls.length > 0 && (
@@ -201,36 +314,12 @@ export default function CreateYourGirl() {
             Tus creaciones
           </h3>
           <div className="flex gap-4 overflow-x-auto pb-3 scrollbar-none">
-            {creating && <SkeletonCard />}
             {customGirls.map((girl) => (
               <CustomCard key={girl.id} data={girl} onDeleted={() => setCustomGirls(getCustomGirls())} />
             ))}
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-function SkeletonCard() {
-  return (
-    <div className="shrink-0 overflow-hidden rounded-2xl" style={{ flex: "0 0 220px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
-      <div className="relative" style={{ height: 275 }}>
-        <div className="h-full w-full animate-pulse shimmer-bg flex items-center justify-center">
-          <div className="flex flex-col items-center gap-3">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-pink/40 border-t-pink" />
-            <span className="text-[0.55rem] font-semibold text-pink/60 tracking-widest uppercase animate-pulse">Creando</span>
-          </div>
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 p-3">
-          <div className="mb-1.5 h-4 w-24 animate-pulse rounded bg-white/10" />
-          <div className="h-3 w-40 animate-pulse rounded bg-white/10" />
-        </div>
-      </div>
-      <div className="p-2.5">
-        <div className="h-8 w-full animate-pulse rounded-full bg-white/10" />
-      </div>
     </div>
   );
 }
@@ -291,24 +380,18 @@ function CustomCard({ data, onDeleted }: { data: CustomGirlData; onDeleted?: () 
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
           </button>
           <div className="absolute bottom-0 left-0 right-0 p-3">
-            <h3
-              className="font-black leading-none tracking-tighter text-white"
-              style={{ fontSize: "clamp(15px, 3vw, 20px)", textShadow: "0 2px 10px rgba(0,0,0,0.7)", letterSpacing: "-0.02em" }}
-            >
+            <h3 className="font-black leading-none tracking-tighter text-white" style={{ fontSize: "clamp(15px, 3vw, 20px)", textShadow: "0 2px 10px rgba(0,0,0,0.7)", letterSpacing: "-0.02em" }}>
               {data.name}{" "}
               <span className="font-bold text-white/80" style={{ fontSize: "0.8em" }}>{data.age}</span>
             </h3>
-            <p
-              className="mt-1 leading-snug text-white/80 line-clamp-2"
-              style={{ fontSize: "clamp(10px, 2vw, 12px)", textShadow: "0 1px 6px rgba(0,0,0,0.5)" }}
-            >
+            <p className="mt-1 leading-snug text-white/80 line-clamp-2" style={{ fontSize: "clamp(10px, 2vw, 12px)", textShadow: "0 1px 6px rgba(0,0,0,0.5)" }}>
               {data.story || data.description}
             </p>
           </div>
         </div>
       </Link>
       <div className="p-2.5">
-        <Link href="/chat/luna" onClick={handleChat} className="btn-primary flex h-8 w-full items-center justify-center text-[0.55rem] font-bold">
+        <Link href="/chat/luna" onClick={handleChat} className="btn-primary flex h-8 w-full items-center justify-center text-[0.55rem] font-bold active:scale-95 transition-all">
           Chatear con ella
         </Link>
       </div>
