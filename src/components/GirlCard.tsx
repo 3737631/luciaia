@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Girl } from "@/data/girls";
 import { getGirlImage, getGirlImageFallback } from "@/lib/images";
@@ -8,8 +8,8 @@ import { getCustomization } from "@/lib/storage";
 
 export default function GirlCard({ girl }: { girl: Girl }) {
   const [imgFailed, setImgFailed] = useState(false);
-  const [usingFallback, setUsingFallback] = useState(false);
-  const [girlImage, setGirlImage] = useState(getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground));
+  const [girlImage, setGirlImage] = useState("");
+  const attemptRef = useRef(0);
 
   function getImage() {
     const custom = getCustomization(girl.id);
@@ -17,19 +17,24 @@ export default function GirlCard({ girl }: { girl: Girl }) {
     return getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground);
   }
 
-  useEffect(() => {
+  const refresh = useCallback(() => {
+    attemptRef.current = 0;
     setImgFailed(false);
-    setUsingFallback(false);
-    setGirlImage(getImage());
-  }, [girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground]);
+    setGirlImage(getImage() + "?t=" + Date.now());
+  }, [girl.id]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   function handleImgError() {
-    if (!usingFallback) {
-      setUsingFallback(true);
-      const h = girl.defaultHair;
-      const p = girl.defaultPose;
-      const b = girl.defaultBackground;
-      setGirlImage(getGirlImageFallback(girl.id, h, p, b));
+    attemptRef.current++;
+    if (attemptRef.current <= 2) {
+      const custom = getCustomization(girl.id);
+      const h = custom?.hair ?? girl.defaultHair;
+      const p = custom?.pose ?? girl.defaultPose;
+      const b = custom?.background ?? girl.defaultBackground;
+      setGirlImage(getGirlImageFallback(girl.id, h, p, b) + "&retry=" + attemptRef.current);
     } else {
       setImgFailed(true);
     }
@@ -41,7 +46,7 @@ export default function GirlCard({ girl }: { girl: Girl }) {
         <div className="relative aspect-[4/5] w-full overflow-hidden">
           {!imgFailed ? (
             <img
-              key={usingFallback ? "fb" : "local"}
+              key={attemptRef.current}
               src={girlImage}
               alt={girl.name}
               className="h-full w-full object-cover object-top transition-all duration-700 ease-out group-hover:scale-105"
