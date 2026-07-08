@@ -53,6 +53,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
 
   useEffect(() => {
     const saved = getConversationHistory(girl.id);
+    const roleplayStory = localStorage.getItem("lunacall_roleplay");
     if (saved.length > 0) {
       const msgs = saved.map((m, i) => ({
         id: `saved_${i}`,
@@ -60,6 +61,12 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         text: m.content,
       }));
       setMessages(msgs);
+      setShowModePicker(false);
+    } else if (roleplayStory) {
+      localStorage.removeItem("lunacall_roleplay");
+      setCustomScenario(roleplayStory);
+      setMessages([{ id: "welcome", from: "girl", text: `*${roleplayStory}* ${girl.name} te mira con una sonrisa cómplice. —¿No esperabas verme, verdad? —dice en voz baja, acercándose un paso.` }]);
+      setMode("actions");
       setShowModePicker(false);
     } else {
       setMessages([{ id: "welcome", from: "girl", text: `Hola, soy ${girl.name}. Qué bien que hayas entrado` }]);
