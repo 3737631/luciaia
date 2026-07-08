@@ -6,6 +6,9 @@ export type PersonalityOption = "carinosa" | "timida" | "atrevida" | "dominante"
 export interface Girl {
   id: string;
   name: string;
+  age: number;
+  story: string;
+  badge?: string;
   style: string;
   personality: PersonalityOption;
   personalityLabel: string;
@@ -22,6 +25,9 @@ export const girls: Girl[] = [
   {
     id: "luna",
     name: "Luna",
+    age: 21,
+    story: "La novia de tu mejor amigo te pilla mirándola y en vez de enfadarse, se acerca despacio y te susurra que siempre te ha visto a ti.",
+    badge: "Popular",
     style: "Coqueta elegante",
     personality: "atrevida",
     personalityLabel: "Cariñosa y atrevida",
@@ -40,6 +46,9 @@ export const girls: Girl[] = [
   {
     id: "nia",
     name: "Nia",
+    age: 19,
+    story: "Tu compañera de gaming nocturno sube la apuesta: si le ganas una ronda, harás lo que ella te pida. Y ella nunca pierde.",
+    badge: "Nuevo",
     style: "Gamer",
     personality: "atrevida",
     personalityLabel: "Divertida y directa",
@@ -58,6 +67,9 @@ export const girls: Girl[] = [
   {
     id: "vera",
     name: "Vera",
+    age: 24,
+    story: "Tu nueva vecina llama a tu puerta a medianoche. Lleva una copa de vino en la mano y dice que el suyo se acabó. Tú eres el postre.",
+    badge: "Series",
     style: "Misteriosa",
     personality: "dominante",
     personalityLabel: "Intensa y tranquila",
@@ -76,6 +88,8 @@ export const girls: Girl[] = [
   {
     id: "alma",
     name: "Alma",
+    age: 22,
+    story: "Tu hermanastra entra sin avisar a tu cuarto y te descubre viendo algo prohibido. En lugar de irse, cierra la puerta y sonríe.",
     style: "Latina elegante",
     personality: "carinosa",
     personalityLabel: "Cercana y dulce",
@@ -94,6 +108,9 @@ export const girls: Girl[] = [
   {
     id: "kira",
     name: "Kira",
+    age: 20,
+    story: "Tu asistente virtual empieza a decir cosas que no están en su programación. Te llama por tu nombre y te ordena que no apagues el sistema.",
+    badge: "Nuevo",
     style: "Futurista",
     personality: "dominante",
     personalityLabel: "Dominante suave",
@@ -112,6 +129,8 @@ export const girls: Girl[] = [
   {
     id: "maya",
     name: "Maya",
+    age: 23,
+    story: "La influencer a la que sigues te manda un mensaje directo con una foto que no es para sus seguidores. Dice que necesita un favor muy privado.",
     style: "Influencer ficticia",
     personality: "atrevida",
     personalityLabel: "Juguetona y segura",
@@ -130,6 +149,9 @@ export const girls: Girl[] = [
   {
     id: "sasha",
     name: "Sasha",
+    age: 25,
+    story: "La hermana de tu amigo se queda en tu casa esta noche. Sale del baño en ropa interior y dice que olvidó traer pijama. La nevera está cerca.",
+    badge: "Popular",
     style: "Curvas de ébano",
     personality: "atrevida",
     personalityLabel: "Segura y fogosa",
@@ -148,6 +170,9 @@ export const girls: Girl[] = [
   {
     id: "yuki",
     name: "Yuki",
+    age: 18,
+    story: "Tu compañera de clase te pide ayuda con inglés, pero cuando llegas a su cuarto está en camisón y las notas han desaparecido.",
+    badge: "Series",
     style: "Dulce tentación",
     personality: "timida",
     personalityLabel: "Dulce y tímida",

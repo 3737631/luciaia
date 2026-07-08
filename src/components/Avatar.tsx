@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 import { getGirlImage } from "@/lib/images";
 import { HairOption, PoseOption, BackgroundOption } from "@/data/girls";
 
@@ -59,19 +60,41 @@ export default function Avatar({
 
   return (
     <div
-      className={`relative flex items-center justify-center ${className} ${
-        animated ? "animate-breathe" : ""
-      }`}
+      className={`relative flex items-center justify-center ${className}`}
       style={{ width: size, height: size }}
     >
-      <div
-        className="absolute inset-0 rounded-full blur-2xl opacity-70 animate-pulseGlow"
+      <motion.div
+        className="absolute inset-0 rounded-full blur-2xl opacity-70"
         style={{
           background: `radial-gradient(circle, ${accentColor}, transparent 70%)`,
         }}
+        animate={{ opacity: [0.5, 0.9, 0.5], scale: [1, 1.05, 1] }}
+        transition={{ duration: 3, ease: "easeInOut", repeat: Infinity }}
       />
       {!imgFailed ? (
-        <div className="relative" style={{ width: size, height: size }}>
+        <motion.div
+          className="relative"
+          style={{ width: size, height: size }}
+          animate={
+            animated
+              ? {
+                  scale: [1, 1.006, 1],
+                  ...(talking
+                    ? { rotate: [0, 0.4, -0.4, 0], y: [0, -1, 1, 0] }
+                    : {}),
+                }
+              : undefined
+          }
+          transition={
+            animated
+              ? {
+                  scale: { duration: 4, ease: "easeInOut", repeat: Infinity },
+                  rotate: { duration: 1.5, ease: "easeInOut", repeat: Infinity },
+                  y: { duration: 1.5, ease: "easeInOut", repeat: Infinity },
+                }
+              : undefined
+          }
+        >
           <div
             className="absolute inset-0 rounded-full bg-[#1a1023]"
             style={{ width: size, height: size }}
@@ -86,13 +109,52 @@ export default function Avatar({
             onLoad={() => setLoaded(true)}
             onError={() => setImgFailed(true)}
           />
-        </div>
+          {animated && (
+            <motion.div
+              className="absolute left-1/2 -translate-x-1/2 rounded-full"
+              style={{
+                width: "50%",
+                height: "6%",
+                top: "32%",
+                background:
+                  "radial-gradient(ellipse, rgba(0,0,0,0.85) 0%, transparent 70%)",
+                pointerEvents: "none",
+                filter: "blur(1px)",
+              }}
+              animate={{ opacity: [0, 0, 0, 0, 0.85, 0, 0, 0, 0] }}
+              transition={{
+                duration: 5,
+                ease: "easeInOut",
+                repeat: Infinity,
+                times: [0, 0.9, 0.94, 0.97, 0.98, 0.99, 1, 1, 1],
+              }}
+            />
+          )}
+        </motion.div>
       ) : (
-        <svg
+        <motion.svg
           viewBox="0 0 200 200"
           width={size}
           height={size}
           className="relative rounded-full"
+          animate={
+            animated
+              ? {
+                  scale: [1, 1.015, 1],
+                  ...(talking
+                    ? { rotate: [0, 0.5, -0.5, 0] }
+                    : {}),
+                }
+              : undefined
+          }
+          transition={
+            animated
+              ? {
+                  scale: { duration: 4, ease: "easeInOut", repeat: Infinity },
+                  rotate: { duration: 1.5, ease: "easeInOut", repeat: Infinity },
+                }
+              : undefined
+          }
         >
           <defs>
             <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
@@ -107,20 +169,29 @@ export default function Avatar({
             d="M45 95 Q40 30 100 30 Q160 30 155 95 Q150 60 100 55 Q50 60 45 95 Z"
             fill={hairColor}
           />
-          <g className={animated ? "animate-blink" : ""} style={{ transformOrigin: "center" }}>
+          <g style={{ transformOrigin: "center" }}>
             <ellipse cx="82" cy="112" rx="6" ry="8" fill="#f8fafc" />
             <ellipse cx="118" cy="112" rx="6" ry="8" fill="#f8fafc" />
           </g>
-          <ellipse
+          <motion.ellipse
             cx="100"
             cy="140"
             rx="10"
             ry={talking ? 6 : 3}
             fill="#f8fafc"
-            className={talking ? "animate-mouthTalk" : ""}
             style={{ transformOrigin: "100px 140px" }}
+            animate={
+              talking
+                ? { ry: [3, 8, 3] }
+                : { ry: 3 }
+            }
+            transition={
+              talking
+                ? { duration: 0.3, ease: "easeInOut", repeat: Infinity }
+                : undefined
+            }
           />
-        </svg>
+        </motion.svg>
       )}
     </div>
   );

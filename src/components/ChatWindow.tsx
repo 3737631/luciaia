@@ -243,6 +243,8 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
           pose={girl.defaultPose}
           background={girl.defaultBackground}
           size={44}
+          animated
+          talking={typing}
         />
         <div className="min-w-0 flex-1">
           <p className="font-semibold tracking-tight">{girl.name}</p>
