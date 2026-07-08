@@ -7,12 +7,14 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        bg: "#08030f",
+        bg: "#0a0a0f",
+        surface: "#14141c",
         purple: "#8b5cf6",
-        pink: "#ff2d95",
+        pink: "#ff2e88",
+        pinkLight: "#ff5fb2",
         blue: "#38bdf8",
-        ink: "#f8fafc",
-        muted: "#a1a1aa",
+        ink: "#ffffff",
+        muted: "#a1a1b5",
       },
       borderRadius: {
         xl2: "24px",
