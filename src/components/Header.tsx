@@ -22,7 +22,7 @@ export default function Header() {
     <header className="sticky top-0 z-50 h-14 border-b border-white/[0.08] bg-black/40 backdrop-blur-xl sm:h-16">
       <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link href="/girls" className="flex items-center gap-2.5">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-pink to-orange shadow-[0_0_12px_rgba(255,43,134,0.4)] sm:h-8 sm:w-8">
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-pink to-hotPink shadow-[0_0_12px_rgba(255,43,134,0.4)] sm:h-8 sm:w-8">
             <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="currentColor" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
           </span>
           <span className="text-sm font-bold tracking-tight sm:text-base">NuviaChat</span>

@@ -11,8 +11,9 @@
   --text: #ffffff;
   --muted: rgba(255,255,255,0.66);
   --pink: #ff2b86;
+  --hotPink: #ff4db3;
+  --pinkLight: #ff7ac6;
   --orange: #ff7a3d;
-  --yellow: #ffd166;
   --radius: 22px;
   --shadow: 0 24px 80px rgba(0,0,0,0.45);
 }
@@ -75,7 +76,7 @@ body {
   height: 68px;
   padding: 3px;
   border-radius: 50%;
-  background: conic-gradient(from 180deg, var(--yellow), var(--orange), var(--pink), #a855f7, var(--yellow));
+  background: conic-gradient(from 180deg, var(--pinkLight), var(--hotPink), var(--pink), #a855f7, var(--pinkLight));
 }
 
 @media (min-width: 640px) {
@@ -101,7 +102,7 @@ body {
 
 .btn-primary {
   color: #fff;
-  background: linear-gradient(135deg, var(--pink), var(--orange));
+  background: linear-gradient(135deg, var(--pink), var(--hotPink));
   border: 0;
   border-radius: 999px;
   box-shadow: 0 14px 38px rgba(255,43,134,0.28);
@@ -115,14 +116,14 @@ body {
 }
 
 .gradient-text {
-  background: linear-gradient(90deg, var(--pink), var(--orange), var(--yellow));
+  background: linear-gradient(90deg, var(--pink), var(--hotPink), var(--pinkLight));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
 .gradient-btn {
-  background: linear-gradient(90deg, var(--pink), var(--orange));
+  background: linear-gradient(90deg, var(--pink), var(--hotPink));
 }
 
 .chip {
