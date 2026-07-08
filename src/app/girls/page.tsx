@@ -9,6 +9,9 @@ import StoriesRow from "@/components/StoriesRow";
 import CreateYourGirl from "@/components/CreateYourGirl";
 import { girls } from "@/data/girls";
 
+const femaleIds = new Set(["luna", "nia", "vera", "alma", "kira", "maya", "sasha", "yuki"]);
+const femaleChars = girls.filter((g) => femaleIds.has(g.id));
+
 const filters = ["Todas", "Coquetas", "Gamer", "Misteriosas", "Dulces", "Atrevidas"];
 
 const faqs = [
@@ -22,8 +25,8 @@ export default function GirlsPage() {
   const [activeFilter, setActiveFilter] = useState("Todas");
 
   const filtered = activeFilter === "Todas"
-    ? girls
-    : girls.filter((g) =>
+    ? femaleChars
+    : femaleChars.filter((g) =>
         g.style?.toLowerCase().includes(activeFilter.replace(/s$/, "").toLowerCase()) ||
         g.personality?.includes(activeFilter.replace(/s$/, "").toLowerCase())
       );

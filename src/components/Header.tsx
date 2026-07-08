@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export default function Header() {
+  const pathname = usePathname();
   const [userGender, setUserGender] = useState<"hombre" | "mujer">("hombre");
   const [showGender, setShowGender] = useState(false);
   const [showMobileNav, setShowMobileNav] = useState(false);
@@ -30,13 +32,13 @@ export default function Header() {
         </Link>
 
         <nav className="hidden sm:flex sm:items-center sm:gap-6">
-          <Link href="/girls" className="relative text-sm font-medium text-white after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-[#ff3b7f]">
+          <Link href="/girls" className={`relative text-sm font-medium transition ${pathname === "/girls" ? "text-white after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-[#ff3b7f]" : "text-white/50 hover:text-white/80"}`}>
             Chicas
           </Link>
-          <Link href="/anime" className="text-sm text-white/50 transition hover:text-white/80">
+          <Link href="/anime" className={`relative text-sm font-medium transition ${pathname === "/anime" ? "text-white after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-[#ff3b7f]" : "text-white/50 hover:text-white/80"}`}>
             Anime
           </Link>
-          <Link href="/chicos" className="text-sm text-white/50 transition hover:text-white/80">
+          <Link href="/chicos" className={`relative text-sm font-medium transition ${pathname === "/chicos" ? "text-white after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-[#ff3b7f]" : "text-white/50 hover:text-white/80"}`}>
             Chicos
           </Link>
         </nav>
@@ -53,9 +55,9 @@ export default function Header() {
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowMobileNav(false)} />
               <div className="absolute left-1/2 top-8 z-50 w-28 -translate-x-1/2 rounded-xl border border-white/[0.10] bg-[#16161d] p-1 shadow-premium">
-                <Link href="/girls" onClick={() => setShowMobileNav(false)} className="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-white transition hover:bg-white/[0.06]">Chicas</Link>
-                <Link href="/anime" onClick={() => setShowMobileNav(false)} className="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-white/50 transition hover:bg-white/[0.06] hover:text-white">Anime</Link>
-                <Link href="/chicos" onClick={() => setShowMobileNav(false)} className="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-white/50 transition hover:bg-white/[0.06] hover:text-white">Chicos</Link>
+                <Link href="/girls" onClick={() => setShowMobileNav(false)} className={`flex w-full items-center rounded-lg px-3 py-2 text-left text-xs transition ${pathname === "/girls" ? "bg-pink/10 text-pink" : "text-white hover:bg-white/[0.06]"}`}>Chicas</Link>
+                <Link href="/anime" onClick={() => setShowMobileNav(false)} className={`flex w-full items-center rounded-lg px-3 py-2 text-left text-xs transition ${pathname === "/anime" ? "bg-pink/10 text-pink" : "text-white/50 hover:bg-white/[0.06] hover:text-white"}`}>Anime</Link>
+                <Link href="/chicos" onClick={() => setShowMobileNav(false)} className={`flex w-full items-center rounded-lg px-3 py-2 text-left text-xs transition ${pathname === "/chicos" ? "bg-pink/10 text-pink" : "text-white/50 hover:bg-white/[0.06] hover:text-white"}`}>Chicos</Link>
               </div>
             </>
           )}
