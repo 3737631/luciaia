@@ -7,8 +7,8 @@ export default function Header() {
     <header className="sticky top-0 z-50 backdrop-blur-lg bg-[rgba(7,3,12,0.72)] border-b border-white/[0.07]">
       <div className="mx-auto flex h-[64px] max-w-6xl items-center justify-between px-4 sm:px-5">
         <Link href="/girls" className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full gradient-btn text-[0.6rem] font-bold shadow-lg shadow-pink-500/25 sm:h-9 sm:w-9 sm:text-sm">
-            LC
+          <span className="flex h-8 w-8 items-center justify-center rounded-full gradient-btn shadow-lg shadow-pink-500/25 sm:h-9 sm:w-9">
+            <svg viewBox="0 0 24 24" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
           </span>
           <span className="text-base font-semibold tracking-tight sm:text-lg">LunaCall</span>
         </Link>
