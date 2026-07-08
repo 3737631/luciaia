@@ -25,7 +25,7 @@ const slides = [
     id: 2,
     title: "Crea tu chica IA",
     subtitle: "Personaliza estilo, actitud, fondo y forma de hablar.",
-    badge: "PERSONALIZABLE",
+    badge: "PRO",
     cta: "Crear ahora",
     href: "#personajes",
   },
@@ -77,14 +77,15 @@ export default function HeroShowcaseCarousel() {
 
   return (
     <div
-      className="relative mx-auto overflow-hidden sm:mx-6 lg:mx-8"
+      className="relative mx-4 h-[185px] overflow-hidden sm:mx-6 sm:h-[260px] lg:mx-8"
       style={{
         maxWidth: 1180,
-        height: 185,
         borderRadius: 18,
         background: "#17171d",
         boxShadow: "0 24px 80px rgba(0,0,0,0.45)",
       }}
+      onMouseEnter={stopAutoplay}
+      onMouseLeave={resetAutoplay}
       onPointerDown={(e) => { setStartX(e.clientX); stopAutoplay(); }}
       onPointerUp={(e) => {
         const diff = e.clientX - startX;
@@ -123,7 +124,7 @@ export default function HeroShowcaseCarousel() {
               className="absolute left-[22px] right-5 top-1/2 z-10 max-w-[520px] -translate-y-1/2 sm:left-[42px]"
             >
               <span
-                className="mb-2 inline-flex rounded-full px-2.5 py-1.5 text-[0.65rem] font-black text-white sm:mb-3 sm:px-3.5 sm:text-xs"
+                className="mb-1 inline-flex rounded-full px-2 py-1 text-[0.5rem] font-black text-white sm:mb-3 sm:px-3.5 sm:text-xs"
                 style={{
                   background: "#ff0f70",
                   boxShadow: "0 0 24px rgba(255,15,112,0.7)",
@@ -134,7 +135,7 @@ export default function HeroShowcaseCarousel() {
               <h1
                 className="text-white"
                 style={{
-                  fontSize: "clamp(30px, 5vw, 58px)",
+                  fontSize: "clamp(22px, 5vw, 58px)",
                   lineHeight: 0.95,
                   letterSpacing: "-0.06em",
                   textShadow: "0 8px 30px rgba(0,0,0,0.65)",
@@ -144,14 +145,14 @@ export default function HeroShowcaseCarousel() {
                 {s.title}
               </h1>
               <p
-                className="mt-2 max-w-[430px] text-white/80 sm:mt-3"
-                style={{ fontSize: "clamp(13px, 1.2vw, 16px)", lineHeight: 1.45 }}
+                className="mt-1 max-w-[430px] text-white/80 sm:mt-3"
+                style={{ fontSize: "clamp(12px, 1.2vw, 16px)", lineHeight: 1.4 }}
               >
                 {s.subtitle}
               </p>
               <Link
                 href={s.href}
-                className="mt-3 inline-flex h-9 items-center justify-center rounded-full px-4 text-xs font-black text-white sm:mt-5 sm:h-[42px] sm:px-[22px] sm:text-sm"
+                className="mt-2 inline-flex h-8 items-center justify-center rounded-full px-3 text-[0.6rem] font-black text-white sm:mt-5 sm:h-[42px] sm:px-[22px] sm:text-sm"
                 style={{
                   background: "linear-gradient(135deg, #ff3b7f, #ff7a3d)",
                   boxShadow: "0 0 28px rgba(255,59,127,0.55)",
