@@ -5,6 +5,9 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 // Characters that have high quality SDXL images (1.3MB+) already generated
 const SDXL_CHARS = ["axel", "liam"];
 
+// All characters except SDXL ones will use Pollinations AI for the circle image
+const AI_CHARS = ["luna", "nia", "vera", "alma", "kira", "maya", "sasha", "yuki", "sakura", "yumi", "rin"];
+
 const ANIME_CHARS = ["sakura", "yumi", "rin"];
 
 function charDesc(id: string): string {
@@ -54,8 +57,13 @@ export function getGirlImage(
     return `${basePath}/girls/${girlId}/${h}_${p}_${b}.jpg`;
   }
 
-  // All other characters use Pollinations directly (skip slow local fallback)
-  return getPollinationsUrl(girlId, h, p, b);
+  // Characters without SDXL use Pollinations AI for high quality
+  if (AI_CHARS.includes(girlId)) {
+    return getPollinationsUrl(girlId, h, p, b);
+  }
+
+  // Fallback for any unknown character
+  return `${basePath}/girls/${girlId}/${h}_${p}_${b}.jpg`;
 }
 
 export function getGirlImageFallback(
@@ -67,7 +75,9 @@ export function getGirlImageFallback(
   const h = hair ?? "moreno";
   const p = pose ?? "toalla";
   const b = background ?? "neon-room";
-  return getPollinationsUrl(girlId, h, p, b, getSeed(girlId, h, p, b) + 777);
+  // Always return Pollinations as fallback (never show "Sin imagen")
+  const seed = (getSeed(girlId, h, p, b) % 80000) + 20000 + Date.now() % 1000;
+  return getPollinationsUrl(girlId, h, p, b, seed);
 }
 
 function getPollinationsUrl(
