@@ -33,10 +33,10 @@ export default function Header() {
           <Link href="/girls" className="relative text-sm font-medium text-white after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-[#ff3b7f]">
             Chicas
           </Link>
-          <Link href="/girls" className="text-sm text-white/50 transition hover:text-white/80">
+          <Link href="/anime" className="text-sm text-white/50 transition hover:text-white/80">
             Anime
           </Link>
-          <Link href="/girls" className="text-sm text-white/50 transition hover:text-white/80">
+          <Link href="/chicos" className="text-sm text-white/50 transition hover:text-white/80">
             Chicos
           </Link>
         </nav>
@@ -54,8 +54,8 @@ export default function Header() {
               <div className="fixed inset-0 z-40" onClick={() => setShowMobileNav(false)} />
               <div className="absolute left-1/2 top-8 z-50 w-28 -translate-x-1/2 rounded-xl border border-white/[0.10] bg-[#16161d] p-1 shadow-premium">
                 <Link href="/girls" onClick={() => setShowMobileNav(false)} className="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-white transition hover:bg-white/[0.06]">Chicas</Link>
-                <Link href="/girls" onClick={() => setShowMobileNav(false)} className="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-white/50 transition hover:bg-white/[0.06] hover:text-white">Anime</Link>
-                <Link href="/girls" onClick={() => setShowMobileNav(false)} className="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-white/50 transition hover:bg-white/[0.06] hover:text-white">Chicos</Link>
+                <Link href="/anime" onClick={() => setShowMobileNav(false)} className="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-white/50 transition hover:bg-white/[0.06] hover:text-white">Anime</Link>
+                <Link href="/chicos" onClick={() => setShowMobileNav(false)} className="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-white/50 transition hover:bg-white/[0.06] hover:text-white">Chicos</Link>
               </div>
             </>
           )}
