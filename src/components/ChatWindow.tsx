@@ -36,6 +36,8 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   const [customScenario, setCustomScenario] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef(true);
+  const messagesRef = useRef(messages);
+  messagesRef.current = messages;
   const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
 
   useEffect(() => {
@@ -52,18 +54,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   }, []);
 
   useEffect(() => {
-    const saved = getConversationHistory(girl.id);
-    if (saved.length > 0) {
-      const msgs = saved.map((m, i) => ({
-        id: `saved_${i}`,
-        from: m.role === "user" ? "user" as const : "girl" as const,
-        text: m.content,
-      }));
-      setMessages(msgs);
-      setShowModePicker(false);
-    } else {
-      setMessages([{ id: "welcome", from: "girl", text: `Hola, soy ${girl.name}. Qué bien que hayas entrado` }]);
-    }
+    setMessages([{ id: "welcome", from: "girl", text: `Hola, soy ${girl.name}. Qué bien que hayas entrado` }]);
     return () => { mountedRef.current = false; };
   }, [girl.id, girl.name]);
 
@@ -72,13 +63,13 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   }, [messages, typing]);
 
   useEffect(() => {
-    const chatMsgs = messages
-      .filter((m) => m.id !== "welcome")
-      .map((m) => ({ role: m.from === "user" ? "user" as const : "assistant" as const, content: m.text }));
     return () => {
+      const chatMsgs = messagesRef.current
+        .filter((m) => m.id !== "welcome")
+        .map((m) => ({ role: m.from === "user" ? "user" as const : "assistant" as const, content: m.text }));
       if (chatMsgs.length > 1) saveToHistory(girl.id, girl.name, chatMsgs);
     };
-  }, []);
+  }, [girl.id, girl.name]);
 
   async function startRoleplay() {
     setMode("actions");
