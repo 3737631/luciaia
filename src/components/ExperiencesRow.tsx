@@ -5,26 +5,28 @@ import Link from "next/link";
 const experiences = [
   {
     label: "EN VIVO",
-    title: "Chat privado",
+    title: "Chatea y a ver qué surge",
     href: "/girls",
-    // REPLACE placeholder color with real image later
     bg: "linear-gradient(135deg, #1a1a24, #0b0b0f)",
   },
   {
     label: "NUEVO",
     title: "Historias IA",
+    subtitle: "Vive una historia única",
     href: "/girls",
     bg: "linear-gradient(135deg, #241a1a, #0b0b0f)",
   },
   {
     label: "TOP",
-    title: "Roleplay",
+    title: "Tu nueva vecina",
+    subtitle: "Toc, toc… ¿puedo pedirte un favor?",
     href: "/girls",
     bg: "linear-gradient(135deg, #1a1a2e, #0b0b0f)",
   },
   {
     label: "PRO",
     title: "Personalización",
+    subtitle: "Crea tu personaje ideal",
     href: "/girls",
     bg: "linear-gradient(135deg, #1a241a, #0b0b0f)",
   },
@@ -78,6 +80,14 @@ export default function ExperiencesRow() {
             >
               {exp.label}
             </span>
+            {exp.subtitle && (
+              <p
+                className="absolute left-4 z-10 m-0 text-white/60"
+                style={{ top: 44, fontSize: 12, lineHeight: 1.3 }}
+              >
+                {exp.subtitle}
+              </p>
+            )}
             <h3
               className="absolute bottom-3 left-4 z-10 m-0 text-white"
               style={{ fontSize: 23, letterSpacing: "-0.04em" }}
@@ -117,6 +127,14 @@ export default function ExperiencesRow() {
             >
               {exp.label}
             </span>
+            {exp.subtitle && (
+              <p
+                className="absolute left-4 z-10 text-white/60"
+                style={{ top: 44, fontSize: 11, lineHeight: 1.3 }}
+              >
+                {exp.subtitle}
+              </p>
+            )}
             <h3
               className="absolute bottom-3 left-4 z-10 m-0 text-white"
               style={{ fontSize: 23, letterSpacing: "-0.04em" }}

@@ -19,20 +19,6 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={`${jakarta.className} min-h-screen bg-bg text-ink antialiased`}>
-        <script dangerouslySetInnerHTML={{
-          __html: `
-(function(){
-  try { if (localStorage.getItem("lunacall_age_accepted") === "true") return; } catch(e) { return; }
-  var base = location.pathname.match(/^\/[^/]+/)?.[0] || "";
-  var p = location.pathname.replace(/\/+$/, "") || base || "/";
-  var allowed = [base+"/age",base+"/terms",base+"/privacy",base+"/age-notice"];
-  for (var i = 0; i < allowed.length; i++) {
-    if (p === allowed[i]) return;
-  }
-  location.replace((base||"/")+"/age/");
-})();
-`
-        }} />
         <AnimatedBackground />
         {children}
       </body>
