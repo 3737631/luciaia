@@ -62,6 +62,13 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-1 sm:gap-2">
+          <Link
+            href="/history"
+            className="flex h-7 w-7 items-center justify-center rounded-full bg-white/[0.04] text-white/50 transition hover:bg-white/[0.08] hover:text-white/80 sm:h-8 sm:w-8"
+            title="Historial"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </Link>
           <div className="relative">
             <button
               onClick={() => setShowGender(!showGender)}
