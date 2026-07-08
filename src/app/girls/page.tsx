@@ -37,15 +37,6 @@ const activities = [
   "está de humor",
 ];
 
-const features = [
-  { icon: "🧠", title: "Memoria ilimitada", desc: "Recuerda cada conversación, se adapta a ti con el tiempo." },
-  { icon: "🎤", title: "Responde con voz", desc: "Notas de voz y llamadas con IA. Oyes su voz real." },
-  { icon: "📹", title: "Videollamadas", desc: "Ves al personaje en pantalla mientras hablas con él." },
-  { icon: "❤️", title: "Personalidad que evoluciona", desc: "Cada interacción cambia su forma de responderte." },
-  { icon: "📸", title: "Fotos en segundos", desc: "Pídele una foto y la genera al instante." },
-  { icon: "⏰", title: "Disponible 24/7", desc: "Siempre conectada, siempre lista para hablar." },
-];
-
 export default function GirlsPage() {
   const [activeFilter, setActiveFilter] = useState("Todas");
   const [activityIdx, setActivityIdx] = useState(0);
@@ -98,30 +89,6 @@ export default function GirlsPage() {
           <StoriesRow />
           <CreateYourGirl />
         </div>
-
-        {/* Features section */}
-        <section className="mt-12 px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-6xl">
-            <h2 className="text-center text-lg font-bold tracking-tight text-white sm:text-xl">
-              ¿Por qué NuviaChat es diferente?
-            </h2>
-            <p className="mx-auto mt-2 max-w-xl text-center text-xs text-white/50 sm:text-sm">
-              No es un chat cualquiera. Cada personaje tiene memoria, voz y personalidad propia.
-            </p>
-            <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-              {features.map((f) => (
-                <div
-                  key={f.title}
-                  className="group rounded-2xl border border-white/[0.06] bg-white/[0.03] p-4 transition-all duration-300 hover:border-pink/30 hover:bg-pink/[0.04] hover:shadow-[0_0_30px_rgba(255,59,127,0.08)]"
-                >
-                  <span className="text-2xl sm:text-3xl">{f.icon}</span>
-                  <h3 className="mt-2 text-sm font-bold text-white sm:text-base">{f.title}</h3>
-                  <p className="mt-1 text-[0.6rem] leading-relaxed text-white/50 sm:text-xs">{f.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
 
         {/* Personajes */}
         <section id="personajes" className="mt-12 px-4 sm:px-6 lg:px-8">
