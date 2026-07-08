@@ -2,12 +2,11 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import { getGirlImage } from "@/lib/images";
 
 const slides = [
   {
     id: 0,
-    title: "🔥 70% OFF",
+    title: "70% OFF",
     subtitle: "Oferta especial por tiempo limitado. Disfruta de todas las funciones premium con un 70% de descuento.",
     badge: "OFERTA",
     cta: "Aprovechar ahora",
@@ -73,10 +72,10 @@ export default function HeroShowcaseCarousel() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [next]);
 
-  const imgs = [
-    getGirlImage("maya", "rubio", "bata", "car-night"),
-    getGirlImage("kira", "rosa", "tanga", "studio"),
-    getGirlImage("sasha", "moreno", "estrellas", "neon-room"),
+  const gradients = [
+    "linear-gradient(135deg, #ff0f70, #ff3b7f, #cc0f5a)",
+    "linear-gradient(135deg, #7c3aed, #a78bfa, #5b21b6)",
+    "linear-gradient(135deg, #ff7a3d, #ff3b7f, #e64a19)",
   ];
 
   return (
@@ -111,19 +110,14 @@ export default function HeroShowcaseCarousel() {
               pointerEvents: i === active ? "auto" : "none",
             }}
           >
-            <img
-              src={imgs[i]}
-              alt={s.title}
-              className="h-full w-full object-cover"
+            <div
+              className="absolute inset-0"
+              style={{ background: gradients[i] }}
             />
             <div
               className="absolute inset-0"
               style={{
-                background: i === 0
-                  ? "linear-gradient(90deg, rgba(0,0,0,0.50), rgba(0,0,0,0.10), rgba(0,0,0,0.35)), radial-gradient(circle at 70% 40%, rgba(255,59,127,0.25), transparent 40%)"
-                  : i === 1
-                  ? "linear-gradient(90deg, rgba(0,0,0,0.45), rgba(0,0,0,0.08), rgba(0,0,0,0.30)), radial-gradient(circle at 30% 60%, rgba(168,85,247,0.20), transparent 40%)"
-                  : "linear-gradient(90deg, rgba(0,0,0,0.50), rgba(0,0,0,0.10), rgba(0,0,0,0.35)), radial-gradient(circle at 80% 20%, rgba(255,122,61,0.25), transparent 40%)",
+                background: "linear-gradient(90deg, rgba(0,0,0,0.55), rgba(0,0,0,0.15), rgba(0,0,0,0.30))",
               }}
             />
             <div
