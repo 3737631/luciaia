@@ -3,21 +3,37 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Girl } from "@/data/girls";
-import { getGirlImage } from "@/lib/images";
+import { getGirlImage, getGirlImageFallback } from "@/lib/images";
 import { getCustomization } from "@/lib/storage";
 
 export default function GirlCard({ girl }: { girl: Girl }) {
   const [imgFailed, setImgFailed] = useState(false);
+  const [usingFallback, setUsingFallback] = useState(false);
   const [girlImage, setGirlImage] = useState(getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground));
 
-  useEffect(() => {
+  function getImage() {
     const custom = getCustomization(girl.id);
-    if (custom) {
-      setGirlImage(getGirlImage(girl.id, custom.hair, custom.pose, custom.background));
-    } else {
-      setGirlImage(getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground));
-    }
+    if (custom) return getGirlImage(girl.id, custom.hair, custom.pose, custom.background);
+    return getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground);
+  }
+
+  useEffect(() => {
+    setImgFailed(false);
+    setUsingFallback(false);
+    setGirlImage(getImage());
   }, [girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground]);
+
+  function handleImgError() {
+    if (!usingFallback) {
+      setUsingFallback(true);
+      const h = girl.defaultHair;
+      const p = girl.defaultPose;
+      const b = girl.defaultBackground;
+      setGirlImage(getGirlImageFallback(girl.id, h, p, b));
+    } else {
+      setImgFailed(true);
+    }
+  }
 
   return (
     <div className="group character-card overflow-hidden">
@@ -25,10 +41,11 @@ export default function GirlCard({ girl }: { girl: Girl }) {
         <div className="relative aspect-[4/5] w-full overflow-hidden">
           {!imgFailed ? (
             <img
+              key={usingFallback ? "fb" : "local"}
               src={girlImage}
               alt={girl.name}
               className="h-full w-full object-cover object-top transition-all duration-700 ease-out group-hover:scale-105"
-              onError={() => setImgFailed(true)}
+              onError={handleImgError}
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-[#101018]">

@@ -47,6 +47,8 @@ function getFallbackUrl(girlId: string, hair: string, pose: string, bg: string):
   return `https://image.pollinations.ai/prompt/${prompt}?width=512&height=640&nofeed=true&seed=${hair.charCodeAt(0) + pose.charCodeAt(0) + bg.charCodeAt(0)}&negative=${negative}`;
 }
 
+const RECENT_SEEDS: Record<string, number> = {};
+
 export function getGirlImage(
   girlId: string,
   hair?: HairOption | string | null,
@@ -64,4 +66,36 @@ export function getGirlImage(
   }
 
   return `${basePath}/girls/${girlId}/${h}_${p}_${b}.jpg`;
+}
+
+export function getGirlImageFallback(
+  girlId: string,
+  hair?: HairOption | string | null,
+  pose?: PoseOption | string | null,
+  background?: BackgroundOption | string | null,
+): string {
+  const h = hair ?? "moreno";
+  const p = pose ?? "toalla";
+  const b = background ?? "neon-room";
+
+  // Generate a unique seed for fallback images
+  const key = `${girlId}_${h}_${p}_${b}`;
+  RECENT_SEEDS[key] = (RECENT_SEEDS[key] || 1000) + 1;
+  const seed = RECENT_SEEDS[key];
+
+  const cat = CHAR_CATEGORY[girlId] ?? "realistic";
+  const style = cat === "anime"
+    ? "high quality anime art style, beautiful detailed eyes, perfect face, vibrant colors, covered chest, no nudity"
+    : "ultra realistic portrait photography, photorealistic skin texture, visible pores, perfect face, symmetrical features, beautiful, no deformities, sharp focus, professional lighting";
+
+  const prompt = encodeURIComponent(
+    `portrait of ${girlId === "sakura" ? "magical girl with pink hair" : girlId === "yumi" ? "catgirl with cat ears" : girlId === "rin" ? "tsundere girl with twin tails" : girlId === "axel" ? "handsome muscular man" : girlId === "liam" ? "cute young man" : girlId === "luna" ? "Latina woman with dark hair" : girlId === "nia" ? "girl with pink hair gamer" : girlId === "vera" ? "redhead woman" : girlId === "alma" ? "Latina woman with curly hair" : girlId === "kira" ? "futuristic woman" : girlId === "maya" ? "blonde woman" : girlId === "sasha" ? "curvy woman with braids" : "young woman"}, ` +
+    `${h} hair, ${p} pose, ${b} background, ${style}`
+  );
+  const negative = encodeURIComponent(
+    "bad anatomy, missing limbs, deformed, ugly, disfigured, watermark, text, logo, " +
+    "cartoon, anime, drawing (only for anime characters), low quality, blurry, " +
+    "extra limbs, fused limbs, bad proportions, nipples, nude, topless"
+  );
+  return `https://image.pollinations.ai/prompt/${prompt}?width=768&height=960&nofeed=true&seed=${seed}&negative=${negative}`;
 }
