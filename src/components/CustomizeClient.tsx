@@ -11,24 +11,63 @@ import { OptionGroup } from "@/components/CustomizationPanel";
 import { Girl } from "@/data/girls";
 import { Customization, getCustomization, saveCustomization } from "@/lib/storage";
 
-const hairOptions = [
+const maleIds = new Set(["axel", "liam"]);
+const animeIds = new Set(["sakura", "yumi", "rin"]);
+
+const girlHair = [
   { value: "moreno", label: "Moreno" },
   { value: "rubio", label: "Rubio" },
   { value: "pelirrojo", label: "Pelirrojo" },
   { value: "rosa", label: "Rosa neón" },
 ];
 
-const poseOptions = [
+const maleHair = [
+  { value: "cafe", label: "Castaño" },
+  { value: "negro", label: "Negro" },
+  { value: "moreno", label: "Moreno" },
+  { value: "rubio", label: "Rubio" },
+];
+
+const animeHair = [
+  { value: "rosa", label: "Rosa" },
+  { value: "azul", label: "Azul" },
+  { value: "verde", label: "Verde" },
+  { value: "negro", label: "Negro" },
+  { value: "blanco", label: "Blanco" },
+];
+
+const girlPose = [
   { value: "toalla", label: "Toalla mojada" },
   { value: "estrellas", label: "Pegatinas de estrellas" },
   { value: "tanga", label: "Tanga y nalgas" },
   { value: "bata", label: "Bata abierta" },
 ];
 
-const personalityOptions = [
+const malePose = [
+  { value: "ropa", label: "Ropa de gimnasio" },
+  { value: "casual", label: "Casual" },
+  { value: "toalla", label: "Toalla" },
+  { value: "bata", label: "Bata" },
+];
+
+const animePose = [
+  { value: "bata", label: "Uniforme" },
+  { value: "tanga", label: "Vestido" },
+  { value: "ropa", label: "Ropa casual" },
+  { value: "casual", label: "Invierno" },
+];
+
+const girlPersonality = [
   { value: "carinosa", label: "Cariñosa" },
   { value: "timida", label: "Tímida" },
   { value: "atrevida", label: "Atrevida" },
+  { value: "dominante", label: "Dominante" },
+];
+
+const malePersonality = [
+  { value: "carinosa", label: "Cariñoso" },
+  { value: "timida", label: "Tímido" },
+  { value: "atrevida", label: "Atrevido" },
   { value: "dominante", label: "Dominante" },
 ];
 
@@ -64,6 +103,13 @@ function OptionCard({
 
 export default function CustomizeClient({ girl }: { girl: Girl }) {
   const router = useRouter();
+  const isMale = maleIds.has(girl.id);
+  const isAnime = animeIds.has(girl.id);
+
+  const hairOptions = isAnime ? animeHair : isMale ? maleHair : girlHair;
+  const poseOptions = isAnime ? animePose : isMale ? malePose : girlPose;
+  const personalityOptions = isMale ? malePersonality : girlPersonality;
+
   const [custom, setCustom] = useState<Customization>({
     hair: girl.defaultHair,
     background: girl.defaultBackground,
@@ -90,7 +136,7 @@ export default function CustomizeClient({ girl }: { girl: Girl }) {
           className={`rounded-xl2 card-surface p-8 mb-8 text-center bg-gradient-to-b ${backgroundGradients[custom.background]}`}
         >
           <h1 className="text-2xl font-bold">{girl.name}</h1>
-          <p className="mb-6 text-muted text-sm">Personalízala antes de empezar.</p>
+          <p className="mb-6 text-muted text-sm">{isMale ? "Personalízalo antes de empezar." : "Personalízala antes de empezar."}</p>
           <Avatar
             name={girl.id}
             accentColor={girl.accentColor}
@@ -135,8 +181,8 @@ export default function CustomizeClient({ girl }: { girl: Girl }) {
           >
             Probar videollamada
           </NeonButton>
-          <Link href="/girls" className="text-center text-sm text-muted hover:text-ink mt-2">
-            Volver a chicas
+          <Link href={isAnime ? "/anime" : isMale ? "/chicos" : "/girls"} className="text-center text-sm text-muted hover:text-ink mt-2">
+            {isAnime ? "Volver a anime" : isMale ? "Volver a chicos" : "Volver a chicas"}
           </Link>
         </div>
       </main>
