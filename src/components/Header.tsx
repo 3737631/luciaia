@@ -23,7 +23,7 @@ export default function Header() {
       }}
     >
       <div
-        className="mx-auto flex h-[3.25rem] max-w-screen-md items-center justify-between px-5"
+        className="mx-auto flex h-[3.25rem] w-full max-w-6xl items-center justify-between px-5"
       >
         <Link href="/girls" className="flex items-center gap-2">
           <div

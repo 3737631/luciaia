@@ -6,7 +6,6 @@ import Footer from "@/components/Footer";
 import GirlCard from "@/components/GirlCard";
 import HeroShowcaseCarousel from "@/components/HeroShowcaseCarousel";
 import StoriesRow from "@/components/StoriesRow";
-import ExperiencesRow from "@/components/ExperiencesRow";
 import CreateYourGirl from "@/components/CreateYourGirl";
 import { girls } from "@/data/girls";
 
@@ -38,7 +37,7 @@ export default function GirlsPage() {
     <>
       <Header />
       <main style={{ background: "#000", minHeight: "100vh" }}>
-        <div className="mx-auto max-w-screen-md px-5">
+        <div className="mx-auto w-full max-w-6xl px-5">
           {/* Hero */}
           <div className="pt-4">
             <HeroShowcaseCarousel />
@@ -85,11 +84,6 @@ export default function GirlsPage() {
                 </div>
               </div>
             </div>
-          </section>
-
-          {/* Nuevas experiencias */}
-          <section className="mt-6">
-            <ExperiencesRow onOpenCreate={() => setCreateOpen(true)} />
           </section>
 
           {/* Personajes */}

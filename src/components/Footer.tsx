@@ -18,7 +18,7 @@ export default function Footer() {
 
   return (
     <footer style={{ borderTop: "0.5px solid rgba(255,255,255,0.05)" }} className="mt-8">
-      <div className="mx-auto max-w-screen-md px-5 pt-8 pb-6">
+      <div className="mx-auto w-full max-w-6xl px-5 pt-8 pb-6">
         <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
           <div>
             <h4 className="text-[0.4rem] font-semibold tracking-[0.08em] mb-3" style={{ color: "rgba(255,255,255,0.25)" }}>NUVIA</h4>

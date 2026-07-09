@@ -19,7 +19,7 @@ export default function ChicosPage() {
     <>
       <Header />
       <main style={{ background: "#000", minHeight: "100vh" }}>
-        <div className="mx-auto max-w-screen-md px-5">
+        <div className="mx-auto w-full max-w-6xl px-5">
           <div className="pt-4">
             <HeroShowcaseCarousel />
           </div>
