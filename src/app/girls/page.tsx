@@ -9,8 +9,14 @@ import { girls } from "@/data/girls";
 
 const femaleIds = new Set(["luna", "nia", "vera", "alma", "kira", "maya", "sasha", "yuki"]);
 
-const FALLBACK_GRADIENT =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='512' height='768'%3E%3Crect width='512' height='768' fill='%2312121a'/%3E%3C/svg%3E";
+const accentMap: Record<string, string> = {
+  luna: "#ff2d95", nia: "#38bdf8", vera: "#8b5cf6", alma: "#ff7a45",
+  kira: "#a78bfa", maya: "#ec4899", sasha: "#d97706", yuki: "#f472b6",
+};
+
+function getAccent(id: string): string {
+  return accentMap[id] || "#ff2d95";
+}
 const femaleChars = girls.filter((g) => femaleIds.has(g.id));
 
 const heroSlides = [
@@ -37,7 +43,7 @@ export default function GirlsPage() {
     const img = e.currentTarget;
     if (!img.dataset.failed) {
       img.dataset.failed = "1";
-      img.src = FALLBACK_GRADIENT;
+      img.style.display = "none";
     }
   }, []);
 
@@ -56,7 +62,7 @@ export default function GirlsPage() {
       <Header />
       <main style={{ paddingBottom: "calc(88px + env(safe-area-inset-bottom))" }}>
         {/* === HERO CAROUSEL === */}
-        <section style={{ position: "relative", width: "100%", height: 250, overflow: "hidden" }}>
+        <section style={{ position: "relative", width: "100%", height: 250, overflow: "hidden", background: "#1a1a24" }}>
           {heroSlides.map((s, i) => (
             <div
               key={s.id}
@@ -65,6 +71,7 @@ export default function GirlsPage() {
                 inset: 0,
                 opacity: i === heroIdx ? 1 : 0,
                 transition: "opacity 0.5s ease",
+                background: getAccent(s.id),
               }}
             >
               <img
@@ -205,6 +212,7 @@ export default function GirlsPage() {
                   position: "relative",
                   textDecoration: "none",
                   display: "block",
+                  background: getAccent(exp.girl),
                 }}
               >
                 <img
@@ -269,17 +277,18 @@ export default function GirlsPage() {
                   display: "block",
                 }}
               >
-                <div
-                  style={{
-                    width: 110,
-                    height: 146,
-                    borderRadius: 12,
-                    overflow: "hidden",
-                    position: "relative",
-                    marginBottom: 6,
-                  }}
-                >
-                  <img
+                  <div
+                    style={{
+                      width: 110,
+                      height: 146,
+                      borderRadius: 12,
+                      overflow: "hidden",
+                      position: "relative",
+                      marginBottom: 6,
+                      background: getAccent(girl.id),
+                    }}
+                  >
+                    <img
                     src={getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground)}
                     alt={girl.name}
                     loading="lazy"
@@ -431,7 +440,7 @@ export default function GirlsPage() {
                     aspectRatio: "3/4",
                     display: "block",
                     textDecoration: "none",
-                    background: "#12121a",
+                    background: getAccent(girl.id),
                   }}
                 >
                   <img
