@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import AnimatedBackground from "@/components/AnimatedBackground";
 
-const inter = Inter({ subsets: ["latin"], display: "swap" });
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
 
 export const metadata: Metadata = {
   title: "NuviaChat — Chica IA ficticia por chat y videollamada",
@@ -18,8 +21,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body className={`${inter.className} min-h-screen bg-bg text-ink antialiased`}>
-        <AnimatedBackground />
+      <body
+        className={`${inter.className} min-h-screen antialiased`}
+        style={{ background: "#000000", color: "#FFFFFF" }}
+      >
         {children}
       </body>
     </html>

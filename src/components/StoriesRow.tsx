@@ -81,60 +81,57 @@ export default function StoriesRow() {
 
   return (
     <>
-      <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-none" style={{ scrollbarWidth: "none" }}>
+      <div className="flex gap-3.5 overflow-x-auto pb-1 scrollbar-none" style={{ scrollbarWidth: "none" }}>
         {girls.map((girl, i) => {
           const online = onlineMap[girl.id];
           return (
-            <button key={girl.id} onClick={() => openStory(i)}
-              className="shrink-0 text-center transition-all active:scale-90"
-              style={{ width: 56 }}
-            >
-              <div className="relative mx-auto mb-0.5" style={{ width: 46, height: 46 }}>
-                <div
-                  className="absolute inset-0 rounded-full"
-                  style={{
-                    padding: 1.5,
-                    background: "linear-gradient(135deg, #FF3B7F, #FF5A4F)",
-                    WebkitMask: "radial-gradient(circle at 50% 50%, transparent 21px, #000 21px)",
-                    mask: "radial-gradient(circle at 50% 50%, transparent 21px, #000 21px)",
-                  }}
-                />
+            <button key={girl.id} onClick={() => openStory(i)} className="shrink-0 text-center transition-all active:scale-90" style={{ width: 54 }}>
+              <div className="relative mx-auto" style={{ width: 48, height: 48 }}>
+                <div className="absolute inset-0 rounded-full" style={{ padding: 1.5, background: "linear-gradient(135deg, #FF2D7F, #FF5A4F)" }}>
+                  <div className="h-full w-full rounded-full" style={{ background: "#000" }} />
+                </div>
                 <div className="absolute inset-0 overflow-hidden rounded-full" style={{ margin: 2 }}>
-                  <img src={getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground)} alt={girl.name} className="h-full w-full object-cover" />
+                  <img
+                    src={getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground)}
+                    alt={girl.name}
+                    className="h-full w-full object-cover"
+                  />
                 </div>
                 {online && (
-                  <span className="absolute -bottom-0.5 -right-0.5 z-10 h-2 w-2 rounded-full border-[1.5px]" style={{ borderColor: "#0B0B0F", background: "#22C55E" }} />
+                  <span className="absolute -bottom-px -right-px z-10 h-2.5 w-2.5 rounded-full border-2" style={{ borderColor: "#000", background: "#30D158" }} />
                 )}
               </div>
-              <span className="block truncate text-[0.45rem] font-medium text-white/60">{girl.name}</span>
+              <span className="block mt-0.5 truncate text-[0.5rem] font-medium" style={{ color: "rgba(255,255,255,0.5)" }}>
+                {girl.name}
+              </span>
             </button>
           );
         })}
       </div>
 
       {activeGirl && currentSlide && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.92)", backdropFilter: "blur(24px)" }} onClick={closeStories}>
-          <div className="relative w-full overflow-hidden rounded-xl" style={{ aspectRatio: "9/16", maxHeight: "90vh", maxWidth: 400 }} onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.92)", backdropFilter: "blur(30px)" }} onClick={closeStories}>
+          <div className="relative w-full overflow-hidden" style={{ aspectRatio: "9/16", maxHeight: "90vh", maxWidth: 400 }} onClick={(e) => e.stopPropagation()}>
             <div className="absolute top-0 left-0 right-0 z-20 flex gap-1 p-2">
               {slides.map((_, i) => (
-                <div key={i} className="h-0.5 flex-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.12)" }}>
+                <div key={i} className="h-0.5 flex-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.1)" }}>
                   {i === slideIdx && <div className="h-full rounded-full bg-white transition-all duration-100" style={{ width: `${progress}%` }} />}
-                  {i < slideIdx && <div className="h-full w-full rounded-full bg-white" />}
+                  {i < slideIdx && <div className="h-full w-full rounded-full bg-white/40" />}
                 </div>
               ))}
             </div>
             <div className="absolute top-3 left-0 right-0 z-20 flex items-center justify-between px-3">
               <div className="flex items-center gap-2">
-                <div className="h-7 w-7 rounded-full border border-white/20 bg-cover bg-center" style={{ backgroundImage: `url(${getGirlImage(activeGirl.id, activeGirl.defaultHair, activeGirl.defaultPose, activeGirl.defaultBackground)})` }} />
-                <span className="text-sm font-semibold text-white drop-shadow-lg">{activeGirl.name}</span>
+                <div className="h-7 w-7 rounded-full bg-cover bg-center border" style={{ borderColor: "rgba(255,255,255,0.15)", backgroundImage: `url(${getGirlImage(activeGirl.id, activeGirl.defaultHair, activeGirl.defaultPose, activeGirl.defaultBackground)})` }} />
+                <span className="text-sm font-semibold drop-shadow-lg">{activeGirl.name}</span>
               </div>
-              <button onClick={closeStories} className="flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-white/60 backdrop-blur-sm active:scale-90">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              <button onClick={closeStories} className="flex h-6 w-6 items-center justify-center rounded-full" style={{ background: "rgba(0,0,0,0.5)" }}>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12" /></svg>
               </button>
             </div>
             <img src={getGirlImage(activeGirl.id, currentSlide.hair, currentSlide.pose, currentSlide.bg)} alt={activeGirl.name} className="h-full w-full object-cover" />
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-4 pt-12">
-              <Link href={`/chat/${activeGirl.id}`} onClick={closeStories} className="btn-primary h-8 w-full text-[0.5rem] font-bold rounded-lg">
+              <Link href={`/chat/${activeGirl.id}`} onClick={closeStories} className="btn-pill h-8 w-full text-xs font-semibold rounded-lg">
                 Chatear con {activeGirl.name}
               </Link>
             </div>

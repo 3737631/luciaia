@@ -18,23 +18,24 @@ export default function AnimePage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen" style={{ background: "#0B0B0F" }}>
-        <div style={{ maxWidth: 1180, margin: "0 auto" }}>
-          <div className="px-4 pt-3">
+      <main style={{ background: "#000", minHeight: "100vh" }}>
+        <div className="mx-auto max-w-screen-md px-5">
+          <div className="pt-4">
             <HeroShowcaseCarousel />
           </div>
 
-          <section id="personajes" className="px-4 mt-5">
-            <h2 className="text-white font-bold tracking-tight" style={{ fontSize: "clamp(14px, 3vw, 18px)", letterSpacing: "-0.04em" }}>Anime</h2>
+          <section id="personajes" className="mt-6">
+            <h2 className="font-semibold tracking-tight text-white" style={{ fontSize: "clamp(0.9rem, 2.8vw, 1.15rem)", letterSpacing: "-0.04em" }}>Anime</h2>
 
             <div className="flex gap-1.5 overflow-x-auto mt-2 pb-0.5 scrollbar-none" style={{ scrollbarWidth: "none" }}>
               {filters.map((f) => (
                 <button key={f} onClick={() => setActiveFilter(f)}
-                  className="shrink-0 rounded-full border px-2.5 py-1 text-[0.45rem] font-semibold transition-all active:scale-95"
+                  className="shrink-0 rounded-full px-2.5 py-1 text-[0.45rem] font-medium transition-all active:scale-95"
                   style={{
-                    background: activeFilter === f ? "rgba(255,59,127,0.15)" : "#15151B",
-                    borderColor: activeFilter === f ? "rgba(255,67,130,0.55)" : "rgba(255,255,255,0.08)",
-                    color: activeFilter === f ? "#FF3B7F" : "#A1A1AA",
+                    background: activeFilter === f ? "rgba(255,45,127,0.2)" : "rgba(255,255,255,0.06)",
+                    color: activeFilter === f ? "#FF2D7F" : "rgba(255,255,255,0.5)",
+                    border: activeFilter === f ? "0.5px solid rgba(255,45,127,0.4)" : "0.5px solid rgba(255,255,255,0.06)",
+                    letterSpacing: "-0.02em",
                   }}
                 >
                   {f}
@@ -42,25 +43,27 @@ export default function AnimePage() {
               ))}
             </div>
 
-            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+            <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
               {filtered.length > 0 ? filtered.map((girl) => <GirlCard key={girl.id} girl={girl} />) : (
                 <div className="col-span-full py-12 text-center">
-                  <p className="text-xs" style={{ color: "#71717A" }}>No hay personajes con ese estilo</p>
+                  <p className="text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>No hay personajes con ese estilo</p>
                 </div>
               )}
             </div>
           </section>
 
-          <section className="px-4 mt-6 pb-8">
-            <div className="p-4 sm:p-5" style={{ borderRadius: 16, background: "#17171D", border: "1px solid rgba(255,255,255,0.06)" }}>
-              <h2 className="text-white font-bold tracking-tight text-center" style={{ fontSize: "clamp(13px, 2.5vw, 16px)", letterSpacing: "-0.04em" }}>NuviaChat</h2>
-              <p className="text-[0.5rem] text-center mt-2 max-w-md mx-auto leading-relaxed" style={{ color: "#A1A1AA", letterSpacing: "-0.01em" }}>
+          <section className="mt-6 pb-4">
+            <div className="p-4 sm:p-5" style={{ borderRadius: 16, background: "rgba(255,255,255,0.03)", border: "0.5px solid rgba(255,255,255,0.06)" }}>
+              <h2 className="font-semibold tracking-tight text-center text-white" style={{ fontSize: "clamp(0.8rem, 2.5vw, 1rem)", letterSpacing: "-0.04em" }}>NuviaChat</h2>
+              <p className="text-[0.5rem] text-center mt-2 max-w-md mx-auto leading-relaxed" style={{ color: "rgba(255,255,255,0.4)", letterSpacing: "-0.01em" }}>
                 Personajes anime con IA. Elige entre Sakura, Yumi o Rin y disfruta de conversaciones únicas con estilo anime.
               </p>
               <div className="flex flex-wrap justify-center gap-1.5 mt-3">
-                <span className="rounded-full px-2 py-0.5 text-[0.4rem] font-medium border" style={{ background: "rgba(255,255,255,0.03)", color: "#71717A", borderColor: "rgba(255,255,255,0.06)" }}>+18</span>
-                <span className="rounded-full px-2 py-0.5 text-[0.4rem] font-medium border" style={{ background: "rgba(255,255,255,0.03)", color: "#71717A", borderColor: "rgba(255,255,255,0.06)" }}>Personajes IA ficticios</span>
-                <span className="rounded-full px-2 py-0.5 text-[0.4rem] font-medium border" style={{ background: "rgba(255,255,255,0.03)", color: "#71717A", borderColor: "rgba(255,255,255,0.06)" }}>Estilo anime</span>
+                {["+18", "Personajes IA ficticios", "Estilo anime"].map((t) => (
+                  <span key={t} className="rounded-full px-2 py-0.5 text-[0.4rem] font-medium" style={{ background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.3)", border: "0.5px solid rgba(255,255,255,0.06)" }}>
+                    {t}
+                  </span>
+                ))}
               </div>
             </div>
           </section>

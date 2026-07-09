@@ -22,7 +22,17 @@ export default function GirlCard({ girl }: { girl: Girl }) {
   }, [girl.id]);
 
   return (
-    <div className="group overflow-hidden animate-card-fade" style={{ borderRadius: 16, background: "#17171D", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 4px 20px rgba(0,0,0,0.3)" }}>
+    <div
+      className="overflow-hidden fade-in"
+      style={{
+        borderRadius: 16,
+        background: "rgba(255,255,255,0.06)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        border: "0.5px solid rgba(255,255,255,0.08)",
+        boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+      }}
+    >
       <div className="relative overflow-hidden" style={{ aspectRatio: "3/4" }}>
         {!imgFailed ? (
           <>
@@ -32,39 +42,39 @@ export default function GirlCard({ girl }: { girl: Girl }) {
               className="h-full w-full object-cover object-top transition-all duration-[250ms] group-hover:scale-105"
               onError={() => setImgFailed(true)}
             />
-            <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.88), rgba(0,0,0,0.55), transparent)" }} />
+            <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.5), transparent)" }} />
           </>
         ) : (
-          <div className="flex h-full w-full items-center justify-center" style={{ background: "#17171D" }}>
-            <span className="text-[0.45rem]" style={{ color: "#71717A" }}>Sin imagen</span>
+          <div className="flex h-full w-full items-center justify-center" style={{ background: "rgba(255,255,255,0.04)" }}>
+            <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "0.45rem" }}>Sin imagen</span>
           </div>
         )}
         {girl.badge && (
-          <div className="absolute left-2 top-2 z-10">
-            <span className="rounded-full px-2 py-0.5 text-[0.35rem] font-bold text-white" style={{ background: "#FF3B7F" }}>
+          <div className="absolute left-2.5 top-2.5 z-10">
+            <span className="rounded-full px-2 py-0.5 text-[0.35rem] font-semibold text-white" style={{ background: "#FF2D7F", letterSpacing: "0.02em" }}>
               {girl.badge}
             </span>
           </div>
         )}
-        <div className="absolute bottom-0 left-0 right-0 p-2.5 z-10">
-          <h3 className="font-extrabold text-white" style={{ fontSize: "clamp(13px, 3.5vw, 17px)", letterSpacing: "-0.04em", lineHeight: 1.1, textShadow: "0 1px 6px rgba(0,0,0,0.6)" }}>
-            {girl.name} <span className="font-normal text-white/60" style={{ fontSize: "0.6em" }}>{girl.age}</span>
+        <div className="absolute bottom-0 left-0 right-0 p-3 z-10">
+          <h3 className="font-bold text-white" style={{ fontSize: "clamp(0.85rem, 3.2vw, 1.05rem)", letterSpacing: "-0.04em", lineHeight: 1.1, textShadow: "0 1px 6px rgba(0,0,0,0.5)" }}>
+            {girl.name} <span className="font-normal" style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.6em" }}>{girl.age}</span>
           </h3>
-          <p className="text-[0.5rem] leading-tight mt-0.5 line-clamp-2" style={{ color: "#C4C4CC", textShadow: "0 1px 4px rgba(0,0,0,0.4)" }}>
+          <p className="text-[0.5rem] leading-tight mt-0.5 line-clamp-2" style={{ color: "rgba(255,255,255,0.6)", textShadow: "0 1px 4px rgba(0,0,0,0.3)" }}>
             {girl.story}
           </p>
         </div>
-        <div className="absolute right-2 top-2 z-10">
+        <div className="absolute right-2.5 top-2.5 z-10">
           <span className="relative flex h-1.5 w-1.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ background: "#22C55E" }} />
-            <span className="relative inline-flex h-1.5 w-1.5 rounded-full" style={{ background: "#22C55E" }} />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ background: "#30D158" }} />
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full" style={{ background: "#30D158" }} />
           </span>
         </div>
       </div>
-      <div className="p-2" style={{ background: "#17171D" }}>
+      <div className="p-2">
         <Link
           href={`/chat/${girl.id}`}
-          className="btn-primary h-7 w-full text-[0.45rem] font-bold"
+          className="btn-pill h-7 w-full text-xs font-semibold"
         >
           Chatear
         </Link>

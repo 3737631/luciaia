@@ -1,18 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 export default function Header() {
   const pathname = usePathname();
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   const tabs = [
     { href: "/girls", label: "Chicas" },
@@ -22,36 +14,46 @@ export default function Header() {
 
   return (
     <header
-      className="sticky top-0 z-50 transition-all duration-200"
+      className="sticky top-0 z-50"
       style={{
-        height: 44,
-        background: scrolled ? "rgba(11,11,15,0.86)" : "rgba(11,11,15,0.95)",
-        backdropFilter: "blur(18px)",
-        WebkitBackdropFilter: "blur(18px)",
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
+        background: "rgba(0,0,0,0.78)",
+        backdropFilter: "blur(30px) saturate(1.2)",
+        WebkitBackdropFilter: "blur(30px) saturate(1.2)",
+        borderBottom: "0.5px solid rgba(255,255,255,0.06)",
       }}
     >
-      <div className="mx-auto flex h-full max-w-[1180px] items-center justify-between px-4">
-        {/* Logo */}
-        <Link href="/girls" className="flex items-center gap-1.5 shrink-0">
-          <span className="flex items-center justify-center rounded-full bg-gradient-to-br from-[#FF3B7F] to-[#FF5A4F] h-5 w-5">
-            <svg viewBox="0 0 24 24" className="h-2.5 w-2.5" fill="currentColor" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      <div
+        className="mx-auto flex h-[3.25rem] max-w-screen-md items-center justify-between px-5"
+      >
+        <Link href="/girls" className="flex items-center gap-2">
+          <div
+            className="flex h-7 w-7 items-center justify-center rounded-full"
+            style={{ background: "linear-gradient(135deg, #FF2D7A, #FF5A4F)" }}
+          >
+            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-white" stroke="none">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+          </div>
+          <span
+            className="text-sm font-semibold tracking-tight"
+            style={{ letterSpacing: "-0.03em" }}
+          >
+            NuviaChat
           </span>
-          <span className="text-[0.6rem] font-bold tracking-tight sm:text-xs" style={{ letterSpacing: "-0.04em" }}>NuviaChat</span>
         </Link>
 
-        {/* Tabs */}
-        <nav className="flex items-center gap-0.5 bg-white/[0.04] rounded-full p-0.5 border border-white/[0.06]">
+        <nav className="flex items-center gap-0.5 p-0.5" style={{ background: "rgba(255,255,255,0.06)", borderRadius: 999, border: "0.5px solid rgba(255,255,255,0.06)" }}>
           {tabs.map((tab) => {
             const isActive = pathname === tab.href;
             return (
               <Link
                 key={tab.href}
                 href={tab.href}
-                className="px-2 py-0.5 text-[0.45rem] font-semibold rounded-full transition-all"
+                className="px-3 py-1 text-xs font-medium rounded-full transition-all"
                 style={{
-                  background: isActive ? "rgba(255,59,127,0.15)" : "transparent",
-                  color: isActive ? "#FF3B7F" : "rgba(255,255,255,0.45)",
+                  background: isActive ? "rgba(255,255,255,0.15)" : "transparent",
+                  color: isActive ? "#FFFFFF" : "rgba(255,255,255,0.4)",
+                  letterSpacing: "-0.02em",
                 }}
               >
                 {tab.label}
@@ -60,14 +62,22 @@ export default function Header() {
           })}
         </nav>
 
-        {/* Right */}
-        <div className="flex items-center gap-1.5">
-          <Link href="/girls" className="btn-secondary h-6 px-2 text-[0.45rem] font-medium leading-none tracking-tight">
-            Iniciar sesión
-          </Link>
-          <Link href="/girls" className="btn-primary h-6 px-2.5 text-[0.45rem] font-bold leading-none tracking-tight">
-            Crear cuenta
-          </Link>
+        <div className="flex items-center gap-2">
+          <div
+            className="h-7 w-7 rounded-full flex items-center justify-center"
+            style={{ background: "rgba(255,255,255,0.06)" }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 6v6l4 2" />
+            </svg>
+          </div>
+          <button
+            className="flex h-7 items-center rounded-full px-3 text-xs font-semibold text-white"
+            style={{ background: "linear-gradient(135deg, #FF2D7A, #FF5A4F)", letterSpacing: "-0.02em" }}
+          >
+            Crear
+          </button>
         </div>
       </div>
     </header>
