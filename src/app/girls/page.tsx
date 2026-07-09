@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import StoriesRow from "@/components/StoriesRow";
 import { getGirlImage } from "@/lib/images";
 import { girls } from "@/data/girls";
+import RetryImage from "@/components/RetryImage";
 
 const femaleIds = new Set(["luna", "nia", "vera", "alma", "kira", "maya", "sasha", "yuki"]);
 
@@ -425,7 +426,7 @@ export default function GirlsPage() {
             style={{
               display: "grid",
               gridTemplateColumns: "1fr 1fr",
-              gap: 12,
+              gap: 16,
             }}
           >
             {filtered.length > 0 ? (
@@ -436,69 +437,43 @@ export default function GirlsPage() {
                   style={{
                     borderRadius: 16,
                     overflow: "hidden",
-                    position: "relative",
-                    aspectRatio: "3/4",
-                    display: "block",
+                    display: "flex",
+                    flexDirection: "column",
                     textDecoration: "none",
-                    background: getAccent(girl.id),
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.06)",
                   }}
                 >
-                  <img
+                  <RetryImage
                     src={getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground)}
                     alt={girl.name}
-                    loading="lazy"
-                    onError={onImgError}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                      transition: "transform 0.4s ease",
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.05)"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
+                    accent={getAccent(girl.id)}
+                    style={{ aspectRatio: "3/4", width: "100%" }}
+                    imgStyle={{ transition: "transform 0.4s ease" }}
                   />
-                  <div
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      background: "linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%)",
-                    }}
-                  />
-                  <div
-                    style={{
-                      position: "absolute",
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      padding: "10px 12px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <div>
-                      <span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>
+                  <div style={{ padding: "10px 12px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                      <span style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>
                         {girl.name}
                       </span>
-                      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginLeft: 4 }}>
+                      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>
                         {girl.age}
                       </span>
+                      {girl.badge && (
+                        <span style={{
+                          fontSize: 9, fontWeight: 700, color: "#ff5f8f",
+                          background: "rgba(255,95,143,0.15)", padding: "2px 6px", borderRadius: 6, marginLeft: "auto",
+                        }}>
+                          {girl.badge}
+                        </span>
+                      )}
                     </div>
-                    {girl.badge && (
-                      <span
-                        style={{
-                          fontSize: 9,
-                          fontWeight: 700,
-                          color: "#ff5f8f",
-                          background: "rgba(255,95,143,0.15)",
-                          padding: "2px 6px",
-                          borderRadius: 6,
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        {girl.badge}
-                      </span>
-                    )}
+                    <p style={{
+                      fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.4, margin: 0,
+                      display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden",
+                    }}>
+                      {girl.story}
+                    </p>
                   </div>
                 </Link>
               ))
