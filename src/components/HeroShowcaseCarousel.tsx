@@ -5,215 +5,103 @@ import Link from "next/link";
 
 const slides = [
   {
-    id: 0,
     title: "1ª Semana Gratis",
-    subtitle: "Tu primera semana completamente gratis. Sin compromiso, sin tarjeta, sin límites.",
-    badge: "EN VIVO",
-    cta: "Comenzar ahora",
+    subtitle: "Sin compromiso ni tarjeta",
+    cta: "Comenzar",
     href: "#personajes",
-    gradient: "linear-gradient(135deg, #FF3C88, #FF6B3D)",
+    bg: "linear-gradient(135deg, #FF3B86, #FF6B45)",
   },
   {
-    id: 1,
-    title: "Crea tu propio roleplay",
-    subtitle: "Describe la escena que siempre has imaginado y la IA lo hará realidad.",
-    badge: "NUEVO",
+    title: "Crea tu roleplay",
+    subtitle: "Describe la escena que imaginas",
     cta: "Crear roleplay",
     href: "#personajes",
-    gradient: "linear-gradient(135deg, #7c3aed, #a78bfa)",
+    bg: "linear-gradient(135deg, #7c3aed, #a78bfa)",
   },
   {
-    id: 2,
-    title: "Chicas en vivo ahora",
-    subtitle: "Conecta en tiempo real con tu personaje favorito. Siente la conversación.",
-    badge: "EN VIVO",
+    title: "Chicas en vivo",
+    subtitle: "Conecta en tiempo real",
     cta: "Probar ahora",
     href: "#personajes",
-    gradient: "linear-gradient(135deg, #FF6B3D, #FF3C88)",
+    bg: "linear-gradient(135deg, #FF6B45, #FF3B86)",
   },
 ];
 
 export default function HeroShowcaseCarousel() {
   const [active, setActive] = useState(0);
-  const [startX, setStartX] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const len = slides.length;
 
-  function goTo(i: number) {
-    setActive(i);
-    resetAutoplay();
-  }
-
   const next = useCallback(() => {
     setActive((a) => (a + 1) % len);
-  }, [len]);
-
-  const prev = useCallback(() => {
-    setActive((a) => (a - 1 + len) % len);
   }, [len]);
 
   function startAutoplay() {
     stopAutoplay();
     intervalRef.current = setInterval(next, 5000);
   }
-
   function stopAutoplay() {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
+    if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
   }
-
-  function resetAutoplay() {
-    startAutoplay();
-  }
-
-  useEffect(() => {
-    startAutoplay();
-    return stopAutoplay;
-  }, [next]);
+  useEffect(() => { startAutoplay(); return stopAutoplay; }, [next]);
 
   return (
     <div
-      className="relative mx-4 overflow-hidden sm:mx-6 lg:mx-8"
+      className="relative w-full overflow-hidden rounded-xl"
       style={{
-        maxWidth: 1180,
-        height: "clamp(200px, 40vw, 340px)",
-        borderRadius: 28,
-        boxShadow: "0 24px 80px rgba(0,0,0,0.5)",
+        height: "clamp(140px, 28vw, 180px)",
+        background: slides[active].bg,
+        boxShadow: "0 8px 40px rgba(0,0,0,0.4)",
       }}
       onMouseEnter={stopAutoplay}
-      onMouseLeave={resetAutoplay}
-      onPointerDown={(e) => { setStartX(e.clientX); stopAutoplay(); }}
-      onPointerUp={(e) => {
-        const diff = e.clientX - startX;
-        if (diff > 45) prev();
-        if (diff < -45) next();
-        resetAutoplay();
-      }}
+      onMouseLeave={startAutoplay}
     >
-      <div className="relative h-full w-full">
-        {slides.map((s, i) => (
-          <div
-            key={s.id}
-            className="absolute inset-0 overflow-hidden"
-            style={{
-              opacity: i === active ? 1 : 0,
-              transform: i === active ? "scale(1)" : "scale(1.06)",
-              transition: "opacity 0.6s ease, transform 0.6s ease",
-              pointerEvents: i === active ? "auto" : "none",
-            }}
-          >
-            {/* Full gradient background */}
-            <div className="absolute inset-0" style={{ background: s.gradient }} />
+      {slides.map((s, i) => (
+        <div
+          key={i}
+          className="absolute inset-0 flex items-center"
+          style={{
+            opacity: i === active ? 1 : 0,
+            transition: "opacity 0.5s ease",
+            pointerEvents: i === active ? "auto" : "none",
+          }}
+        >
+          {/* Dark overlay */}
+          <div className="absolute inset-0" style={{ background: "linear-gradient(90deg, rgba(11,11,15,0.7) 0%, rgba(11,11,15,0.3) 60%, rgba(11,11,15,0.2) 100%)" }} />
 
-            {/* Animated blur pattern */}
-            <div
-              className="absolute inset-0 opacity-30"
-              style={{
-                background: `
-                  radial-gradient(ellipse at 20% 50%, rgba(255,255,255,0.3) 0%, transparent 50%),
-                  radial-gradient(ellipse at 80% 30%, rgba(0,0,0,0.2) 0%, transparent 40%)
-                `,
-              }}
-            />
+          {/* Decorative circles */}
+          <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/[0.06] blur-xl" />
+          <div className="absolute -bottom-8 right-10 w-24 h-24 rounded-full bg-white/[0.04] blur-xl" />
 
-            {/* Floating orbs */}
-            <div
-              className="absolute rounded-full blur-3xl animate-float"
-              style={{
-                width: "40%",
-                height: "80%",
-                top: "10%",
-                right: "-10%",
-                background: "rgba(255,255,255,0.08)",
-              }}
-            />
-            <div
-              className="absolute rounded-full blur-3xl animate-float2"
-              style={{
-                width: "25%",
-                height: "50%",
-                bottom: "-10%",
-                left: "20%",
-                background: "rgba(0,0,0,0.15)",
-              }}
-            />
-
-            {/* Dark overlay for text readability */}
-            <div
-              className="absolute inset-0"
-              style={{
-                background: "linear-gradient(90deg, rgba(9,9,11,0.55) 0%, rgba(9,9,11,0.15) 50%, rgba(9,9,11,0.35) 100%)",
-              }}
-            />
-
-            {/* Content */}
-            <div
-              className="absolute left-[22px] right-5 top-1/2 z-10 max-w-[520px] -translate-y-1/2 sm:left-[42px]"
+          <div className="relative z-10 px-4 sm:px-6">
+            <h2 className="text-white font-black tracking-tight" style={{ fontSize: "clamp(18px, 4vw, 28px)", lineHeight: 1.1, textShadow: "0 2px 12px rgba(0,0,0,0.5)" }}>
+              {s.title}
+            </h2>
+            <p className="text-white/70 mt-0.5" style={{ fontSize: "clamp(11px, 1.8vw, 14px)" }}>
+              {s.subtitle}
+            </p>
+            <Link
+              href={s.href}
+              className="mt-2 inline-flex h-7 items-center rounded-full px-3 text-[0.5rem] font-bold text-white transition-all active:scale-95 hover:brightness-110"
+              style={{ background: "rgba(255,255,255,0.2)", backdropFilter: "blur(8px)" }}
             >
-              <span
-                className="mb-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[0.5rem] font-black text-white sm:mb-4 sm:px-4 sm:text-xs"
-                style={{
-                  background: i === 1 ? "rgba(124,58,237,0.9)" : "rgba(255,60,136,0.9)",
-                  boxShadow: i === 1 ? "0 0 24px rgba(124,58,237,0.5)" : "0 0 24px rgba(255,60,136,0.5)",
-                  backdropFilter: "blur(8px)",
-                }}
-              >
-                {i !== 1 && <span className="relative flex h-1.5 w-1.5"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" /><span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-white" /></span>}
-                {s.badge}
-              </span>
-              <h1
-                className="text-white"
-                style={{
-                  fontSize: "clamp(24px, 5.5vw, 62px)",
-                  lineHeight: 0.9,
-                  letterSpacing: "-0.06em",
-                  fontWeight: 900,
-                  textShadow: "0 8px 30px rgba(0,0,0,0.65)",
-                  maxWidth: 620,
-                }}
-              >
-                {s.title}
-              </h1>
-              <p
-                className="mt-1 max-w-[430px] text-white/70 sm:mt-3"
-                style={{ fontSize: "clamp(12px, 1.2vw, 16px)", lineHeight: 1.4 }}
-              >
-                {s.subtitle}
-              </p>
-              <Link
-                href={s.href}
-                className="mt-3 inline-flex h-9 items-center justify-center rounded-full px-4 text-[0.6rem] font-black text-white transition-all duration-300 hover:scale-105 active:scale-95 sm:mt-5 sm:h-[46px] sm:px-[24px] sm:text-sm"
-                style={{
-                  background: s.gradient,
-                  boxShadow: `0 0 30px ${i === 1 ? "rgba(124,58,237,0.4)" : "rgba(255,60,136,0.4)"}`,
-                }}
-              >
-                {s.cta}
-              </Link>
-            </div>
+              {s.cta}
+            </Link>
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
 
-      {/* Animated dots */}
-      <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 gap-[6px] sm:bottom-[14px]">
+      {/* Dots */}
+      <div className="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 gap-1">
         {slides.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => goTo(i)}
-            className="rounded-full border-0 transition-all duration-500"
+          <button key={i} onClick={() => setActive(i)}
+            className="rounded-full transition-all duration-300"
             style={{
-              width: i === active ? 28 : 6,
-              height: 6,
-              background: i === active
-                ? "linear-gradient(90deg, #FF3C88, #FF6B3D)"
-                : "rgba(255,255,255,0.25)",
-              boxShadow: i === active ? "0 0 12px rgba(255,60,136,0.5)" : "none",
+              width: i === active ? 16 : 4,
+              height: 4,
+              background: i === active ? "#fff" : "rgba(255,255,255,0.3)",
             }}
-            aria-label={`Slide ${i + 1}`}
           />
         ))}
       </div>
