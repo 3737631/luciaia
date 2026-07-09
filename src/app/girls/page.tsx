@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import StoriesRow from "@/components/StoriesRow";
@@ -8,6 +8,9 @@ import { getGirlImage } from "@/lib/images";
 import { girls } from "@/data/girls";
 
 const femaleIds = new Set(["luna", "nia", "vera", "alma", "kira", "maya", "sasha", "yuki"]);
+
+const FALLBACK_GRADIENT =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='512' height='768'%3E%3Crect width='512' height='768' fill='%2312121a'/%3E%3C/svg%3E";
 const femaleChars = girls.filter((g) => femaleIds.has(g.id));
 
 const heroSlides = [
@@ -29,6 +32,14 @@ const filters = ["Todas", "Coquetas", "Gamer", "Misteriosas", "Dulces", "Atrevid
 export default function GirlsPage() {
   const [heroIdx, setHeroIdx] = useState(0);
   const [activeFilter, setActiveFilter] = useState("Todas");
+
+  const onImgError = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    if (!img.dataset.failed) {
+      img.dataset.failed = "1";
+      img.src = FALLBACK_GRADIENT;
+    }
+  }, []);
 
   const filtered = activeFilter === "Todas"
     ? femaleChars
@@ -59,6 +70,9 @@ export default function GirlsPage() {
               <img
                 src={getGirlImage(s.id)}
                 alt=""
+                fetchPriority={i === heroIdx ? "high" : "low"}
+                loading={i === heroIdx ? "eager" : "lazy"}
+                onError={onImgError}
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
             </div>
@@ -196,14 +210,9 @@ export default function GirlsPage() {
                 <img
                   src={getGirlImage(exp.girl)}
                   alt=""
+                  loading="lazy"
+                  onError={onImgError}
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    background: "linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.15))",
-                  }}
                 />
                 <span
                   style={{
@@ -273,6 +282,8 @@ export default function GirlsPage() {
                   <img
                     src={getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground)}
                     alt={girl.name}
+                    loading="lazy"
+                    onError={onImgError}
                     style={{ width: "100%", height: "100%", objectFit: "cover" }}
                   />
                   <div
@@ -426,6 +437,8 @@ export default function GirlsPage() {
                   <img
                     src={getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground)}
                     alt={girl.name}
+                    loading="lazy"
+                    onError={onImgError}
                     style={{
                       width: "100%",
                       height: "100%",

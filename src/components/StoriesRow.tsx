@@ -298,7 +298,9 @@ export default function StoriesRow({ ringSize = 86 }: { ringSize?: number }) {
                     <img
                       src={getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground)}
                       alt={girl.name}
+                      loading="lazy"
                       className="h-full w-full object-cover"
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
                     />
                   </div>
                 </div>
@@ -359,6 +361,7 @@ export default function StoriesRow({ ringSize = 86 }: { ringSize?: number }) {
               src={getGirlImage(activeGirl.id, currentSlide.hair, currentSlide.pose, currentSlide.bg)}
               alt={activeGirl.name}
               className="h-full w-full object-cover"
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
             />
 
             <div className="absolute top-12 left-3 z-20">

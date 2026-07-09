@@ -75,8 +75,7 @@ export function getGirlImage(
   for (const ch of girlId + h + p + b) seed = (seed * 31 + ch.charCodeAt(0)) & 0x7fffffff;
   seed = (seed % 90000) + 10000;
 
-  const ts = Date.now();
-  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?negative=${encodeURIComponent(NEGATIVE)}&width=512&height=768&seed=${seed}&nofeed=true&_t=${ts}`;
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?negative=${encodeURIComponent(NEGATIVE)}&width=512&height=768&seed=${seed}&nofeed=true`;
 }
 
 export function getGirlImageFallback(
