@@ -9,80 +9,63 @@ import { girls } from "@/data/girls";
 
 const animeIds = new Set(["sakura", "yumi", "rin"]);
 const animeChars = girls.filter((g) => animeIds.has(g.id));
-
 const filters = ["Todas", "Mágicas", "Catgirl", "Tsundere"];
 
 export default function AnimePage() {
   const [activeFilter, setActiveFilter] = useState("Todas");
-
-  const filtered =
-    activeFilter === "Todas"
-      ? animeChars
-      : animeChars.filter((g) =>
-          g.style?.toLowerCase().includes(activeFilter.replace(/s$/, "").toLowerCase())
-        );
+  const filtered = activeFilter === "Todas" ? animeChars : animeChars.filter((g) => g.style?.toLowerCase().includes(activeFilter.replace(/s$/, "").toLowerCase()));
 
   return (
     <>
       <Header />
-      <main className="min-h-screen overflow-x-hidden" style={{ background: "#0b0b0f" }}>
-        <div style={{ padding: "18px 0 0" }} className="sm:pt-7">
-          <HeroShowcaseCarousel />
-        </div>
+      <main style={{ minHeight: "100vh" }}>
+        <HeroShowcaseCarousel />
 
-        <section id="personajes" className="mt-10 px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-6xl">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h2 className="text-lg font-bold tracking-tight text-white sm:text-xl">Anime</h2>
-                <p className="mt-0.5 text-xs text-white/50 sm:text-sm">Personajes anime para conversaciones únicas</p>
-              </div>
+        <section style={{ paddingTop: 18 }}>
+          <div className="container-nuvia">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+              <h2 style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "-0.02em", margin: 0, color: "var(--text)" }}>Anime</h2>
             </div>
 
-            <div className="mt-4 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+            <div className="scrollbar-none" style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 2 }}>
               {filters.map((f) => (
-                <button
-                  key={f}
-                  onClick={() => setActiveFilter(f)}
-                  className={`shrink-0 rounded-full border px-4 py-1.5 text-[0.6rem] font-medium transition-all sm:text-xs ${
-                    activeFilter === f
-                      ? "border-[#ff3b7f]/40 bg-[#ff3b7f]/15 text-[#ff3b7f]"
-                      : "border-white/[0.10] bg-white/[0.04] text-white/50 hover:border-white/25 hover:text-white"
-                  }`}
+                <button key={f} onClick={() => setActiveFilter(f)}
+                  style={{
+                    flexShrink: 0, borderRadius: 999, fontWeight: 600, fontSize: "0.5rem",
+                    padding: "4px 10px", lineHeight: 1, letterSpacing: "-0.02em",
+                    background: activeFilter === f ? "rgba(255,45,117,0.12)" : "var(--surface)",
+                    border: activeFilter === f ? "0.5px solid rgba(255,45,117,0.4)" : "0.5px solid var(--border)",
+                    color: activeFilter === f ? "var(--pink)" : "var(--muted)",
+                    cursor: "pointer", transition: "all 180ms ease",
+                  }}
                 >
                   {f}
                 </button>
               ))}
             </div>
 
-            <div className="mt-5 grid grid-cols-2 gap-3 max-[380px]:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-4">
-              {filtered.length > 0
-                ? filtered.map((girl) => <GirlCard key={girl.id} girl={girl} />)
-                : (
-                  <div className="col-span-full py-12 text-center">
-                    <p className="text-sm text-white/50">No hay personajes con ese estilo</p>
-                  </div>
-                )}
+            <div className="character-grid" style={{ marginTop: 10 }}>
+              {filtered.length > 0 ? filtered.map((girl) => <GirlCard key={girl.id} girl={girl} />) : (
+                <div style={{ gridColumn: "1 / -1", padding: "24px 0", textAlign: "center" }}>
+                  <p style={{ fontSize: "0.6rem", color: "var(--muted)" }}>No hay personajes con ese estilo</p>
+                </div>
+              )}
             </div>
           </div>
         </section>
 
-        <section className="mt-12 px-4 pb-8 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-3xl rounded-[26px] border border-white/[0.10] bg-white/[0.04] p-6 text-center backdrop-blur-sm sm:p-10">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#ff3b7f]/20 to-[#ff7a3d]/20">
-              <svg viewBox="0 0 24 24" className="h-5 w-5 text-[#ff3b7f]" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-            </div>
-            <h2 className="text-xl font-bold tracking-tight text-white sm:text-2xl">NuviaChat</h2>
-            <p className="mt-2 text-sm leading-relaxed text-white/50">
-              Personajes anime con IA. Elige entre Sakura, Yumi o Rin y disfruta de conversaciones únicas
-              con estilo anime. Personaliza su pelo, ropa y fondo.
-            </p>
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-xs text-white/50">
-              <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1">+18</span>
-              <span className="text-white/20">·</span>
-              <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1">Personajes IA ficticios</span>
-              <span className="text-white/20">·</span>
-              <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1">Estilo anime</span>
+        <section style={{ padding: "18px 0" }}>
+          <div className="container-nuvia">
+            <div style={{ borderRadius: "var(--radius-lg)", background: "var(--surface)", border: "0.5px solid var(--border)", padding: "16px 20px", textAlign: "center" }}>
+              <h2 style={{ fontSize: "0.85rem", fontWeight: 700, letterSpacing: "-0.02em", margin: 0, color: "var(--text)" }}>NuviaChat</h2>
+              <p style={{ fontSize: "0.55rem", color: "var(--muted)", maxWidth: 480, margin: "6px auto 0", lineHeight: 1.5 }}>
+                Personajes anime con IA. Elige entre Sakura, Yumi o Rin y disfruta de conversaciones únicas con estilo anime.
+              </p>
+              <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 6, marginTop: 8 }}>
+                {["+18", "Personajes IA ficticios", "Estilo anime"].map((t) => (
+                  <span key={t} style={{ fontSize: "0.45rem", fontWeight: 500, padding: "2px 8px", borderRadius: 999, background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.3)", border: "0.5px solid rgba(255,255,255,0.06)" }}>{t}</span>
+                ))}
+              </div>
             </div>
           </div>
         </section>

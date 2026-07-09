@@ -1,8 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import Link from "next/link";
-import { girls } from "@/data/girls";
+import { Plus } from "lucide-react";
 import { getGirlImage } from "@/lib/images";
 
 interface StorySlide {
@@ -383,8 +381,13 @@ export default function StoriesRow({ ringSize = 86 }: { ringSize?: number }) {
             <button className="absolute top-0 bottom-0 left-0 z-10 w-1/2" onClick={goPrev} />
             <button className="absolute top-0 bottom-0 right-0 z-10 w-1/2" onClick={goNext} />
           </div>
-        </div>
-      )}
-    </>
+        ))}
+      </div>
+
+      <style>{`
+        .story-ring { transition: all 200ms ease; }
+        .story-ring:hover { background: linear-gradient(135deg, #ff2d75, #ff5b6e) !important; }
+      `}</style>
+    </section>
   );
 }

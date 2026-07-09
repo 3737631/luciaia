@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import StoriesRow from "@/components/StoriesRow";
 import { getGirlImage } from "@/lib/images";
 import { girls } from "@/data/girls";
+import { getGirlImage } from "@/lib/images";
 
 const femaleIds = new Set(["luna", "nia", "vera", "alma", "kira", "maya", "sasha", "yuki"]);
 const femaleChars = girls.filter((g) => femaleIds.has(g.id));
@@ -32,9 +33,10 @@ export default function GirlsPage() {
 
   const filtered = activeFilter === "Todas"
     ? femaleChars
-    : femaleChars.filter((g) =>
-        g.style?.toLowerCase().includes(activeFilter.replace(/s$/, "").toLowerCase()) ||
-        g.personality?.includes(activeFilter.replace(/s$/, "").toLowerCase())
+    : femaleChars.filter(
+        (g) =>
+          g.style?.toLowerCase().includes(activeFilter.replace(/s$/, "").toLowerCase()) ||
+          g.personality?.includes(activeFilter.replace(/s$/, "").toLowerCase())
       );
 
   const slide = heroSlides[heroIdx];
@@ -495,6 +497,8 @@ export default function GirlsPage() {
           </div>
         </section>
       </main>
+
+      <CreateYourGirl open={createOpen} onClose={() => setCreateOpen(false)} />
     </>
   );
 }
