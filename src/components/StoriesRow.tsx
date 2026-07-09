@@ -8,19 +8,19 @@ import { getGirlImage } from "@/lib/images";
 interface StorySlide { hair: string; pose: string; bg: string; label: string; }
 
 const ALL_SLIDES: Record<string, StorySlide[]> = {
-  axel: [{ hair: "cafe", pose: "ropa", bg: "studio", label: "Gimnasio vacío" }, { hair: "negro", pose: "casual", bg: "car-night", label: "Después del entrenamiento" }],
-  liam: [{ hair: "negro", pose: "casual", bg: "neon-room", label: "Noche de pelis" }, { hair: "cafe", pose: "ropa", bg: "studio", label: "Relajado" }],
-  sakura: [{ hair: "rosa", pose: "bata", bg: "studio", label: "Dimensión mágica" }, { hair: "azul", pose: "tanga", bg: "neon-room", label: "Portal estelar" }],
-  yumi: [{ hair: "azul", pose: "bata", bg: "neon-room", label: "Noche de mimos" }, { hair: "rosa", pose: "tanga", bg: "studio", label: "Jugando" }],
-  rin: [{ hair: "negro", pose: "ropa", bg: "studio", label: "Después de clase" }, { hair: "moreno", pose: "casual", bg: "neon-room", label: "Fin de semana" }],
-  luna: [{ hair: "moreno", pose: "tanga", bg: "car-night", label: "De noche en el coche" }, { hair: "pelirrojo", pose: "bata", bg: "neon-room", label: "En mi cuarto" }, { hair: "moreno", pose: "estrellas", bg: "studio", label: "Sesión de fotos" }],
-  nia: [{ hair: "rosa", pose: "tanga", bg: "studio", label: "Streaming setup" }, { hair: "moreno", pose: "bata", bg: "neon-room", label: "After game" }],
-  vera: [{ hair: "pelirrojo", pose: "tanga", bg: "neon-room", label: "Noche de vino" }, { hair: "rubio", pose: "estrellas", bg: "car-night", label: "Paseo nocturno" }, { hair: "moreno", pose: "bata", bg: "studio", label: "En casa" }],
-  alma: [{ hair: "moreno", pose: "tanga", bg: "beach-night", label: "Playa de noche" }, { hair: "rubio", pose: "bata", bg: "neon-room", label: "Saliendo" }],
-  kira: [{ hair: "rosa", pose: "tanga", bg: "neon-room", label: "Virtual" }, { hair: "pelirrojo", pose: "bata", bg: "studio", label: "Conexión" }, { hair: "moreno", pose: "estrellas", bg: "car-night", label: "Fuera de línea" }],
-  maya: [{ hair: "rubio", pose: "tanga", bg: "car-night", label: "After party" }, { hair: "moreno", pose: "bata", bg: "studio", label: "Backstage" }],
-  sasha: [{ hair: "moreno", pose: "tanga", bg: "neon-room", label: "Saliendo" }, { hair: "rubio", pose: "estrellas", bg: "car-night", label: "De fiesta" }, { hair: "pelirrojo", pose: "bata", bg: "studio", label: "En casa" }],
-  yuki: [{ hair: "moreno", pose: "estrellas", bg: "neon-room", label: "En mi cuarto" }, { hair: "rosa", pose: "bata", bg: "studio", label: "Tímida" }],
+  axel: [{ hair: "cafe", pose: "ropa", bg: "studio", label: "Gimnasio" }, { hair: "negro", pose: "casual", bg: "car-night", label: "Entreno" }],
+  liam: [{ hair: "negro", pose: "casual", bg: "neon-room", label: "Pelis" }, { hair: "cafe", pose: "ropa", bg: "studio", label: "Relax" }],
+  sakura: [{ hair: "rosa", pose: "bata", bg: "studio", label: "Magia" }, { hair: "azul", pose: "tanga", bg: "neon-room", label: "Portal" }],
+  yumi: [{ hair: "azul", pose: "bata", bg: "neon-room", label: "Mimos" }, { hair: "rosa", pose: "tanga", bg: "studio", label: "Jugando" }],
+  rin: [{ hair: "negro", pose: "ropa", bg: "studio", label: "Clase" }, { hair: "moreno", pose: "casual", bg: "neon-room", label: "Finde" }],
+  luna: [{ hair: "moreno", pose: "tanga", bg: "car-night", label: "Coche" }, { hair: "pelirrojo", pose: "bata", bg: "neon-room", label: "Cuarto" }, { hair: "moreno", pose: "estrellas", bg: "studio", label: "Fotos" }],
+  nia: [{ hair: "rosa", pose: "tanga", bg: "studio", label: "Stream" }, { hair: "moreno", pose: "bata", bg: "neon-room", label: "Game" }],
+  vera: [{ hair: "pelirrojo", pose: "tanga", bg: "neon-room", label: "Vino" }, { hair: "rubio", pose: "estrellas", bg: "car-night", label: "Paseo" }, { hair: "moreno", pose: "bata", bg: "studio", label: "Casa" }],
+  alma: [{ hair: "moreno", pose: "tanga", bg: "beach-night", label: "Playa" }, { hair: "rubio", pose: "bata", bg: "neon-room", label: "Salida" }],
+  kira: [{ hair: "rosa", pose: "tanga", bg: "neon-room", label: "Virtual" }, { hair: "pelirrojo", pose: "bata", bg: "studio", label: "Conexión" }, { hair: "moreno", pose: "estrellas", bg: "car-night", label: "Offline" }],
+  maya: [{ hair: "rubio", pose: "tanga", bg: "car-night", label: "Party" }, { hair: "moreno", pose: "bata", bg: "studio", label: "Backstage" }],
+  sasha: [{ hair: "moreno", pose: "tanga", bg: "neon-room", label: "Salida" }, { hair: "rubio", pose: "estrellas", bg: "car-night", label: "Fiesta" }, { hair: "pelirrojo", pose: "bata", bg: "studio", label: "Casa" }],
+  yuki: [{ hair: "moreno", pose: "estrellas", bg: "neon-room", label: "Cuarto" }, { hair: "rosa", pose: "bata", bg: "studio", label: "Tímida" }],
 };
 
 export default function StoriesRow() {
@@ -78,30 +78,34 @@ export default function StoriesRow() {
   const activeGirl = activeIndex !== null ? girls[activeIndex] : null;
   const slides = activeGirl ? (ALL_SLIDES[activeGirl.id] || []) : [];
   const currentSlide = slides[slideIdx];
+  const storySize = "clamp(52px, 8vw, 68px)";
+  const innerSize = "clamp(48px, 7.5vw, 64px)";
 
   return (
     <>
-      <div className="flex gap-3.5 overflow-x-auto pb-1 scrollbar-none" style={{ scrollbarWidth: "none" }}>
+      <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-none md:gap-4" style={{ scrollbarWidth: "none" }}>
         {girls.map((girl, i) => {
           const online = onlineMap[girl.id];
           return (
-            <button key={girl.id} onClick={() => openStory(i)} className="shrink-0 text-center transition-all active:scale-90" style={{ width: 54 }}>
-              <div className="relative mx-auto" style={{ width: 48, height: 48 }}>
-                <div className="absolute inset-0 rounded-full" style={{ padding: 1.5, background: "linear-gradient(135deg, #FF2D7F, #FF5A4F)" }}>
-                  <div className="h-full w-full rounded-full" style={{ background: "#000" }} />
-                </div>
+            <button key={girl.id} onClick={() => openStory(i)} className="shrink-0 text-center transition-all active:scale-90" style={{ width: "clamp(52px, 8vw, 68px)" }}>
+              <div className="relative mx-auto" style={{ width: storySize, height: storySize }}>
+                <div
+                  className="absolute inset-0 rounded-full"
+                  style={{
+                    padding: 1.5,
+                    background: "linear-gradient(135deg, #FF3B7F, #FF5A4F)",
+                    WebkitMask: "radial-gradient(circle at 50% 50%, transparent 1px, #000 1px)",
+                    mask: "radial-gradient(circle at 50% 50%, transparent 1px, #000 1px)",
+                  }}
+                />
                 <div className="absolute inset-0 overflow-hidden rounded-full" style={{ margin: 2 }}>
-                  <img
-                    src={getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground)}
-                    alt={girl.name}
-                    className="h-full w-full object-cover"
-                  />
+                  <img src={getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground)} alt={girl.name} className="h-full w-full object-cover" />
                 </div>
                 {online && (
-                  <span className="absolute -bottom-px -right-px z-10 h-2.5 w-2.5 rounded-full border-2" style={{ borderColor: "#000", background: "#30D158" }} />
+                  <span className="absolute -bottom-px -right-px z-10 rounded-full border-2" style={{ width: "clamp(8px, 1.2vw, 10px)", height: "clamp(8px, 1.2vw, 10px)", borderColor: "#0B0B0F", background: "#22C55E" }} />
                 )}
               </div>
-              <span className="block mt-0.5 truncate text-[0.5rem] font-medium" style={{ color: "rgba(255,255,255,0.5)" }}>
+              <span className="block mt-0.5 truncate font-medium" style={{ fontSize: "clamp(0.45rem, 1.2vw, 0.55rem)", color: "rgba(255,255,255,0.5)" }}>
                 {girl.name}
               </span>
             </button>
@@ -110,8 +114,8 @@ export default function StoriesRow() {
       </div>
 
       {activeGirl && currentSlide && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.92)", backdropFilter: "blur(30px)" }} onClick={closeStories}>
-          <div className="relative w-full overflow-hidden" style={{ aspectRatio: "9/16", maxHeight: "90vh", maxWidth: 400 }} onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.92)", backdropFilter: "blur(24px)" }} onClick={closeStories}>
+          <div className="relative w-full overflow-hidden" style={{ aspectRatio: "9/16", maxHeight: "90vh", maxWidth: 400, borderRadius: 12 }} onClick={(e) => e.stopPropagation()}>
             <div className="absolute top-0 left-0 right-0 z-20 flex gap-1 p-2">
               {slides.map((_, i) => (
                 <div key={i} className="h-0.5 flex-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.1)" }}>
@@ -123,7 +127,7 @@ export default function StoriesRow() {
             <div className="absolute top-3 left-0 right-0 z-20 flex items-center justify-between px-3">
               <div className="flex items-center gap-2">
                 <div className="h-7 w-7 rounded-full bg-cover bg-center border" style={{ borderColor: "rgba(255,255,255,0.15)", backgroundImage: `url(${getGirlImage(activeGirl.id, activeGirl.defaultHair, activeGirl.defaultPose, activeGirl.defaultBackground)})` }} />
-                <span className="text-sm font-semibold drop-shadow-lg">{activeGirl.name}</span>
+                <span className="text-xs font-semibold">{activeGirl.name}</span>
               </div>
               <button onClick={closeStories} className="flex h-6 w-6 items-center justify-center rounded-full" style={{ background: "rgba(0,0,0,0.5)" }}>
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12" /></svg>
@@ -131,7 +135,7 @@ export default function StoriesRow() {
             </div>
             <img src={getGirlImage(activeGirl.id, currentSlide.hair, currentSlide.pose, currentSlide.bg)} alt={activeGirl.name} className="h-full w-full object-cover" />
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-4 pt-12">
-              <Link href={`/chat/${activeGirl.id}`} onClick={closeStories} className="btn-pill h-8 w-full text-xs font-semibold rounded-lg">
+              <Link href={`/chat/${activeGirl.id}`} onClick={closeStories} className="btn-pill h-8 w-full text-xs font-bold rounded-lg">
                 Chatear con {activeGirl.name}
               </Link>
             </div>

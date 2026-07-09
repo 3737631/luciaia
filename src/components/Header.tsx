@@ -16,43 +16,45 @@ export default function Header() {
     <header
       className="sticky top-0 z-50"
       style={{
-        background: "rgba(0,0,0,0.78)",
-        backdropFilter: "blur(30px) saturate(1.2)",
-        WebkitBackdropFilter: "blur(30px) saturate(1.2)",
-        borderBottom: "0.5px solid rgba(255,255,255,0.06)",
+        height: "var(--header-h)",
+        background: "rgba(11,11,15,0.86)",
+        backdropFilter: "blur(18px)",
+        WebkitBackdropFilter: "blur(18px)",
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
       }}
     >
-      <div
-        className="mx-auto flex h-[3.25rem] w-full max-w-6xl items-center justify-between px-5"
-      >
-        <Link href="/girls" className="flex items-center gap-2">
-          <div
-            className="flex h-7 w-7 items-center justify-center rounded-full"
-            style={{ background: "linear-gradient(135deg, #FF2D7A, #FF5A4F)" }}
+      <div className="container-nuvia flex h-full items-center justify-between">
+        <Link href="/girls" className="flex items-center gap-2 shrink-0">
+          <span
+            className="flex items-center justify-center rounded-full"
+            style={{ background: "linear-gradient(135deg, #FF3B7F, #FF5A4F)", width: 22, height: 22 }}
           >
-            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-white" stroke="none">
+            <svg viewBox="0 0 24 24" className="h-3 w-3 fill-white" stroke="none">
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
             </svg>
-          </div>
+          </span>
           <span
-            className="text-sm font-semibold tracking-tight"
-            style={{ letterSpacing: "-0.03em" }}
+            className="text-sm font-bold tracking-tight"
+            style={{ fontSize: "clamp(0.8rem, 2.5vw, 1rem)", letterSpacing: "-0.04em" }}
           >
             NuviaChat
           </span>
         </Link>
 
-        <nav className="flex items-center gap-0.5 p-0.5" style={{ background: "rgba(255,255,255,0.06)", borderRadius: 999, border: "0.5px solid rgba(255,255,255,0.06)" }}>
+        <nav
+          className="flex items-center gap-0.5 p-0.5"
+          style={{ background: "rgba(255,255,255,0.06)", borderRadius: 999, border: "0.5px solid rgba(255,255,255,0.06)" }}
+        >
           {tabs.map((tab) => {
             const isActive = pathname === tab.href;
             return (
               <Link
                 key={tab.href}
                 href={tab.href}
-                className="px-3 py-1 text-xs font-medium rounded-full transition-all"
+                className="px-2.5 py-1 text-[0.6rem] font-semibold rounded-full transition-all sm:text-xs sm:px-3"
                 style={{
                   background: isActive ? "rgba(255,255,255,0.15)" : "transparent",
-                  color: isActive ? "#FFFFFF" : "rgba(255,255,255,0.4)",
+                  color: isActive ? "#fff" : "rgba(255,255,255,0.4)",
                   letterSpacing: "-0.02em",
                 }}
               >
@@ -63,21 +65,18 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <div
-            className="h-7 w-7 rounded-full flex items-center justify-center"
-            style={{ background: "rgba(255,255,255,0.06)" }}
+          <Link
+            href="/girls"
+            className="btn-ghost hidden sm:inline-flex"
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5">
-              <circle cx="12" cy="12" r="10" />
-              <path d="M12 6v6l4 2" />
-            </svg>
-          </div>
-          <button
-            className="flex h-7 items-center rounded-full px-3 text-xs font-semibold text-white"
-            style={{ background: "linear-gradient(135deg, #FF2D7A, #FF5A4F)", letterSpacing: "-0.02em" }}
+            Iniciar sesión
+          </Link>
+          <Link
+            href="/girls"
+            className="btn-pill"
           >
-            Crear
-          </button>
+            Crear cuenta
+          </Link>
         </div>
       </div>
     </header>
