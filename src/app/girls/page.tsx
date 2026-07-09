@@ -49,6 +49,44 @@ export default function GirlsPage() {
             <StoriesRow />
           </div>
 
+          {/* Create your girl banner (antes de experiencias y grid) */}
+          <section id="crear" className="mt-5">
+            <div
+              className="relative overflow-hidden transition-all cursor-pointer active:scale-[0.99]"
+              style={{
+                borderRadius: 16,
+                background: "rgba(255,255,255,0.04)",
+                backdropFilter: "blur(20px)",
+                WebkitBackdropFilter: "blur(20px)",
+                border: "0.5px solid rgba(255,255,255,0.08)",
+                padding: "16px 20px",
+              }}
+              onClick={() => setCreateOpen(true)}
+            >
+              <div className="relative z-10 flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="font-semibold tracking-tight text-white" style={{ fontSize: "clamp(0.8rem, 2.5vw, 1rem)", letterSpacing: "-0.04em" }}>
+                    Crea tu propia <span style={{ background: "linear-gradient(135deg, #FF2D7F, #FF5A4F)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>novia de IA</span>
+                  </h3>
+                  <p className="text-[0.5rem] mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>Personaliza aspecto, personalidad y estilo</p>
+                </div>
+                <button className="btn-pill shrink-0 h-7 px-3 text-[0.45rem] font-semibold">
+                  Crear tu IA
+                </button>
+              </div>
+              <div className="flex mt-2.5 gap-1">
+                {["luna", "nia", "vera", "alma"].map((id) => (
+                  <div key={id} className="w-6 h-6 rounded-full overflow-hidden" style={{ border: "0.5px solid rgba(255,255,255,0.08)" }}>
+                    <img src={`https://image.pollinations.ai/prompt/${id}%20portrait?width=60&height=60&seed=1`} alt="" className="w-full h-full object-cover" />
+                  </div>
+                ))}
+                <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
+                  <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "0.4rem" }}>+</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
           {/* Nuevas experiencias */}
           <section className="mt-6">
             <ExperiencesRow onOpenCreate={() => setCreateOpen(true)} />
@@ -85,44 +123,6 @@ export default function GirlsPage() {
                     <p className="text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>No hay personajes con ese estilo</p>
                   </div>
                 )}
-            </div>
-          </section>
-
-          {/* Create your girl banner */}
-          <section id="crear" className="mt-5">
-            <div
-              className="relative overflow-hidden transition-all cursor-pointer active:scale-[0.99]"
-              style={{
-                borderRadius: 16,
-                background: "rgba(255,255,255,0.04)",
-                backdropFilter: "blur(20px)",
-                WebkitBackdropFilter: "blur(20px)",
-                border: "0.5px solid rgba(255,255,255,0.08)",
-                padding: "16px 20px",
-              }}
-              onClick={() => setCreateOpen(true)}
-            >
-              <div className="relative z-10 flex items-center justify-between gap-3">
-                <div>
-                  <h3 className="font-semibold tracking-tight text-white" style={{ fontSize: "clamp(0.8rem, 2.5vw, 1rem)", letterSpacing: "-0.04em" }}>
-                    Crea tu propia <span style={{ background: "linear-gradient(135deg, #FF2D7F, #FF5A4F)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>novia de IA</span>
-                  </h3>
-                  <p className="text-[0.5rem] mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>Personaliza aspecto, personalidad y estilo</p>
-                </div>
-                <button className="btn-pill shrink-0 h-7 px-3 text-[0.45rem] font-semibold">
-                  Crear tu IA
-                </button>
-              </div>
-              <div className="flex mt-2.5 gap-1">
-                {["luna", "nia", "vera", "alma"].map((id) => (
-                  <div key={id} className="w-6 h-6 rounded-full overflow-hidden" style={{ border: "0.5px solid rgba(255,255,255,0.08)" }}>
-                    <img src={`https://image.pollinations.ai/prompt/${id}%20portrait?width=60&height=60&seed=1`} alt="" className="w-full h-full object-cover" />
-                  </div>
-                ))}
-                <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
-                  <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "0.4rem" }}>+</span>
-                </div>
-              </div>
             </div>
           </section>
 
