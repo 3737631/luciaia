@@ -22,49 +22,49 @@ export default function GirlCard({ girl }: { girl: Girl }) {
   }, [girl.id]);
 
   return (
-    <div className="group overflow-hidden animate-card-fade" style={{ borderRadius: 14, background: "#15151b", border: "1px solid rgba(255,255,255,0.08)" }}>
+    <div className="group overflow-hidden animate-card-fade" style={{ borderRadius: 16, background: "#17171D", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 4px 20px rgba(0,0,0,0.3)" }}>
       <div className="relative overflow-hidden" style={{ aspectRatio: "3/4" }}>
         {!imgFailed ? (
           <>
             <img
               src={girlImage}
               alt={girl.name}
-              className="h-full w-full object-cover object-top transition-all duration-500 group-hover:scale-105"
+              className="h-full w-full object-cover object-top transition-all duration-[250ms] group-hover:scale-105"
               onError={() => setImgFailed(true)}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0b0b0f] via-[#0b0b0f]/20 to-transparent" />
+            <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.88), rgba(0,0,0,0.55), transparent)" }} />
           </>
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-[#15151b]">
-            <span className="text-[0.5rem] text-[#a1a1aa]">Sin imagen</span>
+          <div className="flex h-full w-full items-center justify-center" style={{ background: "#17171D" }}>
+            <span className="text-[0.45rem]" style={{ color: "#71717A" }}>Sin imagen</span>
           </div>
         )}
         {girl.badge && (
           <div className="absolute left-2 top-2 z-10">
-            <span className="rounded-full bg-[#FF3B86]/90 px-2 py-0.5 text-[0.4rem] font-bold text-white shadow-[0_0_12px_rgba(255,59,134,0.4)]">
+            <span className="rounded-full px-2 py-0.5 text-[0.35rem] font-bold text-white" style={{ background: "#FF3B7F" }}>
               {girl.badge}
             </span>
           </div>
         )}
         <div className="absolute bottom-0 left-0 right-0 p-2.5 z-10">
-          <h3 className="font-bold text-white" style={{ fontSize: "clamp(14px, 4vw, 18px)", textShadow: "0 2px 8px rgba(0,0,0,0.8)" }}>
-            {girl.name} <span className="font-normal text-white/60" style={{ fontSize: "0.65em" }}>{girl.age}</span>
+          <h3 className="font-extrabold text-white" style={{ fontSize: "clamp(13px, 3.5vw, 17px)", letterSpacing: "-0.04em", lineHeight: 1.1, textShadow: "0 1px 6px rgba(0,0,0,0.6)" }}>
+            {girl.name} <span className="font-normal text-white/60" style={{ fontSize: "0.6em" }}>{girl.age}</span>
           </h3>
-          <p className="text-[0.55rem] leading-tight text-white/60 line-clamp-2 mt-0.5" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.6)" }}>
+          <p className="text-[0.5rem] leading-tight mt-0.5 line-clamp-2" style={{ color: "#C4C4CC", textShadow: "0 1px 4px rgba(0,0,0,0.4)" }}>
             {girl.story}
           </p>
         </div>
-        <div className="absolute right-2 top-2 z-10 flex items-center gap-1">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#30D158] opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-[#30D158]" />
+        <div className="absolute right-2 top-2 z-10">
+          <span className="relative flex h-1.5 w-1.5">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ background: "#22C55E" }} />
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full" style={{ background: "#22C55E" }} />
           </span>
         </div>
       </div>
-      <div className="p-2" style={{ background: "#15151b" }}>
+      <div className="p-2" style={{ background: "#17171D" }}>
         <Link
           href={`/chat/${girl.id}`}
-          className="btn-primary flex h-8 w-full items-center justify-center text-[0.5rem] font-bold active:scale-95"
+          className="btn-primary h-7 w-full text-[0.45rem] font-bold"
         >
           Chatear
         </Link>

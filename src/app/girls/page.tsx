@@ -37,38 +37,39 @@ export default function GirlsPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen" style={{ background: "#0b0b0f" }}>
+      <main className="min-h-screen" style={{ background: "#0B0B0F" }}>
         <div style={{ maxWidth: 1180, margin: "0 auto" }}>
           {/* Hero */}
-          <div className="px-3 pt-3 sm:px-4">
+          <div className="px-4 pt-3">
             <HeroShowcaseCarousel />
           </div>
 
           {/* Stories */}
-          <div className="px-3 mt-2 sm:px-4">
+          <div className="px-4 mt-3">
             <StoriesRow />
           </div>
 
           {/* Nuevas experiencias */}
-          <section className="px-3 mt-4 sm:px-4">
+          <section className="px-4 mt-5">
             <ExperiencesRow onOpenCreate={() => setCreateOpen(true)} />
           </section>
 
           {/* Personajes */}
-          <section id="personajes" className="px-3 mt-5 sm:px-4">
-            <h2 className="text-white font-bold tracking-tight" style={{ fontSize: "clamp(16px, 3.5vw, 22px)" }}>
+          <section id="personajes" className="px-4 mt-5">
+            <h2 className="text-white font-bold tracking-tight" style={{ fontSize: "clamp(14px, 3vw, 18px)", letterSpacing: "-0.04em" }}>
               Personajes
             </h2>
 
             {/* Filters */}
-            <div className="flex gap-1.5 overflow-x-auto mt-2 pb-1 scrollbar-none" style={{ scrollbarWidth: "none" }}>
+            <div className="flex gap-1.5 overflow-x-auto mt-2 pb-0.5 scrollbar-none" style={{ scrollbarWidth: "none" }}>
               {filters.map((f) => (
                 <button key={f} onClick={() => setActiveFilter(f)}
-                  className={`shrink-0 rounded-full border px-2.5 py-1 text-[0.5rem] font-semibold transition-all active:scale-95 ${
-                    activeFilter === f
-                      ? "border-[#FF3B86]/40 bg-[#FF3B86]/15 text-[#FF3B86]"
-                      : "border-white/[0.08] text-white/40 hover:text-white/70"
-                  }`}
+                  className="shrink-0 rounded-full border px-2.5 py-1 text-[0.45rem] font-semibold transition-all active:scale-95"
+                  style={{
+                    background: activeFilter === f ? "rgba(255,59,127,0.15)" : "#15151B",
+                    borderColor: activeFilter === f ? "rgba(255,67,130,0.55)" : "rgba(255,255,255,0.08)",
+                    color: activeFilter === f ? "#FF3B7F" : "#A1A1AA",
+                  }}
                 >
                   {f}
                 </button>
@@ -81,75 +82,63 @@ export default function GirlsPage() {
                 filtered.map((girl) => <GirlCard key={girl.id} girl={girl} />)
               ) : (
                 <div className="col-span-full py-12 text-center">
-                  <p className="text-xs text-white/40">No hay personajes con ese estilo</p>
+                  <p className="text-xs" style={{ color: "#71717A" }}>No hay personajes con ese estilo</p>
                 </div>
               )}
             </div>
           </section>
 
           {/* Create your girl banner */}
-          <section id="crear" className="px-3 mt-6 sm:px-4">
+          <section id="crear" className="px-4 mt-5">
             <div
-              className="relative overflow-hidden rounded-xl p-4 sm:p-5 cursor-pointer transition-all active:scale-[0.99]"
-              style={{
-                background: "linear-gradient(135deg, #15151b, #1c1c24)",
-                border: "1px solid rgba(255,255,255,0.08)",
-              }}
+              className="relative overflow-hidden transition-all cursor-pointer active:scale-[0.99]"
+              style={{ borderRadius: 16, background: "#17171D", border: "1px solid rgba(255,255,255,0.08)", padding: "16px 20px" }}
               onClick={() => setCreateOpen(true)}
             >
-              {/* Decorative mini circles */}
-              <div className="absolute right-0 top-0 w-24 h-24 rounded-full bg-[#FF3B86]/10 blur-2xl" />
-              <div className="absolute -bottom-4 -left-4 w-16 h-16 rounded-full bg-[#FF6B45]/10 blur-xl" />
-
-              <div className="relative z-10 flex items-center justify-between">
+              <div className="absolute right-0 top-0 w-20 h-20 rounded-full opacity-[0.06]" style={{ background: "#FF3B7F", filter: "blur(40px)" }} />
+              <div className="relative z-10 flex items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-white font-bold" style={{ fontSize: "clamp(15px, 3vw, 20px)" }}>
+                  <h3 className="text-white font-bold tracking-tight" style={{ fontSize: "clamp(13px, 2.5vw, 16px)", letterSpacing: "-0.04em" }}>
                     Crea tu propia <span className="gradient-text">novia de IA</span>
                   </h3>
-                  <p className="text-[0.55rem] text-white/50 mt-0.5">Personaliza su aspecto, personalidad y estilo</p>
+                  <p className="text-[0.5rem] mt-0.5" style={{ color: "#71717A" }}>Personaliza su aspecto, personalidad y estilo</p>
                 </div>
-                <button className="btn-primary shrink-0 h-8 px-3 text-[0.5rem] font-bold active:scale-95">
+                <button className="btn-primary shrink-0 h-7 px-3 text-[0.45rem] font-bold">
                   Crear tu IA
                 </button>
               </div>
-
-              {/* Mini decorative avatars */}
-              <div className="flex mt-3 gap-1.5">
+              <div className="flex mt-2.5 gap-1">
                 {["luna", "nia", "vera", "alma"].map((id) => (
-                  <div key={id} className="w-7 h-7 rounded-full overflow-hidden border-2 border-white/[0.08]">
-                    <img
-                      src={`https://image.pollinations.ai/prompt/${id}%20portrait?width=60&height=60&seed=1`}
-                      alt=""
-                      className="w-full h-full object-cover"
-                    />
+                  <div key={id} className="w-6 h-6 rounded-full overflow-hidden border" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
+                    <img src={`https://image.pollinations.ai/prompt/${id}%20portrait?width=60&height=60&seed=1`} alt="" className="w-full h-full object-cover" />
                   </div>
                 ))}
-                <div className="w-7 h-7 rounded-full bg-white/[0.06] flex items-center justify-center border-2 border-white/[0.08]">
-                  <span className="text-[0.4rem] text-white/40">+</span>
+                <div className="w-6 h-6 rounded-full flex items-center justify-center border" style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.08)" }}>
+                  <span className="text-[0.35rem]" style={{ color: "#71717A" }}>+</span>
                 </div>
               </div>
             </div>
           </section>
 
           {/* FAQ */}
-          <section className="px-3 mt-6 sm:px-4" id="faq">
-            <h2 className="text-center text-white font-bold tracking-tight" style={{ fontSize: "clamp(16px, 3.5vw, 20px)" }}>
+          <section className="px-4 mt-6" id="faq">
+            <h2 className="text-center text-white font-bold tracking-tight" style={{ fontSize: "clamp(14px, 3vw, 18px)", letterSpacing: "-0.04em" }}>
               Preguntas frecuentes
             </h2>
             <div className="mt-3 space-y-1.5 max-w-2xl mx-auto">
               {faqs.map((faq) => (
                 <details key={faq.q}
-                  className="group rounded-lg border border-white/[0.08] transition-all duration-200"
-                  style={{ background: "#15151b" }}
+                  className="group transition-all duration-200"
+                  style={{ borderRadius: 12, background: "#15151B", border: "1px solid rgba(255,255,255,0.07)" }}
                 >
-                  <summary className="flex cursor-pointer items-center justify-between px-3 py-2.5 text-[0.6rem] font-medium text-white/80 transition-colors">
+                  <summary className="flex cursor-pointer items-center justify-between px-3.5 py-2.5 text-[0.55rem] font-medium text-white/80 transition-colors" style={{ letterSpacing: "-0.01em" }}>
                     {faq.q}
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 text-white/30 transition-transform duration-200 group-open:rotate-180">
+                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 transition-transform duration-200 group-open:rotate-180" style={{ color: "#71717A" }}>
                       <path d="M6 9l6 6 6-6" />
                     </svg>
                   </summary>
-                  <div className="border-t border-white/[0.06] px-3 py-2">
-                    <p className="text-[0.55rem] leading-relaxed text-white/50">{faq.a}</p>
+                  <div className="px-3.5 py-2" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+                    <p className="text-[0.5rem] leading-relaxed" style={{ color: "#A1A1AA" }}>{faq.a}</p>
                   </div>
                 </details>
               ))}
@@ -157,19 +146,19 @@ export default function GirlsPage() {
           </section>
 
           {/* SEO Block */}
-          <section className="px-3 mt-6 sm:px-4">
-            <div className="rounded-xl p-4 sm:p-5" style={{ background: "#17171c", border: "1px solid rgba(255,255,255,0.06)" }}>
-              <h2 className="text-white font-bold tracking-tight text-center" style={{ fontSize: "clamp(14px, 3vw, 18px)" }}>
+          <section className="px-4 mt-5">
+            <div className="p-4 sm:p-5" style={{ borderRadius: 16, background: "#17171D", border: "1px solid rgba(255,255,255,0.06)" }}>
+              <h2 className="text-white font-bold tracking-tight text-center" style={{ fontSize: "clamp(13px, 2.5vw, 16px)", letterSpacing: "-0.04em" }}>
                 Encuentra tu Match de Novia de IA
               </h2>
-              <p className="text-[0.55rem] text-white/50 text-center mt-2 max-w-md mx-auto leading-relaxed">
+              <p className="text-[0.5rem] text-center mt-2 max-w-md mx-auto leading-relaxed" style={{ color: "#A1A1AA", letterSpacing: "-0.01em" }}>
                 Explora nuestra colección de personajes IA ficticios. Cada una tiene su propia personalidad, historia y estilo visual. Chatea, llama o personaliza a tu personaje favorito. Sin registro, sin límites.
               </p>
-              <div className="flex flex-wrap justify-center gap-2 mt-3">
-                <span className="rounded-full bg-white/[0.05] px-2 py-0.5 text-[0.45rem] text-white/40 border border-white/[0.06]">+18</span>
-                <span className="rounded-full bg-white/[0.05] px-2 py-0.5 text-[0.45rem] text-white/40 border border-white/[0.06]">Personajes IA ficticios</span>
-                <span className="rounded-full bg-white/[0.05] px-2 py-0.5 text-[0.45rem] text-white/40 border border-white/[0.06]">Chat y llamada</span>
-                <span className="rounded-full bg-white/[0.05] px-2 py-0.5 text-[0.45rem] text-white/40 border border-white/[0.06]">Sin registro</span>
+              <div className="flex flex-wrap justify-center gap-1.5 mt-3">
+                <span className="rounded-full px-2 py-0.5 text-[0.4rem] font-medium border" style={{ background: "rgba(255,255,255,0.03)", color: "#71717A", borderColor: "rgba(255,255,255,0.06)" }}>+18</span>
+                <span className="rounded-full px-2 py-0.5 text-[0.4rem] font-medium border" style={{ background: "rgba(255,255,255,0.03)", color: "#71717A", borderColor: "rgba(255,255,255,0.06)" }}>Personajes IA ficticios</span>
+                <span className="rounded-full px-2 py-0.5 text-[0.4rem] font-medium border" style={{ background: "rgba(255,255,255,0.03)", color: "#71717A", borderColor: "rgba(255,255,255,0.06)" }}>Chat y llamada</span>
+                <span className="rounded-full px-2 py-0.5 text-[0.4rem] font-medium border" style={{ background: "rgba(255,255,255,0.03)", color: "#71717A", borderColor: "rgba(255,255,255,0.06)" }}>Sin registro</span>
               </div>
             </div>
           </section>
@@ -181,9 +170,10 @@ export default function GirlsPage() {
       {/* Floating create button (mobile) */}
       <button
         onClick={() => setCreateOpen(true)}
-        className="fixed bottom-5 right-5 z-40 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-[#FF3B86] to-[#FF6B45] text-white shadow-[0_0_24px_rgba(255,59,134,0.4)] transition-all active:scale-90 sm:hidden"
+        className="fixed bottom-5 right-5 z-40 flex h-9 w-9 items-center justify-center rounded-full shadow-lg transition-all active:scale-90 sm:hidden"
+        style={{ background: "linear-gradient(135deg, #FF3B7F, #FF5A4F)", boxShadow: "0 4px 16px rgba(255,59,127,0.3)" }}
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
       </button>
 
       <CreateYourGirl open={createOpen} onClose={() => setCreateOpen(false)} />

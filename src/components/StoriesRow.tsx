@@ -47,11 +47,8 @@ export default function StoriesRow() {
     timer.current = setInterval(() => {
       progressVal.current += 1; setProgress(progressVal.current);
       if (progressVal.current >= 100) {
-        clearTimer();
-        const gi = activeIndexRef.current;
-        if (gi === null) return;
-        const slides = ALL_SLIDES[girls[gi].id] || [];
-        const si = slideIdxRef.current;
+        clearTimer(); const gi = activeIndexRef.current; if (gi === null) return;
+        const slides = ALL_SLIDES[girls[gi].id] || []; const si = slideIdxRef.current;
         if (si < slides.length - 1) { setSlideIdx(si + 1); slideIdxRef.current = si + 1; startTimer(); }
         else if (gi < girls.length - 1) { const ng = gi + 1; setActiveIndex(ng); activeIndexRef.current = ng; setSlideIdx(0); slideIdxRef.current = 0; startTimer(); }
         else { setActiveIndex(null); activeIndexRef.current = null; }
@@ -70,8 +67,7 @@ export default function StoriesRow() {
     startTimer();
   }, [clearTimer, startTimer, closeStories]);
   const goPrev = useCallback(() => {
-    const gi = activeIndexRef.current; if (gi === null) return; clearTimer();
-    const si = slideIdxRef.current;
+    const gi = activeIndexRef.current; if (gi === null) return; clearTimer(); const si = slideIdxRef.current;
     if (si > 0) { setSlideIdx(si - 1); slideIdxRef.current = si - 1; }
     else if (gi > 0) { const ng = gi - 1; const prevSlides = ALL_SLIDES[girls[ng].id] || []; setActiveIndex(ng); activeIndexRef.current = ng; setSlideIdx(prevSlides.length - 1); slideIdxRef.current = prevSlides.length - 1; }
     else { closeStories(); return; }
@@ -90,34 +86,38 @@ export default function StoriesRow() {
           const online = onlineMap[girl.id];
           return (
             <button key={girl.id} onClick={() => openStory(i)}
-              className="shrink-0 text-center transition-transform active:scale-90"
-              style={{ width: 60 }}
+              className="shrink-0 text-center transition-all active:scale-90"
+              style={{ width: 56 }}
             >
-              <div className="relative mx-auto mb-1" style={{ width: 52, height: 52 }}>
-                <div className="absolute inset-0 rounded-full" style={{ padding: 2, background: "linear-gradient(135deg, #FF3B86, #FF6B45)" }}>
-                  <div className="h-full w-full rounded-full" style={{ background: "#0b0b0f" }} />
-                </div>
-                <div className="absolute inset-0 overflow-hidden rounded-full" style={{ margin: 3 }}>
+              <div className="relative mx-auto mb-0.5" style={{ width: 46, height: 46 }}>
+                <div
+                  className="absolute inset-0 rounded-full"
+                  style={{
+                    padding: 1.5,
+                    background: "linear-gradient(135deg, #FF3B7F, #FF5A4F)",
+                    WebkitMask: "radial-gradient(circle at 50% 50%, transparent 21px, #000 21px)",
+                    mask: "radial-gradient(circle at 50% 50%, transparent 21px, #000 21px)",
+                  }}
+                />
+                <div className="absolute inset-0 overflow-hidden rounded-full" style={{ margin: 2 }}>
                   <img src={getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground)} alt={girl.name} className="h-full w-full object-cover" />
                 </div>
                 {online && (
-                  <span className="absolute -bottom-0.5 -right-0.5 z-10 h-2.5 w-2.5 rounded-full border-[2px]" style={{ borderColor: "#0b0b0f", background: "#30D158" }} />
+                  <span className="absolute -bottom-0.5 -right-0.5 z-10 h-2 w-2 rounded-full border-[1.5px]" style={{ borderColor: "#0B0B0F", background: "#22C55E" }} />
                 )}
               </div>
-              <span className="block max-w-[60px] truncate text-[0.5rem] font-semibold text-white/70">{girl.name}</span>
+              <span className="block truncate text-[0.45rem] font-medium text-white/60">{girl.name}</span>
             </button>
           );
         })}
       </div>
 
-      {/* Stories overlay */}
       {activeGirl && currentSlide && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.92)", backdropFilter: "blur(24px)" }} onClick={closeStories}>
-          <div className="relative w-full overflow-hidden rounded-2xl" style={{ aspectRatio: "9/16", maxHeight: "90vh", maxWidth: 400 }}
-            onClick={(e) => e.stopPropagation()}>
+          <div className="relative w-full overflow-hidden rounded-xl" style={{ aspectRatio: "9/16", maxHeight: "90vh", maxWidth: 400 }} onClick={(e) => e.stopPropagation()}>
             <div className="absolute top-0 left-0 right-0 z-20 flex gap-1 p-2">
               {slides.map((_, i) => (
-                <div key={i} className="h-0.5 flex-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.15)" }}>
+                <div key={i} className="h-0.5 flex-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.12)" }}>
                   {i === slideIdx && <div className="h-full rounded-full bg-white transition-all duration-100" style={{ width: `${progress}%` }} />}
                   {i < slideIdx && <div className="h-full w-full rounded-full bg-white" />}
                 </div>
@@ -125,17 +125,16 @@ export default function StoriesRow() {
             </div>
             <div className="absolute top-3 left-0 right-0 z-20 flex items-center justify-between px-3">
               <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-full border-2 border-white/30 bg-cover bg-center shadow-lg" style={{ backgroundImage: `url(${getGirlImage(activeGirl.id, activeGirl.defaultHair, activeGirl.defaultPose, activeGirl.defaultBackground)})` }} />
-                <span className="text-sm font-bold text-white drop-shadow-lg">{activeGirl.name}</span>
+                <div className="h-7 w-7 rounded-full border border-white/20 bg-cover bg-center" style={{ backgroundImage: `url(${getGirlImage(activeGirl.id, activeGirl.defaultHair, activeGirl.defaultPose, activeGirl.defaultBackground)})` }} />
+                <span className="text-sm font-semibold text-white drop-shadow-lg">{activeGirl.name}</span>
               </div>
-              <button onClick={closeStories} className="flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white/70 backdrop-blur-sm active:scale-90">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              <button onClick={closeStories} className="flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-white/60 backdrop-blur-sm active:scale-90">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
               </button>
             </div>
             <img src={getGirlImage(activeGirl.id, currentSlide.hair, currentSlide.pose, currentSlide.bg)} alt={activeGirl.name} className="h-full w-full object-cover" />
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-4 pt-12">
-              <Link href={`/chat/${activeGirl.id}`} onClick={closeStories}
-                className="btn-primary flex h-9 w-full items-center justify-center rounded-xl text-xs font-bold">
+              <Link href={`/chat/${activeGirl.id}`} onClick={closeStories} className="btn-primary h-8 w-full text-[0.5rem] font-bold rounded-lg">
                 Chatear con {activeGirl.name}
               </Link>
             </div>

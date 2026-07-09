@@ -5,25 +5,22 @@ import Link from "next/link";
 
 const slides = [
   {
-    title: "1ª Semana Gratis",
+    title: "1\u00aa Semana Gratis",
     subtitle: "Sin compromiso ni tarjeta",
     cta: "Comenzar",
     href: "#personajes",
-    bg: "linear-gradient(135deg, #FF3B86, #FF6B45)",
   },
   {
     title: "Crea tu roleplay",
     subtitle: "Describe la escena que imaginas",
     cta: "Crear roleplay",
     href: "#personajes",
-    bg: "linear-gradient(135deg, #7c3aed, #a78bfa)",
   },
   {
     title: "Chicas en vivo",
     subtitle: "Conecta en tiempo real",
     cta: "Probar ahora",
     href: "#personajes",
-    bg: "linear-gradient(135deg, #FF6B45, #FF3B86)",
   },
 ];
 
@@ -31,28 +28,21 @@ export default function HeroShowcaseCarousel() {
   const [active, setActive] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const len = slides.length;
+  const next = useCallback(() => setActive((a) => (a + 1) % slides.length), []);
 
-  const next = useCallback(() => {
-    setActive((a) => (a + 1) % len);
-  }, [len]);
-
-  function startAutoplay() {
-    stopAutoplay();
-    intervalRef.current = setInterval(next, 5000);
-  }
-  function stopAutoplay() {
-    if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
-  }
+  function startAutoplay() { stopAutoplay(); intervalRef.current = setInterval(next, 5000); }
+  function stopAutoplay() { if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; } }
   useEffect(() => { startAutoplay(); return stopAutoplay; }, [next]);
 
   return (
     <div
-      className="relative w-full overflow-hidden rounded-xl"
+      className="relative w-full overflow-hidden"
       style={{
-        height: "clamp(140px, 28vw, 180px)",
-        background: slides[active].bg,
-        boxShadow: "0 8px 40px rgba(0,0,0,0.4)",
+        height: "clamp(130px, 26vw, 170px)",
+        borderRadius: 20,
+        background: "radial-gradient(circle at 20% 20%, rgba(255,59,127,0.22), transparent 30%), linear-gradient(135deg, #18141F 0%, #25131B 45%, #111116 100%)",
+        border: "1px solid rgba(255,255,255,0.07)",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.4)",
       }}
       onMouseEnter={stopAutoplay}
       onMouseLeave={startAutoplay}
@@ -61,47 +51,31 @@ export default function HeroShowcaseCarousel() {
         <div
           key={i}
           className="absolute inset-0 flex items-center"
-          style={{
-            opacity: i === active ? 1 : 0,
-            transition: "opacity 0.5s ease",
-            pointerEvents: i === active ? "auto" : "none",
-          }}
+          style={{ opacity: i === active ? 1 : 0, transition: "opacity 0.4s ease", pointerEvents: i === active ? "auto" : "none" }}
         >
-          {/* Dark overlay */}
-          <div className="absolute inset-0" style={{ background: "linear-gradient(90deg, rgba(11,11,15,0.7) 0%, rgba(11,11,15,0.3) 60%, rgba(11,11,15,0.2) 100%)" }} />
-
-          {/* Decorative circles */}
-          <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/[0.06] blur-xl" />
-          <div className="absolute -bottom-8 right-10 w-24 h-24 rounded-full bg-white/[0.04] blur-xl" />
-
-          <div className="relative z-10 px-4 sm:px-6">
-            <h2 className="text-white font-black tracking-tight" style={{ fontSize: "clamp(18px, 4vw, 28px)", lineHeight: 1.1, textShadow: "0 2px 12px rgba(0,0,0,0.5)" }}>
+          <div className="absolute inset-0" style={{ background: "linear-gradient(90deg, rgba(11,11,15,0.6) 0%, rgba(11,11,15,0.15) 60%, rgba(11,11,15,0.3) 100%)" }} />
+          <div className="relative z-10 px-5">
+            <span className="inline-block rounded-full bg-white/[0.1] px-2 py-0.5 text-[0.4rem] font-semibold text-white/70 mb-2 backdrop-blur-sm">
+              EN VIVO
+            </span>
+            <h2 className="text-white font-bold tracking-tight" style={{ fontSize: "clamp(16px, 3vw, 24px)", lineHeight: 1.1, letterSpacing: "-0.04em" }}>
               {s.title}
             </h2>
-            <p className="text-white/70 mt-0.5" style={{ fontSize: "clamp(11px, 1.8vw, 14px)" }}>
+            <p className="text-white/50 mt-0.5" style={{ fontSize: "clamp(10px, 1.5vw, 13px)", letterSpacing: "-0.01em" }}>
               {s.subtitle}
             </p>
-            <Link
-              href={s.href}
-              className="mt-2 inline-flex h-7 items-center rounded-full px-3 text-[0.5rem] font-bold text-white transition-all active:scale-95 hover:brightness-110"
-              style={{ background: "rgba(255,255,255,0.2)", backdropFilter: "blur(8px)" }}
-            >
+            <Link href={s.href} className="btn-primary mt-2.5 h-6 px-3 text-[0.45rem] font-bold">
               {s.cta}
             </Link>
           </div>
         </div>
       ))}
 
-      {/* Dots */}
-      <div className="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 gap-1">
+      <div className="absolute bottom-2.5 left-1/2 z-10 flex -translate-x-1/2 gap-1">
         {slides.map((_, i) => (
           <button key={i} onClick={() => setActive(i)}
-            className="rounded-full transition-all duration-300"
-            style={{
-              width: i === active ? 16 : 4,
-              height: 4,
-              background: i === active ? "#fff" : "rgba(255,255,255,0.3)",
-            }}
+            className="rounded-full transition-all duration-200"
+            style={{ width: i === active ? 14 : 4, height: 4, background: i === active ? "#fff" : "rgba(255,255,255,0.25)" }}
           />
         ))}
       </div>
