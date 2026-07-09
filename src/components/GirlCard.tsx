@@ -6,64 +6,142 @@ import type { Girl } from "@/data/girls";
 import { getGirlImage } from "@/lib/images";
 
 export default function GirlCard({ girl, href }: { girl: Girl; href?: string }) {
-  const link = href || `/girl/${girl.id}`;
+  const link = href || `/customize/${girl.id}`;
 
   return (
-    <Link href={link} style={{ textDecoration: "none", display: "block", borderRadius: "var(--radius)", overflow: "hidden", background: "var(--surface)", border: "0.5px solid var(--border)", transition: "all 200ms ease", position: "relative", aspectRatio: "3/4" }}>
+    <Link
+      href={link}
+      style={{
+        textDecoration: "none",
+        display: "block",
+        borderRadius: 20,
+        overflow: "hidden",
+        background: "var(--surface)",
+        border: "0.5px solid rgba(255,255,255,0.06)",
+        transition: "all 250ms ease",
+        position: "relative",
+        aspectRatio: "3/4",
+      }}
+      className="girl-card"
+    >
       <img
         src={getGirlImage(girl.id)}
         alt={girl.name}
-        style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }}
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          position: "absolute",
+          inset: 0,
+          transition: "transform 350ms ease",
+        }}
         loading="lazy"
       />
 
-      {/* Overlay gradient */}
-      <div style={{
-        position: "absolute", inset: 0,
-        background: "linear-gradient(180deg, transparent 50%, rgba(5,5,7,0.85) 85%)",
-        pointerEvents: "none",
-      }} />
+      {/* Overlay */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background:
+            "linear-gradient(180deg, transparent 45%, rgba(5,5,7,0.9) 82%, rgba(5,5,7,0.97) 100%)",
+          pointerEvents: "none",
+        }}
+      />
 
-      {/* Top info */}
-      <div style={{ position: "absolute", top: 6, left: 6, right: 6, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 4 }}>
-        {girl.personality && (
-          <span style={{
-            fontSize: "0.45rem", fontWeight: 600, padding: "1px 5px", borderRadius: 999,
-            background: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)",
-            color: "rgba(255,255,255,0.85)", lineHeight: 1.4, letterSpacing: "-0.01em",
-          }}>
-            {girl.personality}
-          </span>
-        )}
-        <span style={{
-          fontSize: "0.45rem", fontWeight: 600, padding: "1px 5px", borderRadius: 999,
-          background: "rgba(255,45,117,0.2)", backdropFilter: "blur(8px)",
-          color: "#ff5b6e", lineHeight: 1.4, letterSpacing: "-0.01em",
-        }}>
-          {girl.age || 18}
-        </span>
+      {/* Age badge */}
+      <div
+        style={{
+          position: "absolute",
+          top: 8,
+          right: 8,
+          fontSize: "0.4rem",
+          fontWeight: 700,
+          padding: "2px 7px",
+          borderRadius: 999,
+          background: "rgba(0,0,0,0.55)",
+          backdropFilter: "blur(6px)",
+          color: "rgba(255,255,255,0.8)",
+          lineHeight: 1.3,
+          letterSpacing: "-0.01em",
+        }}
+      >
+        {girl.age}
       </div>
 
-      {/* Bottom content */}
-      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "6px 8px" }}>
-        <p style={{ fontSize: "0.65rem", fontWeight: 700, margin: 0, color: "#fff", lineHeight: 1.2, letterSpacing: "-0.01em" }}>
-          {girl.name}
-        </p>
-        {girl.style && (
-          <p style={{ fontSize: "0.5rem", color: "rgba(255,255,255,0.5)", margin: "1px 0 4px", lineHeight: 1.3, letterSpacing: "-0.01em" }}>
-            {girl.style}
+      {/* Bottom */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          padding: "8px 10px 10px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 4,
+        }}
+      >
+        <div>
+          <p
+            style={{
+              fontSize: "0.7rem",
+              fontWeight: 700,
+              margin: 0,
+              color: "#fff",
+              lineHeight: 1.15,
+              letterSpacing: "-0.02em",
+            }}
+          >
+            {girl.name}
           </p>
-        )}
-        <div style={{
-          display: "flex", alignItems: "center", justifyContent: "center", gap: 3,
-          background: "linear-gradient(135deg, #ff2d75, #ff5b6e)",
-          borderRadius: 999, height: 24, fontSize: "0.55rem", fontWeight: 600, color: "#fff",
-          lineHeight: 1, letterSpacing: "-0.01em",
-        }}>
+          {girl.style && (
+            <p
+              style={{
+                fontSize: "0.45rem",
+                color: "rgba(255,255,255,0.45)",
+                margin: "1px 0 0",
+                lineHeight: 1.3,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              {girl.style}
+            </p>
+          )}
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 4,
+            borderRadius: 999,
+            height: 26,
+            fontSize: "0.5rem",
+            fontWeight: 600,
+            color: "#fff",
+            background: "linear-gradient(135deg, #ff2d75, #ff5b6e)",
+            lineHeight: 1,
+            letterSpacing: "-0.01em",
+            marginTop: 2,
+          }}
+        >
           <MessageCircle size={10} />
           Chatear
         </div>
       </div>
+
+      <style>{`
+        .girl-card:hover img {
+          transform: scale(1.03);
+        }
+        .girl-card:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+          border-color: rgba(255,255,255,0.1);
+        }
+      `}</style>
     </Link>
   );
 }
