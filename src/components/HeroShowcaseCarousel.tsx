@@ -1,123 +1,92 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import Link from "next/link";
-
-const slides = [
-  {
-    id: 0,
-    title: "1\u00aa Semana Gratis",
-    subtitle: "Sin compromiso ni tarjeta",
-    cta: "Comenzar",
-    href: "#personajes",
-  },
-  {
-    id: 1,
-    title: "Crea tu roleplay",
-    subtitle: "Describe la escena que imaginas",
-    cta: "Crear",
-    href: "#personajes",
-  },
-  {
-    id: 2,
-    title: "Chicas en vivo",
-    subtitle: "Conecta en tiempo real",
-    cta: "Probar",
-    href: "#personajes",
-  },
-];
+import { ChevronRight } from "lucide-react";
 
 export default function HeroShowcaseCarousel() {
-  const [active, setActive] = useState(0);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const next = useCallback(() => setActive((a) => (a + 1) % slides.length), []);
-
-  function startAutoplay() { stopAutoplay(); intervalRef.current = setInterval(next, 5000); }
-  function stopAutoplay() { if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; } }
-  useEffect(() => { startAutoplay(); return stopAutoplay; }, [next]);
-
   return (
-    <div
-      className="relative w-full overflow-hidden"
-      style={{
-        height: "clamp(145px, 28vw, 170px)",
-        borderRadius: 18,
-        background: "radial-gradient(circle at 20% 20%, rgba(255,59,127,0.2), transparent 30%), linear-gradient(135deg, #18141F 0%, #25131B 45%, #111116 100%)",
-        border: "0.5px solid rgba(255,255,255,0.07)",
-        boxShadow: "0 4px 24px rgba(0,0,0,0.4)",
-      }}
-      onMouseEnter={stopAutoplay}
-      onMouseLeave={startAutoplay}
-    >
-      {slides.map((s, i) => (
-        <div
-          key={s.id}
-          className="absolute inset-0 flex items-center px-5"
-          style={{
-            opacity: i === active ? 1 : 0,
-            transition: "opacity 0.4s ease",
-            pointerEvents: i === active ? "auto" : "none",
-          }}
-        >
-          <div className="absolute inset-0" style={{ background: "linear-gradient(90deg, rgba(11,11,15,0.6) 0%, rgba(11,11,15,0.15) 60%, rgba(11,11,15,0.3) 100%)" }} />
-          <div className="relative z-10 max-w-xs">
-            <span
-              className="inline-block rounded-full px-2 py-0.5 font-semibold mb-2"
-              style={{
-                background: "rgba(255,59,127,0.2)",
-                color: "#FF3B7F",
-                fontSize: "clamp(0.4rem, 1.2vw, 0.5rem)",
-                letterSpacing: "0.04em",
-              }}
-            >
-              EN VIVO
-            </span>
-            <h2
-              className="text-white font-bold tracking-tight"
-              style={{
-                fontSize: "clamp(1.25rem, 5vw, 2rem)",
-                lineHeight: 1.1,
-                letterSpacing: "-0.04em",
-              }}
-            >
-              {s.title}
+    <section className="container-nuvia" style={{ paddingTop: 24, paddingBottom: 0 }}>
+      <div style={{
+        background: "linear-gradient(135deg, #0d0d12 0%, #1a0a14 50%, #0f0d12 100%)",
+        borderRadius: "var(--radius-xl)",
+        border: "0.5px solid rgba(255,45,117,0.1)",
+        overflow: "hidden",
+        position: "relative",
+        height: 200,
+      }}>
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "radial-gradient(ellipse 60% 80% at 80% 50%, rgba(255,45,117,0.08) 0%, transparent 70%)",
+          pointerEvents: "none",
+        }} />
+
+        <div style={{ display: "flex", alignItems: "center", height: "100%", padding: "0 20px", gap: 16 }}>
+          {/* Left - Text */}
+          <div style={{ flex: "1 1 55%", display: "flex", flexDirection: "column", gap: 6, zIndex: 2 }}>
+            <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+              <span className="pill-tag">Gratis</span>
+              <span className="pill-tag">Sin tarjeta</span>
+              <span className="pill-tag" style={{ borderColor: "rgba(255,45,117,0.3)", color: "var(--pink)" }}>IA personalizable</span>
+            </div>
+
+            <h2 style={{
+              fontSize: "0.95rem",
+              fontWeight: 700,
+              lineHeight: 1.2,
+              letterSpacing: "-0.02em",
+              margin: 0,
+              color: "var(--text)",
+            }}>
+              Tu universo de<span style={{ display: "block" }}>conexiones con IA</span>
             </h2>
-            <p
-              className="mt-0.5"
-              style={{
-                fontSize: "clamp(0.65rem, 1.5vw, 0.85rem)",
-                color: "rgba(255,255,255,0.5)",
-                letterSpacing: "-0.01em",
-              }}
-            >
-              {s.subtitle}
+
+            <p style={{ fontSize: "0.6rem", color: "var(--muted)", lineHeight: 1.4, margin: 0 }}>
+              Lorem ipsum dolor sit amet consectetur. Arcu cras praesent aliquet leo.
             </p>
-            <Link
-              href={s.href}
-              className="btn-pill mt-2.5"
-              style={{ height: "clamp(28px, 3.5vw, 34px)", fontSize: "clamp(0.55rem, 1vw, 0.65rem)" }}
-            >
-              {s.cta}
-            </Link>
+
+            <button className="btn-pill" style={{ alignSelf: "flex-start", gap: 2 }}>
+              Explorar <ChevronRight size={10} />
+            </button>
+          </div>
+
+          {/* Right - Avatars collage */}
+          <div style={{ flex: "0 0 auto", position: "relative", width: 110, height: 150 }}>
+            <div style={{
+              position: "absolute", top: 10, left: 16, width: 52, height: 52, borderRadius: "50%",
+              overflow: "hidden", border: "2px solid rgba(255,45,117,0.3)", boxShadow: "0 0 20px rgba(255,45,117,0.15)",
+            }}>
+              <img src="/placeholder2.jpg" alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            </div>
+            <div style={{
+              position: "absolute", top: 34, left: 40, width: 56, height: 56, borderRadius: "50%",
+              overflow: "hidden", border: "2px solid rgba(255,45,117,0.2)", boxShadow: "0 0 20px rgba(255,45,117,0.08)",
+            }}>
+              <img src="/placeholder3.jpg" alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            </div>
+            <div style={{
+              position: "absolute", top: 66, left: 16, width: 48, height: 48, borderRadius: "50%",
+              overflow: "hidden", border: "2px solid rgba(255,45,117,0.2)",
+            }}>
+              <img src="/placeholder4.jpg" alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            </div>
           </div>
         </div>
-      ))}
-
-      <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex gap-1 z-10">
-        {slides.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setActive(i)}
-            className="rounded-full transition-all duration-300"
-            style={{
-              width: i === active ? 14 : 4,
-              height: 4,
-              background: i === active ? "#fff" : "rgba(255,255,255,0.15)",
-            }}
-          />
-        ))}
       </div>
-    </div>
+
+      <style jsx>{`
+        .pill-tag {
+          display: inline-flex;
+          align-items: center;
+          font-size: 0.5rem;
+          font-weight: 600;
+          padding: 1px 6px;
+          border-radius: 999px;
+          background: rgba(255,255,255,0.04);
+          border: 0.5px solid rgba(255,255,255,0.1);
+          color: var(--muted);
+          letter-spacing: -0.01em;
+          line-height: 1.4;
+        }
+      `}</style>
+    </section>
   );
 }

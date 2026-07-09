@@ -3,47 +3,38 @@
 @tailwind utilities;
 
 :root {
-  --bg: #0B0B0F;
-  --bg-soft: #111116;
-  --bg-card: #17171D;
-  --bg-elevated: #1D1D25;
+  --bg: #050507;
+  --surface: #101014;
+  --surface-2: #17171d;
   --border: rgba(255,255,255,0.08);
   --border-hover: rgba(255,255,255,0.14);
-  --border-active: rgba(255,67,130,0.55);
-  --text: #FFFFFF;
-  --muted: #A1A1AA;
-  --subdued: #71717A;
-  --pink: #FF3B7F;
-  --pink-dark: #D92868;
-  --coral: #FF5A4F;
-  --green: #22C55E;
-  --radius-sm: 10px;
-  --radius: 14px;
-  --radius-lg: 18px;
-  --shadow-card: 0 4px 20px rgba(0,0,0,0.3);
-  --shadow-sm: 0 2px 8px rgba(0,0,0,0.2);
-  --container-padding: 14px;
-  --header-h: 52px;
+  --text: #f5f5f7;
+  --muted: #8e8e93;
+  --subdued: #636366;
+  --pink: #ff2d75;
+  --pink-2: #ff477e;
+  --coral: #ff5b6e;
+  --green: #30d158;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --radius-2xl: 28px;
+  --shadow: 0 4px 20px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.5);
+  --container-padding: 20px;
+  --header-h: 48px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 @media (min-width: 768px) {
-  :root {
-    --container-padding: 24px;
-    --header-h: 58px;
-  }
+  :root { --container-padding: 28px; --header-h: 54px; }
 }
-
 @media (min-width: 1024px) {
-  :root {
-    --container-padding: 24px;
-    --header-h: 64px;
-  }
+  :root { --container-padding: 28px; --header-h: 56px; }
 }
-
 @media (min-width: 1440px) {
-  :root {
-    --container-padding: 32px;
-  }
+  :root { --container-padding: 36px; }
 }
 
 html { background-color: var(--bg); }
@@ -57,6 +48,8 @@ body {
   overscroll-behavior-y: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", system-ui, sans-serif;
+  padding-bottom: 100px;
 }
 
 * { -webkit-tap-highlight-color: transparent; }
@@ -68,57 +61,43 @@ body {
   padding-right: var(--container-padding);
   max-width: 1180px;
 }
-
 @media (min-width: 1440px) {
-  .container-nuvia {
-    max-width: 1240px;
-  }
+  .container-nuvia { max-width: 1240px; }
 }
 
 .btn-pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #FF3B7F 0%, #FF5A4F 100%);
+  background: linear-gradient(135deg, #ff2d75 0%, #ff5b6e 100%);
   color: #fff;
   border-radius: 999px;
-  font-weight: 700;
+  font-weight: 600;
   transition: all 180ms ease;
   border: 0;
   cursor: pointer;
   line-height: 1;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   font-size: 0.65rem;
   height: 28px;
-  padding: 0 12px;
-  box-shadow: 0 8px 24px rgba(255, 59, 127, 0.2);
+  padding: 0 14px;
+  box-shadow: 0 4px 16px rgba(255, 45, 117, 0.25);
 }
-
-.btn-pill:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 28px rgba(255, 59, 127, 0.25);
-}
-
-.btn-pill:active { transform: scale(0.97); }
-
-@media (min-width: 768px) {
-  .btn-pill { font-size: 0.7rem; height: 30px; padding: 0 14px; }
-}
-
-@media (min-width: 1024px) {
-  .btn-pill { font-size: 0.75rem; height: 32px; padding: 0 16px; }
-}
+.btn-pill:hover { box-shadow: 0 6px 20px rgba(255, 45, 117, 0.3); }
+.btn-pill:active { transform: scale(0.96); }
+@media (min-width: 768px) { .btn-pill { font-size: 0.7rem; height: 30px; padding: 0 16px; } }
+@media (min-width: 1024px) { .btn-pill { font-size: 0.75rem; height: 32px; padding: 0 18px; } }
 
 .btn-ghost {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255,255,255,0.04);
+  background: transparent;
   color: var(--muted);
   border-radius: 999px;
   font-weight: 500;
   font-size: 0.6rem;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--border);
   transition: all 180ms ease;
   cursor: pointer;
   line-height: 1;
@@ -126,30 +105,25 @@ body {
   padding: 0 10px;
   letter-spacing: -0.01em;
 }
-
-.btn-ghost:hover { background: rgba(255,255,255,0.07); color: #fff; }
-
-@media (min-width: 768px) {
-  .btn-ghost { font-size: 0.65rem; height: 30px; padding: 0 12px; }
-}
-
-@media (min-width: 1024px) {
-  .btn-ghost { font-size: 0.7rem; height: 32px; padding: 0 14px; }
-}
+.btn-ghost:hover { background: rgba(255,255,255,0.06); color: var(--text); }
 
 .gradient-text {
-  background: linear-gradient(135deg, #FF3B7F, #FF5A4F);
+  background: linear-gradient(135deg, #ff2d75, #ff5b6e);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
-@keyframes fadeIn {
+@keyframes fadeUp {
   0% { opacity: 0; transform: translateY(8px); }
   100% { opacity: 1; transform: translateY(0); }
 }
+.fade-in { animation: fadeUp 0.35s ease-out both; }
 
-.fade-in { animation: fadeIn 0.35s ease-out both; }
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -164,31 +138,35 @@ body {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
+@media (min-width: 768px) { .character-grid { grid-template-columns: repeat(3, 1fr); gap: 14px; } }
+@media (min-width: 1024px) { .character-grid { grid-template-columns: repeat(4, 1fr); gap: 16px; } }
+@media (min-width: 1280px) { .character-grid { grid-template-columns: repeat(5, 1fr); gap: 18px; } }
 
-@media (min-width: 768px) {
-  .character-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-  }
+.segmented-control {
+  display: flex;
+  gap: 0;
+  padding: 2px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 999px;
+  border: 0.5px solid rgba(255,255,255,0.06);
 }
-
-@media (min-width: 1024px) {
-  .character-grid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-  }
+.segmented-control a {
+  padding: 4px 12px;
+  font-size: 0.6rem;
+  font-weight: 600;
+  border-radius: 999px;
+  transition: all 200ms ease;
+  letter-spacing: -0.02em;
+  color: rgba(255,255,255,0.4);
+  text-decoration: none;
 }
-
-@media (min-width: 1280px) {
-  .character-grid {
-    grid-template-columns: repeat(5, 1fr);
-    gap: 18px;
-  }
+.segmented-control a.active {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
 }
 
 ::-webkit-scrollbar { width: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 999px; }
-
 .scrollbar-none::-webkit-scrollbar { display: none; }
 .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }

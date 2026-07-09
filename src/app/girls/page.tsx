@@ -36,78 +36,72 @@ export default function GirlsPage() {
   return (
     <>
       <Header />
-      <main style={{ background: "#0B0B0F", minHeight: "100vh" }}>
-        <div className="container-nuvia">
-          {/* Hero */}
-          <div className="pt-3 md:pt-4">
-            <HeroShowcaseCarousel />
-          </div>
+      <main style={{ minHeight: "100vh" }}>
+        <HeroShowcaseCarousel />
+        <StoriesRow />
 
-          {/* Stories */}
-          <div className="mt-3 md:mt-4">
-            <StoriesRow />
-          </div>
-
-          {/* Create banner */}
-          <section id="crear" className="mt-4 md:mt-5">
+        <section style={{ paddingTop: 14, paddingBottom: 8 }}>
+          <div className="container-nuvia">
             <div
-              className="relative overflow-hidden transition-all cursor-pointer active:scale-[0.99]"
+              onClick={() => setCreateOpen(true)}
               style={{
-                borderRadius: 14,
-                background: "#17171D",
+                borderRadius: "var(--radius-lg)",
+                background: "var(--surface)",
                 border: "0.5px solid rgba(255,255,255,0.08)",
                 padding: "14px 16px",
+                cursor: "pointer",
+                transition: "all 200ms ease",
               }}
-              onClick={() => setCreateOpen(true)}
             >
-              <div className="relative z-10 flex items-center justify-between gap-3">
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
                 <div>
-                  <h3 className="font-bold tracking-tight text-white" style={{ fontSize: "clamp(0.75rem, 2.5vw, 1rem)", letterSpacing: "-0.04em" }}>
+                  <h3 style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "-0.02em", margin: 0, color: "var(--text)" }}>
                     Crea tu propia <span className="gradient-text">novia de IA</span>
                   </h3>
-                  <p className="mt-0.5" style={{ fontSize: "clamp(0.45rem, 1.2vw, 0.55rem)", color: "#71717A" }}>Personaliza aspecto, personalidad y estilo</p>
+                  <p style={{ fontSize: "0.5rem", color: "var(--muted)", margin: "2px 0 0" }}>Personaliza aspecto, personalidad y estilo</p>
                 </div>
-                <button className="btn-pill shrink-0" style={{ height: "clamp(26px, 3vw, 30px)", fontSize: "clamp(0.45rem, 1vw, 0.55rem)" }}>
-                  Crear tu IA
-                </button>
+                <button className="btn-pill">Crear tu IA</button>
               </div>
-              <div className="flex mt-2 gap-1">
+              <div style={{ display: "flex", gap: 4, marginTop: 8 }}>
                 {["luna", "nia", "vera", "alma"].map((id) => (
-                  <div key={id} className="rounded-full overflow-hidden" style={{ width: "clamp(20px, 3vw, 24px)", height: "clamp(20px, 3vw, 24px)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
-                    <img src={`https://image.pollinations.ai/prompt/${id}%20portrait?width=60&height=60&seed=1`} alt="" className="w-full h-full object-cover" />
+                  <div key={id} style={{ width: 20, height: 20, borderRadius: "50%", overflow: "hidden", border: "0.5px solid rgba(255,255,255,0.08)" }}>
+                    <img src={`https://image.pollinations.ai/prompt/${id}%20portrait?width=60&height=60&seed=1`} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   </div>
                 ))}
-                <div className="rounded-full flex items-center justify-center" style={{ width: "clamp(20px, 3vw, 24px)", height: "clamp(20px, 3vw, 24px)", background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
+                <div style={{ width: 20, height: 20, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
                   <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "0.4rem" }}>+</span>
                 </div>
               </div>
             </div>
-          </section>
+          </div>
+        </section>
 
-          {/* Characters */}
-          <section id="personajes" className="mt-5 md:mt-6">
-            <h2
-              className="text-white font-bold tracking-tight"
-              style={{ fontSize: "clamp(1rem, 3vw, 1.5rem)", letterSpacing: "-0.04em" }}
-            >
-              Personajes
-            </h2>
+        <section style={{ paddingTop: 14, paddingBottom: 8 }}>
+          <div className="container-nuvia">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+              <h2 style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "-0.02em", margin: 0, color: "var(--text)" }}>
+                Personajes
+              </h2>
+            </div>
 
-            {/* Filters */}
-            <div className="flex gap-1.5 overflow-x-auto mt-2 pb-0.5 scrollbar-none" style={{ scrollbarWidth: "none" }}>
+            <div className="scrollbar-none" style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 2 }}>
               {filters.map((f) => (
                 <button
                   key={f}
                   onClick={() => setActiveFilter(f)}
-                  className="shrink-0 rounded-full font-semibold transition-all active:scale-95"
                   style={{
-                    background: activeFilter === f ? "rgba(255,59,127,0.15)" : "#15151B",
-                    border: activeFilter === f ? "0.5px solid rgba(255,67,130,0.55)" : "0.5px solid rgba(255,255,255,0.08)",
-                    color: activeFilter === f ? "#FF3B7F" : "#A1A1AA",
-                    fontSize: "clamp(0.45rem, 1vw, 0.55rem)",
+                    flexShrink: 0,
+                    borderRadius: 999,
+                    fontWeight: 600,
+                    fontSize: "0.5rem",
                     padding: "4px 10px",
-                    height: "clamp(24px, 3vw, 28px)",
+                    lineHeight: 1,
                     letterSpacing: "-0.02em",
+                    background: activeFilter === f ? "rgba(255,45,117,0.12)" : "var(--surface)",
+                    border: activeFilter === f ? "0.5px solid rgba(255,45,117,0.4)" : "0.5px solid var(--border)",
+                    color: activeFilter === f ? "var(--pink)" : "var(--muted)",
+                    cursor: "pointer",
+                    transition: "all 180ms ease",
                   }}
                 >
                   {f}
@@ -115,86 +109,113 @@ export default function GirlsPage() {
               ))}
             </div>
 
-            {/* Grid */}
-            <div className="character-grid mt-3">
+            <div className="character-grid" style={{ marginTop: 10 }}>
               {filtered.length > 0
                 ? filtered.map((girl) => <GirlCard key={girl.id} girl={girl} />)
                 : (
-                  <div className="col-span-full py-12 text-center">
-                    <p className="text-xs" style={{ color: "#71717A" }}>No hay personajes con ese estilo</p>
+                  <div style={{ gridColumn: "1 / -1", padding: "24px 0", textAlign: "center" }}>
+                    <p style={{ fontSize: "0.6rem", color: "var(--muted)" }}>No hay personajes con ese estilo</p>
                   </div>
                 )}
             </div>
-          </section>
+          </div>
+        </section>
 
-          {/* FAQ */}
-          <section className="mt-6 md:mt-8" id="faq">
-            <h2
-              className="text-center text-white font-bold tracking-tight"
-              style={{ fontSize: "clamp(1rem, 3vw, 1.5rem)", letterSpacing: "-0.04em" }}
-            >
+        <section style={{ paddingTop: 18 }}>
+          <div className="container-nuvia">
+            <h2 style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "-0.02em", textAlign: "center", margin: "0 0 10px", color: "var(--text)" }}>
               Preguntas frecuentes
             </h2>
-            <div className="mt-3 space-y-1 max-w-lg mx-auto md:max-w-2xl">
+            <div style={{ display: "flex", flexDirection: "column", gap: 4, maxWidth: 480, margin: "0 auto" }}>
               {faqs.map((faq) => (
                 <details
                   key={faq.q}
-                  className="group transition-all duration-200 overflow-hidden"
-                  style={{ borderRadius: 10, background: "#15151B", border: "0.5px solid rgba(255,255,255,0.07)" }}
+                  style={{
+                    borderRadius: 10,
+                    background: "var(--surface)",
+                    border: "0.5px solid var(--border)",
+                    overflow: "hidden",
+                    transition: "all 200ms ease",
+                  }}
                 >
-                  <summary
-                    className="flex cursor-pointer items-center justify-between px-3 py-2.5 font-medium transition-colors"
-                    style={{ fontSize: "clamp(0.5rem, 1.2vw, 0.6rem)", color: "rgba(255,255,255,0.8)", letterSpacing: "-0.01em" }}
-                  >
+                  <summary style={{
+                    display: "flex",
+                    cursor: "pointer",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "8px 12px",
+                    fontSize: "0.55rem",
+                    fontWeight: 500,
+                    color: "rgba(255,255,255,0.7)",
+                    letterSpacing: "-0.01em",
+                  }}>
                     {faq.q}
-                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" className="shrink-0 transition-transform duration-200 group-open:rotate-180">
+                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" style={{ flexShrink: 0, transition: "transform 200ms ease" }} className="group-open:rotate-180">
                       <path d="M6 9l6 6 6-6" />
                     </svg>
                   </summary>
-                  <div className="px-3 py-2" style={{ borderTop: "0.5px solid rgba(255,255,255,0.04)" }}>
-                    <p className="leading-relaxed" style={{ fontSize: "clamp(0.45rem, 1.1vw, 0.55rem)", color: "rgba(255,255,255,0.45)" }}>{faq.a}</p>
+                  <div style={{ borderTop: "0.5px solid var(--border)", padding: "8px 12px" }}>
+                    <p style={{ fontSize: "0.5rem", color: "var(--muted)", lineHeight: 1.5, margin: 0 }}>{faq.a}</p>
                   </div>
                 </details>
               ))}
             </div>
-          </section>
+          </div>
+        </section>
 
-          {/* SEO */}
-          <section className="mt-5 pb-4 md:mt-6">
-            <div style={{ borderRadius: 14, background: "#17171D", border: "0.5px solid rgba(255,255,255,0.06)", padding: "clamp(14px, 2vw, 24px)" }}>
-              <h2
-                className="text-center text-white font-bold tracking-tight"
-                style={{ fontSize: "clamp(0.85rem, 2.5vw, 1.25rem)", letterSpacing: "-0.04em" }}
-              >
+        <section style={{ padding: "18px 0" }}>
+          <div className="container-nuvia">
+            <div style={{
+              borderRadius: "var(--radius-lg)",
+              background: "var(--surface)",
+              border: "0.5px solid var(--border)",
+              padding: "16px 20px",
+              textAlign: "center",
+            }}>
+              <h2 style={{ fontSize: "0.85rem", fontWeight: 700, letterSpacing: "-0.02em", margin: 0, color: "var(--text)" }}>
                 Encuentra tu Match de Novia de IA
               </h2>
-              <p
-                className="text-center mt-2 mx-auto leading-relaxed"
-                style={{ fontSize: "clamp(0.45rem, 1.1vw, 0.6rem)", color: "rgba(255,255,255,0.4)", letterSpacing: "-0.01em", maxWidth: 600 }}
-              >
+              <p style={{ fontSize: "0.55rem", color: "var(--muted)", maxWidth: 480, margin: "6px auto 0", lineHeight: 1.5 }}>
                 Explora nuestra colección de personajes IA ficticios. Cada una tiene su propia personalidad, historia y estilo visual. Chatea, llama o personaliza a tu personaje favorito.
               </p>
-              <div className="flex flex-wrap justify-center gap-1.5 mt-3">
+              <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 6, marginTop: 8 }}>
                 {["+18", "Personajes IA ficticios", "Chat y llamada", "Sin registro"].map((t) => (
-                  <span
-                    key={t}
-                    className="rounded-full font-medium"
-                    style={{ background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.3)", border: "0.5px solid rgba(255,255,255,0.06)", fontSize: "clamp(0.35rem, 0.9vw, 0.45rem)", padding: "2px 8px" }}
-                  >
+                  <span key={t} style={{
+                    fontSize: "0.45rem", fontWeight: 500, padding: "2px 8px", borderRadius: 999,
+                    background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.3)",
+                    border: "0.5px solid rgba(255,255,255,0.06)",
+                  }}>
                     {t}
                   </span>
                 ))}
               </div>
             </div>
-          </section>
-        </div>
+          </div>
+        </section>
+
         <Footer />
       </main>
 
+      {/* FAB */}
       <button
         onClick={() => setCreateOpen(true)}
-        className="fixed bottom-5 right-5 z-40 flex items-center justify-center rounded-full shadow-lg transition-all active:scale-90 sm:hidden"
-        style={{ width: 36, height: 36, background: "linear-gradient(135deg, #FF3B7F, #FF5A4F)", boxShadow: "0 4px 16px rgba(255,59,127,0.25)" }}
+        style={{
+          position: "fixed",
+          bottom: "calc(24px + env(safe-area-inset-bottom, 0px))",
+          right: 20,
+          zIndex: 40,
+          width: 36,
+          height: 36,
+          borderRadius: "50%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "linear-gradient(135deg, var(--pink), var(--coral))",
+          boxShadow: "0 4px 16px rgba(255,45,117,0.25)",
+          border: 0,
+          cursor: "pointer",
+          transition: "all 200ms ease",
+        }}
       >
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"><path d="M12 5v14M5 12h14" /></svg>
       </button>
