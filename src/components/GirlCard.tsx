@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Girl } from "@/data/girls";
 import { getGirlImage } from "@/lib/images";
@@ -8,44 +8,27 @@ import { getCustomization } from "@/lib/storage";
 
 export default function GirlCard({ girl }: { girl: Girl }) {
   const [src, setSrc] = useState("");
-  const mountedRef = useRef(true);
-
-  function getUrl() {
-    const custom = getCustomization(girl.id);
-    if (custom) return getGirlImage(girl.id, custom.hair, custom.pose, custom.background);
-    return getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground);
-  }
 
   useEffect(() => {
-    mountedRef.current = true;
-    const url = getUrl();
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => { if (mountedRef.current) setSrc(url); };
-    img.onerror = () => {
-      // Retry with different seed
-      const retry = url.replace(/seed=\d+/, "seed=" + (Date.now() % 99999 + 1));
-      const img2 = new Image();
-      img2.crossOrigin = "anonymous";
-      img2.onload = () => { if (mountedRef.current) setSrc(retry); };
-      img2.onerror = () => { if (mountedRef.current) setSrc(url); };
-      img2.src = retry;
-    };
-    img.src = url;
-    return () => { mountedRef.current = false; };
+    const custom = getCustomization(girl.id);
+    const url = custom
+      ? getGirlImage(girl.id, custom.hair, custom.pose, custom.background)
+      : getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground);
+    setSrc(url);
   }, [girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground]);
 
   return (
     <div className="group character-card overflow-hidden">
       <Link href={`/customize/${girl.id}`} className="block">
         <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#12121a]">
-          <img
-            src={src}
-            alt={girl.name}
-            fetchPriority="high"
-            className="h-full w-full object-cover object-top transition-all duration-700 ease-out group-hover:scale-105"
-            style={{ opacity: src ? 1 : 0 }}
-          />
+          {src && (
+            <img
+              src={src}
+              alt={girl.name}
+              fetchPriority="high"
+              className="h-full w-full object-cover object-top transition-all duration-700 ease-out group-hover:scale-105"
+            />
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
           <div className="absolute left-3 right-3 top-3 flex items-start justify-between">
             <span className="flex h-4 w-4 rounded-full bg-green-400 shadow-[0_0_12px_rgba(74,222,128,0.8)] animate-pulse border-2 border-black/30" />
