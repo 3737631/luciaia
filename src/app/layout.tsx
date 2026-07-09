@@ -1,14 +1,10 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import BottomNav from "@/components/BottomNav";
 
-const inter = Inter({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-inter",
-});
+const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "NuviaChat — Chica IA ficticia por chat y videollamada",
@@ -23,10 +19,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body
-        className={`${inter.className} min-h-screen antialiased`}
-        style={{ background: "#000000", color: "#FFFFFF" }}
-      >
+      <body className={`${jakarta.className} min-h-screen bg-bg text-ink antialiased`}>
+        <AnimatedBackground />
         {children}
         <BottomNav />
       </body>
