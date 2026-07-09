@@ -82,11 +82,11 @@ function hasNewStory(): boolean {
   return Math.random() < 0.35;
 }
 
-export default function StoriesRow() {
+export default function StoriesRow({ ringSize = 86 }: { ringSize?: number }) {
+  const innerSize = ringSize - 8;
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [slideIdx, setSlideIdx] = useState(0);
   const [progress, setProgress] = useState(0);
-  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const [onlineMap] = useState<Record<string, boolean>>(() => {
     const m: Record<string, boolean> = {};
     girls.forEach((g) => { m[g.id] = shouldBeOnline(); });
@@ -102,7 +102,6 @@ export default function StoriesRow() {
   const timer = useRef<ReturnType<typeof setInterval>>();
   const activeIndexRef = useRef<number | null>(null);
   const slideIdxRef = useRef(0);
-  const longPressTimer = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => { activeIndexRef.current = activeIndex; }, [activeIndex]);
   useEffect(() => { slideIdxRef.current = slideIdx; }, [slideIdx]);
@@ -210,160 +209,118 @@ export default function StoriesRow() {
   const slides = activeGirl ? (ALL_SLIDES[activeGirl.id] || []) : [];
   const currentSlide = slides[slideIdx];
 
-  function handlePointerDown(i: number) {
-    longPressTimer.current = setTimeout(() => {
-      setPreviewIndex(i);
-      setTimeout(() => {
-        setPreviewIndex(null);
-        openStory(i);
-      }, 800);
-    }, 500);
-  }
-
-  function handlePointerUp(i: number) {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = undefined;
-    }
-    if (previewIndex !== null) {
-      setPreviewIndex(null);
-    } else {
-      openStory(i);
-    }
-  }
-
-  function handlePointerLeave() {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = undefined;
-    }
-    setPreviewIndex(null);
-  }
-
   return (
     <>
       <style>{`
-        @keyframes gradientRotate {
-          0% { filter: hue-rotate(0deg); }
-          100% { filter: hue-rotate(360deg); }
-        }
         @keyframes pulseDot {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.7; transform: scale(1.15); }
         }
-        @keyframes unseenRing {
-          0% { box-shadow: 0 0 0 0 rgba(255,59,127,0.5); }
-          70% { box-shadow: 0 0 0 6px rgba(255,59,127,0); }
-          100% { box-shadow: 0 0 0 0 rgba(255,59,127,0); }
-        }
-        .gradient-rotate {
-          animation: gradientRotate 3s linear infinite;
-        }
-        .dot-online {
-          animation: pulseDot 2s ease-in-out infinite;
-        }
-        .ring-new {
-          animation: unseenRing 2s ease-out infinite;
-        }
+        .dot-online { animation: pulseDot 2s ease-in-out infinite; }
+        .scrollbar-none::-webkit-scrollbar { display: none; }
+        .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
       <div
-        className="flex gap-4 overflow-x-auto px-4 sm:gap-5 sm:px-6 lg:px-8"
-        style={{
-          maxWidth: 1180,
-          margin: "22px auto 0",
-          paddingBottom: 12,
-          scrollbarWidth: "none",
-        }}
+        className="mx-auto flex max-w-6xl gap-3 overflow-x-auto px-4 sm:gap-4 sm:px-6 scrollbar-none snap-x snap-mandatory"
+        style={{ paddingTop: 16, paddingBottom: 8 }}
       >
-        {girls.map((girl, i) => (
-          <button
-            key={girl.id}
-            onMouseDown={() => handlePointerDown(i)}
-            onMouseUp={() => handlePointerUp(i)}
-            onMouseLeave={handlePointerLeave}
-            onTouchStart={() => handlePointerDown(i)}
-            onTouchEnd={() => handlePointerUp(i)}
-            className="flex shrink-0 flex-col items-center text-white relative"
-            style={{ width: 72, fontSize: 12 }}
-          >
-            <div
-              className={`relative mx-auto mb-2 ${newStoryMap[girl.id] ? "ring-new" : ""}`}
-              style={{
-                width: 66,
-                height: 66,
-                padding: 3,
-                borderRadius: "50%",
-                background: onlineMap[girl.id]
-                  ? "linear-gradient(135deg, #ff3b7f, #ff0f70, #ff7a3d)"
-                  : "rgba(255,255,255,0.15)",
-                transition: "transform 0.22s ease",
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.06)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
-            >
-              {onlineMap[girl.id] && (
-                <div
-                  className="dot-online absolute -bottom-[1px] -right-[1px] z-10 h-3.5 w-3.5 rounded-full border-[2.5px]"
-                  style={{ borderColor: "#0b0b0f", background: "#31c24d", boxShadow: "0 0 8px rgba(49,194,77,0.7)" }}
-                />
-              )}
-              {newStoryMap[girl.id] && (
-                <div
-                  className="absolute inset-0 rounded-full"
-                  style={{ boxShadow: "0 0 0 0 rgba(255,59,127,0.5)" }}
-                />
-              )}
-              <img
-                src={getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground)}
-                alt={girl.name}
-                className="h-full w-full rounded-full object-cover"
-                style={{ border: "2px solid #0b0b0f", background: "#222" }}
-              />
-            </div>
-            <span className="max-w-[66px] truncate text-center font-bold text-white/80">
-              {girl.name}
-            </span>
-          </button>
-        ))}
-      </div>
-
-      {previewIndex !== null && (
-        <div
-          className="fixed z-50"
-          style={{
-            top: "40%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            pointerEvents: "none",
-          }}
+        {/* Crear button - first item */}
+        <Link
+          href="/customize/luna"
+          className="flex shrink-0 flex-col items-center gap-1.5 snap-start"
+          style={{ width: ringSize + 2 }}
         >
           <div
-            className="rounded-2xl overflow-hidden shadow-2xl"
-            style={{ width: 160, border: "2px solid rgba(255,255,255,0.15)" }}
+            className="flex items-center justify-center rounded-full"
+            style={{
+              width: ringSize,
+              height: ringSize,
+              background: "linear-gradient(135deg, #ff3b7f, #8b5cf6)",
+              padding: 3,
+            }}
           >
-            <img
-              src={getGirlImage(girls[previewIndex].id, girls[previewIndex].defaultHair, girls[previewIndex].defaultPose, girls[previewIndex].defaultBackground)}
-              alt={girls[previewIndex].name}
-              className="w-full object-cover"
-              style={{ height: 200 }}
-            />
-            <div className="bg-black/80 px-3 py-2 text-center">
-              <span className="text-sm font-bold text-white">{girls[previewIndex].name}</span>
+            <div
+              className="flex items-center justify-center rounded-full"
+              style={{
+                width: innerSize,
+                height: innerSize,
+                background: "#171717",
+              }}
+            >
+              <div
+                className="flex items-center justify-center rounded-full"
+                style={{
+                  width: innerSize - 6,
+                  height: innerSize - 6,
+                  background: "rgba(255,255,255,0.06)",
+                }}
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-white/40">
+                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+          <span className="font-medium text-white/40" style={{ fontSize: 11 }}>Crear</span>
+        </Link>
 
-      {/* Stories Overlay */}
+        {girls.map((girl, i) => {
+          const online = onlineMap[girl.id];
+          const hasNew = newStoryMap[girl.id];
+
+          return (
+            <button
+              key={girl.id}
+              onClick={() => openStory(i)}
+              className="flex shrink-0 flex-col items-center gap-1.5 snap-start"
+              style={{ width: ringSize + 2 }}
+            >
+              <div className="relative" style={{ width: ringSize, height: ringSize }}>
+                {online && (
+                  <div
+                    className="dot-online absolute -bottom-[1px] -right-[1px] z-10 h-3.5 w-3.5 rounded-full border-[2.5px]"
+                    style={{ borderColor: "#171717", background: "#31c24d" }}
+                  />
+                )}
+                <div
+                  className="flex h-full w-full items-center justify-center rounded-full"
+                  style={{
+                    padding: 3,
+                    background: hasNew
+                      ? "linear-gradient(135deg, #ff3b7f, #a855f7)"
+                      : "rgba(255,255,255,0.12)",
+                  }}
+                >
+                  <div
+                    className="h-full w-full overflow-hidden rounded-full"
+                    style={{ border: "2.5px solid #171717" }}
+                  >
+                    <img
+                      src={getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground)}
+                      alt={girl.name}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                </div>
+              </div>
+              <span className="max-w-[80px] truncate text-center font-medium text-white/50" style={{ fontSize: 11 }}>
+                {girl.name}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Stories Viewer - full overlay */}
       {activeGirl && currentSlide && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{ background: "rgba(0,0,0,0.92)", backdropFilter: "blur(20px)" }}
+          style={{ background: "rgba(0,0,0,0.94)" }}
           onClick={closeStories}
         >
           <div
-            className="relative w-full max-w-sm overflow-hidden rounded-2xl"
-            style={{ aspectRatio: "9/16", maxHeight: "90vh" }}
+            className="relative w-full overflow-hidden"
+            style={{ aspectRatio: "9/16", maxHeight: "95vh", maxWidth: 400 }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Progress bars */}
@@ -371,20 +328,11 @@ export default function StoriesRow() {
               {slides.map((_, i) => (
                 <div
                   key={i}
-                  className="h-0.5 flex-1 rounded-full"
-                  style={{
-                    background: i < slideIdx
-                      ? "#fff"
-                      : i === slideIdx
-                        ? "rgba(255,255,255,0.3)"
-                        : "rgba(255,255,255,0.15)",
-                  }}
+                  className="h-0.5 flex-1 rounded-full overflow-hidden"
+                  style={{ background: i <= slideIdx ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.12)" }}
                 >
                   {i === slideIdx && (
-                    <div
-                      className="h-full rounded-full bg-white transition-all"
-                      style={{ width: `${progress}%` }}
-                    />
+                    <div className="h-full rounded-full bg-white transition-all" style={{ width: `${progress}%` }} />
                   )}
                 </div>
               ))}
@@ -394,56 +342,46 @@ export default function StoriesRow() {
             <div className="absolute top-3 left-0 right-0 z-20 flex items-center justify-between px-3">
               <div className="flex items-center gap-2">
                 <div
-                  className="h-8 w-8 rounded-full border-2 border-white/30 bg-cover bg-center"
+                  className="h-7 w-7 rounded-full border border-white/20 bg-cover bg-center"
                   style={{ backgroundImage: `url(${getGirlImage(activeGirl.id, activeGirl.defaultHair, activeGirl.defaultPose, activeGirl.defaultBackground)})` }}
                 />
-                <span className="text-sm font-bold text-white drop-shadow-lg">{activeGirl.name}</span>
+                <span className="text-xs font-semibold text-white">{activeGirl.name}</span>
               </div>
               <button
                 onClick={closeStories}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white/80 backdrop-blur-sm transition-all hover:bg-black/60 hover:text-white"
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white/60"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 6L6 18M6 6l12 12"/></svg>
               </button>
             </div>
 
-            {/* Story image */}
             <img
               src={getGirlImage(activeGirl.id, currentSlide.hair, currentSlide.pose, currentSlide.bg)}
               alt={activeGirl.name}
               className="h-full w-full object-cover"
             />
 
-            {/* Location label */}
-            <div className="absolute top-14 left-3 z-20">
-              <span className="rounded-full bg-black/50 px-3 py-1 text-[0.55rem] font-semibold text-white/90 backdrop-blur-sm">
+            <div className="absolute top-12 left-3 z-20">
+              <span className="rounded-full bg-black/40 px-2.5 py-0.5 text-[0.45rem] font-medium text-white/80">
                 {currentSlide.label}
               </span>
             </div>
 
-            {/* Gradient bottom */}
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-6 pt-16">
-              <p className="mb-3 text-center text-sm leading-relaxed text-white/90 drop-shadow-lg">
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-5 pt-14">
+              <p className="mb-3 text-center text-xs leading-relaxed text-white/80">
                 {activeGirl.story}
               </p>
               <Link
                 href={`/chat/${activeGirl.id}`}
                 onClick={closeStories}
-                className="btn-primary flex h-11 w-full items-center justify-center text-sm font-bold"
+                className="flex h-10 w-full items-center justify-center rounded-lg bg-white/10 text-xs font-semibold text-white transition hover:bg-white/15"
               >
                 Chatear con {activeGirl.name}
               </Link>
             </div>
 
-            {/* Tap zones */}
-            <button
-              className="absolute top-0 bottom-0 left-0 z-10 w-1/2"
-              onClick={goPrev}
-            />
-            <button
-              className="absolute top-0 bottom-0 right-0 z-10 w-1/2"
-              onClick={goNext}
-            />
+            <button className="absolute top-0 bottom-0 left-0 z-10 w-1/2" onClick={goPrev} />
+            <button className="absolute top-0 bottom-0 right-0 z-10 w-1/2" onClick={goNext} />
           </div>
         </div>
       )}
