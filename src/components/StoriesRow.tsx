@@ -74,29 +74,24 @@ const ALL_SLIDES: Record<string, StorySlide[]> = { ...FALLBACK_ALL_SLIDES,
   ],
 };
 
-function shouldBeOnline(): boolean {
-  return Math.random() < 0.6;
-}
-
-function hasNewStory(): boolean {
-  return Math.random() < 0.35;
-}
-
 export default function StoriesRow() {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [slideIdx, setSlideIdx] = useState(0);
   const [progress, setProgress] = useState(0);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+
   const [onlineMap] = useState<Record<string, boolean>>(() => {
     const m: Record<string, boolean> = {};
-    girls.forEach((g) => { m[g.id] = shouldBeOnline(); });
+    girls.forEach((g) => { m[g.id] = Math.random() < 0.6; });
     return m;
   });
-  const [newStoryMap] = useState<Record<string, boolean>>(() => {
-    const m: Record<string, boolean> = {};
-    girls.forEach((g) => { m[g.id] = hasNewStory(); });
-    return m;
-  });
+
+  const [seenMap, setSeenMap] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    const saved = localStorage.getItem("stories_seen");
+    if (saved) setSeenMap(JSON.parse(saved));
+  }, []);
 
   const progressVal = useRef(0);
   const timer = useRef<ReturnType<typeof setInterval>>();
@@ -106,6 +101,14 @@ export default function StoriesRow() {
 
   useEffect(() => { activeIndexRef.current = activeIndex; }, [activeIndex]);
   useEffect(() => { slideIdxRef.current = slideIdx; }, [slideIdx]);
+
+  const persistSeen = useCallback((id: string) => {
+    setSeenMap((prev) => {
+      const next = { ...prev, [id]: true };
+      localStorage.setItem("stories_seen", JSON.stringify(next));
+      return next;
+    });
+  }, []);
 
   const clearTimer = useCallback(() => {
     clearInterval(timer.current);
@@ -130,6 +133,7 @@ export default function StoriesRow() {
           slideIdxRef.current = si + 1;
           startTimer();
         } else if (gi < girls.length - 1) {
+          persistSeen(girls[gi].id);
           const ng = gi + 1;
           setActiveIndex(ng);
           activeIndexRef.current = ng;
@@ -137,12 +141,13 @@ export default function StoriesRow() {
           slideIdxRef.current = 0;
           startTimer();
         } else {
+          persistSeen(girls[gi].id);
           setActiveIndex(null);
           activeIndexRef.current = null;
         }
       }
     }, 60);
-  }, [clearTimer]);
+  }, [clearTimer, persistSeen]);
 
   const openStory = useCallback((idx: number) => {
     setActiveIndex(idx);
@@ -153,13 +158,16 @@ export default function StoriesRow() {
   }, [startTimer]);
 
   const closeStories = useCallback(() => {
+    if (activeIndexRef.current !== null) {
+      persistSeen(girls[activeIndexRef.current].id);
+    }
     clearTimer();
     setActiveIndex(null);
     activeIndexRef.current = null;
     setSlideIdx(0);
     slideIdxRef.current = 0;
     setProgress(0);
-  }, [clearTimer]);
+  }, [clearTimer, persistSeen]);
 
   const goNext = useCallback(() => {
     const gi = activeIndexRef.current;
@@ -171,16 +179,19 @@ export default function StoriesRow() {
       setSlideIdx(si + 1);
       slideIdxRef.current = si + 1;
     } else if (gi < girls.length - 1) {
-      setActiveIndex(gi + 1);
-      activeIndexRef.current = gi + 1;
+      persistSeen(girls[gi].id);
+      const ng = gi + 1;
+      setActiveIndex(ng);
+      activeIndexRef.current = ng;
       setSlideIdx(0);
       slideIdxRef.current = 0;
     } else {
+      persistSeen(girls[gi].id);
       closeStories();
       return;
     }
     startTimer();
-  }, [clearTimer, startTimer, closeStories]);
+  }, [clearTimer, startTimer, closeStories, persistSeen]);
 
   const goPrev = useCallback(() => {
     const gi = activeIndexRef.current;
@@ -243,103 +254,115 @@ export default function StoriesRow() {
   return (
     <>
       <style>{`
-        @keyframes gradientRotate {
-          0% { filter: hue-rotate(0deg); }
-          100% { filter: hue-rotate(360deg); }
-        }
-        @keyframes pulseDot {
+        @keyframes dotPulse {
           0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.7; transform: scale(1.15); }
+          50% { opacity: 0.6; transform: scale(1.2); }
         }
-        @keyframes unseenRing {
-          0% { box-shadow: 0 0 0 0 rgba(255,59,127,0.5); }
-          70% { box-shadow: 0 0 0 6px rgba(255,59,127,0); }
-          100% { box-shadow: 0 0 0 0 rgba(255,59,127,0); }
+        @keyframes ringPulse {
+          0% { box-shadow: 0 0 0 0 rgba(255,60,136,0.5); }
+          70% { box-shadow: 0 0 0 8px rgba(255,60,136,0); }
+          100% { box-shadow: 0 0 0 0 rgba(255,60,136,0); }
         }
-        .gradient-rotate {
-          animation: gradientRotate 3s linear infinite;
-        }
-        .dot-online {
-          animation: pulseDot 2s ease-in-out infinite;
-        }
-        .ring-new {
-          animation: unseenRing 2s ease-out infinite;
-        }
+        .story-avatar-online { animation: dotPulse 2s ease-in-out infinite; }
+        .story-ring-unseen { animation: ringPulse 2s ease-out infinite; }
+        .story-scrollbar::-webkit-scrollbar { display: none; }
       `}</style>
       <div
-        className="flex gap-4 overflow-x-auto px-4 sm:gap-5 sm:px-6 lg:px-8"
+        className="story-scrollbar flex gap-4 overflow-x-auto sm:gap-5"
         style={{
           maxWidth: 1180,
-          margin: "22px auto 0",
-          paddingBottom: 12,
+          margin: "24px auto 0",
+          padding: "0 16px 12px",
           scrollbarWidth: "none",
         }}
       >
-        {girls.map((girl, i) => (
-          <button
-            key={girl.id}
-            onMouseDown={() => handlePointerDown(i)}
-            onMouseUp={() => handlePointerUp(i)}
-            onMouseLeave={handlePointerLeave}
-            onTouchStart={() => handlePointerDown(i)}
-            onTouchEnd={() => handlePointerUp(i)}
-            className="flex shrink-0 flex-col items-center text-white relative"
-            style={{ width: 72, fontSize: 12 }}
-          >
-            <div
-              className={`relative mx-auto mb-2 ${newStoryMap[girl.id] ? "ring-new" : ""}`}
-              style={{
-                width: 66,
-                height: 66,
-                padding: 3,
-                borderRadius: "50%",
-                background: onlineMap[girl.id]
-                  ? "linear-gradient(135deg, #ff3b7f, #ff0f70, #ff7a3d)"
-                  : "rgba(255,255,255,0.15)",
-                transition: "transform 0.22s ease",
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.06)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
+        {girls.map((girl, i) => {
+          const seen = seenMap[girl.id];
+          const online = onlineMap[girl.id];
+
+          return (
+            <button
+              key={girl.id}
+              onMouseDown={() => handlePointerDown(i)}
+              onMouseUp={() => handlePointerUp(i)}
+              onMouseLeave={handlePointerLeave}
+              onTouchStart={() => handlePointerDown(i)}
+              onTouchEnd={() => handlePointerUp(i)}
+              className="group shrink-0 text-center text-white transition-transform duration-200 hover:scale-105 active:scale-95"
+              style={{ width: 70 }}
             >
-              {onlineMap[girl.id] && (
+              <div className="relative mx-auto mb-2" style={{ width: 64, height: 64 }}>
+                {/* Ring */}
                 <div
-                  className="dot-online absolute -bottom-[1px] -right-[1px] z-10 h-3.5 w-3.5 rounded-full border-[2.5px]"
-                  style={{ borderColor: "#0b0b0f", background: "#31c24d", boxShadow: "0 0 8px rgba(49,194,77,0.7)" }}
+                  className={`absolute inset-0 rounded-full transition-all duration-300 ${
+                    seen
+                      ? "opacity-30"
+                      : online
+                        ? "story-ring-unseen"
+                        : ""
+                  }`}
+                  style={{
+                    padding: 3,
+                    background: seen
+                      ? "rgba(255,255,255,0.12)"
+                      : "linear-gradient(135deg, #FF3C88, #FF6B3D)",
+                    WebkitMask: "radial-gradient(circle at 50% 50%, transparent 26px, #000 26px)",
+                    mask: "radial-gradient(circle at 50% 50%, transparent 26px, #000 26px)",
+                  }}
                 />
-              )}
-              {newStoryMap[girl.id] && (
+
+                {/* Avatar */}
                 <div
-                  className="absolute inset-0 rounded-full"
-                  style={{ boxShadow: "0 0 0 0 rgba(255,59,127,0.5)" }}
-                />
-              )}
-              <img
-                src={getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground)}
-                alt={girl.name}
-                className="h-full w-full rounded-full object-cover"
-                style={{ border: "2px solid #0b0b0f", background: "#222" }}
-              />
-            </div>
-            <span className="max-w-[66px] truncate text-center font-bold text-white/80">
-              {girl.name}
-            </span>
-          </button>
-        ))}
+                  className={`absolute inset-0 rounded-full overflow-hidden ${
+                    seen ? "opacity-60 saturate-0" : ""
+                  }`}
+                  style={{ margin: 3, transition: "opacity 0.3s, filter 0.3s" }}
+                >
+                  <img
+                    src={getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground)}
+                    alt={girl.name}
+                    className="h-full w-full rounded-full object-cover"
+                    style={{ background: "#1A1A22" }}
+                  />
+                </div>
+
+                {/* Online dot */}
+                {online && !seen && (
+                  <span
+                    className="story-avatar-online absolute -bottom-0.5 -right-0.5 z-10 h-3.5 w-3.5 rounded-full border-[2.5px]"
+                    style={{
+                      borderColor: "#0B0B0F",
+                      background: "#30D158",
+                      boxShadow: "0 0 10px rgba(48,209,88,0.7)",
+                    }}
+                  />
+                )}
+              </div>
+              <span
+                className={`block max-w-[64px] truncate text-xs font-semibold transition-colors duration-300 ${
+                  seen ? "text-white/30" : "text-white/80"
+                }`}
+              >
+                {girl.name}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
+      {/* Preview popup */}
       {previewIndex !== null && (
         <div
-          className="fixed z-50"
+          className="fixed z-50 pointer-events-none"
           style={{
             top: "40%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            pointerEvents: "none",
           }}
         >
           <div
-            className="rounded-2xl overflow-hidden shadow-2xl"
-            style={{ width: 160, border: "2px solid rgba(255,255,255,0.15)" }}
+            className="overflow-hidden rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.6)]"
+            style={{ width: 160, border: "2px solid rgba(255,255,255,0.1)" }}
           >
             <img
               src={getGirlImage(girls[previewIndex].id, girls[previewIndex].defaultHair, girls[previewIndex].defaultPose, girls[previewIndex].defaultBackground)}
@@ -347,23 +370,23 @@ export default function StoriesRow() {
               className="w-full object-cover"
               style={{ height: 200 }}
             />
-            <div className="bg-black/80 px-3 py-2 text-center">
+            <div className="bg-[#121218] px-3 py-2 text-center">
               <span className="text-sm font-bold text-white">{girls[previewIndex].name}</span>
             </div>
           </div>
         </div>
       )}
 
-      {/* Stories Overlay */}
+      {/* Stories overlay */}
       {activeGirl && currentSlide && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{ background: "rgba(0,0,0,0.92)", backdropFilter: "blur(20px)" }}
+          style={{ background: "rgba(0,0,0,0.92)", backdropFilter: "blur(24px)" }}
           onClick={closeStories}
         >
           <div
-            className="relative w-full max-w-sm overflow-hidden rounded-2xl"
-            style={{ aspectRatio: "9/16", maxHeight: "90vh" }}
+            className="relative w-full overflow-hidden rounded-2xl shadow-[0_0_60px_rgba(0,0,0,0.5)]"
+            style={{ aspectRatio: "9/16", maxHeight: "90vh", maxWidth: 400 }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Progress bars */}
@@ -371,20 +394,17 @@ export default function StoriesRow() {
               {slides.map((_, i) => (
                 <div
                   key={i}
-                  className="h-0.5 flex-1 rounded-full"
-                  style={{
-                    background: i < slideIdx
-                      ? "#fff"
-                      : i === slideIdx
-                        ? "rgba(255,255,255,0.3)"
-                        : "rgba(255,255,255,0.15)",
-                  }}
+                  className="h-0.5 flex-1 rounded-full overflow-hidden"
+                  style={{ background: "rgba(255,255,255,0.15)" }}
                 >
                   {i === slideIdx && (
                     <div
-                      className="h-full rounded-full bg-white transition-all"
+                      className="h-full rounded-full bg-white transition-all duration-100"
                       style={{ width: `${progress}%` }}
                     />
+                  )}
+                  {i < slideIdx && (
+                    <div className="h-full w-full rounded-full bg-white" />
                   )}
                 </div>
               ))}
@@ -392,58 +412,48 @@ export default function StoriesRow() {
 
             {/* Top bar */}
             <div className="absolute top-3 left-0 right-0 z-20 flex items-center justify-between px-3">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <div
-                  className="h-8 w-8 rounded-full border-2 border-white/30 bg-cover bg-center"
+                  className="h-9 w-9 rounded-full border-2 border-white/30 bg-cover bg-center shadow-lg"
                   style={{ backgroundImage: `url(${getGirlImage(activeGirl.id, activeGirl.defaultHair, activeGirl.defaultPose, activeGirl.defaultBackground)})` }}
                 />
-                <span className="text-sm font-bold text-white drop-shadow-lg">{activeGirl.name}</span>
+                <div>
+                  <span className="block text-sm font-bold text-white drop-shadow-lg">{activeGirl.name}</span>
+                  <span className="text-[0.5rem] text-white/50">{currentSlide.label}</span>
+                </div>
               </div>
               <button
                 onClick={closeStories}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white/80 backdrop-blur-sm transition-all hover:bg-black/60 hover:text-white"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white/70 backdrop-blur-sm transition-all hover:bg-black/70 hover:text-white active:scale-90"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 6L6 18M6 6l12 12"/></svg>
               </button>
             </div>
 
-            {/* Story image */}
+            {/* Image */}
             <img
               src={getGirlImage(activeGirl.id, currentSlide.hair, currentSlide.pose, currentSlide.bg)}
               alt={activeGirl.name}
               className="h-full w-full object-cover"
             />
 
-            {/* Location label */}
-            <div className="absolute top-14 left-3 z-20">
-              <span className="rounded-full bg-black/50 px-3 py-1 text-[0.55rem] font-semibold text-white/90 backdrop-blur-sm">
-                {currentSlide.label}
-              </span>
-            </div>
-
-            {/* Gradient bottom */}
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-6 pt-16">
-              <p className="mb-3 text-center text-sm leading-relaxed text-white/90 drop-shadow-lg">
+            {/* Gradient + CTA */}
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-5 pt-16">
+              <p className="mb-4 text-center text-sm leading-relaxed text-white/80 drop-shadow-lg line-clamp-3">
                 {activeGirl.story}
               </p>
               <Link
                 href={`/chat/${activeGirl.id}`}
                 onClick={closeStories}
-                className="btn-primary flex h-11 w-full items-center justify-center text-sm font-bold"
+                className="btn-primary flex h-11 w-full items-center justify-center rounded-xl text-sm font-bold shadow-[0_0_24px_rgba(255,60,136,0.3)]"
               >
                 Chatear con {activeGirl.name}
               </Link>
             </div>
 
             {/* Tap zones */}
-            <button
-              className="absolute top-0 bottom-0 left-0 z-10 w-1/2"
-              onClick={goPrev}
-            />
-            <button
-              className="absolute top-0 bottom-0 right-0 z-10 w-1/2"
-              onClick={goNext}
-            />
+            <button className="absolute top-0 bottom-0 left-0 z-10 w-1/2" onClick={goPrev} />
+            <button className="absolute top-0 bottom-0 right-0 z-10 w-1/2" onClick={goNext} />
           </div>
         </div>
       )}
