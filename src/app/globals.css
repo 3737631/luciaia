@@ -3,25 +3,19 @@
 @tailwind utilities;
 
 :root {
-  --bg: #050507;
-  --surface: #101014;
-  --surface-2: #17171d;
+  --bg: #08070c;
+  --surface: #121118;
   --border: rgba(255,255,255,0.08);
   --border-hover: rgba(255,255,255,0.14);
   --text: #f5f5f7;
   --muted: #8e8e93;
   --subdued: #636366;
   --pink: #ff2d75;
-  --pink-2: #ff477e;
   --coral: #ff5b6e;
   --green: #30d158;
   --radius: 12px;
   --radius-lg: 16px;
-  --radius-xl: 22px;
-  --radius-2xl: 28px;
-  --shadow: 0 4px 20px rgba(0,0,0,0.4);
-  --shadow-lg: 0 8px 40px rgba(0,0,0,0.5);
-  --container-padding: 20px;
+  --container-padding: 16px;
   --header-h: 48px;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -138,6 +132,7 @@ body {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
+@media (min-width: 640px) { .character-grid { gap: 12px; } }
 @media (min-width: 768px) { .character-grid { grid-template-columns: repeat(3, 1fr); gap: 14px; } }
 @media (min-width: 1024px) { .character-grid { grid-template-columns: repeat(4, 1fr); gap: 16px; } }
 @media (min-width: 1280px) { .character-grid { grid-template-columns: repeat(5, 1fr); gap: 18px; } }
