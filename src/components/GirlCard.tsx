@@ -29,6 +29,8 @@ export default function GirlCard({ girl }: { girl: Girl }) {
           <img
             src={src}
             alt={girl.name}
+            loading="lazy"
+            decoding="async"
             className="h-full w-full object-cover object-top transition-all duration-700 ease-out group-hover:scale-105"
             onError={() => !failed && setFailed(true)}
           />

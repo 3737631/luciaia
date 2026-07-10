@@ -136,7 +136,7 @@ export default function HeroShowcaseCarousel({ onOpenCreate }: { onOpenCreate?: 
                 zIndex: 3,
               }}
             >
-              <img src={getGirlImage(featured[img0Failed ? 2 : 0].id)} alt="" onError={() => !img0Failed && setImg0Failed(true)} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              <img src={getGirlImage(featured[img0Failed ? 2 : 0].id)} alt="" fetchPriority="high" onError={() => !img0Failed && setImg0Failed(true)} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             </div>
             <div
               style={{
@@ -151,7 +151,7 @@ export default function HeroShowcaseCarousel({ onOpenCreate }: { onOpenCreate?: 
                 zIndex: 2,
               }}
             >
-              <img src={getGirlImage(featured[img1Failed ? 2 : 1].id)} alt="" onError={() => !img1Failed && setImg1Failed(true)} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              <img src={getGirlImage(featured[img1Failed ? 2 : 1].id)} alt="" loading="lazy" decoding="async" onError={() => !img1Failed && setImg1Failed(true)} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             </div>
           </div>
         </div>
