@@ -33,10 +33,10 @@ export default function GirlsPage() {
 
   return (
     <>
-      <Header onOpenCreate={() => setCreateOpen(true)} />
+      <Header />
       <main style={{ minHeight: "100vh" }}>
         <HeroShowcaseCarousel onOpenCreate={() => setCreateOpen(true)} />
-        <StoriesRow onOpenCreate={() => setCreateOpen(true)} />
+        <StoriesRow />
 
         {/* Experiences */}
         <section className="container-nuvia" style={{ paddingTop: 26, paddingBottom: 2 }}>
