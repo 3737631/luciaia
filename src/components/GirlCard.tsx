@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { Girl } from "@/data/girls";
 import { getGirlImage } from "@/lib/images";
@@ -12,16 +13,24 @@ export default function GirlCard({ girl }: { girl: Girl }) {
   const src = custom
     ? getGirlImage(girl.id, custom.hair, custom.pose, custom.background)
     : getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground);
+  const [imgError, setImgError] = useState(false);
 
   return (
     <div className="group overflow-hidden rounded-xl bg-[#12121a] border border-white/[0.06]">
       <Link href={`${basePath}/chat/${girl.id}`}>
         <div className="relative aspect-[3/4] w-full overflow-hidden">
+          {imgError ? (
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-pink-600/30 to-purple-900/40">
+              <span className="text-5xl font-bold text-white/50 select-none">{girl.name.charAt(0)}</span>
+            </div>
+          ) : (
           <img
             src={src}
             alt={girl.name}
+            onError={() => setImgError(true)}
             className="h-full w-full object-cover object-top transition-all duration-700 ease-out group-hover:scale-105"
           />
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
           <div className="absolute right-2 top-2">
             <span className="rounded-md bg-white/10 px-2 py-0.5 text-[0.5rem] font-semibold text-white/80 backdrop-blur-sm">
