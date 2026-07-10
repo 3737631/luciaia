@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import AnimatedBackground from "@/components/AnimatedBackground";
-import BottomNav from "@/components/BottomNav";
 
 const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
@@ -22,7 +21,6 @@ export default function RootLayout({
       <body className={`${jakarta.className} min-h-screen bg-bg text-ink antialiased`}>
         <AnimatedBackground />
         {children}
-        <BottomNav />
       </body>
     </html>
   );
