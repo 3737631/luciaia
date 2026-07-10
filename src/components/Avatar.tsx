@@ -32,13 +32,14 @@ export default function Avatar({
 }: AvatarProps) {
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [usedFallback, setUsedFallback] = useState(false);
   const prevSrc = useRef<string>("");
 
   const imgSrc = getGirlImage(
     name,
-    hair as HairOption,
-    pose as PoseOption,
-    background as BackgroundOption,
+    !usedFallback ? (hair as HairOption) : undefined,
+    !usedFallback ? (pose as PoseOption) : undefined,
+    !usedFallback ? (background as BackgroundOption) : undefined,
   );
 
   useEffect(() => {
@@ -46,8 +47,19 @@ export default function Avatar({
       prevSrc.current = imgSrc;
       setLoaded(false);
       setFailed(false);
+      setUsedFallback(false);
     }
   }, [imgSrc]);
+
+  function handleError() {
+    if (!usedFallback) {
+      setUsedFallback(true);
+      setLoaded(false);
+    } else {
+      setFailed(true);
+      setLoaded(true);
+    }
+  }
 
   return (
     <div
@@ -98,10 +110,10 @@ export default function Avatar({
             }`}
             style={{ width: size, height: size }}
             onLoad={() => setLoaded(true)}
-            onError={() => { setFailed(true); setLoaded(true); }}
+            onError={handleError}
           />
         )}
-        {(!loaded || failed) && (
+        {failed && (
           <div
             className="absolute inset-0 flex items-center justify-center rounded-full"
             style={{ background: `linear-gradient(135deg, ${accentColor}33, ${accentColorSecondary}33)` }}

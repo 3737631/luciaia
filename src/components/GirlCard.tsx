@@ -9,17 +9,19 @@ import { getCustomization } from "@/lib/storage";
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export default function GirlCard({ girl }: { girl: Girl }) {
+  const [failed, setFailed] = useState(false);
   const custom = getCustomization(girl.id);
-  const src = custom
-    ? getGirlImage(girl.id, custom.hair, custom.pose, custom.background)
-    : getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground);
-  const [imgError, setImgError] = useState(false);
+  const src = failed
+    ? getGirlImage(girl.id)
+    : custom
+      ? getGirlImage(girl.id, custom.hair, custom.pose, custom.background)
+      : getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground);
 
   return (
     <div className="group overflow-hidden rounded-xl bg-[#12121a] border border-white/[0.06]">
       <Link href={`${basePath}/chat/${girl.id}`}>
         <div className="relative aspect-[3/4] w-full overflow-hidden">
-          {imgError ? (
+          {failed ? (
             <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-pink-600/30 to-purple-900/40">
               <span className="text-5xl font-bold text-white/50 select-none">{girl.name.charAt(0)}</span>
             </div>
@@ -27,8 +29,8 @@ export default function GirlCard({ girl }: { girl: Girl }) {
           <img
             src={src}
             alt={girl.name}
-            onError={() => setImgError(true)}
             className="h-full w-full object-cover object-top transition-all duration-700 ease-out group-hover:scale-105"
+            onError={() => !failed && setFailed(true)}
           />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />

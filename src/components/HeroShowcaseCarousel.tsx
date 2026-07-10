@@ -1,11 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 
 import { getGirlImage } from "@/lib/images";
 import { girls } from "@/data/girls";
 
 export default function HeroShowcaseCarousel({ onOpenCreate }: { onOpenCreate?: () => void }) {
+  const [img0Failed, setImg0Failed] = useState(false);
+  const [img1Failed, setImg1Failed] = useState(false);
   const featured = ["luna", "nia", "vera"].map(
     (id) => girls.find((g) => g.id === id) || girls[0]
   );
@@ -133,7 +136,7 @@ export default function HeroShowcaseCarousel({ onOpenCreate }: { onOpenCreate?: 
                 zIndex: 3,
               }}
             >
-              <img src={getGirlImage(featured[0].id)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              <img src={getGirlImage(featured[img0Failed ? 2 : 0].id)} alt="" onError={() => !img0Failed && setImg0Failed(true)} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             </div>
             <div
               style={{
@@ -148,7 +151,7 @@ export default function HeroShowcaseCarousel({ onOpenCreate }: { onOpenCreate?: 
                 zIndex: 2,
               }}
             >
-              <img src={getGirlImage(featured[1].id)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              <img src={getGirlImage(featured[img1Failed ? 2 : 1].id)} alt="" onError={() => !img1Failed && setImg1Failed(true)} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             </div>
           </div>
         </div>
