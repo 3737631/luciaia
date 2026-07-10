@@ -1,108 +1,132 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { getGirlImage } from "@/lib/images";
 
-export default function HeroShowcaseCarousel({ onOpenCreate }: { onOpenCreate?: () => void }) {
-  const [imgFailed, setImgFailed] = useState(false);
+const BANNERS = [
+  { id: "luna", name: "Luna", tag: "En vivo ahora", href: "/chat/luna" },
+  { id: "vera", name: "Vera", tag: "Nueva historia", href: "/chat/vera" },
+  { id: "maya", name: "Maya", tag: "Popular", href: "/chat/maya" },
+  { id: "sasha", name: "Sasha", tag: "En vivo ahora", href: "/chat/sasha" },
+];
+
+export default function HeroShowcaseCarousel() {
+  const [current, setCurrent] = useState(0);
+
+  const next = useCallback(() => {
+    setCurrent((c) => (c + 1) % BANNERS.length);
+  }, []);
+
+  useEffect(() => {
+    const t = setInterval(next, 5000);
+    return () => clearInterval(t);
+  }, [next]);
+
+  const b = BANNERS[current];
 
   return (
-    <section className="container-nuvia" style={{ paddingTop: 20, paddingBottom: 0 }}>
-      <div
+    <section style={{ padding: "0 16px", paddingTop: 16 }}>
+      <Link
+        href={b.href}
         style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 24,
           position: "relative",
-          minHeight: "clamp(120px, 18vw, 180px)",
+          display: "block",
+          width: "100%",
+          height: 210,
+          borderRadius: 20,
+          overflow: "hidden",
+          textDecoration: "none",
         }}
       >
-        {/* Animated glow */}
+        <img
+          src={getGirlImage(b.id)}
+          alt={b.name}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            objectPosition: "top",
+          }}
+        />
         <div
           style={{
             position: "absolute",
-            right: "8%",
-            top: "50%",
-            transform: "translateY(-50%)",
-            width: "clamp(100px, 18vw, 200px)",
-            height: "clamp(100px, 18vw, 200px)",
-            borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(255,90,157,0.12) 0%, transparent 70%)",
-            animation: "breathe 4s ease-in-out infinite",
-            pointerEvents: "none",
+            inset: 0,
+            background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.4) 100%)",
           }}
         />
-
-        <div style={{ flex: "1 1 60%", display: "flex", flexDirection: "column", gap: 6, zIndex: 2 }}>
-          <h1
-            style={{
-              fontSize: "clamp(20px, 3.2vw, 36px)",
-              fontWeight: 700,
-              lineHeight: 1.15,
-              letterSpacing: "-0.03em",
-              margin: 0,
-              color: "#fff",
-            }}
-          >
-            Conecta con personajes IA
-          </h1>
-          <p
-            style={{
-              fontSize: "clamp(9px, 0.85vw, 13px)",
-              color: "rgba(255,255,255,0.35)",
-              lineHeight: 1.5,
-              margin: 0,
-              maxWidth: 280,
-            }}
-          >
-            Miles de personalidades. Chat, voz y videollamada.
-          </p>
-          <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
-            <Link
-              href="#characters"
-              style={{
-                display: "inline-flex", alignItems: "center", gap: 4,
-                fontSize: "clamp(9px, 0.65vw, 12px)", fontWeight: 600,
-                padding: "10px 22px", borderRadius: 999, lineHeight: 1,
-                background: "linear-gradient(135deg, #FF5A9D, #FF6FAB)",
-                color: "#fff", textDecoration: "none",
-                boxShadow: "0 2px 10px rgba(255,90,157,0.15)",
-                transition: "all 250ms ease",
-              }}
-            >
-              Explorar
-            </Link>
-          </div>
-        </div>
-
         <div
           style={{
-            flex: "0 0 auto",
-            width: "clamp(80px, 14vw, 130px)",
-            height: "clamp(100px, 18vw, 170px)",
-            borderRadius: 16,
-            overflow: "hidden",
-            zIndex: 2,
+            position: "absolute",
+            top: 12,
+            left: 12,
+            background: "#FF5798",
+            borderRadius: 999,
+            padding: "4px 12px",
+            fontSize: 11,
+            fontWeight: 700,
+            color: "#fff",
+            lineHeight: 1,
           }}
         >
-          <img
-            src={getGirlImage("luna")}
-            alt=""
-            fetchPriority="high"
-            onError={() => !imgFailed && setImgFailed(true)}
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-          />
+          {b.tag}
         </div>
-      </div>
+        <div
+          style={{
+            position: "absolute",
+            bottom: 16,
+            left: 16,
+            right: 16,
+          }}
+        >
+          <h2
+            style={{
+              fontSize: 22,
+              fontWeight: 700,
+              color: "#fff",
+              margin: 0,
+              letterSpacing: "-0.03em",
+            }}
+          >
+            {b.name}
+          </h2>
+          <p
+            style={{
+              fontSize: 13,
+              color: "rgba(255,255,255,0.6)",
+              margin: "2px 0 0",
+            }}
+          >
+            Chatear ahora
+          </p>
+        </div>
+      </Link>
 
       <div
         style={{
-          height: 0.5,
-          background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent)",
-          marginTop: 28,
+          display: "flex",
+          justifyContent: "center",
+          gap: 6,
+          marginTop: 12,
         }}
-      />
+      >
+        {BANNERS.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setCurrent(i)}
+            style={{
+              width: i === current ? 24 : 6,
+              height: 6,
+              borderRadius: 999,
+              border: 0,
+              background: i === current ? "#FF5798" : "rgba(255,255,255,0.15)",
+              cursor: "pointer",
+              transition: "all 0.3s ease",
+            }}
+          />
+        ))}
+      </div>
     </section>
   );
 }

@@ -2,21 +2,17 @@
 
 import { useState } from "react";
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import GirlCard from "@/components/GirlCard";
 import HeroShowcaseCarousel from "@/components/HeroShowcaseCarousel";
+import StoriesRow from "@/components/StoriesRow";
+import ExperiencesSection from "@/components/ExperiencesSection";
+import BottomNav from "@/components/BottomNav";
 import CreateYourGirl from "@/components/CreateYourGirl";
 import { girls } from "@/data/girls";
 
 const femaleIds = new Set(["luna", "nia", "vera", "alma", "kira", "maya", "sasha", "yuki"]);
 const femaleChars = girls.filter((g) => femaleIds.has(g.id));
 const filters = ["Todas", "Nuevas", "Populares", "Coquetas"];
-const faqs = [
-  { q: "¿De verdad responde una IA?", a: "Sí, cada personaje está impulsado por IA que entiende el contexto, recuerda la conversación y se adapta a tu forma de hablar." },
-  { q: "¿Tiene memoria?", a: "Sí, cada personaje recuerda lo que hablaste en sesiones anteriores. La memoria mejora cuanto más interactúas." },
-  { q: "¿Puedo llamarla?", a: "Sí, hay videollamada integrada. Ves al personaje en pantalla y responde con voz en tiempo real." },
-  { q: "¿Qué diferencia hay entre personajes?", a: "Cada una tiene personalidad única, historia distinta, estilo visual y forma de hablar." },
-];
 
 export default function GirlsPage() {
   const [activeFilter, setActiveFilter] = useState("Todas");
@@ -33,42 +29,39 @@ export default function GirlsPage() {
   return (
     <>
       <Header />
-      <main style={{ minHeight: "100vh", paddingBottom: 80 }}>
-        <HeroShowcaseCarousel onOpenCreate={() => setCreateOpen(true)} />
+      <main style={{ minHeight: "100vh" }}>
+        <HeroShowcaseCarousel />
+        <StoriesRow onOpenCreate={() => setCreateOpen(true)} />
+        <ExperiencesSection />
 
-        <section className="container-nuvia" style={{ paddingTop: 32 }} id="characters">
-          <div style={{ marginBottom: 16 }}>
-            <h2 style={{ fontSize: "0.85rem", fontWeight: 700, letterSpacing: "-0.02em", margin: 0, color: "var(--text)" }}>
-              Personajes populares
+        <section style={{ padding: "16px 16px 0" }} id="characters">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+            <h2 style={{ fontSize: 18, fontWeight: 700, letterSpacing: "-0.03em", margin: 0, color: "#fff" }}>
+              Personajes
             </h2>
-            <p style={{ fontSize: "0.5rem", color: "var(--muted)", margin: "4px 0 0" }}>
-              Descubre personajes creados por la comunidad.
-            </p>
-          </div>
-
-          <div className="scrollbar-none" style={{ display: "flex", gap: 6, overflowX: "auto", marginBottom: 18 }}>
-            {filters.map((f) => (
-              <button
-                key={f}
-                onClick={() => setActiveFilter(f)}
-                style={{
-                  flexShrink: 0,
-                  borderRadius: 999,
-                  fontWeight: 500,
-                  fontSize: "0.45rem",
-                  padding: "4px 10px",
-                  lineHeight: 1,
-                  letterSpacing: "-0.01em",
-                  background: activeFilter === f ? "var(--pink)" : "rgba(255,255,255,0.02)",
-                  border: "0.5px solid transparent",
-                  color: activeFilter === f ? "#fff" : "rgba(255,255,255,0.3)",
-                  cursor: "pointer",
-                  transition: "all 250ms ease",
-                }}
-              >
-                {f}
-              </button>
-            ))}
+            <div style={{ display: "flex", gap: 6 }}>
+              {filters.map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setActiveFilter(f)}
+                  style={{
+                    borderRadius: 999,
+                    fontWeight: 600,
+                    fontSize: 11,
+                    padding: "5px 12px",
+                    lineHeight: 1,
+                    background: activeFilter === f ? "#FF5798" : "rgba(255,255,255,0.04)",
+                    border: "1px solid transparent",
+                    borderColor: activeFilter === f ? "transparent" : "rgba(255,255,255,0.06)",
+                    color: activeFilter === f ? "#fff" : "rgba(255,255,255,0.35)",
+                    cursor: "pointer",
+                    transition: "all 250ms ease",
+                  }}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="character-grid">
@@ -76,95 +69,16 @@ export default function GirlsPage() {
               ? filtered.map((girl, i) => <GirlCard key={girl.id} girl={girl} index={i} />)
               : (
                 <div style={{ gridColumn: "1 / -1", padding: "24px 0", textAlign: "center" }}>
-                  <p style={{ fontSize: "0.5rem", color: "var(--muted)" }}>No hay personajes con ese estilo</p>
+                  <p style={{ fontSize: 13, color: "var(--muted)" }}>No hay personajes con ese estilo</p>
                 </div>
               )}
           </div>
         </section>
 
-        <section className="container-nuvia" style={{ paddingTop: 48, paddingBottom: 6 }}>
-          <div style={{ maxWidth: 480, margin: "0 auto" }}>
-            <h2 style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "-0.02em", textAlign: "center", margin: "0 0 14px", color: "var(--text)" }}>
-              Preguntas frecuentes
-            </h2>
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              {faqs.map((faq) => (
-                <details
-                  key={faq.q}
-                  className="group"
-                  style={{
-                    borderRadius: 12,
-                    background: "rgba(18,17,24,0.25)",
-                    border: "0.5px solid rgba(255,255,255,0.03)",
-                    overflow: "hidden",
-                    transition: "all 250ms ease",
-                  }}
-                >
-                  <summary
-                    style={{
-                      display: "flex", cursor: "pointer", alignItems: "center",
-                      justifyContent: "space-between", padding: "10px 14px",
-                      fontSize: "0.45rem", fontWeight: 500,
-                      color: "rgba(255,255,255,0.45)", letterSpacing: "-0.01em",
-                    }}
-                  >
-                    {faq.q}
-                    <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="2" style={{ flexShrink: 0, transition: "transform 250ms ease" }} className="group-open:rotate-180">
-                      <path d="M6 9l6 6 6-6" />
-                    </svg>
-                  </summary>
-                  <div style={{ borderTop: "0.5px solid rgba(255,255,255,0.03)", padding: "8px 14px 10px" }}>
-                    <p style={{ fontSize: "0.4rem", color: "var(--muted)", lineHeight: 1.6, margin: 0 }}>{faq.a}</p>
-                  </div>
-                </details>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="container-nuvia" style={{ paddingTop: 32, paddingBottom: 0 }}>
-          <div style={{ borderRadius: 14, background: "rgba(18,17,24,0.2)", border: "0.5px solid rgba(255,255,255,0.03)", padding: "16px 18px", textAlign: "center" }}>
-            <p style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "-0.02em", margin: 0, color: "var(--text)" }}>Nuvia</p>
-            <p style={{ fontSize: "0.45rem", color: "var(--muted)", maxWidth: 360, margin: "4px auto 0", lineHeight: 1.6 }}>
-              Conversaciones IA personalizadas. Elige, personaliza y chatea con personajes ficticios al instante.
-            </p>
-            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 6, marginTop: 8 }}>
-              {["+18", "Personajes IA", "Sin registro"].map((t) => (
-                <span key={t} style={{ fontSize: "0.4rem", fontWeight: 500, padding: "2px 7px", borderRadius: 999, background: "rgba(255,255,255,0.02)", color: "rgba(255,255,255,0.18)", border: "0.5px solid rgba(255,255,255,0.03)" }}>
-                  {t}
-                </span>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <Footer />
+        <div style={{ height: 24 }} />
       </main>
 
-      {/* FAB */}
-      <button
-        onClick={() => setCreateOpen(true)}
-        style={{
-          position: "fixed",
-          bottom: "calc(24px + env(safe-area-inset-bottom, 0px))",
-          right: 20,
-          zIndex: 40,
-          width: 34,
-          height: 34,
-          borderRadius: "50%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "linear-gradient(135deg, #FF5A9D, #FF6FAB)",
-          boxShadow: "0 3px 14px rgba(255,90,157,0.22)",
-          border: 0,
-          cursor: "pointer",
-          transition: "all 250ms ease",
-        }}
-      >
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"><path d="M12 5v14M5 12h14" /></svg>
-      </button>
-
+      <BottomNav />
       <CreateYourGirl open={createOpen} onClose={() => setCreateOpen(false)} />
     </>
   );
