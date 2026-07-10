@@ -132,44 +132,23 @@ export default function Header() {
           )}
         </div>
 
-        {/* Únete gratis */}
-        <Link
-          href="#"
-          style={{
-            background: "linear-gradient(135deg, #ff5f8f, #ff2b86)",
-            border: 0, borderRadius: 20,
-            padding: "7px 16px", color: "#fff",
-            fontSize: 13, fontWeight: 700,
-            textDecoration: "none", whiteSpace: "nowrap",
-            display: "inline-flex", alignItems: "center",
-          }}
-        >
-          Únete gratis
-        </Link>
-
-        {/* Iniciar sesión - desktop text / mobile icon */}
+        {/* Únete gratis / profile */}
         <div style={{ position: "relative" }}>
           <button
             onClick={() => setProfileOpen(!profileOpen)}
             style={{
-              background: "transparent",
-              border: "1px solid rgba(255,255,255,0.2)",
-              borderRadius: 20,
-              padding: "6px 14px",
-              color: "#ccc",
-              fontSize: 13, fontWeight: 600,
-              cursor: "pointer",
-              whiteSpace: "nowrap",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
+              background: "linear-gradient(135deg, #ff5f8f, #ff2b86)",
+              border: 0, borderRadius: 20,
+              padding: "7px 16px", color: "#fff",
+              fontSize: 13, fontWeight: 700,
+              cursor: "pointer", whiteSpace: "nowrap",
+              display: "inline-flex", alignItems: "center", gap: 4,
             }}
           >
-            <svg className="sm:hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ display: "block" }}>
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
+            Únete ahora
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+              <polyline points="6 9 12 15 18 9" />
             </svg>
-            <span className="hidden sm:inline">Iniciar sesión</span>
           </button>
           {profileOpen && (
             <>
