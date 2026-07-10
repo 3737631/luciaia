@@ -1,52 +1,27 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import Link from "next/link";
+import { useState } from "react";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import GirlCard from "@/components/GirlCard";
+import HeroShowcaseCarousel from "@/components/HeroShowcaseCarousel";
 import StoriesRow from "@/components/StoriesRow";
-import { getGirlImage } from "@/lib/images";
+import CreateYourGirl from "@/components/CreateYourGirl";
 import { girls } from "@/data/girls";
-import RetryImage from "@/components/RetryImage";
 
 const femaleIds = new Set(["luna", "nia", "vera", "alma", "kira", "maya", "sasha", "yuki"]);
-
-const accentMap: Record<string, string> = {
-  luna: "#ff2d95", nia: "#38bdf8", vera: "#8b5cf6", alma: "#ff7a45",
-  kira: "#a78bfa", maya: "#ec4899", sasha: "#d97706", yuki: "#f472b6",
-};
-
-function getAccent(id: string): string {
-  return accentMap[id] || "#ff2d95";
-}
 const femaleChars = girls.filter((g) => femaleIds.has(g.id));
-
-const heroSlides = [
-  { id: "luna", title: "Tu compañera ideal", subtitle: "Conversaciones infinitas sin límites" },
-  { id: "vera", title: "Misterio y seducción", subtitle: "Cada noche es una nueva historia" },
-  { id: "yuki", title: "Dulce tentación", subtitle: "La timidez nunca fue tan irresistible" },
+const filters = ["Todas", "Populares", "Nuevas", "Coquetas"];
+const faqs = [
+  { q: "¿De verdad responde una IA?", a: "Sí, cada personaje está impulsado por IA que entiende el contexto, recuerda la conversación y se adapta a tu forma de hablar." },
+  { q: "¿Tiene memoria?", a: "Sí, cada personaje recuerda lo que hablaste en sesiones anteriores. La memoria mejora cuanto más interactúas." },
+  { q: "¿Puedo llamarla?", a: "Sí, hay videollamada integrada. Ves al personaje en pantalla y responde con voz en tiempo real." },
+  { q: "¿Qué diferencia hay entre personajes?", a: "Cada una tiene personalidad única, historia distinta, estilo visual y forma de hablar." },
 ];
-
-const experiences = [
-  { id: "romance", title: "Romance virtual", subtitle: "Conexiones profundas", badge: "Nuevo", girl: "luna" },
-  { id: "gaming", title: "Gaming +18", subtitle: "Juega y seduce", badge: "Popular", girl: "nia" },
-  { id: "mystery", title: "Misterio nocturno", subtitle: "Secretos al anochecer", badge: "TOP", girl: "vera" },
-  { id: "virtual", title: "Realidad virtual", subtitle: "Experiencia inmersiva", badge: "PRO", girl: "kira" },
-  { id: "magic", title: "Magia y fantasía", subtitle: "Historias de otro mundo", badge: "Nuevo", girl: "yumi" },
-];
-
-const filters = ["Todas", "Coquetas", "Gamer", "Misteriosas", "Dulces", "Atrevidas", "Latina", "Futurista"];
 
 export default function GirlsPage() {
-  const [heroIdx, setHeroIdx] = useState(0);
   const [activeFilter, setActiveFilter] = useState("Todas");
-
-  const onImgError = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = e.currentTarget;
-    if (!img.dataset.failed) {
-      img.dataset.failed = "1";
-      img.style.display = "none";
-    }
-  }, []);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const filtered = activeFilter === "Todas"
     ? femaleChars
@@ -56,443 +31,171 @@ export default function GirlsPage() {
           g.personality?.includes(activeFilter.replace(/s$/, "").toLowerCase())
       );
 
-  const slide = heroSlides[heroIdx];
-
   return (
     <>
-      <Header />
-      <main style={{ paddingBottom: "calc(88px + env(safe-area-inset-bottom))" }}>
-        {/* === HERO CAROUSEL === */}
-        <section style={{ position: "relative", width: "100%", height: 250, overflow: "hidden", background: "#1a1a24" }}>
-          {heroSlides.map((s, i) => (
-            <div
-              key={s.id}
-              style={{
-                position: "absolute",
-                inset: 0,
-                opacity: i === heroIdx ? 1 : 0,
-                transition: "opacity 0.5s ease",
-                background: getAccent(s.id),
-              }}
-            >
-              <img
-                src={getGirlImage(s.id)}
-                alt=""
-                fetchPriority={i === heroIdx ? "high" : "low"}
-                loading={i === heroIdx ? "eager" : "lazy"}
-                onError={onImgError}
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
-            </div>
-          ))}
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              background: "linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.15) 100%)",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              bottom: 40,
-              left: 16,
-              right: 16,
-            }}
-          >
-            <h2 style={{ fontSize: 24, fontWeight: 800, color: "#fff", margin: 0, letterSpacing: "-0.03em" }}>
-              {slide.title}
+      <Header onOpenCreate={() => setCreateOpen(true)} />
+      <main style={{ minHeight: "100vh" }}>
+        <HeroShowcaseCarousel onOpenCreate={() => setCreateOpen(true)} />
+        <StoriesRow onOpenCreate={() => setCreateOpen(true)} />
+
+        {/* Experiences */}
+        <section className="container-nuvia" style={{ paddingTop: 26, paddingBottom: 2 }}>
+          <h2 style={{ fontSize: "0.8rem", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 10px", color: "var(--text)" }}>
+            Experiencias
+          </h2>
+          <div className="scrollbar-none" style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4 }}>
+            {[
+              { label: "Nuevo", title: "Romance virtual", desc: "Conexiones profundas" },
+              { label: "Popular", title: "Gaming +18", desc: "Juega y seduce" },
+              { label: "TOP", title: "Misterio nocturno", desc: "Secretos al anochecer" },
+              { label: "PRO", title: "Realidad virtual", desc: "Experiencia inmersiva" },
+              { label: "Nuevo", title: "Magia y fantasía", desc: "Historias de otro mundo" },
+            ].map((exp) => (
+              <div
+                key={exp.title}
+                onClick={() => setCreateOpen(true)}
+                style={{
+                  flex: "0 0 140px",
+                  borderRadius: 16,
+                  background: "rgba(255,255,255,0.02)",
+                  border: "0.5px solid rgba(255,255,255,0.06)",
+                  padding: "14px 12px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 6,
+                  cursor: "pointer",
+                  transition: "all 200ms ease",
+                }}
+              >
+                <span style={{
+                  alignSelf: "flex-start",
+                  fontSize: "0.4rem", fontWeight: 700, letterSpacing: "0.04em",
+                  padding: "2px 6px", borderRadius: 999, lineHeight: 1.3,
+                  background: exp.label === "Nuevo" ? "rgba(48,209,88,0.15)" : exp.label === "Popular" ? "rgba(255,45,117,0.15)" : exp.label === "TOP" ? "rgba(255,215,0,0.15)" : "rgba(138,92,246,0.15)",
+                  color: exp.label === "Nuevo" ? "var(--green)" : exp.label === "Popular" ? "var(--pink)" : exp.label === "TOP" ? "#ffd700" : "#a78bfa",
+                }}>
+                  {exp.label}
+                </span>
+                <p style={{ fontSize: "0.6rem", fontWeight: 700, margin: 0, color: "var(--text)", lineHeight: 1.2, letterSpacing: "-0.01em" }}>
+                  {exp.title}
+                </p>
+                <p style={{ fontSize: "0.45rem", margin: 0, color: "var(--muted)", lineHeight: 1.3, letterSpacing: "-0.01em" }}>
+                  {exp.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Characters section */}
+        <section className="container-nuvia" style={{ paddingTop: 26, paddingBottom: 6 }} id="characters">
+          <div style={{ marginBottom: 10 }}>
+            <h2 style={{ fontSize: "0.8rem", fontWeight: 700, letterSpacing: "-0.02em", margin: 0, color: "var(--text)" }}>
+              Personajes populares
             </h2>
-            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", margin: "4px 0 0" }}>
-              {slide.subtitle}
+            <p style={{ fontSize: "0.45rem", color: "var(--muted)", margin: "2px 0 0" }}>
+              Descubre perfiles destacados y empieza a chatear al instante.
             </p>
           </div>
-          {/* Arrows */}
-          <button
-            onClick={() => setHeroIdx((heroIdx - 1 + heroSlides.length) % heroSlides.length)}
-            style={{
-              position: "absolute",
-              left: 8,
-              top: "50%",
-              transform: "translateY(-50%)",
-              width: 32,
-              height: 32,
-              borderRadius: "50%",
-              background: "rgba(0,0,0,0.45)",
-              border: 0,
-              color: "#fff",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              zIndex: 10,
-              fontSize: 16,
-            }}
-          >
-            ‹
-          </button>
-          <button
-            onClick={() => setHeroIdx((heroIdx + 1) % heroSlides.length)}
-            style={{
-              position: "absolute",
-              right: 8,
-              top: "50%",
-              transform: "translateY(-50%)",
-              width: 32,
-              height: 32,
-              borderRadius: "50%",
-              background: "rgba(0,0,0,0.45)",
-              border: 0,
-              color: "#fff",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              zIndex: 10,
-              fontSize: 16,
-            }}
-          >
-            ›
-          </button>
-          {/* Dots */}
-          <div
-            style={{
-              position: "absolute",
-              bottom: 14,
-              left: 16,
-              display: "flex",
-              gap: 6,
-            }}
-          >
-            {heroSlides.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setHeroIdx(i)}
-                style={{
-                  width: i === heroIdx ? 20 : 8,
-                  height: 4,
-                  borderRadius: 2,
-                  border: 0,
-                  background: i === heroIdx ? "#ff5f8f" : "rgba(255,255,255,0.3)",
-                  cursor: "pointer",
-                  transition: "all 0.3s ease",
-                }}
-              />
-            ))}
-          </div>
-        </section>
 
-        {/* === STORIES === */}
-        <StoriesRow ringSize={86} />
-
-        {/* === NUEVAS EXPERIENCIAS === */}
-        <section style={{ padding: "8px 0 12px" }}>
-          <div style={{ padding: "0 16px", marginBottom: 12 }}>
-            <h2 style={{ fontSize: 20, fontWeight: 800, color: "#fff", letterSpacing: "-0.03em" }}>
-              Nuevas experiencias
-            </h2>
-          </div>
-          <div
-            style={{
-              display: "flex",
-              gap: 12,
-              overflowX: "auto",
-              padding: "0 16px",
-              scrollbarWidth: "none",
-            }}
-          >
-            {experiences.map((exp) => (
-              <Link
-                key={exp.id}
-                href={`/chat/${exp.girl}`}
-                style={{
-                  flex: "0 0 200px",
-                  height: 130,
-                  borderRadius: 16,
-                  overflow: "hidden",
-                  position: "relative",
-                  textDecoration: "none",
-                  display: "block",
-                  background: getAccent(exp.girl),
-                }}
-              >
-                <img
-                  src={getGirlImage(exp.girl)}
-                  alt=""
-                  loading="lazy"
-                  onError={onImgError}
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
-                <span
-                  style={{
-                    position: "absolute",
-                    top: 8,
-                    left: 8,
-                    background: "#ff2b86",
-                    color: "#fff",
-                    fontSize: 10,
-                    fontWeight: 700,
-                    padding: "2px 8px",
-                    borderRadius: 10,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {exp.badge}
-                </span>
-                <div style={{ position: "absolute", bottom: 8, left: 10, right: 10 }}>
-                  <h3 style={{ fontSize: 15, fontWeight: 700, color: "#fff", margin: 0 }}>
-                    {exp.title}
-                  </h3>
-                  <p style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", margin: "2px 0 0" }}>
-                    {exp.subtitle}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        {/* === PERSONAJES DE NUVIA AI === */}
-        <section style={{ padding: "8px 0 12px" }}>
-          <div style={{ padding: "0 16px", marginBottom: 12 }}>
-            <h2 style={{ fontSize: 20, fontWeight: 800, color: "#fff", letterSpacing: "-0.03em" }}>
-              Personajes de Nuvia AI
-            </h2>
-          </div>
-          <div
-            style={{
-              display: "flex",
-              gap: 10,
-              overflowX: "auto",
-              padding: "0 16px",
-              scrollbarWidth: "none",
-            }}
-          >
-            {femaleChars.slice(0, 8).map((girl) => (
-              <Link
-                key={girl.id}
-                href={`/chat/${girl.id}`}
-                style={{
-                  flex: "0 0 110px",
-                  textDecoration: "none",
-                  display: "block",
-                }}
-              >
-                  <div
-                    style={{
-                      width: 110,
-                      height: 146,
-                      borderRadius: 12,
-                      overflow: "hidden",
-                      position: "relative",
-                      marginBottom: 6,
-                      background: getAccent(girl.id),
-                    }}
-                  >
-                    <img
-                    src={getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground)}
-                    alt={girl.name}
-                    loading="lazy"
-                    onError={onImgError}
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                  />
-                  <div
-                    style={{
-                      position: "absolute",
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      background: "linear-gradient(to top, rgba(0,0,0,0.8), transparent)",
-                      padding: "8px 6px 6px",
-                    }}
-                  >
-                    <span style={{ fontSize: 12, fontWeight: 700, color: "#fff" }}>
-                      {girl.name}
-                    </span>
-                    <span style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", marginLeft: 4 }}>
-                      {girl.age}
-                    </span>
-                  </div>
-                </div>
-                <p
-                  style={{
-                    fontSize: 10,
-                    color: "rgba(255,255,255,0.4)",
-                    margin: 0,
-                    lineHeight: 1.3,
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                    overflow: "hidden",
-                  }}
-                >
-                  {girl.description}
-                </p>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        {/* === SEARCH + FILTER === */}
-        <div style={{ padding: "12px 16px 8px" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              marginBottom: 12,
-            }}
-          >
-            {/* Search button */}
-            <div
-              style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                background: "rgba(255,255,255,0.07)",
-                borderRadius: 10,
-                padding: "0 12px",
-                height: 38,
-              }}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="2">
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-              <span style={{ fontSize: 13, color: "rgba(255,255,255,0.25)" }}>Buscar personajes...</span>
-            </div>
-            <button
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 10,
-                background: "rgba(255,255,255,0.07)",
-                border: 0,
-                color: "#fff",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                fontSize: 18,
-              }}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="4" y1="6" x2="20" y2="6" />
-                <line x1="4" y1="12" x2="20" y2="12" />
-                <line x1="4" y1="18" x2="20" y2="18" />
-              </svg>
-            </button>
-          </div>
-          {/* Filter chips */}
-          <div
-            style={{
-              display: "flex",
-              gap: 8,
-              overflowX: "auto",
-              paddingBottom: 4,
-              scrollbarWidth: "none",
-            }}
-          >
+          {/* Filters */}
+          <div className="scrollbar-none" style={{ display: "flex", gap: 4, overflowX: "auto", paddingBottom: 2, marginBottom: 12 }}>
             {filters.map((f) => (
               <button
                 key={f}
                 onClick={() => setActiveFilter(f)}
                 style={{
                   flexShrink: 0,
-                  padding: "6px 14px",
-                  borderRadius: 20,
-                  border: 0,
-                  fontSize: 12,
-                  fontWeight: 600,
+                  borderRadius: 999,
+                  fontWeight: 500,
+                  fontSize: "0.45rem",
+                  padding: "4px 11px",
+                  lineHeight: 1,
+                  letterSpacing: "-0.01em",
+                  background: activeFilter === f ? "rgba(255,45,117,0.1)" : "rgba(255,255,255,0.03)",
+                  border: activeFilter === f ? "0.5px solid rgba(255,45,117,0.25)" : "0.5px solid rgba(255,255,255,0.05)",
+                  color: activeFilter === f ? "#ff5b6e" : "rgba(255,255,255,0.35)",
                   cursor: "pointer",
-                  whiteSpace: "nowrap",
-                  background: activeFilter === f
-                    ? "linear-gradient(135deg, #ff5f8f, #ff2b86)"
-                    : "rgba(255,255,255,0.08)",
-                  color: activeFilter === f ? "#fff" : "rgba(255,255,255,0.6)",
-                  transition: "all 0.2s ease",
+                  transition: "all 150ms ease",
                 }}
               >
                 {f}
               </button>
             ))}
           </div>
-        </div>
 
-        {/* === CHARACTER GRID === */}
-        <section style={{ padding: "4px 16px 24px" }}>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 16,
-            }}
-          >
-            {filtered.length > 0 ? (
-              filtered.map((girl) => (
-                <Link
-                  key={girl.id}
-                  href={`/chat/${girl.id}`}
-                  style={{
-                    borderRadius: 16,
-                    overflow: "hidden",
-                    display: "flex",
-                    flexDirection: "column",
-                    textDecoration: "none",
-                    background: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(255,255,255,0.06)",
-                  }}
-                >
-                  <RetryImage
-                    src={getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground)}
-                    alt={girl.name}
-                    accent={getAccent(girl.id)}
-                    style={{ aspectRatio: "3/4", width: "100%" }}
-                    imgStyle={{ transition: "transform 0.4s ease" }}
-                  />
-                  <div style={{ padding: "10px 12px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                      <span style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>
-                        {girl.name}
-                      </span>
-                      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>
-                        {girl.age}
-                      </span>
-                      {girl.badge && (
-                        <span style={{
-                          fontSize: 9, fontWeight: 700, color: "#ff5f8f",
-                          background: "rgba(255,95,143,0.15)", padding: "2px 6px", borderRadius: 6, marginLeft: "auto",
-                        }}>
-                          {girl.badge}
-                        </span>
-                      )}
-                    </div>
-                    <p style={{
-                      fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.4, margin: 0,
-                      display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden",
-                    }}>
-                      {girl.story}
-                    </p>
-                  </div>
-                </Link>
-              ))
-            ) : (
-              <div
-                style={{
-                  gridColumn: "1 / -1",
-                  padding: "40px 0",
-                  textAlign: "center",
-                  color: "rgba(255,255,255,0.3)",
-                  fontSize: 13,
-                }}
-              >
-                No hay personajes con ese estilo
-              </div>
-            )}
+          {/* Grid */}
+          <div className="character-grid">
+            {filtered.length > 0
+              ? filtered.map((girl) => <GirlCard key={girl.id} girl={girl} />)
+              : (
+                <div style={{ gridColumn: "1 / -1", padding: "24px 0", textAlign: "center" }}>
+                  <p style={{ fontSize: "0.5rem", color: "var(--muted)" }}>No hay personajes con ese estilo</p>
+                </div>
+              )}
           </div>
         </section>
+
+        {/* FAQ */}
+        <section className="container-nuvia" style={{ paddingTop: 28, paddingBottom: 6 }}>
+          <div style={{ maxWidth: 480, margin: "0 auto" }}>
+            <h2 style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "-0.02em", textAlign: "center", margin: "0 0 12px", color: "var(--text)" }}>
+              Preguntas frecuentes
+            </h2>
+            <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+              {faqs.map((faq) => (
+                <details
+                  key={faq.q}
+                  style={{
+                    borderRadius: 10,
+                    background: "rgba(255,255,255,0.02)",
+                    border: "0.5px solid rgba(255,255,255,0.05)",
+                    overflow: "hidden",
+                  }}
+                >
+                  <summary
+                    style={{
+                      display: "flex", cursor: "pointer", alignItems: "center",
+                      justifyContent: "space-between", padding: "8px 12px",
+                      fontSize: "0.45rem", fontWeight: 500,
+                      color: "rgba(255,255,255,0.55)", letterSpacing: "-0.01em",
+                    }}
+                  >
+                    {faq.q}
+                    <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="2" style={{ flexShrink: 0 }}>
+                      <path d="M6 9l6 6 6-6" />
+                    </svg>
+                  </summary>
+                  <div style={{ borderTop: "0.5px solid rgba(255,255,255,0.04)", padding: "6px 12px 8px" }}>
+                    <p style={{ fontSize: "0.4rem", color: "var(--muted)", lineHeight: 1.6, margin: 0 }}>{faq.a}</p>
+                  </div>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Footer info */}
+        <section className="container-nuvia" style={{ paddingTop: 24, paddingBottom: 0 }}>
+          <div style={{ borderRadius: 18, background: "rgba(255,255,255,0.015)", border: "0.5px solid rgba(255,255,255,0.05)", padding: "18px 20px", textAlign: "center" }}>
+            <p style={{ fontSize: "0.8rem", fontWeight: 700, letterSpacing: "-0.02em", margin: 0, color: "var(--text)" }}>Nuvia</p>
+            <p style={{ fontSize: "0.45rem", color: "var(--muted)", maxWidth: 360, margin: "4px auto 0", lineHeight: 1.6 }}>
+              Conversaciones IA personalizadas. Elige, personaliza y chatea con personajes ficticios al instante.
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 5, marginTop: 8 }}>
+              {["+18", "Personajes IA", "Sin registro"].map((t) => (
+                <span key={t} style={{ fontSize: "0.4rem", fontWeight: 500, padding: "2px 7px", borderRadius: 999, background: "rgba(255,255,255,0.02)", color: "rgba(255,255,255,0.2)", border: "0.5px solid rgba(255,255,255,0.05)" }}>
+                  {t}
+                </span>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <Footer />
       </main>
+
+      <CreateYourGirl open={createOpen} onClose={() => setCreateOpen(false)} />
     </>
   );
 }
