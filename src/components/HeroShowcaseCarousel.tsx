@@ -8,31 +8,28 @@ export default function HeroShowcaseCarousel({ onOpenCreate }: { onOpenCreate?: 
   const [imgFailed, setImgFailed] = useState(false);
 
   return (
-    <section className="container-nuvia" style={{ paddingTop: 16, paddingBottom: 0 }}>
+    <section className="container-nuvia" style={{ paddingTop: 20, paddingBottom: 0 }}>
       <div
         style={{
-          borderRadius: 24,
-          background: "linear-gradient(145deg, #0c0b14 0%, #0e0914 100%)",
-          border: "0.5px solid rgba(255,255,255,0.05)",
           display: "flex",
           alignItems: "center",
-          padding: "24px",
-          gap: 20,
+          gap: 24,
           position: "relative",
-          overflow: "hidden",
-          minHeight: "clamp(130px, 20vw, 200px)",
+          minHeight: "clamp(120px, 18vw, 180px)",
         }}
       >
+        {/* Animated glow */}
         <div
           style={{
             position: "absolute",
-            right: "12%",
+            right: "8%",
             top: "50%",
             transform: "translateY(-50%)",
-            width: "clamp(80px, 16vw, 160px)",
-            height: "clamp(80px, 16vw, 160px)",
+            width: "clamp(100px, 18vw, 200px)",
+            height: "clamp(100px, 18vw, 200px)",
             borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(255,79,151,0.12) 0%, transparent 70%)",
+            background: "radial-gradient(circle, rgba(255,90,157,0.12) 0%, transparent 70%)",
+            animation: "breathe 4s ease-in-out infinite",
             pointerEvents: "none",
           }}
         />
@@ -40,7 +37,7 @@ export default function HeroShowcaseCarousel({ onOpenCreate }: { onOpenCreate?: 
         <div style={{ flex: "1 1 60%", display: "flex", flexDirection: "column", gap: 6, zIndex: 2 }}>
           <h1
             style={{
-              fontSize: "clamp(18px, 3vw, 34px)",
+              fontSize: "clamp(20px, 3.2vw, 36px)",
               fontWeight: 700,
               lineHeight: 1.15,
               letterSpacing: "-0.03em",
@@ -48,62 +45,44 @@ export default function HeroShowcaseCarousel({ onOpenCreate }: { onOpenCreate?: 
               color: "#fff",
             }}
           >
-            Conecta con IA
+            Conecta con personajes IA
           </h1>
           <p
             style={{
               fontSize: "clamp(9px, 0.85vw, 13px)",
-              color: "rgba(255,255,255,0.4)",
+              color: "rgba(255,255,255,0.35)",
               lineHeight: 1.5,
               margin: 0,
-              maxWidth: 300,
+              maxWidth: 280,
             }}
           >
-            Explora, crea y chatea con personajes únicos al instante.
+            Miles de personalidades. Chat, voz y videollamada.
           </p>
           <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
             <Link
               href="#characters"
               style={{
                 display: "inline-flex", alignItems: "center", gap: 4,
-                fontSize: "clamp(9px, 0.7vw, 12px)", fontWeight: 600,
-                padding: "10px 20px", borderRadius: 999, lineHeight: 1,
-                background: "linear-gradient(135deg, #FF4F97, #FF63A2)",
+                fontSize: "clamp(9px, 0.65vw, 12px)", fontWeight: 600,
+                padding: "10px 22px", borderRadius: 999, lineHeight: 1,
+                background: "linear-gradient(135deg, #FF5A9D, #FF6FAB)",
                 color: "#fff", textDecoration: "none",
-                boxShadow: "0 2px 12px rgba(255,79,151,0.18)",
+                boxShadow: "0 2px 10px rgba(255,90,157,0.15)",
                 transition: "all 250ms ease",
               }}
             >
               Explorar
             </Link>
-            {onOpenCreate && (
-              <button
-                onClick={onOpenCreate}
-                style={{
-                  display: "inline-flex", alignItems: "center", gap: 4,
-                  fontSize: "clamp(9px, 0.7vw, 12px)", fontWeight: 600,
-                  padding: "10px 20px", borderRadius: 999, lineHeight: 1,
-                  background: "rgba(255,255,255,0.04)",
-                  border: "0.5px solid rgba(255,255,255,0.08)",
-                  color: "rgba(255,255,255,0.6)", cursor: "pointer",
-                  transition: "all 250ms ease",
-                }}
-              >
-                Crear mi IA
-              </button>
-            )}
           </div>
         </div>
 
         <div
           style={{
             flex: "0 0 auto",
-            width: "clamp(70px, 13vw, 120px)",
-            height: "clamp(90px, 17vw, 160px)",
+            width: "clamp(80px, 14vw, 130px)",
+            height: "clamp(100px, 18vw, 170px)",
             borderRadius: 16,
             overflow: "hidden",
-            border: "0.5px solid rgba(255,255,255,0.06)",
-            boxShadow: "0 4px 24px rgba(0,0,0,0.2)",
             zIndex: 2,
           }}
         >
@@ -116,6 +95,14 @@ export default function HeroShowcaseCarousel({ onOpenCreate }: { onOpenCreate?: 
           />
         </div>
       </div>
+
+      <div
+        style={{
+          height: 0.5,
+          background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent)",
+          marginTop: 28,
+        }}
+      />
     </section>
   );
 }

@@ -10,7 +10,7 @@ import { girls } from "@/data/girls";
 
 const femaleIds = new Set(["luna", "nia", "vera", "alma", "kira", "maya", "sasha", "yuki"]);
 const femaleChars = girls.filter((g) => femaleIds.has(g.id));
-const filters = ["Todas", "Populares", "Nuevas", "Coquetas"];
+const filters = ["Todas", "Nuevas", "Populares", "Coquetas"];
 const faqs = [
   { q: "¿De verdad responde una IA?", a: "Sí, cada personaje está impulsado por IA que entiende el contexto, recuerda la conversación y se adapta a tu forma de hablar." },
   { q: "¿Tiene memoria?", a: "Sí, cada personaje recuerda lo que hablaste en sesiones anteriores. La memoria mejora cuanto más interactúas." },
@@ -36,29 +36,17 @@ export default function GirlsPage() {
       <main style={{ minHeight: "100vh", paddingBottom: 80 }}>
         <HeroShowcaseCarousel onOpenCreate={() => setCreateOpen(true)} />
 
-        <section className="container-nuvia" style={{ paddingTop: 40 }} id="characters">
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-            <h2 style={{ fontSize: "0.9rem", fontWeight: 700, letterSpacing: "-0.02em", margin: 0, color: "var(--text)" }}>
+        <section className="container-nuvia" style={{ paddingTop: 32 }} id="characters">
+          <div style={{ marginBottom: 16 }}>
+            <h2 style={{ fontSize: "0.85rem", fontWeight: 700, letterSpacing: "-0.02em", margin: 0, color: "var(--text)" }}>
               Personajes populares
             </h2>
-            <button
-              onClick={() => setCreateOpen(true)}
-              style={{
-                display: "inline-flex", alignItems: "center", gap: 3,
-                fontSize: "0.5rem", fontWeight: 600, padding: "5px 10px",
-                borderRadius: 999, lineHeight: 1, letterSpacing: "-0.01em",
-                background: "rgba(255,79,151,0.1)",
-                border: "0.5px solid rgba(255,79,151,0.15)",
-                color: "var(--pink)", cursor: "pointer",
-                transition: "all 250ms ease",
-              }}
-            >
-              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 5v14M5 12h14" /></svg>
-              Crea tus fantasías
-            </button>
+            <p style={{ fontSize: "0.5rem", color: "var(--muted)", margin: "4px 0 0" }}>
+              Descubre personajes creados por la comunidad.
+            </p>
           </div>
 
-          <div className="scrollbar-none" style={{ display: "flex", gap: 6, overflowX: "auto", marginBottom: 20 }}>
+          <div className="scrollbar-none" style={{ display: "flex", gap: 6, overflowX: "auto", marginBottom: 18 }}>
             {filters.map((f) => (
               <button
                 key={f}
@@ -71,9 +59,9 @@ export default function GirlsPage() {
                   padding: "4px 10px",
                   lineHeight: 1,
                   letterSpacing: "-0.01em",
-                  background: activeFilter === f ? "var(--pink)" : "rgba(255,255,255,0.03)",
+                  background: activeFilter === f ? "var(--pink)" : "rgba(255,255,255,0.02)",
                   border: "0.5px solid transparent",
-                  color: activeFilter === f ? "#fff" : "rgba(255,255,255,0.35)",
+                  color: activeFilter === f ? "#fff" : "rgba(255,255,255,0.3)",
                   cursor: "pointer",
                   transition: "all 250ms ease",
                 }}
@@ -85,7 +73,7 @@ export default function GirlsPage() {
 
           <div className="character-grid">
             {filtered.length > 0
-              ? filtered.map((girl) => <GirlCard key={girl.id} girl={girl} />)
+              ? filtered.map((girl, i) => <GirlCard key={girl.id} girl={girl} index={i} />)
               : (
                 <div style={{ gridColumn: "1 / -1", padding: "24px 0", textAlign: "center" }}>
                   <p style={{ fontSize: "0.5rem", color: "var(--muted)" }}>No hay personajes con ese estilo</p>
@@ -96,7 +84,7 @@ export default function GirlsPage() {
 
         <section className="container-nuvia" style={{ paddingTop: 48, paddingBottom: 6 }}>
           <div style={{ maxWidth: 480, margin: "0 auto" }}>
-            <h2 style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "-0.02em", textAlign: "center", margin: "0 0 14px", color: "var(--text)" }}>
+            <h2 style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "-0.02em", textAlign: "center", margin: "0 0 14px", color: "var(--text)" }}>
               Preguntas frecuentes
             </h2>
             <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -106,8 +94,8 @@ export default function GirlsPage() {
                   className="group"
                   style={{
                     borderRadius: 12,
-                    background: "rgba(18,17,24,0.4)",
-                    border: "0.5px solid rgba(255,255,255,0.04)",
+                    background: "rgba(18,17,24,0.25)",
+                    border: "0.5px solid rgba(255,255,255,0.03)",
                     overflow: "hidden",
                     transition: "all 250ms ease",
                   }}
@@ -117,15 +105,15 @@ export default function GirlsPage() {
                       display: "flex", cursor: "pointer", alignItems: "center",
                       justifyContent: "space-between", padding: "10px 14px",
                       fontSize: "0.45rem", fontWeight: 500,
-                      color: "rgba(255,255,255,0.5)", letterSpacing: "-0.01em",
+                      color: "rgba(255,255,255,0.45)", letterSpacing: "-0.01em",
                     }}
                   >
                     {faq.q}
-                    <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="2" style={{ flexShrink: 0, transition: "transform 250ms ease" }} className="group-open:rotate-180">
+                    <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="2" style={{ flexShrink: 0, transition: "transform 250ms ease" }} className="group-open:rotate-180">
                       <path d="M6 9l6 6 6-6" />
                     </svg>
                   </summary>
-                  <div style={{ borderTop: "0.5px solid rgba(255,255,255,0.04)", padding: "8px 14px 10px" }}>
+                  <div style={{ borderTop: "0.5px solid rgba(255,255,255,0.03)", padding: "8px 14px 10px" }}>
                     <p style={{ fontSize: "0.4rem", color: "var(--muted)", lineHeight: 1.6, margin: 0 }}>{faq.a}</p>
                   </div>
                 </details>
@@ -135,14 +123,14 @@ export default function GirlsPage() {
         </section>
 
         <section className="container-nuvia" style={{ paddingTop: 32, paddingBottom: 0 }}>
-          <div style={{ borderRadius: 16, background: "rgba(18,17,24,0.3)", border: "0.5px solid rgba(255,255,255,0.04)", padding: "18px 20px", textAlign: "center" }}>
-            <p style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "-0.02em", margin: 0, color: "var(--text)" }}>Nuvia</p>
+          <div style={{ borderRadius: 14, background: "rgba(18,17,24,0.2)", border: "0.5px solid rgba(255,255,255,0.03)", padding: "16px 18px", textAlign: "center" }}>
+            <p style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "-0.02em", margin: 0, color: "var(--text)" }}>Nuvia</p>
             <p style={{ fontSize: "0.45rem", color: "var(--muted)", maxWidth: 360, margin: "4px auto 0", lineHeight: 1.6 }}>
               Conversaciones IA personalizadas. Elige, personaliza y chatea con personajes ficticios al instante.
             </p>
-            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 6, marginTop: 10 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 6, marginTop: 8 }}>
               {["+18", "Personajes IA", "Sin registro"].map((t) => (
-                <span key={t} style={{ fontSize: "0.4rem", fontWeight: 500, padding: "2px 7px", borderRadius: 999, background: "rgba(255,255,255,0.02)", color: "rgba(255,255,255,0.2)", border: "0.5px solid rgba(255,255,255,0.04)" }}>
+                <span key={t} style={{ fontSize: "0.4rem", fontWeight: 500, padding: "2px 7px", borderRadius: 999, background: "rgba(255,255,255,0.02)", color: "rgba(255,255,255,0.18)", border: "0.5px solid rgba(255,255,255,0.03)" }}>
                   {t}
                 </span>
               ))}
@@ -152,6 +140,30 @@ export default function GirlsPage() {
 
         <Footer />
       </main>
+
+      {/* FAB */}
+      <button
+        onClick={() => setCreateOpen(true)}
+        style={{
+          position: "fixed",
+          bottom: "calc(24px + env(safe-area-inset-bottom, 0px))",
+          right: 20,
+          zIndex: 40,
+          width: 34,
+          height: 34,
+          borderRadius: "50%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "linear-gradient(135deg, #FF5A9D, #FF6FAB)",
+          boxShadow: "0 3px 14px rgba(255,90,157,0.22)",
+          border: 0,
+          cursor: "pointer",
+          transition: "all 250ms ease",
+        }}
+      >
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"><path d="M12 5v14M5 12h14" /></svg>
+      </button>
 
       <CreateYourGirl open={createOpen} onClose={() => setCreateOpen(false)} />
     </>
