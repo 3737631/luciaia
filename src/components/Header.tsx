@@ -4,19 +4,26 @@ import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 
-const menuLinks = [
+const navItems = [
   { label: "Inicio", href: "/girls" },
-  { label: "Chicas", href: "/girls" },
-  { label: "Chicos", href: "/chicos" },
+  { label: "Explorar", href: "/girls" },
+  { label: "Crear", href: "#crear" },
+  { label: "Chat", href: "/chat/luna" },
+  { label: "Premium", href: "#premium" },
+];
+
+const categoryLinks = [
+  { label: "Chica", href: "/girls" },
+  { label: "Chico", href: "/chicos" },
   { label: "Anime", href: "/anime" },
 ];
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [genderOpen, setGenderOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [gender, setGender] = useState("Hombre");
+  const [catOpen, setCatOpen] = useState(false);
   const pathname = usePathname();
+
+  const currentCat = categoryLinks.find((c) => pathname.startsWith(c.href)) ?? categoryLinks[0];
 
   return (
     <header
@@ -36,7 +43,7 @@ export default function Header() {
           alignItems: "center",
           height: "100%",
           padding: "0 16px",
-          gap: 12,
+          gap: 10,
         }}
       >
         {/* Hamburger */}
@@ -78,10 +85,10 @@ export default function Header() {
         {/* Spacer */}
         <div style={{ flex: 1 }} />
 
-        {/* Gender selector */}
+        {/* Category dropdown: Chica / Chico / Anime */}
         <div style={{ position: "relative" }}>
           <button
-            onClick={() => setGenderOpen(!genderOpen)}
+            onClick={() => setCatOpen(!catOpen)}
             style={{
               background: "rgba(255,255,255,0.08)",
               border: 0,
@@ -97,14 +104,14 @@ export default function Header() {
               whiteSpace: "nowrap",
             }}
           >
-            {gender}
+            {currentCat.label}
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
               <polyline points="6 9 12 15 18 9" />
             </svg>
           </button>
-          {genderOpen && (
+          {catOpen && (
             <>
-              <div style={{ position: "fixed", inset: 0, zIndex: 90 }} onClick={() => setGenderOpen(false)} />
+              <div style={{ position: "fixed", inset: 0, zIndex: 90 }} onClick={() => setCatOpen(false)} />
               <div
                 style={{
                   position: "absolute", top: "100%", right: 0, marginTop: 4,
@@ -113,82 +120,45 @@ export default function Header() {
                   zIndex: 100, minWidth: 100,
                 }}
               >
-                {["Hombre", "Mujer", "Otro"].map((o) => (
-                  <button
-                    key={o}
-                    onClick={() => { setGender(o); setGenderOpen(false); }}
-                    style={{
-                      display: "block", width: "100%", padding: "10px 16px",
-                      background: gender === o ? "rgba(255,255,255,0.08)" : "transparent",
-                      border: 0, color: gender === o ? "#ff5f8f" : "#fff",
-                      fontSize: 13, cursor: "pointer", textAlign: "left",
-                    }}
-                  >
-                    {o}
-                  </button>
-                ))}
+                {categoryLinks.map((c) => {
+                  const isActive = pathname.startsWith(c.href);
+                  return (
+                    <Link
+                      key={c.label}
+                      href={c.href}
+                      onClick={() => setCatOpen(false)}
+                      style={{
+                        display: "block", width: "100%", padding: "10px 16px",
+                        background: isActive ? "rgba(255,255,255,0.08)" : "transparent",
+                        border: 0, color: isActive ? "#ff5f8f" : "#fff",
+                        fontSize: 13, cursor: "pointer", textAlign: "left",
+                        textDecoration: "none",
+                      }}
+                    >
+                      {c.label}
+                    </Link>
+                  );
+                })}
               </div>
             </>
           )}
         </div>
 
-        {/* Únete gratis / profile */}
-        <div style={{ position: "relative" }}>
-          <button
-            onClick={() => setProfileOpen(!profileOpen)}
-            style={{
-              background: "linear-gradient(135deg, #ff5f8f, #ff2b86)",
-              border: 0, borderRadius: 20,
-              padding: "7px 16px", color: "#fff",
-              fontSize: 13, fontWeight: 700,
-              cursor: "pointer", whiteSpace: "nowrap",
-              display: "inline-flex", alignItems: "center", gap: 4,
-            }}
-          >
-            Únete ahora
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </button>
-          {profileOpen && (
-            <>
-              <div style={{ position: "fixed", inset: 0, zIndex: 90 }} onClick={() => setProfileOpen(false)} />
-              <div
-                style={{
-                  position: "absolute", top: "100%", right: 0, marginTop: 4,
-                  background: "#222", borderRadius: 12,
-                  border: "1px solid rgba(255,255,255,0.1)", overflow: "hidden",
-                  zIndex: 100, minWidth: 140,
-                }}
-              >
-                <button
-                  onClick={() => { setProfileOpen(false); }}
-                  style={{
-                    display: "block", width: "100%", padding: "10px 16px",
-                    background: "transparent", border: 0,
-                    color: "#fff", fontSize: 13, cursor: "pointer", textAlign: "left",
-                  }}
-                >
-                  Crear cuenta
-                </button>
-                <button
-                  onClick={() => { setProfileOpen(false); }}
-                  style={{
-                    display: "block", width: "100%", padding: "10px 16px",
-                    background: "transparent", border: 0,
-                    color: "#fff", fontSize: 13, cursor: "pointer", textAlign: "left",
-                    borderTop: "1px solid rgba(255,255,255,0.06)",
-                  }}
-                >
-                  Iniciar sesión
-                </button>
-              </div>
-            </>
-          )}
-        </div>
+        {/* Únete ahora */}
+        <button
+          style={{
+            background: "linear-gradient(135deg, #ff5f8f, #ff2b86)",
+            border: 0, borderRadius: 20,
+            padding: "7px 16px", color: "#fff",
+            fontSize: 13, fontWeight: 700,
+            cursor: "pointer", whiteSpace: "nowrap",
+          }}
+        >
+          Únete ahora
+        </button>
       </div>
 
-      {/* Side menu overlay */}
+      {/* Side menu overlay - full navigation */}
       {menuOpen && (
         <div
           style={{ position: "fixed", inset: 0, zIndex: 200 }}
@@ -212,12 +182,12 @@ export default function Header() {
               gap: 2,
             }}
           >
-            {menuLinks.map((link) => {
-              const isActive = pathname === link.href || (link.href !== "/girls" && pathname.startsWith(link.href));
+            {navItems.map((item) => {
+              const isActive = pathname === item.href;
               return (
                 <Link
-                  key={link.href + link.label}
-                  href={link.href}
+                  key={item.label}
+                  href={item.href}
                   onClick={() => setMenuOpen(false)}
                   style={{
                     display: "block",
@@ -231,7 +201,7 @@ export default function Header() {
                     transition: "all 0.15s ease",
                   }}
                 >
-                  {link.label}
+                  {item.label}
                 </Link>
               );
             })}

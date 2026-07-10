@@ -6,7 +6,7 @@ import GirlCard from "@/components/GirlCard";
 import HeroShowcaseCarousel from "@/components/HeroShowcaseCarousel";
 import StoriesRow from "@/components/StoriesRow";
 import ExperiencesSection from "@/components/ExperiencesSection";
-import BottomNav from "@/components/BottomNav";
+
 import CreateYourGirl from "@/components/CreateYourGirl";
 import { girls } from "@/data/girls";
 
@@ -78,7 +78,6 @@ export default function GirlsPage() {
         <div style={{ height: 24 }} />
       </main>
 
-      <BottomNav />
       <CreateYourGirl open={createOpen} onClose={() => setCreateOpen(false)} />
     </>
   );
