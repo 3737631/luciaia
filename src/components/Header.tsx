@@ -2,10 +2,21 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
+
+const menuLinks = [
+  { label: "Inicio", href: "/girls" },
+  { label: "Chicas", href: "/girls" },
+  { label: "Chicos", href: "/chicos" },
+  { label: "Anime", href: "/anime" },
+];
 
 export default function Header() {
+  const [menuOpen, setMenuOpen] = useState(false);
   const [genderOpen, setGenderOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [gender, setGender] = useState("Hombre");
+  const pathname = usePathname();
 
   return (
     <header
@@ -30,6 +41,7 @@ export default function Header() {
       >
         {/* Hamburger */}
         <button
+          onClick={() => setMenuOpen(!menuOpen)}
           style={{
             background: "none",
             border: 0,
@@ -63,7 +75,7 @@ export default function Header() {
           nuvia<span style={{ color: "#ff5f8f" }}>.ai</span>
         </Link>
 
-        {/* Spacer - push right items */}
+        {/* Spacer */}
         <div style={{ flex: 1 }} />
 
         {/* Gender selector */}
@@ -92,41 +104,24 @@ export default function Header() {
           </button>
           {genderOpen && (
             <>
-              <div
-                style={{ position: "fixed", inset: 0, zIndex: 90 }}
-                onClick={() => setGenderOpen(false)}
-              />
+              <div style={{ position: "fixed", inset: 0, zIndex: 90 }} onClick={() => setGenderOpen(false)} />
               <div
                 style={{
-                  position: "absolute",
-                  top: "100%",
-                  right: 0,
-                  marginTop: 4,
-                  background: "#222",
-                  borderRadius: 12,
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  overflow: "hidden",
-                  zIndex: 100,
-                  minWidth: 100,
+                  position: "absolute", top: "100%", right: 0, marginTop: 4,
+                  background: "#222", borderRadius: 12,
+                  border: "1px solid rgba(255,255,255,0.1)", overflow: "hidden",
+                  zIndex: 100, minWidth: 100,
                 }}
               >
                 {["Hombre", "Mujer", "Otro"].map((o) => (
                   <button
                     key={o}
-                    onClick={() => {
-                      setGender(o);
-                      setGenderOpen(false);
-                    }}
+                    onClick={() => { setGender(o); setGenderOpen(false); }}
                     style={{
-                      display: "block",
-                      width: "100%",
-                      padding: "10px 16px",
+                      display: "block", width: "100%", padding: "10px 16px",
                       background: gender === o ? "rgba(255,255,255,0.08)" : "transparent",
-                      border: 0,
-                      color: gender === o ? "#ff5f8f" : "#fff",
-                      fontSize: 13,
-                      cursor: "pointer",
-                      textAlign: "left",
+                      border: 0, color: gender === o ? "#ff5f8f" : "#fff",
+                      fontSize: 13, cursor: "pointer", textAlign: "left",
                     }}
                   >
                     {o}
@@ -142,41 +137,128 @@ export default function Header() {
           href="#"
           style={{
             background: "linear-gradient(135deg, #ff5f8f, #ff2b86)",
-            border: 0,
-            borderRadius: 20,
-            padding: "7px 16px",
-            color: "#fff",
-            fontSize: 13,
-            fontWeight: 700,
-            textDecoration: "none",
-            whiteSpace: "nowrap",
-            display: "inline-flex",
-            alignItems: "center",
+            border: 0, borderRadius: 20,
+            padding: "7px 16px", color: "#fff",
+            fontSize: 13, fontWeight: 700,
+            textDecoration: "none", whiteSpace: "nowrap",
+            display: "inline-flex", alignItems: "center",
           }}
         >
           Únete gratis
         </Link>
 
-        {/* Iniciar sesión */}
-        <Link
-          href="#"
-          style={{
-            background: "transparent",
-            border: "1px solid rgba(255,255,255,0.2)",
-            borderRadius: 20,
-            padding: "6px 14px",
-            color: "#ccc",
-            fontSize: 13,
-            fontWeight: 600,
-            textDecoration: "none",
-            whiteSpace: "nowrap",
-            display: "inline-flex",
-            alignItems: "center",
-          }}
-        >
-          Iniciar sesión
-        </Link>
+        {/* Iniciar sesión - desktop text / mobile icon */}
+        <div style={{ position: "relative" }}>
+          <button
+            onClick={() => setProfileOpen(!profileOpen)}
+            style={{
+              background: "transparent",
+              border: "1px solid rgba(255,255,255,0.2)",
+              borderRadius: 20,
+              padding: "6px 14px",
+              color: "#ccc",
+              fontSize: 13, fontWeight: 600,
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            <svg className="sm:hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ display: "block" }}>
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            <span className="hidden sm:inline">Iniciar sesión</span>
+          </button>
+          {profileOpen && (
+            <>
+              <div style={{ position: "fixed", inset: 0, zIndex: 90 }} onClick={() => setProfileOpen(false)} />
+              <div
+                style={{
+                  position: "absolute", top: "100%", right: 0, marginTop: 4,
+                  background: "#222", borderRadius: 12,
+                  border: "1px solid rgba(255,255,255,0.1)", overflow: "hidden",
+                  zIndex: 100, minWidth: 140,
+                }}
+              >
+                <button
+                  onClick={() => { setProfileOpen(false); }}
+                  style={{
+                    display: "block", width: "100%", padding: "10px 16px",
+                    background: "transparent", border: 0,
+                    color: "#fff", fontSize: 13, cursor: "pointer", textAlign: "left",
+                  }}
+                >
+                  Crear cuenta
+                </button>
+                <button
+                  onClick={() => { setProfileOpen(false); }}
+                  style={{
+                    display: "block", width: "100%", padding: "10px 16px",
+                    background: "transparent", border: 0,
+                    color: "#fff", fontSize: 13, cursor: "pointer", textAlign: "left",
+                    borderTop: "1px solid rgba(255,255,255,0.06)",
+                  }}
+                >
+                  Iniciar sesión
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
+
+      {/* Side menu overlay */}
+      {menuOpen && (
+        <div
+          style={{ position: "fixed", inset: 0, zIndex: 200 }}
+          onClick={() => setMenuOpen(false)}
+        >
+          <div
+            style={{
+              position: "absolute", inset: 0,
+              background: "rgba(0,0,0,0.5)",
+            }}
+          />
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: "absolute", left: 0, top: 0, bottom: 0, width: 260,
+              background: "#1a1a1a",
+              borderRight: "1px solid rgba(255,255,255,0.06)",
+              padding: "calc(108px + env(safe-area-inset-top)) 20px 20px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+            }}
+          >
+            {menuLinks.map((link) => {
+              const isActive = pathname === link.href || (link.href !== "/girls" && pathname.startsWith(link.href));
+              return (
+                <Link
+                  key={link.href + link.label}
+                  href={link.href}
+                  onClick={() => setMenuOpen(false)}
+                  style={{
+                    display: "block",
+                    padding: "10px 12px",
+                    borderRadius: 10,
+                    fontSize: 15,
+                    fontWeight: isActive ? 700 : 500,
+                    color: isActive ? "#ff5f8f" : "rgba(255,255,255,0.7)",
+                    textDecoration: "none",
+                    background: isActive ? "rgba(255,95,143,0.1)" : "transparent",
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </header>
   );
 }

@@ -38,52 +38,44 @@ export default function GirlsPage() {
         <HeroShowcaseCarousel onOpenCreate={() => setCreateOpen(true)} />
         <StoriesRow />
 
-        {/* Experiences */}
+        {/* Crea tus fantasías */}
         <section className="container-nuvia" style={{ paddingTop: 26, paddingBottom: 2 }}>
-          <h2 style={{ fontSize: "0.8rem", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 10px", color: "var(--text)" }}>
-            Experiencias
-          </h2>
-          <div className="scrollbar-none" style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4 }}>
-            {[
-              { label: "Nuevo", title: "Romance virtual", desc: "Conexiones profundas" },
-              { label: "Popular", title: "Gaming +18", desc: "Juega y seduce" },
-              { label: "TOP", title: "Misterio nocturno", desc: "Secretos al anochecer" },
-              { label: "PRO", title: "Realidad virtual", desc: "Experiencia inmersiva" },
-              { label: "Nuevo", title: "Magia y fantasía", desc: "Historias de otro mundo" },
-            ].map((exp) => (
-              <div
-                key={exp.title}
-                onClick={() => setCreateOpen(true)}
-                style={{
-                  flex: "0 0 140px",
-                  borderRadius: 16,
-                  background: "rgba(255,255,255,0.02)",
-                  border: "0.5px solid rgba(255,255,255,0.06)",
-                  padding: "14px 12px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 6,
-                  cursor: "pointer",
-                  transition: "all 200ms ease",
-                }}
-              >
-                <span style={{
-                  alignSelf: "flex-start",
-                  fontSize: "0.4rem", fontWeight: 700, letterSpacing: "0.04em",
-                  padding: "2px 6px", borderRadius: 999, lineHeight: 1.3,
-                  background: exp.label === "Nuevo" ? "rgba(48,209,88,0.15)" : exp.label === "Popular" ? "rgba(255,45,117,0.15)" : exp.label === "TOP" ? "rgba(255,215,0,0.15)" : "rgba(138,92,246,0.15)",
-                  color: exp.label === "Nuevo" ? "var(--green)" : exp.label === "Popular" ? "var(--pink)" : exp.label === "TOP" ? "#ffd700" : "#a78bfa",
-                }}>
-                  {exp.label}
-                </span>
-                <p style={{ fontSize: "0.6rem", fontWeight: 700, margin: 0, color: "var(--text)", lineHeight: 1.2, letterSpacing: "-0.01em" }}>
-                  {exp.title}
-                </p>
-                <p style={{ fontSize: "0.45rem", margin: 0, color: "var(--muted)", lineHeight: 1.3, letterSpacing: "-0.01em" }}>
-                  {exp.desc}
-                </p>
-              </div>
-            ))}
+          <div
+            onClick={() => setCreateOpen(true)}
+            style={{
+              borderRadius: 22,
+              background: "linear-gradient(135deg, rgba(255,45,117,0.08) 0%, rgba(255,91,110,0.04) 100%)",
+              border: "0.5px solid rgba(255,45,117,0.15)",
+              padding: "20px 22px",
+              cursor: "pointer",
+              transition: "all 200ms ease",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+            }}
+          >
+            <div>
+              <h3 style={{ fontSize: "0.85rem", fontWeight: 800, letterSpacing: "-0.02em", margin: 0, color: "var(--text)" }}>
+                Crea tus <span className="gradient-text">fantasías</span>
+              </h3>
+              <p style={{ fontSize: "0.5rem", color: "var(--muted)", margin: "4px 0 0", lineHeight: 1.4 }}>
+                Personaliza aspecto, personalidad y estilo. <br className="sm:hidden" />Tu personaje ideal te espera.
+              </p>
+            </div>
+            <span
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 3,
+                fontSize: "0.5rem", fontWeight: 700,
+                padding: "8px 16px", borderRadius: 999, lineHeight: 1,
+                background: "linear-gradient(135deg, #ff2d75, #ff5b6e)",
+                color: "#fff", letterSpacing: "-0.01em",
+                whiteSpace: "nowrap", boxShadow: "0 4px 20px rgba(255,45,117,0.25)",
+              }}
+            >
+              Crear
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+            </span>
           </div>
         </section>
 

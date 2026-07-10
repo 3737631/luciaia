@@ -17,15 +17,7 @@ export default function Footer() {
               ))}
             </ul>
           </div>
-          <div>
-            <h4 style={{ fontSize: "0.4rem", fontWeight: 600, letterSpacing: "0.08em", margin: "0 0 8px", color: "rgba(255,255,255,0.2)" }}>EXPLORAR</h4>
-            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 4 }}>
-              <li><Link href="/girls" style={linkStyle}>Chicas</Link></li>
-              <li><Link href="/anime" style={linkStyle}>Anime</Link></li>
-              <li><Link href="/chicos" style={linkStyle}>Chicos</Link></li>
-              <li><Link href="/history" style={linkStyle}>Historial</Link></li>
-            </ul>
-          </div>
+
           <div>
             <h4 style={{ fontSize: "0.4rem", fontWeight: 600, letterSpacing: "0.08em", margin: "0 0 8px", color: "rgba(255,255,255,0.2)" }}>LEGAL</h4>
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 4 }}>
