@@ -57,11 +57,9 @@ export default function GirlCard({ girl }: { girl: Girl }) {
             <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "#fff", letterSpacing: "-0.01em" }}>
               {girl.name}
             </span>
-            {girl.style && (
-              <p style={{ fontSize: "0.45rem", fontWeight: 400, color: "rgba(255,255,255,0.4)", margin: "2px 0 0", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {girl.style}
-              </p>
-            )}
+            <p style={{ fontSize: "0.45rem", fontWeight: 400, color: "rgba(255,255,255,0.5)", margin: "2px 0 0", lineHeight: 1.2, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", textOverflow: "ellipsis" }}>
+              {girl.story}
+            </p>
           </div>
         </div>
       </Link>
