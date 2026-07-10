@@ -5,7 +5,6 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import GirlCard from "@/components/GirlCard";
 import HeroShowcaseCarousel from "@/components/HeroShowcaseCarousel";
-import StoriesRow from "@/components/StoriesRow";
 import CreateYourGirl from "@/components/CreateYourGirl";
 import { girls } from "@/data/girls";
 
@@ -36,7 +35,6 @@ export default function GirlsPage() {
       <Header />
       <main style={{ minHeight: "100vh" }}>
         <HeroShowcaseCarousel onOpenCreate={() => setCreateOpen(true)} />
-        <StoriesRow />
 
         {/* Crea tus fantasías */}
         <section className="container-nuvia" style={{ paddingTop: 26, paddingBottom: 2 }}>
