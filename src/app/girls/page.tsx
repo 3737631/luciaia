@@ -4,9 +4,6 @@ import { useState } from "react";
 import Header from "@/components/Header";
 import GirlCard from "@/components/GirlCard";
 import HeroShowcaseCarousel from "@/components/HeroShowcaseCarousel";
-import StoriesRow from "@/components/StoriesRow";
-import ExperiencesSection from "@/components/ExperiencesSection";
-
 import CreateYourGirl from "@/components/CreateYourGirl";
 import { girls } from "@/data/girls";
 
@@ -31,8 +28,47 @@ export default function GirlsPage() {
       <Header />
       <main style={{ minHeight: "100vh" }}>
         <HeroShowcaseCarousel />
-        <StoriesRow onOpenCreate={() => setCreateOpen(true)} />
-        <ExperiencesSection />
+
+        {/* Crea tus fantasías */}
+        <section className="container-nuvia" style={{ paddingTop: 20, paddingBottom: 2 }}>
+          <div
+            onClick={() => setCreateOpen(true)}
+            style={{
+              borderRadius: 22,
+              background: "linear-gradient(135deg, rgba(255,45,117,0.08) 0%, rgba(255,91,110,0.04) 100%)",
+              border: "0.5px solid rgba(255,45,117,0.15)",
+              padding: "20px 22px",
+              cursor: "pointer",
+              transition: "all 200ms ease",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+            }}
+          >
+            <div>
+              <h3 style={{ fontSize: "0.85rem", fontWeight: 800, letterSpacing: "-0.02em", margin: 0, color: "var(--text)" }}>
+                Crea tus <span className="gradient-text">fantasías</span>
+              </h3>
+              <p style={{ fontSize: "0.5rem", color: "var(--muted)", margin: "4px 0 0", lineHeight: 1.4 }}>
+                Personaliza aspecto, personalidad y estilo. <br className="sm:hidden" />Tu personaje ideal te espera.
+              </p>
+            </div>
+            <span
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 3,
+                fontSize: "0.5rem", fontWeight: 700,
+                padding: "8px 16px", borderRadius: 999, lineHeight: 1,
+                background: "linear-gradient(135deg, #ff2d75, #ff5b6e)",
+                color: "#fff", letterSpacing: "-0.01em",
+                whiteSpace: "nowrap", boxShadow: "0 4px 20px rgba(255,45,117,0.25)",
+              }}
+            >
+              Crear
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+            </span>
+          </div>
+        </section>
 
         <section style={{ padding: "16px 16px 0" }} id="characters">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
