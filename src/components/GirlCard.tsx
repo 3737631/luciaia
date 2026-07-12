@@ -102,9 +102,6 @@ export default function GirlCard({ girl, index = 0 }: { girl: Girl; index?: numb
         className="person-action"
         onClick={(e) => e.stopPropagation()}
       >
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        </svg>
         Chatear
       </Link>
 
