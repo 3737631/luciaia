@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Header from "@/components/Header";
 import GirlCard from "@/components/GirlCard";
-import FeaturedRow from "@/components/FeaturedRow";
 import StoriesRow from "@/components/StoriesRow";
 import { girls } from "@/data/girls";
 
@@ -32,7 +31,7 @@ export default function GirlsPage() {
     <>
       <Header />
       <main style={{ minHeight: "100vh", maxWidth: 1200, margin: "0 auto", padding: "20px var(--container-padding) 0" }}>
-        <FeaturedRow girls={femaleGirls} />
+        <img src="/hero-banner.png" alt="" style={{ width: "100%", borderRadius: 22, marginBottom: 8 }} />
         <StoriesRow girls={femaleGirls} />
 
         <section id="characters">
