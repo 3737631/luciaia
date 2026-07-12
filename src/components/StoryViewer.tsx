@@ -4,8 +4,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
-const TOTAL_STORIES = 9;
-const STORY_IMAGES = Array.from({ length: TOTAL_STORIES }, (_, i) => `${basePath}/iris_stories/iris_story_${i + 1}.jpg`);
+const TOTAL_STORIES = 17;
+const STORY_IMAGES = Array.from({ length: TOTAL_STORIES }, (_, i) => {
+  const n = i + 1;
+  const ext = n <= 9 ? "jpg" : "png";
+  return `${basePath}/iris_stories/iris_story_${n}.${ext}`;
+});
 
 function getDayIndex(): number {
   const start = new Date(2026, 6, 12);
