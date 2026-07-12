@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { getGirlImage } from "@/lib/images";
 import type { Girl } from "@/data/girls";
@@ -8,78 +7,61 @@ import type { Girl } from "@/data/girls";
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export default function StoriesRow({ girls }: { girls: Girl[] }) {
-  const [seen, setSeen] = useState<Set<string>>(new Set());
-
-  const handleClick = (id: string) => {
-    setSeen((prev) => new Set(prev).add(id));
-  };
-
   return (
     <div style={{
       display: "flex",
-      gap: 16,
+      gap: 12,
       overflowX: "auto",
       padding: "12px 0 8px",
       scrollbarWidth: "none",
       WebkitOverflowScrolling: "touch",
     }}>
-      {girls.map((girl) => {
-        const isSeen = seen.has(girl.id);
-        return (
-          <Link
-            key={girl.id}
-            href={`${basePath}/chat/${girl.id}`}
-            onClick={() => handleClick(girl.id)}
+      {girls.map((girl) => (
+        <Link
+          key={girl.id}
+          href={`${basePath}/chat/${girl.id}`}
+          style={{
+            flexShrink: 0,
+            width: 110,
+            borderRadius: 22,
+            overflow: "hidden",
+            textDecoration: "none",
+            position: "relative",
+            aspectRatio: "3 / 4",
+            background: "#1a1a1a",
+          }}
+        >
+          <img
+            src={getGirlImage(girl.id, null, null, null, girl.cloudinaryImage)}
+            alt={girl.name}
             style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 6,
-              textDecoration: "none",
-              flexShrink: 0,
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              objectPosition: girl.imagePosition || "center center",
             }}
-          >
-            <div style={{
-              width: 60,
-              height: 60,
-              borderRadius: "50%",
-              padding: 3,
-              background: isSeen
-                ? "rgba(255,255,255,0.12)"
-                : "linear-gradient(135deg, #FF5798, #FF6AA5)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}>
-              <div style={{
-                width: "100%",
-                height: "100%",
-                borderRadius: "50%",
-                overflow: "hidden",
-                background: "#1a1a1a",
-              }}>
-                <img
-                  src={getGirlImage(girl.id, null, null, null, girl.cloudinaryImage)}
-                  alt={girl.name}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                  }}
-                />
-              </div>
-            </div>
+          />
+          <div style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            padding: "24px 10px 10px",
+            background: "linear-gradient(transparent, rgba(0,0,0,0.75))",
+          }}>
             <span style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: isSeen ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.85)",
-              whiteSpace: "nowrap",
+              color: "#fff",
+              fontSize: 13,
+              fontWeight: 700,
+              letterSpacing: "-0.3px",
             }}>
               {girl.name}
             </span>
-          </Link>
-        );
-      })}
+          </div>
+        </Link>
+      ))}
     </div>
   );
 }

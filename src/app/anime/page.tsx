@@ -4,6 +4,7 @@ import { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import GirlCard from "@/components/GirlCard";
+import StoriesRow from "@/components/StoriesRow";
 import HeroShowcaseCarousel from "@/components/HeroShowcaseCarousel";
 import { girls } from "@/data/girls";
 
@@ -20,6 +21,10 @@ export default function AnimePage() {
       <Header />
       <main style={{ minHeight: "100vh" }}>
         <HeroShowcaseCarousel />
+
+        <div className="container-nuvia">
+          <StoriesRow girls={animeChars} />
+        </div>
 
         <section style={{ paddingTop: 18 }}>
           <div className="container-nuvia">
