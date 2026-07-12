@@ -37,7 +37,7 @@ export default function GirlsPage() {
     return () => clearInterval(t);
   }, []);
 
-  const POSITIONS = ["15% center", "5% center", "50% center", "85% center"];
+  const POSITIONS = ["15% center", "8% center", "50% center", "70% center"];
 
   const filtered = activeFilter === "Todas"
     ? femaleGirls
@@ -55,11 +55,6 @@ export default function GirlsPage() {
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        <div style={{
-          position: "absolute", inset: 0,
-          background: "linear-gradient(90deg, #111 0%, transparent 6%, transparent 94%, #111 100%)",
-          zIndex: 1, pointerEvents: "none",
-        }} />
         <img src={`${basePath}/${HERO_IMAGES[heroIndex]}`} alt=""
           draggable={false}
           onContextMenu={(e) => e.preventDefault()}
