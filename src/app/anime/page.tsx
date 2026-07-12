@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Header from "@/components/Header";
 import GirlCard from "@/components/GirlCard";
-import StoriesRow from "@/components/StoriesRow";
 
 import { girls } from "@/data/girls";
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
@@ -37,7 +36,6 @@ export default function AnimePage() {
       </div>
 
       <main style={{ minHeight: "100vh", maxWidth: 1200, margin: "0 auto", padding: "0 var(--container-padding)" }}>
-        <StoriesRow girls={animeChars} />
 
         <section id="characters">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
