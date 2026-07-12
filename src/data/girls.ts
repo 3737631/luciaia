@@ -20,6 +20,7 @@ export interface Girl {
   defaultBackground: BackgroundOption;
   defaultPose: PoseOption;
   voiceLineExamples: string[];
+  imagePosition?: string;
 }
 
 export const girls: Girl[] = [
@@ -202,7 +203,8 @@ export const girls: Girl[] = [
     description: "Segura de sí misma, con una presencia que llena la habitación. Sabe lo que quiere.",
     defaultHair: "moreno",
     defaultBackground: "neon-room",
-    defaultPose: "estrellas",
+    defaultPose: "toalla",
+    imagePosition: "center 25%",
     voiceLineExamples: [
       "¿Te gusta lo que ves?",
       "Acércate, no muerdo… mucho.",
