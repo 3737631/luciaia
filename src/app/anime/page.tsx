@@ -6,6 +6,7 @@ import GirlCard from "@/components/GirlCard";
 import StoriesRow from "@/components/StoriesRow";
 
 import { girls } from "@/data/girls";
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 const animeIds = new Set(["sakura", "yumi", "rin"]);
 const animeChars = girls.filter((g) => animeIds.has(g.id));
@@ -23,7 +24,7 @@ export default function AnimePage() {
     <>
       <Header />
       <main style={{ minHeight: "100vh", maxWidth: 1200, margin: "0 auto", padding: "20px var(--container-padding) 0" }}>
-        <img src="/hero-banner.png" alt="" style={{ width: "100%", borderRadius: 22, marginBottom: 8 }} />
+        <img src={`${basePath}/hero-banner.png`} alt="" style={{ width: "100%", borderRadius: 22, marginBottom: 8 }} />
         <StoriesRow girls={animeChars} />
 
         <section id="characters">
