@@ -24,14 +24,14 @@ export default function ChicosPage() {
     <>
       <Header />
 
-      <div style={{ position: "relative", width: "100%", marginBottom: 8 }}>
+      <div style={{ position: "relative", width: "100%" }}>
         <div style={{
           position: "absolute", inset: 0,
-          background: "linear-gradient(90deg, #111 0%, transparent 8%, transparent 92%, #111 100%)",
+          background: "linear-gradient(90deg, #111 0%, transparent 6%, transparent 94%, #111 100%)",
           zIndex: 1, pointerEvents: "none",
         }} />
         <img src={`${basePath}/hero-banner.png`} alt=""
-          style={{ width: "100%", display: "block", height: 200, objectFit: "cover" }} />
+          style={{ width: "100%", display: "block" }} />
       </div>
 
       <main style={{ minHeight: "100vh", maxWidth: 1200, margin: "0 auto", padding: "0 var(--container-padding)" }}>
