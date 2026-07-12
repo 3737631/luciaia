@@ -20,7 +20,7 @@ function useOnScreen(ref: React.RefObject<HTMLDivElement>) {
     if (!el) return;
     const observer = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect(); } },
-      { rootMargin: "300px" }
+      { rootMargin: "1000px" }
     );
     observer.observe(el);
     return () => observer.disconnect();
