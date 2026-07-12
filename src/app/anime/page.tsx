@@ -7,7 +7,7 @@ import GirlCard from "@/components/GirlCard";
 import { girls } from "@/data/girls";
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
-const animeIds = new Set(["sakura", "yumi", "rin"]);
+const animeIds = new Set(["maya", "iris", "yuki"]);
 const animeChars = girls.filter((g) => animeIds.has(g.id));
 const filters = ["Todas", "Mágicas", "Catgirl", "Tsundere"];
 
