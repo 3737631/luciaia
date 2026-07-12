@@ -37,7 +37,7 @@ export default function GirlsPage() {
     return () => clearInterval(t);
   }, []);
 
-  const POSITIONS = ["15% center", "8% center", "50% center", "70% center"];
+  const POSITIONS = ["15% center", "8% center", "50% center", "80% center"];
 
   const filtered = activeFilter === "Todas"
     ? femaleGirls
@@ -55,10 +55,10 @@ export default function GirlsPage() {
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        <img src={`${basePath}/${HERO_IMAGES[heroIndex]}`} alt=""
+        <img key={heroIndex} src={`${basePath}/${HERO_IMAGES[heroIndex]}`} alt=""
           draggable={false}
           onContextMenu={(e) => e.preventDefault()}
-          style={{ width: "100%", display: "block", minHeight: "25vh", objectFit: "cover", objectPosition: POSITIONS[heroIndex], userSelect: "none", WebkitUserSelect: "none", pointerEvents: "none" }}
+          style={{ width: "100%", display: "block", minHeight: "25vh", objectFit: "cover", objectPosition: POSITIONS[heroIndex], animation: "fadeIn 0.3s ease", userSelect: "none", WebkitUserSelect: "none", pointerEvents: "none" }}
         />
       </div>
       <div style={{ display: "flex", justifyContent: "center", gap: 8, padding: "10px 0 6px" }}>
