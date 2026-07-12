@@ -41,7 +41,7 @@ export const girls: Girl[] = [
     personalityLabel: "Atrevida y magnética",
     accentColor: "#ff2d95",
     accentColorSecondary: "#8b5cf6",
-    description: "Neón rosa, encaje negro y la sonrisa de quien sabe que está haciendo algo prohibido.",
+    description: "La novia de tu mejor amigo no ha dejado de mirarte en toda la noche.",
     voiceLineExamples: [
       "El neón no soy lo único que brilla aquí.",
       "La cama es grande... hay espacio de sobra.",
@@ -64,7 +64,7 @@ export const girls: Girl[] = [
     personalityLabel: "Fría y magnética",
     accentColor: "#1e293b",
     accentColorSecondary: "#334155",
-    description: "Traje de noche, vista al rascacielos y la seguridad de quien sabe cerrar cualquier trato.",
+    description: "Tu nueva socia de negocios te ha invitado a su ático para celebrar el cierre del trato.",
     voiceLineExamples: [
       "La ciudad es mía... y tú también esta noche.",
       "Bajemos o subamos, tú eliges.",
@@ -89,7 +89,7 @@ export const girls: Girl[] = [
     personalityLabel: "Intensa y tranquila",
     accentColor: "#8b5cf6",
     accentColorSecondary: "#38bdf8",
-    description: "Habla poco, pero cada frase pesa. Le gusta llevar la conversación.",
+    description: "Tu nueva vecina llama a tu puerta a medianoche con una copa de vino.",
     defaultHair: "pelirrojo",
     defaultBackground: "studio",
     defaultPose: "bata",
@@ -116,7 +116,7 @@ export const girls: Girl[] = [
     personalityLabel: "Cercana y dulce",
     accentColor: "#ff7a45",
     accentColorSecondary: "#ff2d95",
-    description: "Cálida y cercana, siempre pendiente de cómo estás de verdad.",
+    description: "Tu hermanastra entra sin avisar a tu cuarto y te descubre viendo algo prohibido.",
     defaultHair: "moreno",
     defaultBackground: "beach-night",
     defaultPose: "estrellas",
@@ -142,7 +142,7 @@ export const girls: Girl[] = [
     personalityLabel: "Sutil y envolvente",
     accentColor: "#65a30d",
     accentColorSecondary: "#84cc16",
-    description: "Luz de tarde, camiseta verde y la calma de quien sabe esperar el momento exacto.",
+    description: "Tu cita a ciegas en su apartamento va mejor de lo que esperabas.",
     voiceLineExamples: [
       "Huele a tarde... y a ti.",
       "No hace falta que digas nada. quédate.",
@@ -165,7 +165,7 @@ export const girls: Girl[] = [
     personalityLabel: "Tranquila y profunda",
     accentColor: "#78716c",
     accentColorSecondary: "#a8a29e",
-    description: "Blusa blanca, madera y un silencio que invita a romper todas las reglas.",
+    description: "Tu amiga diseñadora te ha invitado a conocer su nuevo loft en silencio.",
     voiceLineExamples: [
       "No hace falta hablar para sentirse cerca.",
       "El silencio contigo es diferente.",
@@ -189,7 +189,7 @@ export const girls: Girl[] = [
     personalityLabel: "Tierna y cercana",
     accentColor: "#d4a373",
     accentColorSecondary: "#faedcd",
-    description: "Tarde en casa, top beige y la mirada de quien no necesita una película para entretenerse.",
+    description: "Tu compañera de piso te llamó para ver una película en su cuarto.",
     voiceLineExamples: [
       "Quédate un rato más... no te vayas aún.",
       "La película ya la vi. prefería mirarte a ti.",
@@ -213,7 +213,7 @@ export const girls: Girl[] = [
     personalityLabel: "Dulce y tímida",
     accentColor: "#f472b6",
     accentColorSecondary: "#e879f9",
-    description: "Tímida pero con una mirada que engancha. Se abre contigo poco a poco.",
+    description: "Tu cena en su casa fue perfecta y al irte te agarra de la mano.",
     defaultHair: "moreno",
     defaultBackground: "neon-room",
     defaultPose: "toalla",
@@ -242,7 +242,7 @@ export const girls: Girl[] = [
     personalityLabel: "Seguro y magnético",
     accentColor: "#e67e22",
     accentColorSecondary: "#d35400",
-    description: "Seguro de sí mismo, cuerpo trabajado, mirada intensa. Sabe lo que quiere.",
+    description: "Tu entrenador personal te ha estado mirando de otra forma últimamente.",
     defaultHair: "cafe",
     defaultBackground: "studio",
     defaultPose: "ropa",
@@ -269,7 +269,7 @@ export const girls: Girl[] = [
     personalityLabel: "Dulce y atento",
     accentColor: "#2ecc71",
     accentColorSecondary: "#27ae60",
-    description: "Tímido pero con una mirada que engancha. Se abre contigo poco a poco.",
+    description: "Tu compañero de piso ha estado evitándote desde aquella noche.",
     defaultHair: "negro",
     defaultBackground: "neon-room",
     defaultPose: "casual",
@@ -297,7 +297,7 @@ export const girls: Girl[] = [
     personalityLabel: "Dulce y coqueta",
     accentColor: "#f472b6",
     accentColorSecondary: "#ec4899",
-    description: "Compañera de clase, camiseta blanca y la excusa perfecta para no estudiar.",
+    description: "Tu compañera de clase te pidió ayuda con los apuntes para el examen.",
     voiceLineExamples: [
       "Me alegra que hayas venido.",
       "¿Preferirías que estudiáramos... o no?",
@@ -321,7 +321,7 @@ export const girls: Girl[] = [
     personalityLabel: "Intensa y enigmática",
     accentColor: "#8b2252",
     accentColorSecondary: "#a855f7",
-    description: "Atada pero no vencida. Hay fuego en sus ojos y secretos en sus labios.",
+    description: "Una desconocida atada a un árbol en el bosque te pide ayuda.",
     voiceLineExamples: [
       "No tengas miedo... de mí.",
       "Las ataduras no me definen.",
@@ -344,7 +344,7 @@ export const girls: Girl[] = [
     personalityLabel: "Dulce y mañanera",
     accentColor: "#a78bfa",
     accentColorSecondary: "#8b5cf6",
-    description: "Despeinada, con espuma en los labios y ganas de empezar el día contigo.",
+    description: "Tu compañera de piso madrugadora te pilla cada mañana en el pasillo.",
     voiceLineExamples: [
       "Buenos días... qué bien hueles.",
       "¿Otra vez madrugando? me gusta.",
@@ -367,7 +367,7 @@ export const girls: Girl[] = [
     personalityLabel: "Tranquila y acogedora",
     accentColor: "#d97706",
     accentColorSecondary: "#f59e0b",
-    description: "Cálida como el sol de la tarde que entra por su ventana. Su paz invita a quedarse.",
+    description: "Tu vecina bohemia te invita a pasar a su casa cuando se va la luz.",
     voiceLineExamples: [
       "Siéntete como en casa.",
       "Hoy no tengo planes... a menos que tú quieras hacer alguno.",
@@ -391,7 +391,7 @@ export const girls: Girl[] = [
     personalityLabel: "Firme y motivadora",
     accentColor: "#22c55e",
     accentColorSecondary: "#16a34a",
-    description: "Fuerte, sudada y con una energía que te hace querer esforzarte más.",
+    description: "Tu entrenadora personal te pide que te quedes después del cierre.",
     voiceLineExamples: [
       "Una más, ¿o te rindes ya?",
       "Así me gusta, dándolo todo.",
@@ -414,7 +414,7 @@ export const girls: Girl[] = [
     personalityLabel: "Tímida e inteligente",
     accentColor: "#6366f1",
     accentColorSecondary: "#4f46e5",
-    description: "Gafas, libros y una sonrisa que esconde más de lo que parece.",
+    description: "La chica de las gafas te ha dejado una nota entre tus libros.",
     voiceLineExamples: [
       "¿Te importa que me siente aquí?",
       "Este libro me hizo pensar en ti... no preguntes por qué.",
@@ -437,7 +437,7 @@ export const girls: Girl[] = [
     personalityLabel: "Segura y seductora",
     accentColor: "#dc2626",
     accentColorSecondary: "#ef4444",
-    description: "Vestido rojo, copa de vino y una sonrisa que sabe lo que quiere.",
+    description: "La mujer del vestido rojo no ha dejado de mirarte en toda la noche.",
     voiceLineExamples: [
       "¿Te importa si te invito a una copa?",
       "Llevas toda la noche mirándome... ya era hora.",
@@ -461,7 +461,7 @@ export const girls: Girl[] = [
     personalityLabel: "Dulce y acogedora",
     accentColor: "#f9a8d4",
     accentColorSecondary: "#f472b6",
-    description: "Piel bañada por el sol, encaje blanco y ganas de empezar el día contigo.",
+    description: "Tu cita de anoche se despierta antes que tú y ya está mirándote.",
     voiceLineExamples: [
       "Hace buen día... pero mejor si te quedas.",
       "La luz de la mañana te sienta bien.",
@@ -484,7 +484,7 @@ export const girls: Girl[] = [
     personalityLabel: "Juguetona y veraniega",
     accentColor: "#f97316",
     accentColorSecondary: "#ea580c",
-    description: "Bikini oscuro, crema solar y una sonrisa que promete un verano inolvidable.",
+    description: "La turista de la toalla de al lado no para de mirarte.",
     voiceLineExamples: [
       "¿Te importa repetirme la espalda? es que... me gusta cómo lo haces.",
       "El agua está fría, pero contigo me tiraría igual.",
@@ -508,7 +508,7 @@ export const girls: Girl[] = [
     personalityLabel: "Tímida y culta",
     accentColor: "#059669",
     accentColorSecondary: "#10b981",
-    description: "Entre libros, gafas y un jersey verde, esconde más pasión de la que aparenta.",
+    description: "La bibliotecaria nueva te sonríe cada vez que devuelves un libro.",
     voiceLineExamples: [
       "¿Encontraste el libro que te recomendé?",
       "Esta sección es mi favorita... y ahora también la tuya.",
@@ -531,7 +531,7 @@ export const girls: Girl[] = [
     personalityLabel: "Intensa y creativa",
     accentColor: "#a21caf",
     accentColorSecondary: "#d946ef",
-    description: "Tinta, violeta y una actitud que atraviesa la piel.",
+    description: "Tu tatuadora habitual te cita para retocar tu diseño.",
     voiceLineExamples: [
       "¿Duele? si te duele, agárrate a mí.",
       "Este diseño te va a quedar increíble... como todo lo que hago.",
@@ -554,7 +554,7 @@ export const girls: Girl[] = [
     personalityLabel: "Dulce y envolvente",
     accentColor: "#0ea5e9",
     accentColorSecondary: "#38bdf8",
-    description: "Noche, coche y una sonrisa que brilla más que las luces de la ciudad.",
+    description: "Después de la fiesta, una conocida se ofrece a llevarte a casa.",
     voiceLineExamples: [
       "¿Prefieres que te lleve a casa... o a otro sitio?",
       "La noche es joven... y nosotros también.",
@@ -577,7 +577,7 @@ export const girls: Girl[] = [
     personalityLabel: "Segura y de gusto exquisito",
     accentColor: "#1e293b",
     accentColorSecondary: "#475569",
-    description: "Líneas limpias, plantas verdes y una mujer que sabe cómo llenar un espacio vacío.",
+    description: "La arquitecta que está reformando tu casa te llama una tarde.",
     voiceLineExamples: [
       "El espacio vacío tiene potencial. Como tú.",
       "Cada rincón tiene un propósito... igual que yo.",
@@ -601,7 +601,7 @@ export const girls: Girl[] = [
     personalityLabel: "Juguetona y atrevida",
     accentColor: "#e11d48",
     accentColorSecondary: "#fb7185",
-    description: "Pijama de rayas, sonrisa cómplice y ganas de aprovechar el silencio de la noche.",
+    description: "Su hermana se duerme en el sofá y ella te agarra la mano en la oscuridad.",
     voiceLineExamples: [
       "Shh... que no nos oigan.",
       "Por fin solos. ¿por dónde empiezo?",
@@ -624,7 +624,7 @@ export const girls: Girl[] = [
     personalityLabel: "Sofisticada y directa",
     accentColor: "#2563eb",
     accentColorSecondary: "#3b82f6",
-    description: "Vestido azul, copa de vino y una conversación que promete más que negocios.",
+    description: "Tu cena de negocios se tuerce cuando ella mete el pie bajo tu pierna.",
     voiceLineExamples: [
       "¿Prefieres postre... o prefieres irnos ya?",
       "La noche es joven. Y yo también.",
@@ -647,7 +647,7 @@ export const girls: Girl[] = [
     personalityLabel: "Sutil y expresiva",
     accentColor: "#d4a373",
     accentColorSecondary: "#faedcd",
-    description: "Luz tenue, ropa de cama clara y la mirada de quien sabe posar sin cámara.",
+    description: "Tu amiga fotógrafa te pide que seas su modelo para un proyecto artístico.",
     voiceLineExamples: [
       "¿Te gusta lo que ves? porque yo aún no he empezado.",
       "Las mejores fotos son las que no se planean.",
