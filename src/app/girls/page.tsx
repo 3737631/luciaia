@@ -5,7 +5,6 @@ import Header from "@/components/Header";
 import GirlCard from "@/components/GirlCard";
 import FeaturedRow from "@/components/FeaturedRow";
 import StoriesRow from "@/components/StoriesRow";
-import BottomNav from "@/components/BottomNav";
 import { girls } from "@/data/girls";
 
 const femaleIds = new Set([
@@ -82,7 +81,6 @@ export default function GirlsPage() {
         <div style={{ height: 32 }} />
       </main>
 
-      <BottomNav />
     </>
   );
 }

@@ -5,7 +5,7 @@ import Header from "@/components/Header";
 import GirlCard from "@/components/GirlCard";
 import FeaturedRow from "@/components/FeaturedRow";
 import StoriesRow from "@/components/StoriesRow";
-import BottomNav from "@/components/BottomNav";
+
 import { girls } from "@/data/girls";
 
 const maleIds = new Set(["axel", "liam"]);
@@ -73,7 +73,6 @@ export default function ChicosPage() {
         <div style={{ height: 32 }} />
       </main>
 
-      <BottomNav />
     </>
   );
 }
