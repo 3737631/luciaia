@@ -4,32 +4,41 @@ import { useState } from "react";
 import Link from "next/link";
 import { getGirlImage } from "@/lib/images";
 import type { Girl } from "@/data/girls";
+import StoryViewer from "./StoryViewer";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export default function StoriesRow({ girls }: { girls: Girl[] }) {
   const [seen, setSeen] = useState<Set<string>>(new Set());
+  const [storyOpen, setStoryOpen] = useState(false);
 
   const handleClick = (id: string) => {
     setSeen((prev) => new Set(prev).add(id));
+    if (id === "iris") {
+      setStoryOpen(true);
+      return false;
+    }
   };
 
   return (
-    <div style={{
-      display: "flex",
-      gap: 16,
-      overflowX: "auto",
-      padding: "12px 0 8px",
-      scrollbarWidth: "none",
-      WebkitOverflowScrolling: "touch",
-    }}>
+    <>
+      {storyOpen && <StoryViewer onClose={() => setStoryOpen(false)} />}
+      <div style={{
+        display: "flex",
+        gap: 16,
+        overflowX: "auto",
+        padding: "12px 0 8px",
+        scrollbarWidth: "none",
+        WebkitOverflowScrolling: "touch",
+      }}>
       {girls.map((girl) => {
         const isSeen = seen.has(girl.id);
+        const isIris = girl.id === "iris";
         return (
           <Link
             key={girl.id}
-            href={`${basePath}/chat/${girl.id}`}
-            onClick={() => handleClick(girl.id)}
+            href={isIris ? "#" : `${basePath}/chat/${girl.id}`}
+            onClick={(e) => { if (isIris) e.preventDefault(); handleClick(girl.id); }}
             style={{
               display: "flex",
               flexDirection: "column",
@@ -81,5 +90,6 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
         );
       })}
     </div>
+    </>
   );
 }
