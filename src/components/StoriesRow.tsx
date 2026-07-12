@@ -2,15 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { girls } from "@/data/girls";
 import { getGirlImage } from "@/lib/images";
-
-const STORY_IDS = ["luna", "nia", "vera", "alma", "maya", "kira", "sasha", "yuki"];
-const storyGirls = STORY_IDS.map((id) => girls.find((g) => g.id === id)).filter(Boolean) as typeof girls;
+import type { Girl } from "@/data/girls";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
-export default function StoriesRow() {
+export default function StoriesRow({ girls }: { girls: Girl[] }) {
   const [seen, setSeen] = useState<Set<string>>(new Set());
 
   const handleClick = (id: string) => {
@@ -26,7 +23,7 @@ export default function StoriesRow() {
       scrollbarWidth: "none",
       WebkitOverflowScrolling: "touch",
     }}>
-      {storyGirls.map((girl) => {
+      {girls.map((girl) => {
         const isSeen = seen.has(girl.id);
         return (
           <Link

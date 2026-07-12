@@ -34,7 +34,7 @@ export default function GirlsPage() {
       <Header />
       <main style={{ minHeight: "100vh", maxWidth: 1200, margin: "0 auto", padding: "20px var(--container-padding) 0" }}>
         <FeaturedRow girls={femaleGirls} />
-        <StoriesRow />
+        <StoriesRow girls={femaleGirls} />
 
         <section id="characters">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
