@@ -31,7 +31,9 @@ export default function ChicosPage() {
           zIndex: 1, pointerEvents: "none",
         }} />
         <img src={`${basePath}/hero-banner.png`} alt=""
-          style={{ width: "100%", display: "block" }} />
+          draggable={false}
+          onContextMenu={(e) => e.preventDefault()}
+          style={{ width: "100%", display: "block", userSelect: "none", WebkitUserSelect: "none", pointerEvents: "none" }} />
       </div>
 
       <main style={{ minHeight: "100vh", maxWidth: 1200, margin: "0 auto", padding: "0 var(--container-padding)" }}>
