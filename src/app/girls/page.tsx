@@ -31,8 +31,18 @@ export default function GirlsPage() {
   return (
     <>
       <Header />
-      <main style={{ minHeight: "100vh", maxWidth: 1200, margin: "0 auto", padding: "20px var(--container-padding) 0" }}>
-        <img src={`${basePath}/hero-banner.png`} alt="" style={{ width: "100%", borderRadius: 22, marginBottom: 8 }} />
+
+      <div style={{ position: "relative", width: "100%", marginBottom: 8 }}>
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "linear-gradient(90deg, #111 0%, transparent 8%, transparent 92%, #111 100%)",
+          zIndex: 1, pointerEvents: "none",
+        }} />
+        <img src={`${basePath}/hero-banner.png`} alt=""
+          style={{ width: "100%", display: "block", height: 200, objectFit: "cover" }} />
+      </div>
+
+      <main style={{ minHeight: "100vh", maxWidth: 1200, margin: "0 auto", padding: "0 var(--container-padding)" }}>
         <StoriesRow girls={femaleGirls} />
 
         <section id="characters">
