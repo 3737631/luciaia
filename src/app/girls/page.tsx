@@ -7,16 +7,14 @@ import FeaturedRow from "@/components/FeaturedRow";
 import BottomNav from "@/components/BottomNav";
 import { girls } from "@/data/girls";
 
-const femaleIds = new Set(["luna", "nia", "vera", "alma", "kira", "maya", "sasha", "yuki"]);
-const femaleChars = girls.filter((g) => femaleIds.has(g.id));
-const filters = ["Todas", "Nuevas", "Populares", "Coquetas"];
+const filters = ["Todas", "Nuevas", "Populares"];
 
 export default function GirlsPage() {
   const [activeFilter, setActiveFilter] = useState("Todas");
 
   const filtered = activeFilter === "Todas"
-    ? femaleChars
-    : femaleChars.filter(
+    ? girls
+    : girls.filter(
         (g) =>
           g.style?.toLowerCase().includes(activeFilter.replace(/s$/, "").toLowerCase()) ||
           g.personality?.includes(activeFilter.replace(/s$/, "").toLowerCase())

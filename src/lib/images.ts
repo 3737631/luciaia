@@ -29,7 +29,10 @@ export function getGirlImage(
   hair?: HairOption | string | null,
   pose?: PoseOption | string | null,
   background?: BackgroundOption | string | null,
+  cloudinaryUrl?: string | null,
 ): string {
+  if (cloudinaryUrl) return cloudinaryUrl;
+
   const d = DEFAULTS[girlId];
   const h = hair ?? d?.hair ?? "moreno";
   const p = pose ?? d?.pose ?? "toalla";
@@ -39,7 +42,6 @@ export function getGirlImage(
     return `${basePath}/girls/${girlId}/${h}_${p}_${b}.jpg`;
   }
 
-  // fallback to default local image
   const dh = d?.hair ?? "moreno";
   const dp = d?.pose ?? "toalla";
   const db = d?.bg ?? "neon-room";
@@ -51,6 +53,7 @@ export function getGirlImageFallback(
   hair?: HairOption | string | null,
   pose?: PoseOption | string | null,
   background?: BackgroundOption | string | null,
+  cloudinaryUrl?: string | null,
 ): string {
-  return getGirlImage(girlId, hair, pose, background);
+  return getGirlImage(girlId, hair, pose, background, cloudinaryUrl);
 }

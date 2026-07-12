@@ -36,10 +36,10 @@ export default function GirlCard({ girl, index = 0 }: { girl: Girl; index?: numb
   const router = useRouter();
   const custom = getCustomization(girl.id);
   const src = failed
-    ? getGirlImage(girl.id)
+    ? getGirlImage(girl.id, null, null, null, girl.cloudinaryImage)
     : custom
-      ? getGirlImage(girl.id, custom.hair, custom.pose, custom.background)
-      : getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground);
+      ? getGirlImage(girl.id, custom.hair, custom.pose, custom.background, girl.cloudinaryImage)
+      : getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground, girl.cloudinaryImage);
 
   return (
     <div

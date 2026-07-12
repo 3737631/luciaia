@@ -113,9 +113,9 @@ export default function CustomizeClient({ girl }: { girl: Girl }) {
   const personalityOptions = isMale ? malePersonality : girlPersonality;
 
   const [custom, setCustom] = useState<Customization>({
-    hair: girl.defaultHair,
-    background: girl.defaultBackground,
-    pose: girl.defaultPose,
+    hair: girl.defaultHair ?? "moreno",
+    background: girl.defaultBackground ?? "neon-room",
+    pose: girl.defaultPose ?? "toalla",
     personality: girl.personality,
   });
   const [imgKey, setImgKey] = useState(0);

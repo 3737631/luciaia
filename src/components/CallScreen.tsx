@@ -45,7 +45,7 @@ const DEBOUNCE_MS = 1200;
 
 export default function CallScreen({ girl }: { girl: Girl }) {
   const custom = getCustomization(girl.id);
-  const background = custom?.background ?? girl.defaultBackground;
+  const background = custom?.background ?? girl.defaultBackground ?? "neon-room";
 
   const [callState, setCallState] = useState<"ringing" | "connecting" | "connected">("ringing");
   const [mode, setMode] = useState<Mode>("idle");

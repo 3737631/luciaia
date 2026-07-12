@@ -19,7 +19,7 @@ export default function FeaturedRow() {
           style={{ textDecoration: "none", display: "block" }}
         >
           <img
-            src={getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground)}
+            src={getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground, girl.cloudinaryImage)}
             alt={girl.name}
             loading="lazy"
             style={{
