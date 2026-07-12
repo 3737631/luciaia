@@ -16,7 +16,7 @@ const femaleIds = new Set([
 const femaleGirls = girls.filter(g => femaleIds.has(g.id));
 const filters = ["Todas", "Nuevas", "Populares"];
 
-const HERO_IMAGES = ["hero-banner2.png", "hero-banner.png", "hero-banner3.png"];
+const HERO_IMAGES = ["hero-banner2.png", "hero-banner.png", "hero-banner3.png", "hero-banner4.png"];
 
 export default function GirlsPage() {
   const [activeFilter, setActiveFilter] = useState("Todas");
