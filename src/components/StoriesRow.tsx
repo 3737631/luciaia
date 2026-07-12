@@ -59,7 +59,7 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
                 background: "#1a1a1a",
               }}>
                 <img
-                  src={getGirlImage(girl.id)}
+                  src={getGirlImage(girl.id, null, null, null, girl.cloudinaryImage)}
                   alt={girl.name}
                   style={{
                     width: "100%",
