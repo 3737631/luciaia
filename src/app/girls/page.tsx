@@ -22,6 +22,15 @@ export default function GirlsPage() {
   const [activeFilter, setActiveFilter] = useState("Todas");
   const [animKey, setAnimKey] = useState(0);
   const [heroIndex, setHeroIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState(0);
+
+  const handleTouchStart = (e: React.TouchEvent) => setTouchStart(e.touches[0].clientX);
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const diff = touchStart - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) {
+      setHeroIndex((i) => (diff > 0 ? (i + 1) : (i - 1 + HERO_IMAGES.length)) % HERO_IMAGES.length);
+    }
+  };
 
   const filtered = activeFilter === "Todas"
     ? femaleGirls
@@ -35,7 +44,10 @@ export default function GirlsPage() {
     <>
       <Header />
 
-      <div style={{ position: "relative", width: "100%" }}>
+      <div style={{ position: "relative", width: "100%" }}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         <div style={{
           position: "absolute", inset: 0,
           background: "linear-gradient(90deg, #111 0%, transparent 6%, transparent 94%, #111 100%)",
@@ -46,12 +58,15 @@ export default function GirlsPage() {
           onContextMenu={(e) => e.preventDefault()}
           style={{ width: "100%", display: "block", minHeight: "25vh", objectFit: "cover", objectPosition: "70% center", userSelect: "none", WebkitUserSelect: "none", pointerEvents: "none" }}
         />
-        <button onClick={() => setHeroIndex((i) => (i - 1 + HERO_IMAGES.length) % HERO_IMAGES.length)}
-          style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", zIndex: 2, background: "rgba(0,0,0,0.4)", border: 0, borderRadius: "50%", width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#fff", fontSize: 18, lineHeight: 1 }}
-        >&#10094;</button>
-        <button onClick={() => setHeroIndex((i) => (i + 1) % HERO_IMAGES.length)}
-          style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", zIndex: 2, background: "rgba(0,0,0,0.4)", border: 0, borderRadius: "50%", width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#fff", fontSize: 18, lineHeight: 1 }}
-        >&#10095;</button>
+      </div>
+      <div style={{ display: "flex", justifyContent: "center", gap: 8, padding: "10px 0 6px" }}>
+        {HERO_IMAGES.map((_, i) => (
+          <div key={i} style={{
+            width: i === heroIndex ? 24 : 6, height: 6, borderRadius: 999,
+            background: i === heroIndex ? "#FF5798" : "rgba(255,255,255,0.15)",
+            transition: "all 0.3s ease",
+          }} />
+        ))}
       </div>
 
       <main style={{ minHeight: "100vh", maxWidth: 1200, margin: "0 auto", padding: "0 var(--container-padding)" }}>
