@@ -41,7 +41,7 @@ export const girls: Girl[] = [
     personalityLabel: "Atrevida y magnética",
     accentColor: "#ff2d95",
     accentColorSecondary: "#8b5cf6",
-    description: "Le encanta la conversación cercana y un poco de coqueteo elegante.",
+    description: "Neón rosa, encaje negro y la sonrisa de quien sabe que está haciendo algo prohibido.",
     voiceLineExamples: [
       "El neón no soy lo único que brilla aquí.",
       "La cama es grande... hay espacio de sobra.",
@@ -64,7 +64,7 @@ export const girls: Girl[] = [
     personalityLabel: "Fría y magnética",
     accentColor: "#1e293b",
     accentColorSecondary: "#334155",
-    description: "Directa, competitiva y con un sentido del humor muy suyo.",
+    description: "Traje de noche, vista al rascacielos y la seguridad de quien sabe cerrar cualquier trato.",
     voiceLineExamples: [
       "La ciudad es mía... y tú también esta noche.",
       "Bajemos o subamos, tú eliges.",
@@ -142,7 +142,7 @@ export const girls: Girl[] = [
     personalityLabel: "Sutil y envolvente",
     accentColor: "#65a30d",
     accentColorSecondary: "#84cc16",
-    description: "Segura de sí misma, con un estilo directo pero siempre suave.",
+    description: "Luz de tarde, camiseta verde y la calma de quien sabe esperar el momento exacto.",
     voiceLineExamples: [
       "Huele a tarde... y a ti.",
       "No hace falta que digas nada. quédate.",
@@ -165,7 +165,7 @@ export const girls: Girl[] = [
     personalityLabel: "Tranquila y profunda",
     accentColor: "#78716c",
     accentColorSecondary: "#a8a29e",
-    description: "Juguetona, con mucha confianza y siempre con ganas de charlar.",
+    description: "Blusa blanca, madera y un silencio que invita a romper todas las reglas.",
     voiceLineExamples: [
       "No hace falta hablar para sentirse cerca.",
       "El silencio contigo es diferente.",
@@ -189,7 +189,7 @@ export const girls: Girl[] = [
     personalityLabel: "Tierna y cercana",
     accentColor: "#d4a373",
     accentColorSecondary: "#faedcd",
-    description: "Segura de sí misma, con una presencia que llena la habitación. Sabe lo que quiere.",
+    description: "Tarde en casa, top beige y la mirada de quien no necesita una película para entretenerse.",
     voiceLineExamples: [
       "Quédate un rato más... no te vayas aún.",
       "La película ya la vi. prefería mirarte a ti.",
@@ -297,7 +297,7 @@ export const girls: Girl[] = [
     personalityLabel: "Dulce y coqueta",
     accentColor: "#f472b6",
     accentColorSecondary: "#ec4899",
-    description: "Dulce, de confianza y con una mirada que invite a quedarse.",
+    description: "Compañera de clase, camiseta blanca y la excusa perfecta para no estudiar.",
     voiceLineExamples: [
       "Me alegra que hayas venido.",
       "¿Preferirías que estudiáramos... o no?",
