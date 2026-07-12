@@ -16,7 +16,7 @@ const femaleIds = new Set([
 const femaleGirls = girls.filter(g => femaleIds.has(g.id));
 const filters = ["Todas", "Nuevas", "Populares"];
 
-const HERO_IMAGES = ["hero-banner2.png", "hero-banner.png", "hero-banner3.png", "hero-banner4.png"];
+const HERO_IMAGES = ["hero-banner2.png", "hero-banner3.png", "hero-banner4.png", "hero-banner.png"];
 
 export default function GirlsPage() {
   const [activeFilter, setActiveFilter] = useState("Todas");
@@ -56,7 +56,7 @@ export default function GirlsPage() {
         <img src={`${basePath}/${HERO_IMAGES[heroIndex]}`} alt=""
           draggable={false}
           onContextMenu={(e) => e.preventDefault()}
-          style={{ width: "100%", display: "block", minHeight: "25vh", objectFit: "cover", objectPosition: "70% center", userSelect: "none", WebkitUserSelect: "none", pointerEvents: "none" }}
+          style={{ width: "100%", display: "block", minHeight: "25vh", objectFit: "cover", objectPosition: "30% center", userSelect: "none", WebkitUserSelect: "none", pointerEvents: "none" }}
         />
       </div>
       <div style={{ display: "flex", justifyContent: "center", gap: 8, padding: "10px 0 6px" }}>
