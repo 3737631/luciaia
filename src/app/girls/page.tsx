@@ -37,7 +37,7 @@ export default function GirlsPage() {
     return () => clearInterval(t);
   }, []);
 
-  const POSITIONS = ["15% center", "5% center", "85% center", "5% center"];
+  const POSITIONS = ["15% center", "5% center", "50% center", "85% center"];
 
   const filtered = activeFilter === "Todas"
     ? femaleGirls
