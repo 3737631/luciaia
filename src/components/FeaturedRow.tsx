@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { girls } from "@/data/girls";
 import { getGirlImage } from "@/lib/images";
+import { Girl, girls } from "@/data/girls";
 
-const featured = girls.filter((g) => g.badge).slice(0, 4);
-
-export default function FeaturedRow() {
+export default function FeaturedRow({ girls: charList }: { girls?: Girl[] }) {
+  const list = charList ?? girls;
+  const featured = list.filter((g) => g.badge).slice(0, 4);
   if (featured.length === 0) return null;
 
   return (
