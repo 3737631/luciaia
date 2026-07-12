@@ -196,8 +196,8 @@ body {
 .person-badge {
   padding: 6px 10px;
   border-radius: 999px;
-  background: rgba(235,35,87,0.92);
-  color: white;
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.85);
   font-size: 12px;
   font-weight: 750;
   line-height: 1;
@@ -233,7 +233,7 @@ body {
   line-height: 1;
   cursor: pointer;
   text-decoration: none;
-  box-shadow: 0 6px 18px rgba(255,87,152,0.28);
+  box-shadow: 0 4px 14px rgba(255,87,152,0.15);
   transition: transform 160ms ease, filter 160ms ease;
 }
 .person-action:hover {
@@ -366,4 +366,9 @@ body {
 @keyframes carouselSlide {
   0% { transform: translateX(0); }
   100% { transform: translateX(-100%); }
+}
+@keyframes filterPop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.08); }
+  100% { transform: scale(1.05); }
 }

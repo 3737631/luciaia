@@ -1,129 +1,88 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { girls } from "@/data/girls";
 import { getGirlImage } from "@/lib/images";
 
-const RING_SIZE = 74;
-const INNER_SIZE = RING_SIZE - 6;
+const STORY_IDS = ["luna", "nia", "vera", "alma", "maya", "kira", "sasha", "yuki"];
+const storyGirls = STORY_IDS.map((id) => girls.find((g) => g.id === id)).filter(Boolean) as typeof girls;
 
-export default function StoriesRow({ onOpenCreate }: { onOpenCreate: () => void }) {
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
+export default function StoriesRow() {
+  const [seen, setSeen] = useState<Set<string>>(new Set());
+
+  const handleClick = (id: string) => {
+    setSeen((prev) => new Set(prev).add(id));
+  };
+
   return (
-    <div
-      style={{
-        display: "flex",
-        gap: 14,
-        overflowX: "auto",
-        padding: "16px 16px 8px",
-        scrollbarWidth: "none",
-      }}
-      className="scrollbar-none"
-    >
-      <button
-        onClick={onOpenCreate}
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 6,
-          flexShrink: 0,
-          background: "none",
-          border: 0,
-          cursor: "pointer",
-          padding: 0,
-          width: RING_SIZE + 2,
-        }}
-      >
-        <div
-          style={{
-            width: RING_SIZE,
-            height: RING_SIZE,
-            borderRadius: "50%",
-            background: "linear-gradient(135deg, #FF5798, #FF6AA5)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 3,
-          }}
-        >
-          <div
+    <div style={{
+      display: "flex",
+      gap: 16,
+      overflowX: "auto",
+      padding: "12px 0 8px",
+      scrollbarWidth: "none",
+      WebkitOverflowScrolling: "touch",
+    }}>
+      {storyGirls.map((girl) => {
+        const isSeen = seen.has(girl.id);
+        return (
+          <Link
+            key={girl.id}
+            href={`${basePath}/chat/${girl.id}`}
+            onClick={() => handleClick(girl.id)}
             style={{
-              width: INNER_SIZE,
-              height: INNER_SIZE,
-              borderRadius: "50%",
-              background: "#111116",
               display: "flex",
+              flexDirection: "column",
               alignItems: "center",
-              justifyContent: "center",
+              gap: 6,
+              textDecoration: "none",
+              flexShrink: 0,
             }}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-          </div>
-        </div>
-        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>Crear</span>
-      </button>
-
-      {girls.filter((g) => g.id !== "axel" && g.id !== "liam").map((girl) => (
-        <Link
-          key={girl.id}
-          href={`/chat/${girl.id}`}
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 6,
-            flexShrink: 0,
-            textDecoration: "none",
-            width: RING_SIZE + 2,
-          }}
-        >
-          <div
-            style={{
-              width: RING_SIZE,
-              height: RING_SIZE,
+            <div style={{
+              width: 60,
+              height: 60,
               borderRadius: "50%",
               padding: 3,
-              background: `linear-gradient(135deg, #FF5798, rgba(255,87,152,0.3))`,
+              background: isSeen
+                ? "rgba(255,255,255,0.12)"
+                : "linear-gradient(135deg, #FF5798, #FF6AA5)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-            }}
-          >
-            <div
-              style={{
-                width: INNER_SIZE,
-                height: INNER_SIZE,
+            }}>
+              <div style={{
+                width: "100%",
+                height: "100%",
                 borderRadius: "50%",
                 overflow: "hidden",
-                border: "2px solid #09090B",
-              }}
-            >
-              <img
-                src={getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground)}
-                alt={girl.name}
-                loading="lazy"
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
+                background: "#1a1a1a",
+              }}>
+                <img
+                  src={getGirlImage(girl.id)}
+                  alt={girl.name}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                  }}
+                />
+              </div>
             </div>
-          </div>
-          <span
-            style={{
+            <span style={{
               fontSize: 11,
-              color: "rgba(255,255,255,0.5)",
-              fontWeight: 500,
-              textAlign: "center",
-              maxWidth: 80,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
+              fontWeight: 600,
+              color: isSeen ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.85)",
               whiteSpace: "nowrap",
-            }}
-          >
-            {girl.name}
-          </span>
-        </Link>
-      ))}
+            }}>
+              {girl.name}
+            </span>
+          </Link>
+        );
+      })}
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Header from "@/components/Header";
 import GirlCard from "@/components/GirlCard";
 import FeaturedRow from "@/components/FeaturedRow";
+import StoriesRow from "@/components/StoriesRow";
 import BottomNav from "@/components/BottomNav";
 import { girls } from "@/data/girls";
 
@@ -18,6 +19,7 @@ const filters = ["Todas", "Nuevas", "Populares"];
 
 export default function GirlsPage() {
   const [activeFilter, setActiveFilter] = useState("Todas");
+  const [animKey, setAnimKey] = useState(0);
 
   const filtered = activeFilter === "Todas"
     ? femaleGirls
@@ -31,6 +33,7 @@ export default function GirlsPage() {
     <>
       <Header />
       <main style={{ minHeight: "100vh", maxWidth: 1200, margin: "0 auto", padding: "20px var(--container-padding) 0" }}>
+        <StoriesRow />
         <FeaturedRow />
 
         <section id="characters">
@@ -42,19 +45,21 @@ export default function GirlsPage() {
               {filters.map((f) => (
                 <button
                   key={f}
-                  onClick={() => setActiveFilter(f)}
+                  onClick={() => { setActiveFilter(f); setAnimKey((k) => k + 1); }}
                   style={{
                     borderRadius: 999,
                     fontWeight: 600,
                     fontSize: 12,
-                    padding: "5px 12px",
+                    padding: "6px 14px",
                     lineHeight: 1,
-                    background: activeFilter === f ? "#FF5798" : "rgba(255,255,255,0.04)",
+                    background: activeFilter === f ? "#FF3B82" : "rgba(255,255,255,0.04)",
                     border: "1px solid transparent",
-                    borderColor: activeFilter === f ? "transparent" : "rgba(255,255,255,0.06)",
+                    borderColor: activeFilter === f ? "rgba(255,59,130,0.4)" : "rgba(255,255,255,0.06)",
                     color: activeFilter === f ? "#fff" : "rgba(255,255,255,0.35)",
                     cursor: "pointer",
-                    transition: "all 250ms ease",
+                    transform: activeFilter === f ? "scale(1.05)" : "scale(1)",
+                    transition: "all 200ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+                    animation: activeFilter === f ? "filterPop 200ms ease" : "none",
                   }}
                 >
                   {f}

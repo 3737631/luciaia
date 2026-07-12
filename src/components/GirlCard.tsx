@@ -20,7 +20,7 @@ function useOnScreen(ref: React.RefObject<HTMLDivElement>) {
     if (!el) return;
     const observer = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect(); } },
-      { rootMargin: "80px" }
+      { rootMargin: "300px" }
     );
     observer.observe(el);
     return () => observer.disconnect();
@@ -75,7 +75,6 @@ export default function GirlCard({ girl, index = 0 }: { girl: Girl; index?: numb
         <img
           src={src}
           alt={girl.name}
-          loading="lazy"
           decoding="async"
           onError={() => !failed && setFailed(true)}
           style={{ objectPosition: girl.imagePosition || "center center" }}

@@ -33,7 +33,7 @@ export default function HeroShowcaseCarousel() {
           position: "relative",
           display: "block",
           width: "100%",
-          height: 210,
+          height: 147,
           borderRadius: 20,
           overflow: "hidden",
           textDecoration: "none",
