@@ -12,9 +12,6 @@ const DEFAULTS: Record<string, { hair: string; pose: string; bg: string }> = {
   maya: { hair: "rubio", pose: "bata", bg: "car-night" },
   sasha: { hair: "moreno", pose: "estrellas", bg: "neon-room" },
   yuki: { hair: "moreno", pose: "toalla", bg: "neon-room" },
-  sakura: { hair: "rosa", pose: "bata", bg: "studio" },
-  yumi: { hair: "azul", pose: "bata", bg: "neon-room" },
-  rin: { hair: "negro", pose: "ropa", bg: "studio" },
   axel: { hair: "cafe", pose: "ropa", bg: "studio" },
   liam: { hair: "negro", pose: "casual", bg: "neon-room" },
 };
