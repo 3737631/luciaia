@@ -44,7 +44,7 @@ export default function GirlsPage() {
         <img src={`${basePath}/${HERO_IMAGES[heroIndex]}`} alt=""
           draggable={false}
           onContextMenu={(e) => e.preventDefault()}
-          style={{ width: "100%", display: "block", minHeight: "25vh", objectFit: "cover", userSelect: "none", WebkitUserSelect: "none", pointerEvents: "none" }}
+          style={{ width: "100%", display: "block", minHeight: "25vh", objectFit: "cover", objectPosition: "70% center", userSelect: "none", WebkitUserSelect: "none", pointerEvents: "none" }}
         />
         <button onClick={() => setHeroIndex((i) => (i - 1 + HERO_IMAGES.length) % HERO_IMAGES.length)}
           style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", zIndex: 2, background: "rgba(0,0,0,0.4)", border: 0, borderRadius: "50%", width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#fff", fontSize: 18, lineHeight: 1 }}
