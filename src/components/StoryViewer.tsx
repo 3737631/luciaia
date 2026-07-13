@@ -548,9 +548,11 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
                     background:"rgba(255,255,255,.96)",
                     width:`${Math.min(val,100)}%`,
                     transformOrigin:"left center",
-                    transition: idx === currentIndex && !transition && !paused
-                      ? "width 0.05s linear"
-                      : "width 220ms cubic-bezier(0.22,1,0.36,1)",
+                    transition: transition
+                      ? "none"
+                      : idx === currentIndex && !paused
+                        ? "width 0.05s linear"
+                        : "width 220ms cubic-bezier(0.22,1,0.36,1)",
                   }} />
                 </div>
               );
@@ -668,18 +670,16 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
               </div>
             )}
 
-            {/* Message row — grid: [input] [heart] [send] */}
+            {/* Message row — flex: [input longest possible] [send] [heart at edge] */}
             <div style={{
-              padding:"8px 13px calc(env(safe-area-inset-bottom,0px) + 10px)",
-              display:"grid",
-              gridTemplateColumns:"minmax(0,1fr) 40px 40px",
-              alignItems:"center",gap:7,
+              display:"flex",alignItems:"center",gap:6,
+              padding:"8px 14px calc(env(safe-area-inset-bottom,0px) + 10px)",
             }}>
               {/* Message input shell */}
               <div data-story-interactive
                 onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); if (document.activeElement !== hiddenInputRef.current) hiddenInputRef.current?.focus({ preventScroll: true }); }}
                 style={{
-                  height:41,minWidth:0,display:"flex",alignItems:"center",
+                  flex:1,height:41,minWidth:0,display:"flex",alignItems:"center",
                   padding:"0 15px",borderRadius:999,
                   border:"1px solid rgba(255,255,255,.44)",
                   background:"rgba(8,8,8,.14)",
@@ -695,6 +695,19 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
                 {message || "Enviar mensaje..."}
               </div>
 
+              {/* Send button */}
+              {message.trim() && (
+                <button aria-label="Enviar" data-story-interactive
+                  onPointerDown={(e)=>{e.stopPropagation()}}
+                  onClick={(e)=>{e.stopPropagation();handleSend()}}
+                  disabled={isSending}
+                  className="story-action-button"
+                  style={{width:34,height:34,borderRadius:"50%",background:"#fff",color:"#000"}}
+                >
+                  <SendSvg />
+                </button>
+              )}
+
               {/* Heart button */}
               <button ref={heartBtnRef} aria-label="Reaccionar" data-story-interactive
                 onPointerDown={(e)=>{e.stopPropagation();handleHeartDown(e as any)}}
@@ -706,22 +719,6 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
               >
                 <HeartSvg filled={isLiked} />
               </button>
-
-              {/* Send button */}
-              {message.trim() && (
-                <button aria-label="Enviar" data-story-interactive
-                  onPointerDown={(e)=>{e.stopPropagation()}}
-                  onClick={(e)=>{e.stopPropagation();handleSend()}}
-                  disabled={isSending}
-                  className="story-action-button"
-                  style={{color:"#fff"}}
-                >
-                  <SendSvg />
-                </button>
-              )}
-              {!message.trim() && (
-                <div style={{width:40,height:40}} />
-              )}
             </div>
           </div>
 
