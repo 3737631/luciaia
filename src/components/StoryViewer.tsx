@@ -541,7 +541,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
       >
         <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,.38)",pointerEvents:"none",zIndex:1}} />
         <div className="story-blurred-background" style={{backgroundImage:`url(${currentImage})`}} />
-        <div ref={frameRef} className="story-mobile-frame" style={{touchAction:"none"}}>
+        <div ref={frameRef} className="story-mobile-frame" style={{touchAction:"none",background:`#000 url("${currentImage}") center/cover no-repeat`}}>
           {/* Image layers */}
           <div className="story-slide"
             style={{
