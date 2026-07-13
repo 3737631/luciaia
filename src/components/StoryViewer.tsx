@@ -91,6 +91,9 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
   const highlightRef = useRef<string | null>(null);
   const autoFiredRef = useRef(false);
   const transitionLockedRef = useRef(false);
+  const cubeSnapshotRef = useRef<{
+    charIdx: number; imgIdx: number; progress: number[]; message: string;
+  } | null>(null);
   const initialLoadRef = useRef(true);
 
   const gestureRef = useRef({
@@ -196,7 +199,15 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
     transitionLockedRef.current = true;
     if (isComposerFocused) hiddenInputRef.current?.blur();
     setTransition({ from: currentIndex, to: toIdx, dir, fromChar: charIndex, toChar: toCharIdx });
-    if (isCube) onMarkSeen?.(characters[charIndex].id);
+    if (isCube) {
+      onMarkSeen?.(characters[charIndex].id);
+      cubeSnapshotRef.current = {
+        charIdx: charIndex,
+        imgIdx: currentIndex,
+        progress: [...progress],
+        message,
+      };
+    }
     const destImages = characters[toCharIdx].images;
     setProgress(destImages.map((_, i) => {
       if (i < toIdx) return 100;
@@ -206,6 +217,7 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
     const duration = isCube ? CUBE_TRANSITION_MS : TRANSITION_MS;
     setTimeout(() => {
       if (!mountedRef.current) return;
+      cubeSnapshotRef.current = null;
       setCharIndex(toCharIdx);
       setCurrentIndex(toIdx);
       setTransition(null);
@@ -213,7 +225,7 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
       transitionLockedRef.current = false;
       setImageLoaded(true);
     }, duration);
-  }, [transition, closing, isComposerFocused, currentIndex, charIndex, characters, onMarkSeen]);
+  }, [transition, closing, isComposerFocused, currentIndex, charIndex, characters, onMarkSeen, progress, message]);
 
   const goToNext = useCallback(() => {
     if (currentIndex < len - 1) {
@@ -503,6 +515,7 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
 
   const currentCharImages = characters[charIndex].images;
   const currentImage = currentCharImages[currentIndex];
+  const exitChar = transition ? characters[transition.fromChar] : null;
   const exitImage = transition ? characters[transition.fromChar].images[transition.from] : null;
   const enterImage = transition ? characters[transition.toChar].images[transition.to] : null;
 
@@ -518,6 +531,85 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
       : (transition.dir === 'next' ? 'story-enter-next' : 'story-enter-prev'))
     : null;
   const animDuration = isCubeTrans ? CUBE_TRANSITION_MS : TRANSITION_MS;
+  const snap = cubeSnapshotRef.current;
+
+  function renderProgressBars(prog: number[], activeIdx: number, isTransitioning: boolean) {
+    return (
+      <div style={{
+        position:"absolute",zIndex:60,
+        top:"calc(env(safe-area-inset-top,0px) + 7px)",
+        left:10,right:10,
+        display:"flex",gap:3,
+        pointerEvents:"none",
+        transition:"opacity 110ms ease",
+        opacity:paused?0.18:1,
+      }}>
+        {prog.map((val, idx) => (
+          <div key={idx} style={{
+            flex:1,height:2.2,borderRadius:999,overflow:"hidden",
+            background:"rgba(255,255,255,.34)",
+          }}>
+            <div style={{
+              height:"100%",borderRadius:"inherit",
+              background:"rgba(255,255,255,.96)",
+              width:"100%",
+              willChange:"transform",
+              transform:`scaleX(${Math.min(val||0,100)/100})`,
+              transformOrigin:"left center",
+              transition: isTransitioning
+                ? "none"
+                : idx === activeIdx && !paused
+                  ? "transform 0.05s linear"
+                  : "transform 220ms cubic-bezier(0.22,1,0.36,1)",
+            }} />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  function renderHeader(c: typeof characters[number]) {
+    return (
+      <div style={{
+        position:"absolute",zIndex:60,
+        top:"calc(env(safe-area-inset-top,0px) + 7px + 2px + 9px + 2px)",
+        left:10,right:10,
+        display:"flex",alignItems:"center",minHeight:38,
+        transition:"opacity 110ms ease",
+        opacity:paused?0.18:1,
+      }} data-story-interactive>
+        <img src={c.avatar} alt="" style={{
+          width:30,height:30,borderRadius:"50%",objectFit:"cover",flex:"0 0 auto",
+          border:"1.5px solid rgba(255,255,255,.85)",
+        }} />
+        <span style={{
+          marginLeft:9,fontFamily:font,fontSize:13.5,lineHeight:"17px",
+          fontWeight:600,color:"#fff",
+          textShadow:"0 1px 2px rgba(0,0,0,.4)",
+          whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",
+        }}>
+          {c.name}
+        </span>
+        <span style={{
+          marginLeft:6,fontFamily:font,fontSize:12.5,lineHeight:"17px",fontWeight:400,
+          color:"rgba(255,255,255,.72)",
+          textShadow:"0 1px 2px rgba(0,0,0,.35)",
+          whiteSpace:"nowrap",flexShrink:0,
+        }}>
+          {timeAgo}
+        </span>
+        <div style={{ marginLeft:"auto",display:"flex",alignItems:"center" }}>
+          <button aria-label="Cerrar" data-story-interactive
+            onClick={(e)=>{e.stopPropagation();handleClose()}}
+            className="story-action-button"
+            style={{ pointerEvents:"auto" }}
+          >
+            <CloseSvg />
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const storyContent = (
     <>
@@ -540,11 +632,10 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
         .story-desktop-shell img{-webkit-touch-callout:none;pointer-events:none}
         .story-blurred-background{position:absolute;inset:-40px;background-position:center;background-size:cover;filter:blur(28px);transform:scale(1.08);opacity:0.55;pointer-events:none;will-change:background-image}
         .story-slide{position:absolute;inset:0;will-change:transform,opacity}
-        .story-slide-exit{animation-duration:180ms;animation-timing-function:cubic-bezier(0.22,1,0.36,1);animation-fill-mode:forwards}
-        .story-slide-enter{animation-duration:180ms;animation-timing-function:cubic-bezier(0.22,1,0.36,1);animation-fill-mode:forwards}
         .story-action-button{width:40px;height:40px;display:grid;place-items:center;padding:0;border:0;background:transparent;color:#fff;-webkit-tap-highlight-color:transparent;cursor:pointer;transition:transform 120ms ease}
         .story-action-button:active{transform:scale(.84)}
-        .story-mobile-frame{position:relative;z-index:2;width:min(430px,calc(100vw - 32px));height:min(92dvh,860px);aspect-ratio:9/16;overflow:hidden;background:#000;border-radius:14px;box-shadow:0 20px 70px rgba(0,0,0,.55);will-change:transform}
+        .story-mobile-frame{position:relative;width:min(430px,calc(100vw - 32px));height:min(92dvh,860px);aspect-ratio:9/16;overflow:hidden;background:#000;border-radius:14px;box-shadow:0 20px 70px rgba(0,0,0,.55);will-change:transform}
+        .story-cube-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden}
 
         @media(max-width:767px){.story-desktop-shell{display:block}.story-blurred-background{display:none}.story-mobile-frame{width:100%!important;height:100dvh!important;max-width:none!important;aspect-ratio:auto!important;border-radius:0!important;box-shadow:none!important}}
       `}</style>
@@ -575,310 +666,283 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
         onContextMenu={(e)=>e.preventDefault()}
       >
         <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,.38)",pointerEvents:"none",zIndex:1}} />
-        <div className="story-blurred-background" style={{backgroundImage:`url(${currentImage})`}} />
-        <div ref={frameRef} className="story-mobile-frame" style={{
-          touchAction:"none",overflow:"hidden",
-          perspective: (transition && transition.fromChar !== transition.toChar) ? '1000px' : undefined,
-          transformStyle: (transition && transition.fromChar !== transition.toChar) ? 'preserve-3d' : undefined,
-        }}>
-          {/* Image layers */}
-          <div className="story-slide"
-            style={{
-              zIndex:transition ? 3 : 2,
-              animation: exitAnim ? `${exitAnim} ${animDuration}ms cubic-bezier(0.22,1,0.36,1) forwards` : 'none',
-              backfaceVisibility: transition && transition.fromChar !== transition.toChar ? 'hidden' : undefined,
-            }}
-          >
-            {transition ? (
-              <img src={exitImage!} alt="" draggable={false}
-                style={{width:"100%",height:"100%",display:"block",objectFit:"cover",objectPosition:"center center"}}
-              />
-            ) : (
-              <img src={currentImage} alt="" draggable={false}
-                style={{width:"100%",height:"100%",display:"block",objectFit:"cover",objectPosition:"center center"}}
-              />
-            )}
-          </div>
 
-          {transition && (
-            <div className="story-slide"
+        {/* ========== CUBE TRANSITION: dual faces ========== */}
+        {transition && isCubeTrans && snap ? (
+          <>
+            {/* Exit face — frozen snapshot, non-interactive */}
+            <div className="story-cube-face"
               style={{
-                zIndex:4,
-                animation: `${enterAnim} ${animDuration}ms cubic-bezier(0.22,1,0.36,1) forwards`,
-                backfaceVisibility: transition.fromChar !== transition.toChar ? 'hidden' : undefined,
+                zIndex:3,
+                animation: `${exitAnim!} ${animDuration}ms cubic-bezier(0.22,1,0.36,1) forwards`,
+                pointerEvents:"none",
               }}
             >
-              <img src={enterImage!} alt="" draggable={false}
-                style={{width:"100%",height:"100%",display:"block",objectFit:"cover",objectPosition:"center center"}}
-              />
-            </div>
-          )}
-
-          {/* Top gradient */}
-          <div style={{
-            position:"absolute",zIndex:25,inset:"0 0 auto",height:145,
-            background:"linear-gradient(to bottom,rgba(0,0,0,.64) 0%,rgba(0,0,0,.29) 55%,transparent 100%)",
-            pointerEvents:"none"
-          }} />
-
-          {/* Bottom gradient */}
-          <div style={{
-            position:"absolute",zIndex:30,left:0,right:0,bottom:0,height:180,
-            background:"linear-gradient(to top,rgba(0,0,0,.62) 0%,rgba(0,0,0,.28) 46%,rgba(0,0,0,.08) 72%,transparent 100%)",
-            pointerEvents:"none"
-          }} />
-
-          {/* Keyboard overlay (subtle darken when typing) */}
-          <div style={{
-            position:"absolute",zIndex:35,inset:0,
-            background:"rgba(0,0,0,.18)",
-            opacity:isComposerFocused && keyboardInset > 100 ? 1 : 0,
-            pointerEvents:"none",
-            transition:"opacity 150ms ease",
-          }} />
-
-          {/* Progress bars */}
-          <div style={{
-            position:"absolute",zIndex:60,
-            top:"calc(env(safe-area-inset-top,0px) + 7px)",
-            left:10,right:10,
-            display:"flex",gap:3,
-            pointerEvents:"none",
-            transition:"opacity 110ms ease",
-            opacity:paused?0.18:1,
-          }}>
-            {currentCharImages.map((_, idx) => {
-              const val = progress[idx] || 0;
-              return (
-                <div key={idx} style={{
-                  flex:1,height:2.2,borderRadius:999,overflow:"hidden",
-                  background:"rgba(255,255,255,.34)",
-                }}>
-                  <div style={{
-                    height:"100%",borderRadius:"inherit",
-                    background:"rgba(255,255,255,.96)",
-                    width:"100%",
-                    willChange:"transform",
-                    transform:`scaleX(${Math.min(val,100)/100})`,
-                    transformOrigin:"left center",
-                    transition: transition
-                      ? "none"
-                      : idx === currentIndex && !paused
-                        ? "transform 0.05s linear"
-                        : "transform 220ms cubic-bezier(0.22,1,0.36,1)",
-                  }} />
+              <div className="story-blurred-background" style={{backgroundImage:`url(${characters[snap.charIdx].images[snap.imgIdx]})`}} />
+              <div className="story-mobile-frame" style={{position:"relative",zIndex:1,perspective:'1000px',transformStyle:'preserve-3d'}}>
+                <div className="story-slide" style={{zIndex:2}}>
+                  <img src={characters[snap.charIdx].images[snap.imgIdx]} alt="" draggable={false}
+                    style={{width:"100%",height:"100%",display:"block",objectFit:"cover",objectPosition:"center center"}}
+                  />
                 </div>
-              );
-            })}
-          </div>
-
-          {/* Header (avatar, name, time, close) */}
-          <div style={{
-            position:"absolute",zIndex:60,
-            top:"calc(env(safe-area-inset-top,0px) + 7px + 2px + 9px + 2px)",
-            left:10,right:10,
-            display:"flex",alignItems:"center",minHeight:38,
-            transition:"opacity 110ms ease",
-            opacity:paused?0.18:1,
-          }} data-story-interactive>
-            <img src={currentChar.avatar} alt="" style={{
-              width:30,height:30,borderRadius:"50%",objectFit:"cover",flex:"0 0 auto",
-              border:"1.5px solid rgba(255,255,255,.85)",
-            }} />
-            <span style={{
-              marginLeft:9,fontFamily:font,fontSize:13.5,lineHeight:"17px",
-              fontWeight:600,color:"#fff",
-              textShadow:"0 1px 2px rgba(0,0,0,.4)",
-              whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",
-            }}>
-              {currentChar.name}
-            </span>
-            <span style={{
-              marginLeft:6,fontFamily:font,fontSize:12.5,lineHeight:"17px",fontWeight:400,
-              color:"rgba(255,255,255,.72)",
-              textShadow:"0 1px 2px rgba(0,0,0,.35)",
-              whiteSpace:"nowrap",flexShrink:0,
-            }}>
-              {timeAgo}
-            </span>
-            <div style={{ marginLeft:"auto",display:"flex",alignItems:"center" }}>
-              <button aria-label="Cerrar" data-story-interactive
-                onClick={(e)=>{e.stopPropagation();handleClose()}}
-                className="story-action-button"
-                style={{ pointerEvents:"auto" }}
-              >
-                <CloseSvg />
-              </button>
+                <div style={{position:"absolute",zIndex:25,inset:"0 0 auto",height:145,background:"linear-gradient(to bottom,rgba(0,0,0,.64) 0%,rgba(0,0,0,.29) 55%,transparent 100%)",pointerEvents:"none"}} />
+                <div style={{position:"absolute",zIndex:30,left:0,right:0,bottom:0,height:180,background:"linear-gradient(to top,rgba(0,0,0,.62) 0%,rgba(0,0,0,.28) 46%,rgba(0,0,0,.08) 72%,transparent 100%)",pointerEvents:"none"}} />
+                {renderProgressBars(snap.progress, snap.imgIdx, true)}
+                {renderHeader(characters[snap.charIdx])}
+              </div>
             </div>
-          </div>
 
-          {/* Reaction picker overlay */}
-          {reactionPickerOpen && (
-            <div style={{
-              position:"absolute",zIndex:65,inset:0,
-              background:"rgba(0,0,0,.26)",pointerEvents:"none"
-            }} />
-          )}
-
-          {/* Reaction picker */}
-          <div style={{
-            position:"absolute",zIndex:75,left:"50%",
-            bottom:`${keyboardInset > 100 ? keyboardInset + 122 : 122}px`,
-            transform:reactionPickerOpen?"translateX(-50%) translateY(0) scale(1)":"translateX(-50%) translateY(8px) scale(.96)",
-            opacity:reactionPickerOpen?1:0,
-            pointerEvents:reactionPickerOpen?"auto":"none",
-            transition:"opacity 180ms cubic-bezier(.2,.8,.2,1), transform 180ms cubic-bezier(.2,.8,.2,1)",
-            width:"min(78vw,330px)",
-            display:"grid",gridTemplateColumns:"repeat(3,1fr)",rowGap:24,columnGap:28,
-          }}>
-            {HOLD_REACTIONS.map((emoji) => (
-              <button key={emoji} data-re={emoji} aria-label={emoji} data-story-interactive
-                data-active={highlightedReaction===emoji?"true":undefined}
-                onClick={(e)=>{e.stopPropagation()}}
-                style={{
-                  width:74,height:74,display:"grid",placeItems:"center",padding:0,border:0,
-                  background:"transparent",fontFamily:eFont,fontSize:58,lineHeight:1,
-                  WebkitTapHighlightColor:"transparent",touchAction:"none",cursor:"pointer",
-                }}
-              >
-                {emoji}
-              </button>
-            ))}
-          </div>
-
-          {/* Bottom UI — floats over image, moves with keyboard */}
-          <div data-story-interactive
-            style={{
-              position:"absolute",zIndex:60,left:0,right:0,touchAction:"none",
-              bottom:keyboardInset > 100 ? keyboardInset : 0,
-              transition:"bottom 170ms cubic-bezier(.2,.75,.25,1)",
-            }}
-            onPointerDown={(e)=>{e.preventDefault();e.stopPropagation()}}
-            onPointerUp={(e)=>{e.preventDefault();e.stopPropagation()}}
-            onClick={(e)=>{e.preventDefault();e.stopPropagation()}}
-            onTouchStart={(e)=>{e.preventDefault();e.stopPropagation()}}
-            onTouchEnd={(e)=>{e.preventDefault();e.stopPropagation()}}
-          >
-            {/* Quick reactions (visible when keyboard open) */}
-            {isComposerFocused && keyboardInset > 100 && (
-              <div style={{
-                display:"flex",justifyContent:"center",gap:4,
-                padding:"0 13px 8px",
-                animation:"qrs 200ms cubic-bezier(.2,.75,.25,1) forwards",
-              }}>
-                {QUICK_REACTIONS.map((emoji) => (
-                  <button key={emoji} data-story-interactive
-                    onClick={(e)=>{e.stopPropagation();const r=e.currentTarget.getBoundingClientRect();sendReaction(emoji,r.left+r.width/2,r.top+r.height/2)}}
-                    style={{
-                      width:44,height:44,display:"grid",placeItems:"center",padding:0,border:0,
-                      borderRadius:"50%",background:"rgba(255,255,255,.14)",
-                      backdropFilter:"blur(4px)",WebkitBackdropFilter:"blur(4px)",
-                      fontFamily:eFont,fontSize:22,WebkitTapHighlightColor:"transparent",
-                      cursor:"pointer",pointerEvents:"auto",transition:"transform 120ms ease",
-                    }}
-                  >
-                    {emoji}
-                  </button>
-                ))}
+            {/* Enter face — interactive, incoming */}
+            <div className="story-cube-face"
+              style={{
+                zIndex:4,
+                animation: `${enterAnim!} ${animDuration}ms cubic-bezier(0.22,1,0.36,1) forwards`,
+              }}
+            >
+              <div className="story-blurred-background" style={{backgroundImage:`url(${enterImage})`}} />
+              <div ref={frameRef} className="story-mobile-frame" style={{position:"relative",zIndex:1,touchAction:"none",overflow:"hidden",perspective:'1000px',transformStyle:'preserve-3d'}}>
+                <div className="story-slide" style={{zIndex:2}}>
+                  <img src={enterImage!} alt="" draggable={false}
+                    style={{width:"100%",height:"100%",display:"block",objectFit:"cover",objectPosition:"center center"}}
+                  />
+                </div>
+                <div style={{position:"absolute",zIndex:25,inset:"0 0 auto",height:145,background:"linear-gradient(to bottom,rgba(0,0,0,.64) 0%,rgba(0,0,0,.29) 55%,transparent 100%)",pointerEvents:"none"}} />
+                <div style={{position:"absolute",zIndex:30,left:0,right:0,bottom:0,height:180,background:"linear-gradient(to top,rgba(0,0,0,.62) 0%,rgba(0,0,0,.28) 46%,rgba(0,0,0,.08) 72%,transparent 100%)",pointerEvents:"none"}} />
+                {renderProgressBars(progress, currentIndex, true)}
+                {renderHeader(currentChar)}
               </div>
-            )}
-
-            {/* Message row — flex: [input] [send] [heart at edge] */}
-            <div style={{
-              display:"flex",alignItems:"center",gap:6,
-              padding:"8px 14px calc(env(safe-area-inset-bottom,0px) + 10px)",
+            </div>
+          </>
+        ) : (
+          <>
+            {/* ========== SINGLE FACE (normal or slide transition) ========== */}
+            <div className="story-blurred-background" style={{backgroundImage:`url(${currentImage})`}} />
+            <div ref={frameRef} className="story-mobile-frame" style={{
+              touchAction:"none",overflow:"hidden",position:"relative",zIndex:2,
             }}>
-              {/* Message shell — tap to focus hidden input */}
-              <div data-story-interactive
-                onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); if (document.activeElement !== hiddenInputRef.current) hiddenInputRef.current?.focus({ preventScroll: true }); }}
-                onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); }}
+              {/* Image layers */}
+              <div className="story-slide"
                 style={{
-                  flex:1,height:41,minWidth:0,display:"flex",alignItems:"center",
-                  padding:"0 15px",borderRadius:999,
-                  border:"1px solid rgba(255,255,255,.44)",
-                  background:"rgba(8,8,8,.14)",
-                  backdropFilter:"blur(12px) saturate(120%)",
-                  WebkitBackdropFilter:"blur(12px) saturate(120%)",
-                  cursor:"text",touchAction:"none",
-                  color:message?"#fff":"rgba(255,255,255,.72)",
-                  fontFamily:font,fontSize:14,lineHeight:"20px",fontWeight:400,
-                  whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",
-                  transition:"border-color 150ms ease, background 150ms ease",
+                  zIndex:transition ? 3 : 2,
+                  animation: exitAnim ? `${exitAnim} ${animDuration}ms cubic-bezier(0.22,1,0.36,1) forwards` : 'none',
                 }}
               >
-                {message || "Enviar mensaje..."}
+                {transition ? (
+                  <img src={exitImage!} alt="" draggable={false}
+                    style={{width:"100%",height:"100%",display:"block",objectFit:"cover",objectPosition:"center center"}}
+                  />
+                ) : (
+                  <img src={currentImage} alt="" draggable={false}
+                    style={{width:"100%",height:"100%",display:"block",objectFit:"cover",objectPosition:"center center"}}
+                  />
+                )}
               </div>
 
-              {/* Send button */}
-              {message.trim() && (
-                <button aria-label="Enviar" data-story-interactive
-                  onPointerDown={(e)=>{e.stopPropagation()}}
-                  onClick={(e)=>{e.stopPropagation();handleSend()}}
-                  disabled={isSending}
-                  className="story-action-button"
-                  style={{width:34,height:34,borderRadius:"50%",background:"#fff",color:"#000",display:"flex",alignItems:"center",justifyContent:"center",padding:0}}
+              {transition && (
+                <div className="story-slide"
+                  style={{
+                    zIndex:4,
+                    animation: `${enterAnim} ${animDuration}ms cubic-bezier(0.22,1,0.36,1) forwards`,
+                  }}
                 >
-                  <SendSvg />
-                </button>
+                  <img src={enterImage!} alt="" draggable={false}
+                    style={{width:"100%",height:"100%",display:"block",objectFit:"cover",objectPosition:"center center"}}
+                  />
+                </div>
               )}
 
-              {/* Heart button */}
-              <button ref={heartBtnRef} aria-label="Reaccionar" data-story-interactive
-                onPointerDown={(e)=>{e.stopPropagation();handleHeartDown(e as any)}}
-                onPointerUp={(e)=>{e.stopPropagation();handleHeartUp(e as any)}}
-                onPointerCancel={(e)=>{e.stopPropagation();handleHeartCancel()}}
-                onPointerLeave={(e)=>{e.stopPropagation();handleHeartCancel()}}
-                className="story-action-button"
-                style={{color:isLiked?"#ff304f":"#fff"}}
+              {/* Top gradient */}
+              <div style={{
+                position:"absolute",zIndex:25,inset:"0 0 auto",height:145,
+                background:"linear-gradient(to bottom,rgba(0,0,0,.64) 0%,rgba(0,0,0,.29) 55%,transparent 100%)",
+                pointerEvents:"none"
+              }} />
+
+              {/* Bottom gradient */}
+              <div style={{
+                position:"absolute",zIndex:30,left:0,right:0,bottom:0,height:180,
+                background:"linear-gradient(to top,rgba(0,0,0,.62) 0%,rgba(0,0,0,.28) 46%,rgba(0,0,0,.08) 72%,transparent 100%)",
+                pointerEvents:"none"
+              }} />
+
+              {/* Keyboard overlay */}
+              <div style={{
+                position:"absolute",zIndex:35,inset:0,
+                background:"rgba(0,0,0,.18)",
+                opacity:isComposerFocused && keyboardInset > 100 ? 1 : 0,
+                pointerEvents:"none",
+                transition:"opacity 150ms ease",
+              }} />
+
+              {/* Progress bars */}
+              {renderProgressBars(progress, currentIndex, !!transition)}
+
+              {/* Header */}
+              {renderHeader(currentChar)}
+
+              {/* Bottom UI */}
+              <div data-story-interactive
+                style={{
+                  position:"absolute",zIndex:60,left:0,right:0,touchAction:"none",
+                  bottom:keyboardInset > 100 ? keyboardInset : 0,
+                  transition:"bottom 170ms cubic-bezier(.2,.75,.25,1)",
+                }}
+                onPointerDown={(e)=>{e.preventDefault();e.stopPropagation()}}
+                onPointerUp={(e)=>{e.preventDefault();e.stopPropagation()}}
+                onClick={(e)=>{e.preventDefault();e.stopPropagation()}}
+                onTouchStart={(e)=>{e.preventDefault();e.stopPropagation()}}
+                onTouchEnd={(e)=>{e.preventDefault();e.stopPropagation()}}
               >
-                <HeartSvg filled={isLiked} />
-              </button>
+                {isComposerFocused && keyboardInset > 100 && (
+                  <div style={{
+                    display:"flex",justifyContent:"center",gap:4,
+                    padding:"0 13px 8px",
+                    animation:"qrs 200ms cubic-bezier(.2,.75,.25,1) forwards",
+                  }}>
+                    {QUICK_REACTIONS.map((emoji) => (
+                      <button key={emoji} data-story-interactive
+                        onClick={(e)=>{e.stopPropagation();const r=e.currentTarget.getBoundingClientRect();sendReaction(emoji,r.left+r.width/2,r.top+r.height/2)}}
+                        style={{
+                          width:44,height:44,display:"grid",placeItems:"center",padding:0,border:0,
+                          borderRadius:"50%",background:"rgba(255,255,255,.14)",
+                          backdropFilter:"blur(4px)",WebkitBackdropFilter:"blur(4px)",
+                          fontFamily:eFont,fontSize:22,WebkitTapHighlightColor:"transparent",
+                          cursor:"pointer",pointerEvents:"auto",transition:"transform 120ms ease",
+                        }}
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <div style={{
+                  display:"flex",alignItems:"center",gap:6,
+                  padding:"8px 14px calc(env(safe-area-inset-bottom,0px) + 10px)",
+                }}>
+                  <div data-story-interactive
+                    onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); if (document.activeElement !== hiddenInputRef.current) hiddenInputRef.current?.focus({ preventScroll: true }); }}
+                    onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                    style={{
+                      flex:1,height:41,minWidth:0,display:"flex",alignItems:"center",
+                      padding:"0 15px",borderRadius:999,
+                      border:"1px solid rgba(255,255,255,.44)",
+                      background:"rgba(8,8,8,.14)",
+                      backdropFilter:"blur(12px) saturate(120%)",
+                      WebkitBackdropFilter:"blur(12px) saturate(120%)",
+                      cursor:"text",touchAction:"none",
+                      color:message?"#fff":"rgba(255,255,255,.72)",
+                      fontFamily:font,fontSize:14,lineHeight:"20px",fontWeight:400,
+                      whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",
+                      transition:"border-color 150ms ease, background 150ms ease",
+                    }}
+                  >
+                    {message || "Enviar mensaje..."}
+                  </div>
+                  {message.trim() && (
+                    <button aria-label="Enviar" data-story-interactive
+                      onPointerDown={(e)=>{e.stopPropagation()}}
+                      onClick={(e)=>{e.stopPropagation();handleSend()}}
+                      disabled={isSending}
+                      className="story-action-button"
+                      style={{width:34,height:34,borderRadius:"50%",background:"#fff",color:"#000",display:"flex",alignItems:"center",justifyContent:"center",padding:0}}
+                    >
+                      <SendSvg />
+                    </button>
+                  )}
+                  <button ref={heartBtnRef} aria-label="Reaccionar" data-story-interactive
+                    onPointerDown={(e)=>{e.stopPropagation();handleHeartDown(e as any)}}
+                    onPointerUp={(e)=>{e.stopPropagation();handleHeartUp(e as any)}}
+                    onPointerCancel={(e)=>{e.stopPropagation();handleHeartCancel()}}
+                    onPointerLeave={(e)=>{e.stopPropagation();handleHeartCancel()}}
+                    className="story-action-button"
+                    style={{color:isLiked?"#ff304f":"#fff"}}
+                  >
+                    <HeartSvg filled={isLiked} />
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
+          </>
+        )}
 
-          {/* Like particles */}
-          {likeParticles.map((p) => (
-            <div key={p.id} style={{
-              position:"absolute",left:p.x - 12,top:p.y - 12,width:24,height:24,
-              color:"#ff304f",pointerEvents:"none",zIndex:80,
-              animation:"lp 650ms cubic-bezier(.18,.75,.25,1) forwards",
-            }}>
-              <svg viewBox="0 0 24 24" width="24" height="24" fill="#ff304f" stroke="none" aria-hidden="true">
-                <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21.3l7.8-7.8 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" />
-              </svg>
-            </div>
+        {/* ========== SHARED OVERLAYS (on top of both faces) ========== */}
+
+        {/* Reaction picker overlay */}
+        {reactionPickerOpen && (
+          <div style={{
+            position:"absolute",zIndex:65,inset:0,
+            background:"rgba(0,0,0,.26)",pointerEvents:"none"
+          }} />
+        )}
+
+        {/* Reaction picker */}
+        <div style={{
+          position:"absolute",zIndex:75,left:"50%",
+          bottom:`${keyboardInset > 100 ? keyboardInset + 122 : 122}px`,
+          transform:reactionPickerOpen?"translateX(-50%) translateY(0) scale(1)":"translateX(-50%) translateY(8px) scale(.96)",
+          opacity:reactionPickerOpen?1:0,
+          pointerEvents:reactionPickerOpen?"auto":"none",
+          transition:"opacity 180ms cubic-bezier(.2,.8,.2,1), transform 180ms cubic-bezier(.2,.8,.2,1)",
+          width:"min(78vw,330px)",
+          display:"grid",gridTemplateColumns:"repeat(3,1fr)",rowGap:24,columnGap:28,
+        }}>
+          {HOLD_REACTIONS.map((emoji) => (
+            <button key={emoji} data-re={emoji} aria-label={emoji} data-story-interactive
+              data-active={highlightedReaction===emoji?"true":undefined}
+              onClick={(e)=>{e.stopPropagation()}}
+              style={{
+                width:74,height:74,display:"grid",placeItems:"center",padding:0,border:0,
+                background:"transparent",fontFamily:eFont,fontSize:58,lineHeight:1,
+                WebkitTapHighlightColor:"transparent",touchAction:"none",cursor:"pointer",
+              }}
+            >
+              {emoji}
+            </button>
           ))}
-
-          {/* Floating emojis */}
-          {floatingEmojis.map((fe) => (
-            <div key={fe.id} style={{
-              position:"absolute",zIndex:95,left:fe.x - 17,top:fe.y - 17,
-              fontFamily:eFont,fontSize:34,lineHeight:1,pointerEvents:"none",
-              animation:"ef 820ms cubic-bezier(.2,.74,.24,1) forwards",
-            }}>
-              {fe.emoji}
-            </div>
-          ))}
-
-          {/* Message confirm */}
-          {msgConfirm && (
-            <div style={{
-              position:"absolute",left:"50%",bottom:72,transform:"translateX(-50%)",
-              padding:"6px 10px",borderRadius:999,color:"#fff",background:"rgba(24,24,24,.72)",
-              fontFamily:font,fontSize:11,fontWeight:500,pointerEvents:"none",whiteSpace:"nowrap",
-              animation:"mc 800ms ease-out forwards",
-            }}>
-              {msgConfirm}
-            </div>
-          )}
-
-          {/* Closing overlay */}
-          {closing && (
-            <div style={{
-              position:"absolute",inset:0,zIndex:200,background:"#000",pointerEvents:"none"
-            }} />
-          )}
         </div>
+
+        {/* Like particles */}
+        {likeParticles.map((p) => (
+          <div key={p.id} style={{
+            position:"absolute",left:p.x - 12,top:p.y - 12,width:24,height:24,
+            color:"#ff304f",pointerEvents:"none",zIndex:80,
+            animation:"lp 650ms cubic-bezier(.18,.75,.25,1) forwards",
+          }}>
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="#ff304f" stroke="none" aria-hidden="true">
+              <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21.3l7.8-7.8 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" />
+            </svg>
+          </div>
+        ))}
+
+        {/* Floating emojis */}
+        {floatingEmojis.map((fe) => (
+          <div key={fe.id} style={{
+            position:"absolute",zIndex:95,left:fe.x - 17,top:fe.y - 17,
+            fontFamily:eFont,fontSize:34,lineHeight:1,pointerEvents:"none",
+            animation:"ef 820ms cubic-bezier(.2,.74,.24,1) forwards",
+          }}>
+            {fe.emoji}
+          </div>
+        ))}
+
+        {/* Message confirm */}
+        {msgConfirm && (
+          <div style={{
+            position:"absolute",left:"50%",bottom:72,transform:"translateX(-50%)",
+            padding:"6px 10px",borderRadius:999,color:"#fff",background:"rgba(24,24,24,.72)",
+            fontFamily:font,fontSize:11,fontWeight:500,pointerEvents:"none",whiteSpace:"nowrap",
+            animation:"mc 800ms ease-out forwards",
+          }}>
+            {msgConfirm}
+          </div>
+        )}
+
+        {/* Closing overlay */}
+        {closing && (
+          <div style={{
+            position:"absolute",inset:0,zIndex:200,background:"#000",pointerEvents:"none"
+          }} />
+        )}
       </div>
     </>
   );
