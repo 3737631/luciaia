@@ -397,8 +397,6 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
   // ── Render ──
 
   const currentImage = storyImages[currentIndex];
-  const prevImage = transition && transition.dir === 'prev' ? storyImages[transition.from] : null;
-  const nextImage = transition && transition.dir === 'next' ? storyImages[transition.from] : null;
   const enterImage = transition ? storyImages[transition.to] : null;
 
   const exitAnim = transition
@@ -534,7 +532,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
           <div style={{
             position:"absolute",zIndex:40,
             top:"calc(env(safe-area-inset-top,0px) + 7px + 2px + 9px)",left:10,right:10,
-            display:"flex",alignItems:"center",minHeight:38,pointerEvents:"none",
+            display:"flex",alignItems:"center",minHeight:38,
             transition:"opacity 110ms ease",opacity:paused?0.18:1,
           }} data-story-interactive>
             <img src={avatarUrl} alt="" style={{
