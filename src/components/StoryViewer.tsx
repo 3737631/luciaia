@@ -149,9 +149,24 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     };
   }, []);
 
+  // Entry animation on mount
+  useEffect(() => {
+    const el = frameRef.current;
+    if (!el) return;
+    el.style.animation = "sfe 260ms cubic-bezier(0.22,1,0.36,1) forwards";
+    const t = setTimeout(() => { if (el) el.style.animation = ""; }, 350);
+    return () => clearTimeout(t);
+  }, []);
+
   const handleClose = useCallback(() => {
     if (closing) return; setClosing(true);
-    setTimeout(() => { if (mountedRef.current) onClose(); }, 180);
+    const el = frameRef.current;
+    if (el) {
+      el.style.transition = "transform 220ms cubic-bezier(0.22,1,0.36,1), opacity 220ms ease";
+      el.style.transform = "scale(.92)";
+      el.style.opacity = "0";
+    }
+    setTimeout(() => { if (mountedRef.current) onClose(); }, 220);
   }, [closing, onClose]);
 
   const goTo = useCallback((toIdx: number, dir: 'next' | 'prev') => {
@@ -342,17 +357,19 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     // Vertical swipe down — drag to close
     if (dy > 0 && dy > Math.abs(dx) * 1.2 && !transition && !closing) {
       if (!g.isSwipingDown) g.isSwipingDown = true;
-      const drag = Math.min(dy, 180);
+      const drag = Math.min(dy, 200);
       if (frameRef.current) {
+        frameRef.current.style.animation = "";
         frameRef.current.style.transition = "none";
         frameRef.current.style.transform = `translateY(${drag}px)`;
-        frameRef.current.style.borderRadius = `${Math.max(0, 14 - drag / 12)}px`;
+        frameRef.current.style.borderRadius = `${Math.max(0, 14 - drag / 14)}px`;
+        frameRef.current.style.opacity = `${Math.max(0.4, 1 - drag / 280)}`;
       }
       return;
     }
     if (g.isSwipingDown && dy < 20) {
       g.isSwipingDown = false;
-      if (frameRef.current) { frameRef.current.style.transition = "transform 250ms ease, border-radius 250ms ease"; frameRef.current.style.transform = ""; frameRef.current.style.borderRadius = ""; }
+      if (frameRef.current) { frameRef.current.style.transition = "transform 250ms ease, border-radius 250ms ease, opacity 250ms ease"; frameRef.current.style.transform = ""; frameRef.current.style.borderRadius = ""; frameRef.current.style.opacity = ""; }
     }
     // Horizontal or other movement — existing logic
     if (Math.abs(dx) > TAP_MAX_MOVE || Math.abs(dy) > TAP_MAX_MOVE) {
@@ -382,7 +399,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     resetGesture(el, e.pointerId);
 
     // Reset drag transform
-    if (frameRef.current) { frameRef.current.style.transition = ""; frameRef.current.style.transform = ""; frameRef.current.style.borderRadius = ""; }
+    if (frameRef.current) { frameRef.current.style.animation = ""; frameRef.current.style.transition = ""; frameRef.current.style.transform = ""; frameRef.current.style.borderRadius = ""; frameRef.current.style.opacity = ""; }
 
     if (g.gestureConsumed) return;
 
@@ -390,8 +407,12 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     const dy = e.clientY - g.startY;
     const elapsed = performance.now() - g.startTime;
 
-    // Swipe down to close
+    // Swipe down to close — animate off-screen
     if (dy > SWIPE_DOWN_THRESHOLD && dy > Math.abs(dx) * 1.2) {
+      if (frameRef.current) {
+        frameRef.current.style.transition = "transform 190ms cubic-bezier(.2,.75,.25,1)";
+        frameRef.current.style.transform = `translateY(${Math.max(dy + 100, 250)}px)`;
+      }
       handleClose();
       return;
     }
@@ -436,7 +457,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     if (t) { clearTimeout(Number(t)); delete el.dataset.lpTimer; }
     if (gestureRef.current) gestureRef.current.gestureConsumed = true;
     resetGesture(el, e.pointerId);
-    if (frameRef.current) { frameRef.current.style.transform = ""; frameRef.current.style.borderRadius = ""; frameRef.current.style.transition = ""; }
+    if (frameRef.current) { frameRef.current.style.transform = ""; frameRef.current.style.borderRadius = ""; frameRef.current.style.opacity = ""; frameRef.current.style.transition = ""; }
   }, []);
 
   function resetGesture(el: HTMLElement, pointerId: number) {
@@ -459,15 +480,16 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
   const storyContent = (
     <>
       <style>{`
+        @keyframes sfe{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
         @keyframes lp{0%{opacity:0;transform:translate3d(0,4px,0) scale(.55)}25%{opacity:1;transform:translate3d(0,-4px,0) scale(1.12)}100%{opacity:0;transform:translate3d(0,-52px,0) scale(.78)}}
         @keyframes ef{0%{opacity:0;transform:translate3d(-50%,0,0) scale(.55) rotate(-5deg)}22%{opacity:1;transform:translate3d(-50%,-14px,0) scale(1.15) rotate(3deg)}100%{opacity:0;transform:translate3d(calc(-50% + 12px),-125px,0) scale(.84) rotate(-3deg)}}
         @keyframes mc{0%{opacity:0;transform:translateX(-50%) translateY(6px) scale(.92)}15%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}70%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}100%{opacity:0;transform:translateX(-50%) translateY(-4px) scale(.95)}}
         @keyframes hp{0%{transform:scale(1)}35%{transform:scale(1.28)}65%{transform:scale(.92)}100%{transform:scale(1)}}
         @keyframes qrs{0%{opacity:0;transform:translateY(8px) scale(.92)}100%{opacity:1;transform:translateY(0) scale(1)}}
-        @keyframes story-exit-next{from{transform:translate3d(0,0,0) scale(1);opacity:1}to{transform:translate3d(-18px,0,0) scale(.995);opacity:0}}
-        @keyframes story-enter-next{from{transform:translate3d(22px,0,0) scale(.995);opacity:0}to{transform:translate3d(0,0,0) scale(1);opacity:1}}
-        @keyframes story-exit-prev{from{transform:translate3d(0,0,0) scale(1);opacity:1}to{transform:translate3d(18px,0,0) scale(.995);opacity:0}}
-        @keyframes story-enter-prev{from{transform:translate3d(-22px,0,0) scale(.995);opacity:0}to{transform:translate3d(0,0,0) scale(1);opacity:1}}
+        @keyframes story-exit-next{from{transform:translate3d(0,0,0) scale(1);opacity:1}to{transform:translate3d(-16px,0,0) scale(.995);opacity:0}}
+        @keyframes story-enter-next{from{transform:translate3d(20px,0,0) scale(.995);opacity:0}to{transform:translate3d(0,0,0) scale(1);opacity:1}}
+        @keyframes story-exit-prev{from{transform:translate3d(0,0,0) scale(1);opacity:1}to{transform:translate3d(16px,0,0) scale(.995);opacity:0}}
+        @keyframes story-enter-prev{from{transform:translate3d(-20px,0,0) scale(.995);opacity:0}to{transform:translate3d(0,0,0) scale(1);opacity:1}}
         .story-desktop-shell{position:fixed;inset:0;z-index:9999;display:flex;justify-content:center;align-items:center;overflow:hidden;background:#000;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
         .story-desktop-shell img{-webkit-touch-callout:none;pointer-events:none}
         .story-blurred-background{position:absolute;inset:-40px;background-position:center;background-size:cover;filter:blur(28px);transform:scale(1.08);opacity:0.55;pointer-events:none;will-change:background-image}
