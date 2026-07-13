@@ -501,7 +501,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
         @keyframes story-enter-next{from{transform:translate3d(20px,0,0) scale(.995);opacity:0}to{transform:translate3d(0,0,0) scale(1);opacity:1}}
         @keyframes story-exit-prev{from{transform:translate3d(0,0,0) scale(1);opacity:1}to{transform:translate3d(16px,0,0) scale(.995);opacity:0}}
         @keyframes story-enter-prev{from{transform:translate3d(-20px,0,0) scale(.995);opacity:0}to{transform:translate3d(0,0,0) scale(1);opacity:1}}
-        .story-desktop-shell{position:fixed;inset:0;z-index:9999;display:flex;justify-content:center;align-items:center;overflow:hidden;background:#000;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
+        .story-desktop-shell{position:fixed;inset:0;z-index:9999;display:flex;justify-content:center;align-items:center;overflow:hidden;background:#000;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;overscroll-behavior:none}
         .story-desktop-shell img{-webkit-touch-callout:none;pointer-events:none}
         .story-blurred-background{position:absolute;inset:-40px;background-position:center;background-size:cover;filter:blur(28px);transform:scale(1.08);opacity:0.55;pointer-events:none;will-change:background-image}
         .story-slide{position:absolute;inset:0;will-change:transform,opacity}
@@ -540,7 +540,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
       >
         <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,.38)",pointerEvents:"none",zIndex:1}} />
         <div className="story-blurred-background" style={{backgroundImage:`url(${currentImage})`}} />
-        <div ref={frameRef} className="story-mobile-frame" style={{touchAction:"none"}}>
+        <div ref={frameRef} className="story-mobile-frame">
           {/* Image layers */}
           <div className="story-slide"
             style={{
