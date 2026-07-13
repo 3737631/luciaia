@@ -282,6 +282,10 @@ export const girls: Girl[] = [
       "Tú primero, no sé qué decir…",
     ],
     cloudinaryImage: "https://res.cloudinary.com/dmuxgamms/image/upload/v1783787864/photo_2026-07-11_18-36-17_gsw521.jpg",
+    storyImages: Array.from({ length: 8 }, (_, i) => {
+      const n = i + 1;
+      return `/liam_stories/liam_story_${n}.png`;
+    }),
   },
   // === Anime women ===
   // === 26 realistic cloudinary characters ===
