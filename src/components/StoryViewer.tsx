@@ -151,11 +151,15 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     };
   }, []);
 
-  // Preload first image → show viewer once ready (no flash)
+  // Preload every story image upfront → zero black flash on navigation
   useEffect(() => {
-    const img = new Image();
-    img.onload = () => { if (mountedRef.current) setImageLoaded(true); };
-    img.src = currentImage;
+    let loaded = 0;
+    storyImages.forEach((url) => {
+      const img = new Image();
+      img.onload = () => { loaded++; if (loaded === storyImages.length && mountedRef.current) setImageLoaded(true); };
+      img.onerror = () => { loaded++; if (loaded === storyImages.length && mountedRef.current) setImageLoaded(true); };
+      img.src = url;
+    });
   }, []);
 
   // Entry animation when first image loads
