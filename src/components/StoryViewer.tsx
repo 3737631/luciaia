@@ -511,7 +511,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
         .story-action-button{width:40px;height:40px;display:grid;place-items:center;padding:0;border:0;background:transparent;color:#fff;-webkit-tap-highlight-color:transparent;cursor:pointer;transition:transform 120ms ease}
         .story-action-button:active{transform:scale(.84)}
         .story-mobile-frame{position:relative;z-index:2;width:min(430px,calc(100vw - 32px));height:min(92dvh,860px);aspect-ratio:9/16;overflow:hidden;background:#000;border-radius:14px;box-shadow:0 20px 70px rgba(0,0,0,.55);will-change:transform}
-        @keyframes sp{to{transform:rotate(360deg)}}.story-spinner{position:absolute;inset:0;z-index:15;display:flex;align-items:center;justify-content:center;pointer-events:none}.story-spinner::after{content:"";width:28px;height:28px;border:3px solid rgba(255,255,255,.18);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite}
+
         @media(max-width:767px){.story-desktop-shell{display:block}.story-blurred-background{display:none}.story-mobile-frame{width:100%!important;height:100dvh!important;max-width:none!important;aspect-ratio:auto!important;border-radius:0!important;box-shadow:none!important}}
       `}</style>
 
@@ -550,7 +550,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
               animation: exitAnim ? `${exitAnim} 180ms cubic-bezier(0.22,1,0.36,1) forwards` : 'none',
             }}
           >
-            {imageLoaded && (transition ? (
+            {transition ? (
               <img src={storyImages[transition.from]} alt="" draggable={false}
                 style={{width:"100%",height:"100%",display:"block",objectFit:"cover",objectPosition:"center center"}}
               />
@@ -558,7 +558,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
               <img src={currentImage} alt="" draggable={false}
                 style={{width:"100%",height:"100%",display:"block",objectFit:"cover",objectPosition:"center center"}}
               />
-            ))}
+            )}
           </div>
 
           {transition && (
@@ -573,8 +573,6 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
               />
             </div>
           )}
-
-          {!imageLoaded && !transition && <div className="story-spinner" />}
 
           {/* Top gradient */}
           <div style={{

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { getGirlImage } from "@/lib/images";
 import { getDailyStorySelection } from "@/lib/getDailyStoryIndex";
@@ -11,16 +11,26 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export default function StoriesRow({ girls }: { girls: Girl[] }) {
   const [seen, setSeen] = useState<Set<string>>(new Set());
-  const [storyChar, setStoryChar] = useState<{ id: string; images: string[]; initialIndex: number; avatar: string; name: string } | null>(null);
+  const [storyChar, setStoryChar] = useState<{ id: string; images: string[]; initialIndex: number; avatar: string; name: string; ready: boolean } | null>(null);
 
-  const preloadStoryImage = (girl: Girl) => {
+  const preloadStoryImage = (girl: Girl, onReady?: () => void) => {
     const imgs = girl.storyImages;
     if (!imgs || !imgs.length) return;
-    getDailyStorySelection(girl.id, imgs.length).forEach((i) => {
+    const indices = getDailyStorySelection(girl.id, imgs.length);
+    let loaded = 0;
+    let done = false;
+    indices.forEach((i) => {
       const el = new Image();
+      el.onload = () => { loaded++; if (loaded === indices.length && !done) { done = true; onReady?.(); } };
+      el.onerror = () => { loaded++; if (loaded === indices.length && !done) { done = true; onReady?.(); } };
       el.src = `${basePath}${imgs[i]}`;
     });
   };
+
+  // Preload story images for all girls as soon as the page loads
+  useEffect(() => {
+    girls.forEach((girl) => preloadStoryImage(girl));
+  }, [girls]);
 
   const handleClick = (girl: Girl) => {
     setSeen((prev) => new Set(prev).add(girl.id));
@@ -28,18 +38,32 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
     if (!imgs || !imgs.length) return;
     const indices = getDailyStorySelection(girl.id, imgs.length);
     if (!indices.length) return;
-    setStoryChar({
+    const images = indices.map((i) => `${basePath}${imgs[i]}`);
+    const sc = {
       id: girl.id,
-      images: indices.map((i) => `${basePath}${imgs[i]}`),
+      images,
       initialIndex: 0,
       avatar: girl.cloudinaryImage ?? getGirlImage(girl.id, null, null, null, girl.cloudinaryImage),
       name: girl.name,
+      ready: false,
+    };
+    // Synchronously check if already cached
+    let cached = 0;
+    indices.forEach((i) => {
+      const img = new Image();
+      img.src = `${basePath}${imgs[i]}`;
+      if (img.complete) cached++;
     });
+    if (cached === indices.length) sc.ready = true;
+    setStoryChar(sc);
+    if (!sc.ready) {
+      preloadStoryImage(girl, () => setStoryChar((prev) => prev?.id === girl.id ? { ...prev, ready: true } : prev));
+    }
   };
 
   return (
     <>
-      {storyChar && (
+      {storyChar && storyChar.ready && (
         <StoryViewer
           storyImages={storyChar.images}
           storyIndex={storyChar.initialIndex}
