@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { getGirlImage } from "@/lib/images";
-import { getDailyStoryIndex } from "@/lib/getDailyStoryIndex";
+import { getDailyStorySelection } from "@/lib/getDailyStoryIndex";
 import type { Girl } from "@/data/girls";
 import StoryViewer from "./StoryViewer";
 
@@ -14,22 +14,24 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
   const [storyChar, setStoryChar] = useState<{ id: string; images: string[]; initialIndex: number; avatar: string; name: string } | null>(null);
 
   const preloadStoryImage = (girl: Girl) => {
-    if (!girl.storyImages?.length) return;
-    girl.storyImages.forEach((img) => {
+    const imgs = girl.storyImages;
+    if (!imgs || !imgs.length) return;
+    getDailyStorySelection(girl.id, imgs.length).forEach((i) => {
       const el = new Image();
-      el.src = `${basePath}${img}`;
+      el.src = `${basePath}${imgs[i]}`;
     });
   };
 
   const handleClick = (girl: Girl) => {
     setSeen((prev) => new Set(prev).add(girl.id));
-    if (!girl.storyImages?.length) return;
-    const idx = getDailyStoryIndex(girl.id, girl.storyImages.length);
-    if (idx === -1) return;
+    const imgs = girl.storyImages;
+    if (!imgs || !imgs.length) return;
+    const indices = getDailyStorySelection(girl.id, imgs.length);
+    if (!indices.length) return;
     setStoryChar({
       id: girl.id,
-      images: girl.storyImages.map((img) => `${basePath}${img}`),
-      initialIndex: idx,
+      images: indices.map((i) => `${basePath}${imgs[i]}`),
+      initialIndex: 0,
       avatar: girl.cloudinaryImage ?? getGirlImage(girl.id, null, null, null, girl.cloudinaryImage),
       name: girl.name,
     });

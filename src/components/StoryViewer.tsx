@@ -73,6 +73,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
   const [transition, setTransition] = useState<{
     from: number; to: number; dir: 'next' | 'prev';
   } | null>(null);
+  const [timeAgo, setTimeAgo] = useState("");
 
   const rootRef = useRef<HTMLDivElement>(null);
   const hiddenInputRef = useRef<HTMLInputElement>(null);
@@ -101,6 +102,22 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     update();
     vv.addEventListener("resize", update);
     return () => { vv.removeEventListener("resize", update); };
+  }, []);
+
+  // Time since daily post (00:00 UTC today)
+  useEffect(() => {
+    const update = () => {
+      const now = new Date();
+      const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+      const diff = now.getTime() - start.getTime();
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      if (h >= 1) setTimeAgo(`Hace ${h}h`);
+      else setTimeAgo(`Hace ${m}m`);
+    };
+    update();
+    const t = setInterval(update, 30000);
+    return () => clearInterval(t);
   }, []);
 
   // Body lock — keep document in place while viewer is open
@@ -549,7 +566,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
               color:"rgba(255,255,255,.72)",textShadow:"0 1px 2px rgba(0,0,0,.35)",
               whiteSpace:"nowrap",flexShrink:0
             }}>
-              Ahora
+              {timeAgo}
             </span>
             <div style={{ marginLeft:"auto",display:"flex",alignItems:"center",gap:6 }}>
               <button aria-label="Cerrar" data-story-interactive
