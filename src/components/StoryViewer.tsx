@@ -177,11 +177,11 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     if (closing) return; setClosing(true);
     const el = frameRef.current;
     if (el) {
-      el.style.transition = "transform 220ms cubic-bezier(0.22,1,0.36,1), opacity 220ms ease";
+      el.style.transition = "transform 100ms cubic-bezier(0.22,1,0.36,1), opacity 100ms ease";
       el.style.transform = "scale(.92)";
       el.style.opacity = "0";
     }
-    setTimeout(() => { if (mountedRef.current) onClose(); }, 220);
+    setTimeout(() => { if (mountedRef.current) onClose(); }, 100);
   }, [closing, onClose]);
 
   const goTo = useCallback((toIdx: number, dir: 'next' | 'prev') => {
@@ -381,7 +381,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     }
     if (g.isSwipingDown && dy < 20) {
       g.isSwipingDown = false;
-      if (frameRef.current) { frameRef.current.style.transition = "transform 250ms ease, border-radius 250ms ease, opacity 250ms ease"; frameRef.current.style.transform = ""; frameRef.current.style.borderRadius = ""; frameRef.current.style.opacity = ""; }
+      if (frameRef.current) { frameRef.current.style.transition = "transform 120ms ease, border-radius 120ms ease, opacity 120ms ease"; frameRef.current.style.transform = ""; frameRef.current.style.borderRadius = ""; frameRef.current.style.opacity = ""; }
     }
     // Horizontal or other movement — existing logic
     if (Math.abs(dx) > TAP_MAX_MOVE || Math.abs(dy) > TAP_MAX_MOVE) {
@@ -422,7 +422,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     // Swipe down to close — animate off-screen
     if (dy > SWIPE_DOWN_THRESHOLD && dy > Math.abs(dx) * 1.2) {
       if (frameRef.current) {
-        frameRef.current.style.transition = "transform 190ms cubic-bezier(.2,.75,.25,1)";
+        frameRef.current.style.transition = "transform 100ms cubic-bezier(.2,.75,.25,1)";
         frameRef.current.style.transform = `translateY(${Math.max(dy + 100, 250)}px)`;
       }
       handleClose();
