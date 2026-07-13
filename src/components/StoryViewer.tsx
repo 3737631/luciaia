@@ -220,23 +220,20 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIndex, len, handleClose, goToNext, goToPrev]);
 
-  // Progress timer — RAF for 60fps smooth bar updates
+  // Progress timer — 20fps via setInterval to minimise re-renders (iOS keyboard stability)
   useEffect(() => {
     if (closing || transition || paused) return;
-    let raf: number;
-    const step = 100 / (STORY_DURATION / PROGRESS_INTERVAL);
-    const tick = () => {
-      if (!mountedRef.current) { raf = requestAnimationFrame(tick); return; }
+    const id = setInterval(() => {
+      if (!mountedRef.current) return;
       setProgress(prev => {
         if (prev[currentIndex] >= 100) return prev;
+        const step = 100 / (STORY_DURATION / PROGRESS_INTERVAL);
         const newP = [...prev];
         newP[currentIndex] = Math.min(prev[currentIndex] + step, 100);
         return newP;
       });
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    }, PROGRESS_INTERVAL);
+    return () => clearInterval(id);
   }, [closing, transition, paused, currentIndex]);
 
   // Auto-advance when progress reaches 100
@@ -501,7 +498,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
         @keyframes story-enter-next{from{transform:translate3d(20px,0,0) scale(.995);opacity:0}to{transform:translate3d(0,0,0) scale(1);opacity:1}}
         @keyframes story-exit-prev{from{transform:translate3d(0,0,0) scale(1);opacity:1}to{transform:translate3d(16px,0,0) scale(.995);opacity:0}}
         @keyframes story-enter-prev{from{transform:translate3d(-20px,0,0) scale(.995);opacity:0}to{transform:translate3d(0,0,0) scale(1);opacity:1}}
-        .story-desktop-shell{position:fixed;inset:0;z-index:9999;display:flex;justify-content:center;align-items:center;overflow:hidden;background:#000;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;overscroll-behavior:none}
+        .story-desktop-shell{position:fixed;inset:0;z-index:9999;display:flex;justify-content:center;align-items:center;overflow:hidden;background:#000;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;overscroll-behavior:none}
         .story-desktop-shell img{-webkit-touch-callout:none;pointer-events:none}
         .story-blurred-background{position:absolute;inset:-40px;background-position:center;background-size:cover;filter:blur(28px);transform:scale(1.08);opacity:0.55;pointer-events:none;will-change:background-image}
         .story-slide{position:absolute;inset:0;will-change:transform,opacity}
@@ -524,7 +521,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
         style={{
           position: "fixed", top: 1, left: 1, width: 2, height: 2,
           opacity: 0.01, fontSize: 16, border: 0, padding: 0, margin: 0,
-          zIndex: 10001,
+          zIndex: 10001, pointerEvents:"none",
         }}
       />
 
@@ -540,7 +537,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
       >
         <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,.38)",pointerEvents:"none",zIndex:1}} />
         <div className="story-blurred-background" style={{backgroundImage:`url(${currentImage})`}} />
-        <div ref={frameRef} className="story-mobile-frame">
+        <div ref={frameRef} className="story-mobile-frame" style={{touchAction:"none"}}>
           {/* Image layers */}
           <div className="story-slide"
             style={{
@@ -748,7 +745,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
             }}>
               {/* Message shell — tap to focus hidden input */}
               <div data-story-interactive
-                onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); hiddenInputRef.current?.focus({ preventScroll: true }); }}
+                onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); if (document.activeElement !== hiddenInputRef.current) hiddenInputRef.current?.focus({ preventScroll: true }); }}
                 style={{
                   flex:1,height:41,minWidth:0,display:"flex",alignItems:"center",
                   padding:"0 15px",borderRadius:999,
