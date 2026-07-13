@@ -577,7 +577,7 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
         <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,.38)",pointerEvents:"none",zIndex:1}} />
         <div className="story-blurred-background" style={{backgroundImage:`url(${currentImage})`}} />
         <div ref={frameRef} className="story-mobile-frame" style={{
-          touchAction:"none",
+          touchAction:"none",overflow:"hidden",
           perspective: (transition && transition.fromChar !== transition.toChar) ? '1000px' : undefined,
           transformStyle: (transition && transition.fromChar !== transition.toChar) ? 'preserve-3d' : undefined,
         }}>
@@ -749,15 +749,15 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
           {/* Bottom UI — floats over image, moves with keyboard */}
           <div data-story-interactive
             style={{
-              position:"absolute",zIndex:60,left:0,right:0,
+              position:"absolute",zIndex:60,left:0,right:0,touchAction:"none",
               bottom:keyboardInset > 100 ? keyboardInset : 0,
               transition:"bottom 170ms cubic-bezier(.2,.75,.25,1)",
             }}
             onPointerDown={(e)=>{e.preventDefault();e.stopPropagation()}}
             onPointerUp={(e)=>{e.preventDefault();e.stopPropagation()}}
             onClick={(e)=>{e.preventDefault();e.stopPropagation()}}
-            onTouchStart={(e)=>{e.stopPropagation()}}
-            onTouchEnd={(e)=>{e.stopPropagation()}}
+            onTouchStart={(e)=>{e.preventDefault();e.stopPropagation()}}
+            onTouchEnd={(e)=>{e.preventDefault();e.stopPropagation()}}
           >
             {/* Quick reactions (visible when keyboard open) */}
             {isComposerFocused && keyboardInset > 100 && (
@@ -791,6 +791,7 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
               {/* Message shell — tap to focus hidden input */}
               <div data-story-interactive
                 onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); if (document.activeElement !== hiddenInputRef.current) hiddenInputRef.current?.focus({ preventScroll: true }); }}
+                onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); }}
                 style={{
                   flex:1,height:41,minWidth:0,display:"flex",alignItems:"center",
                   padding:"0 15px",borderRadius:999,
@@ -798,7 +799,7 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
                   background:"rgba(8,8,8,.14)",
                   backdropFilter:"blur(12px) saturate(120%)",
                   WebkitBackdropFilter:"blur(12px) saturate(120%)",
-                  cursor:"text",
+                  cursor:"text",touchAction:"none",
                   color:message?"#fff":"rgba(255,255,255,.72)",
                   fontFamily:font,fontSize:14,lineHeight:"20px",fontWeight:400,
                   whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",
