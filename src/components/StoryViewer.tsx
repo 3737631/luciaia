@@ -483,10 +483,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
               />
             ) : (
               <img src={currentImage} alt="" draggable={false}
-                style={{width:"100%",height:"100%",display:"block",objectFit:"cover",objectPosition:"center center",
-                  transition:"opacity 180ms ease-out",
-                  opacity:paused?0.72:1,
-                }}
+                style={{width:"100%",height:"100%",display:"block",objectFit:"cover",objectPosition:"center center"}}
               />
             )}
           </div>
@@ -525,7 +522,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
             transition:"opacity 110ms ease",opacity:paused?0.18:1,
           }}>
             {storyImages.map((_, idx) => {
-              const val = transition && transition.from === idx ? 100 : (progress[idx] || 0);
+              const val = progress[idx] || 0;
               return (
                 <div key={idx} style={{
                   flex:1,height:"100%",borderRadius:999,overflow:"hidden",
