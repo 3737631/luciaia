@@ -466,7 +466,7 @@ export default function StoryViewer({ storyImage, avatarUrl, displayName, onClos
             pointerEvents:"none",
           }}>
             <div
-              onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); hiddenInputRef.current?.focus({ preventScroll: true }); }}
+              onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); if (document.activeElement !== hiddenInputRef.current) hiddenInputRef.current?.focus({ preventScroll: true }); }}
               style={{
                 flex:1,height:42,display:"flex",alignItems:"center",gap:4,
                 padding:"0 4px 0 16px",borderRadius:999,

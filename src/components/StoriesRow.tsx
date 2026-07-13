@@ -13,6 +13,14 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
   const [seen, setSeen] = useState<Set<string>>(new Set());
   const [storyChar, setStoryChar] = useState<{ id: string; image: string; avatar: string; name: string } | null>(null);
 
+  const preloadStoryImage = (girl: Girl) => {
+    if (!girl.storyImages?.length) return;
+    const idx = getDailyStoryIndex(girl.id, girl.storyImages.length);
+    if (idx === -1) return;
+    const img = new Image();
+    img.src = `${basePath}${girl.storyImages[idx]}`;
+  };
+
   const handleClick = (girl: Girl) => {
     setSeen((prev) => new Set(prev).add(girl.id));
     if (!girl.storyImages?.length) return;
@@ -51,6 +59,7 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
           <Link
             key={girl.id}
             href={hasStory ? "#" : `${basePath}/chat/${girl.id}`}
+            onPointerDown={() => { if (hasStory) preloadStoryImage(girl); }}
             onClick={(e) => { if (hasStory) e.preventDefault(); handleClick(girl); }}
             style={{
               display: "flex",
