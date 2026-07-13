@@ -37,7 +37,11 @@ export default function AnimePage() {
 
   const filtered = activeFilter === "Todas"
     ? animeChars
-    : animeChars.filter((g) => g.style?.toLowerCase().includes(activeFilter.replace(/s$/, "").toLowerCase()));
+    : animeChars.filter((g) => {
+        const b = (g.badge || "").toLowerCase();
+        if (activeFilter === "Populares") return b === "popular";
+        return false;
+      });
 
   return (
     <>

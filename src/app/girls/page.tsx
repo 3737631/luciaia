@@ -41,11 +41,12 @@ export default function GirlsPage() {
 
   const filtered = activeFilter === "Todas"
     ? femaleGirls
-    : femaleGirls.filter(
-        (g) =>
-          g.style?.toLowerCase().includes(activeFilter.replace(/s$/, "").toLowerCase()) ||
-          g.personality?.includes(activeFilter.replace(/s$/, "").toLowerCase())
-      );
+    : femaleGirls.filter((g) => {
+        const b = (g.badge || "").toLowerCase();
+        if (activeFilter === "Nuevas") return b.startsWith("nuev");
+        if (activeFilter === "Populares") return b === "popular";
+        return false;
+      });
 
   return (
     <>
