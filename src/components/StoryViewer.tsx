@@ -748,7 +748,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
             }}>
               {/* Message shell — tap to focus hidden input */}
               <div data-story-interactive
-                onPointerDown={(e) => { e.stopPropagation(); hiddenInputRef.current?.focus({ preventScroll: true }); }}
+                onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); hiddenInputRef.current?.focus({ preventScroll: true }); }}
                 style={{
                   flex:1,height:41,minWidth:0,display:"flex",alignItems:"center",
                   padding:"0 15px",borderRadius:999,
