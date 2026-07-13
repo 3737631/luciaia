@@ -75,6 +75,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     from: number; to: number; dir: 'next' | 'prev';
   } | null>(null);
   const [timeAgo, setTimeAgo] = useState("");
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
@@ -122,6 +123,9 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     const t = setInterval(update, 30000);
     return () => clearInterval(t);
   }, []);
+
+  // Reset loaded state on story change
+  useEffect(() => { setImageLoaded(false); }, [currentIndex]);
 
   // Body lock — keep document in place while viewer is open
   useEffect(() => {
@@ -216,7 +220,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     if (progress[currentIndex] >= 100) {
       if (currentIndex < len - 1) {
         autoFiredRef.current = true;
-        const t = setTimeout(() => { autoFiredRef.current = false; goToNext(); }, 300);
+        const t = setTimeout(() => { autoFiredRef.current = false; goToNext(); }, 150);
         return () => { clearTimeout(t); autoFiredRef.current = false; };
       }
     }
@@ -462,16 +466,16 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
         @keyframes mc{0%{opacity:0;transform:translateX(-50%) translateY(6px) scale(.92)}15%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}70%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}100%{opacity:0;transform:translateX(-50%) translateY(-4px) scale(.95)}}
         @keyframes hp{0%{transform:scale(1)}35%{transform:scale(1.28)}65%{transform:scale(.92)}100%{transform:scale(1)}}
         @keyframes qrs{0%{opacity:0;transform:translateY(8px) scale(.92)}100%{opacity:1;transform:translateY(0) scale(1)}}
-        @keyframes story-exit-next{from{transform:translate3d(0,0,0) scale(1);opacity:1}to{transform:translate3d(-22px,0,0) scale(.995);opacity:0}}
-        @keyframes story-enter-next{from{transform:translate3d(28px,0,0) scale(.995);opacity:0}to{transform:translate3d(0,0,0) scale(1);opacity:1}}
-        @keyframes story-exit-prev{from{transform:translate3d(0,0,0) scale(1);opacity:1}to{transform:translate3d(22px,0,0) scale(.995);opacity:0}}
-        @keyframes story-enter-prev{from{transform:translate3d(-28px,0,0) scale(.995);opacity:0}to{transform:translate3d(0,0,0) scale(1);opacity:1}}
+        @keyframes story-exit-next{from{transform:translate3d(0,0,0) scale(1);opacity:1}to{transform:translate3d(-18px,0,0) scale(.995);opacity:0}}
+        @keyframes story-enter-next{from{transform:translate3d(22px,0,0) scale(.995);opacity:0}to{transform:translate3d(0,0,0) scale(1);opacity:1}}
+        @keyframes story-exit-prev{from{transform:translate3d(0,0,0) scale(1);opacity:1}to{transform:translate3d(18px,0,0) scale(.995);opacity:0}}
+        @keyframes story-enter-prev{from{transform:translate3d(-22px,0,0) scale(.995);opacity:0}to{transform:translate3d(0,0,0) scale(1);opacity:1}}
         .story-desktop-shell{position:fixed;inset:0;z-index:9999;display:flex;justify-content:center;align-items:center;overflow:hidden;background:#000;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
         .story-desktop-shell img{-webkit-touch-callout:none;pointer-events:none}
         .story-blurred-background{position:absolute;inset:-40px;background-position:center;background-size:cover;filter:blur(28px);transform:scale(1.08);opacity:0.55;pointer-events:none;will-change:background-image}
         .story-slide{position:absolute;inset:0;will-change:transform,opacity}
-        .story-slide-exit{animation-duration:220ms;animation-timing-function:cubic-bezier(0.22,1,0.36,1);animation-fill-mode:forwards}
-        .story-slide-enter{animation-duration:220ms;animation-timing-function:cubic-bezier(0.22,1,0.36,1);animation-fill-mode:forwards}
+        .story-slide-exit{animation-duration:180ms;animation-timing-function:cubic-bezier(0.22,1,0.36,1);animation-fill-mode:forwards}
+        .story-slide-enter{animation-duration:180ms;animation-timing-function:cubic-bezier(0.22,1,0.36,1);animation-fill-mode:forwards}
         .story-action-button{width:40px;height:40px;display:grid;place-items:center;padding:0;border:0;background:transparent;color:#fff;-webkit-tap-highlight-color:transparent;cursor:pointer;transition:transform 120ms ease}
         .story-action-button:active{transform:scale(.84)}
         .story-mobile-frame{position:relative;z-index:2;width:min(430px,calc(100vw - 32px));height:min(92dvh,860px);aspect-ratio:9/16;overflow:hidden;background:#000;border-radius:14px;box-shadow:0 20px 70px rgba(0,0,0,.55);will-change:transform}
@@ -510,7 +514,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
           <div className="story-slide"
             style={{
               zIndex:transition ? 3 : 2,
-              animation: exitAnim ? `${exitAnim} 220ms cubic-bezier(0.22,1,0.36,1) forwards` : 'none',
+              animation: exitAnim ? `${exitAnim} 180ms cubic-bezier(0.22,1,0.36,1) forwards` : 'none',
             }}
           >
             {transition ? (
@@ -519,7 +523,8 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
               />
             ) : (
               <img src={currentImage} alt="" draggable={false}
-                style={{width:"100%",height:"100%",display:"block",objectFit:"cover",objectPosition:"center center"}}
+                onLoad={() => setImageLoaded(true)}
+                style={{width:"100%",height:"100%",display:"block",objectFit:"cover",objectPosition:"center center",opacity:imageLoaded?1:0,transition:"opacity 180ms ease"}}
               />
             )}
           </div>
@@ -528,7 +533,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
             <div className="story-slide"
               style={{
                 zIndex:4,
-                animation: `${enterAnim} 220ms cubic-bezier(0.22,1,0.36,1) forwards`,
+                animation: `${enterAnim} 180ms cubic-bezier(0.22,1,0.36,1) forwards`,
               }}
             >
               <img src={enterImage!} alt="" draggable={false}
@@ -580,13 +585,14 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
                   <div style={{
                     height:"100%",borderRadius:"inherit",
                     background:"rgba(255,255,255,.96)",
-                    width:`${Math.min(val,100)}%`,
+                    width:"100%",
+                    transform:`scaleX(${Math.min(val,100)/100})`,
                     transformOrigin:"left center",
                     transition: transition
                       ? "none"
                       : idx === currentIndex && !paused
-                        ? "width 0.05s linear"
-                        : "width 220ms cubic-bezier(0.22,1,0.36,1)",
+                        ? "transform 0.05s linear"
+                        : "transform 220ms cubic-bezier(0.22,1,0.36,1)",
                   }} />
                 </div>
               );
