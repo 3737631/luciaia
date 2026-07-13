@@ -841,12 +841,5 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     </>
   );
 
-  if (!imageLoaded) {
-    return createPortal(
-      <div style={{position:"fixed",inset:0,zIndex:9999,background:"#000"}} />,
-      document.body
-    );
-  }
-
   return createPortal(storyContent, document.body);
 }
