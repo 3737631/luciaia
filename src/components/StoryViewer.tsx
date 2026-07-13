@@ -24,7 +24,7 @@ function triggerHaptic(p: number | number[] = 12) {
 
 function HeartSvg({ filled }: { filled: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" width="28" height="28" fill={filled ? "#ff304f" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="27" height="27" fill={filled ? "#ff304f" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21.3l7.8-7.8 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" />
     </svg>
   );
@@ -32,7 +32,7 @@ function HeartSvg({ filled }: { filled: boolean }) {
 
 function CloseSvg() {
   return (
-    <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
     </svg>
   );
@@ -40,7 +40,7 @@ function CloseSvg() {
 
 function SendSvg() {
   return (
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M22 2 11 13" /><path d="m22 2-7 20-4-9-9-4Z" />
     </svg>
   );
@@ -435,11 +435,13 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
         .story-desktop-shell{position:fixed;inset:0;z-index:9999;display:flex;justify-content:center;align-items:center;overflow:hidden;background:#000;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
         .story-desktop-shell img{-webkit-touch-callout:none;pointer-events:none}
         .story-blurred-background{position:absolute;inset:-40px;background-position:center;background-size:cover;filter:blur(28px);transform:scale(1.08);opacity:0.55;pointer-events:none;will-change:background-image}
-        .story-mobile-frame{position:relative;z-index:2;width:min(430px,calc(100vw - 32px));height:min(92dvh,860px);aspect-ratio:9/16;overflow:hidden;background:#000;border-radius:14px;box-shadow:0 20px 70px rgba(0,0,0,.55)}
         .story-slide{position:absolute;inset:0;will-change:transform,opacity}
         .story-slide-exit{animation-duration:220ms;animation-timing-function:cubic-bezier(0.22,1,0.36,1);animation-fill-mode:forwards}
         .story-slide-enter{animation-duration:220ms;animation-timing-function:cubic-bezier(0.22,1,0.36,1);animation-fill-mode:forwards}
-        @media(max-width:767px){.story-desktop-shell{display:block}.story-blurred-background{display:none}.story-desktop-shell::after{display:none}.story-mobile-frame{width:100%;height:100dvh;max-width:none;aspect-ratio:auto;border-radius:0;box-shadow:none}}
+        .story-action-button{width:40px;height:40px;display:grid;place-items:center;padding:0;border:0;background:transparent;color:#fff;-webkit-tap-highlight-color:transparent;cursor:pointer;transition:transform 120ms ease}
+        .story-action-button:active{transform:scale(.84)}
+        .story-mobile-frame{position:relative;z-index:2;width:min(430px,calc(100vw - 32px));height:min(92dvh,860px);aspect-ratio:9/16;overflow:hidden;background:#000;border-radius:14px;box-shadow:0 20px 70px rgba(0,0,0,.55)}
+        @media(max-width:767px){.story-desktop-shell{display:block}.story-blurred-background{display:none}.story-mobile-frame{width:100%!important;height:100dvh!important;max-width:none!important;aspect-ratio:auto!important;border-radius:0!important;box-shadow:none!important}}
       `}</style>
 
       {/* Hidden real input at TOP */}
@@ -501,37 +503,51 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
             </div>
           )}
 
-          {/* Gradient overlays */}
+          {/* Top gradient */}
           <div style={{
-            position:"absolute",zIndex:20,inset:"0 0 auto",height:145,
-            background:"linear-gradient(to bottom,rgba(0,0,0,.62) 0%,rgba(0,0,0,.28) 54%,transparent 100%)",
+            position:"absolute",zIndex:25,inset:"0 0 auto",height:145,
+            background:"linear-gradient(to bottom,rgba(0,0,0,.64) 0%,rgba(0,0,0,.29) 55%,transparent 100%)",
             pointerEvents:"none"
           }} />
+
+          {/* Bottom gradient */}
           <div style={{
-            position:"absolute",zIndex:20,inset:"auto 0 0",height:200,
-            background:"linear-gradient(to top,rgba(0,0,0,.58) 0%,rgba(0,0,0,.23) 52%,transparent 100%)",
+            position:"absolute",zIndex:30,left:0,right:0,bottom:0,height:180,
+            background:"linear-gradient(to top,rgba(0,0,0,.62) 0%,rgba(0,0,0,.28) 46%,rgba(0,0,0,.08) 72%,transparent 100%)",
             pointerEvents:"none"
+          }} />
+
+          {/* Keyboard overlay (subtle darken when typing) */}
+          <div style={{
+            position:"absolute",zIndex:35,inset:0,
+            background:"rgba(0,0,0,.18)",
+            opacity:isComposerFocused && keyboardInset > 100 ? 1 : 0,
+            pointerEvents:"none",
+            transition:"opacity 150ms ease",
           }} />
 
           {/* Progress bars */}
           <div style={{
-            position:"absolute",zIndex:40,
+            position:"absolute",zIndex:60,
             top:"calc(env(safe-area-inset-top,0px) + 7px)",
-            left:10,right:10,height:2,
-            display:"flex",gap:3,pointerEvents:"none",
-            transition:"opacity 110ms ease",opacity:paused?0.18:1,
+            left:10,right:10,
+            display:"flex",gap:3,
+            pointerEvents:"none",
+            transition:"opacity 110ms ease",
+            opacity:paused?0.18:1,
           }}>
             {storyImages.map((_, idx) => {
               const val = progress[idx] || 0;
               return (
                 <div key={idx} style={{
-                  flex:1,height:"100%",borderRadius:999,overflow:"hidden",
+                  flex:1,height:2.2,borderRadius:999,overflow:"hidden",
                   background:"rgba(255,255,255,.34)",
                 }}>
                   <div style={{
                     height:"100%",borderRadius:"inherit",
                     background:"rgba(255,255,255,.96)",
                     width:`${Math.min(val,100)}%`,
+                    transformOrigin:"left center",
                     transition: idx === currentIndex && !transition && !paused
                       ? "width 0.05s linear"
                       : "width 220ms cubic-bezier(0.22,1,0.36,1)",
@@ -541,38 +557,41 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
             })}
           </div>
 
-          {/* Header */}
+          {/* Header (avatar, name, time, close) */}
           <div style={{
-            position:"absolute",zIndex:40,
-            top:"calc(env(safe-area-inset-top,0px) + 7px + 2px + 9px)",left:10,right:10,
+            position:"absolute",zIndex:60,
+            top:"calc(env(safe-area-inset-top,0px) + 7px + 2px + 9px + 2px)",
+            left:10,right:10,
             display:"flex",alignItems:"center",minHeight:38,
-            transition:"opacity 110ms ease",opacity:paused?0.18:1,
+            transition:"opacity 110ms ease",
+            opacity:paused?0.18:1,
           }} data-story-interactive>
             <img src={avatarUrl} alt="" style={{
-              width:31,height:31,borderRadius:"50%",objectFit:"cover",flex:"0 0 auto",
-              border:"1.5px solid rgba(255,255,255,.85)"
+              width:30,height:30,borderRadius:"50%",objectFit:"cover",flex:"0 0 auto",
+              border:"1.5px solid rgba(255,255,255,.85)",
             }} />
             <span style={{
-              marginLeft:8,fontFamily:font,fontSize:14,lineHeight:"17px",fontWeight:600,color:"#fff",
-              textShadow:"0 1px 2px rgba(0,0,0,.35)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"
+              marginLeft:9,fontFamily:font,fontSize:13.5,lineHeight:"17px",
+              fontWeight:600,color:"#fff",
+              textShadow:"0 1px 2px rgba(0,0,0,.4)",
+              whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",
             }}>
               {displayName}
             </span>
             <span style={{
-              marginLeft:6,fontFamily:font,fontSize:13,lineHeight:"17px",fontWeight:400,
-              color:"rgba(255,255,255,.72)",textShadow:"0 1px 2px rgba(0,0,0,.35)",
-              whiteSpace:"nowrap",flexShrink:0
+              marginLeft:6,fontFamily:font,fontSize:12.5,lineHeight:"17px",fontWeight:400,
+              color:"rgba(255,255,255,.72)",
+              textShadow:"0 1px 2px rgba(0,0,0,.35)",
+              whiteSpace:"nowrap",flexShrink:0,
             }}>
               {timeAgo}
             </span>
-            <div style={{ marginLeft:"auto",display:"flex",alignItems:"center",gap:6 }}>
+            <div style={{ marginLeft:"auto",display:"flex",alignItems:"center" }}>
               <button aria-label="Cerrar" data-story-interactive
                 onClick={(e)=>{e.stopPropagation();handleClose()}}
-                style={{
-                  pointerEvents:"auto",width:38,height:38,display:"grid",placeItems:"center",
-                  padding:0,border:0,background:"transparent",color:"#fff",
-                  WebkitTapHighlightColor:"transparent",cursor:"pointer"
-                }}>
+                className="story-action-button"
+                style={{ pointerEvents:"auto" }}
+              >
                 <CloseSvg />
               </button>
             </div>
@@ -581,14 +600,14 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
           {/* Reaction picker overlay */}
           {reactionPickerOpen && (
             <div style={{
-              position:"absolute",zIndex:55,inset:0,
+              position:"absolute",zIndex:65,inset:0,
               background:"rgba(0,0,0,.26)",pointerEvents:"none"
             }} />
           )}
 
           {/* Reaction picker */}
           <div style={{
-            position:"absolute",zIndex:65,left:"50%",
+            position:"absolute",zIndex:75,left:"50%",
             bottom:`${keyboardInset > 100 ? keyboardInset + 122 : 122}px`,
             transform:reactionPickerOpen?"translateX(-50%) translateY(0) scale(1)":"translateX(-50%) translateY(8px) scale(.96)",
             opacity:reactionPickerOpen?1:0,
@@ -612,22 +631,26 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
             ))}
           </div>
 
-          {/* Story composer */}
+          {/* Bottom UI — floats over image, moves with keyboard */}
           <div data-story-interactive
+            style={{
+              position:"absolute",zIndex:60,left:0,right:0,
+              bottom:keyboardInset > 100 ? keyboardInset : 0,
+              transition:"bottom 170ms cubic-bezier(.2,.75,.25,1)",
+              padding:"8px 13px calc(env(safe-area-inset-bottom,0px) + 10px)",
+              pointerEvents:"none",
+            }}
             onPointerDown={(e)=>{e.preventDefault();e.stopPropagation()}}
             onPointerUp={(e)=>{e.preventDefault();e.stopPropagation()}}
             onClick={(e)=>{e.preventDefault();e.stopPropagation()}}
             onTouchStart={(e)=>{e.stopPropagation()}}
             onTouchEnd={(e)=>{e.stopPropagation()}}
-            style={{
-              position:"absolute",zIndex:50,left:0,right:0,
-              bottom:`${keyboardInset > 100 ? keyboardInset : 0}px`,
-              pointerEvents:"auto",
-            }}>
+          >
+            {/* Quick reactions (visible when keyboard open) */}
             {isComposerFocused && keyboardInset > 100 && (
               <div style={{
                 display:"flex",justifyContent:"center",gap:4,
-                padding:"0 14px 8px",
+                padding:"0 0 8px",
                 animation:"qrs 200ms cubic-bezier(.2,.75,.25,1) forwards",
               }}>
                 {QUICK_REACTIONS.map((emoji) => (
@@ -638,7 +661,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
                       borderRadius:"50%",background:"rgba(255,255,255,.14)",
                       backdropFilter:"blur(4px)",WebkitBackdropFilter:"blur(4px)",
                       fontFamily:eFont,fontSize:22,WebkitTapHighlightColor:"transparent",
-                      cursor:"pointer",pointerEvents:"auto",
+                      cursor:"pointer",pointerEvents:"auto",transition:"transform 120ms ease",
                     }}
                   >
                     {emoji}
@@ -647,56 +670,60 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
               </div>
             )}
 
+            {/* Message row — grid: [input] [heart] [send] */}
             <div style={{
-              display:"flex",alignItems:"center",gap:8,
-              padding:"8px 14px calc(env(safe-area-inset-bottom,0px) + 10px)",
+              display:"grid",
+              gridTemplateColumns:"minmax(0,1fr) 40px 40px",
+              alignItems:"center",gap:7,
               pointerEvents:"none",
             }}>
+              {/* Message input shell */}
               <div data-story-interactive
                 onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); if (document.activeElement !== hiddenInputRef.current) hiddenInputRef.current?.focus({ preventScroll: true }); }}
                 style={{
-                  flex:1,height:42,display:"flex",alignItems:"center",gap:4,
-                  padding:"0 4px 0 16px",borderRadius:999,
+                  height:41,minWidth:0,display:"flex",alignItems:"center",
+                  padding:"0 15px",borderRadius:999,
                   border:"1px solid rgba(255,255,255,.44)",
-                  background:"rgba(24,24,24,.44)",
+                  background:"rgba(8,8,8,.14)",
+                  backdropFilter:"blur(12px) saturate(120%)",
+                  WebkitBackdropFilter:"blur(12px) saturate(120%)",
                   pointerEvents:"auto",cursor:"text",
-                  color:message?"#fff":"rgba(255,255,255,.82)",
-                  fontFamily:font,fontSize:16,lineHeight:"20px",fontWeight:400,
+                  color:message?"#fff":"rgba(255,255,255,.72)",
+                  fontFamily:font,fontSize:14,lineHeight:"20px",fontWeight:400,
                   whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",
+                  transition:"border-color 150ms ease, background 150ms ease",
                 }}
               >
                 {message || "Enviar mensaje..."}
               </div>
 
-              {message.trim() && (
-                <button aria-label="Enviar" data-story-interactive
-                  onPointerDown={(e)=>{e.stopPropagation()}}
-                  onClick={(e)=>{e.stopPropagation();handleSend()}}
-                  disabled={isSending}
-                  style={{
-                    width:34,height:34,display:"grid",placeItems:"center",padding:0,border:0,
-                    borderRadius:"50%",background:"#fff",
-                    color:"#000",WebkitTapHighlightColor:"transparent",
-                    cursor:"pointer",pointerEvents:"auto",flexShrink:0,
-                  }}
-                >
-                  <SendSvg />
-                </button>
-              )}
-
+              {/* Heart button */}
               <button ref={heartBtnRef} aria-label="Reaccionar" data-story-interactive
                 onPointerDown={(e)=>{e.stopPropagation();handleHeartDown(e as any)}}
                 onPointerUp={(e)=>{e.stopPropagation();handleHeartUp(e as any)}}
                 onPointerCancel={(e)=>{e.stopPropagation();handleHeartCancel()}}
                 onPointerLeave={(e)=>{e.stopPropagation();handleHeartCancel()}}
-                style={{
-                  width:42,height:42,display:"grid",placeItems:"center",padding:0,border:0,
-                  background:"transparent",color:isLiked?"#ff304f":"#fff",
-                  WebkitTapHighlightColor:"transparent",cursor:"pointer",pointerEvents:"auto",
-                }}
+                className="story-action-button"
+                style={{pointerEvents:"auto",color:isLiked?"#ff304f":"#fff"}}
               >
                 <HeartSvg filled={isLiked} />
               </button>
+
+              {/* Send button */}
+              {message.trim() && (
+                <button aria-label="Enviar" data-story-interactive
+                  onPointerDown={(e)=>{e.stopPropagation()}}
+                  onClick={(e)=>{e.stopPropagation();handleSend()}}
+                  disabled={isSending}
+                  className="story-action-button"
+                  style={{pointerEvents:"auto",color:"#fff"}}
+                >
+                  <SendSvg />
+                </button>
+              )}
+              {!message.trim() && (
+                <div style={{width:40,height:40}} />
+              )}
             </div>
           </div>
 
