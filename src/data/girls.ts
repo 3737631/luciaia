@@ -173,6 +173,10 @@ export const girls: Girl[] = [
       "A veces menos es más. Hoy, mucho más.",
     ],
     cloudinaryImage: "https://res.cloudinary.com/dmuxgamms/image/upload/v1783787856/photo_2026-07-11_18-36-12_k1ebzu.jpg",
+    storyImages: Array.from({ length: 12 }, (_, i) => {
+      const n = i + 1;
+      return `/maya_stories/maya_story_${n}.png`;
+    }),
   },
   {
     id: "sasha",
