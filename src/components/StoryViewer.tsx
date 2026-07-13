@@ -455,7 +455,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
         style={{
           position:"fixed",top:1,left:1,width:2,height:2,
           opacity:0.01,fontSize:16,border:0,padding:0,margin:0,
-          zIndex:10001,pointerEvents:"none",
+          zIndex:10001,
         }}
       />
 
@@ -637,8 +637,6 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
               position:"absolute",zIndex:60,left:0,right:0,
               bottom:keyboardInset > 100 ? keyboardInset : 0,
               transition:"bottom 170ms cubic-bezier(.2,.75,.25,1)",
-              padding:"8px 13px calc(env(safe-area-inset-bottom,0px) + 10px)",
-              pointerEvents:"none",
             }}
             onPointerDown={(e)=>{e.preventDefault();e.stopPropagation()}}
             onPointerUp={(e)=>{e.preventDefault();e.stopPropagation()}}
@@ -650,7 +648,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
             {isComposerFocused && keyboardInset > 100 && (
               <div style={{
                 display:"flex",justifyContent:"center",gap:4,
-                padding:"0 0 8px",
+                padding:"0 13px 8px",
                 animation:"qrs 200ms cubic-bezier(.2,.75,.25,1) forwards",
               }}>
                 {QUICK_REACTIONS.map((emoji) => (
@@ -672,10 +670,10 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
 
             {/* Message row — grid: [input] [heart] [send] */}
             <div style={{
+              padding:"8px 13px calc(env(safe-area-inset-bottom,0px) + 10px)",
               display:"grid",
               gridTemplateColumns:"minmax(0,1fr) 40px 40px",
               alignItems:"center",gap:7,
-              pointerEvents:"none",
             }}>
               {/* Message input shell */}
               <div data-story-interactive
@@ -687,7 +685,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
                   background:"rgba(8,8,8,.14)",
                   backdropFilter:"blur(12px) saturate(120%)",
                   WebkitBackdropFilter:"blur(12px) saturate(120%)",
-                  pointerEvents:"auto",cursor:"text",
+                  cursor:"text",
                   color:message?"#fff":"rgba(255,255,255,.72)",
                   fontFamily:font,fontSize:14,lineHeight:"20px",fontWeight:400,
                   whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",
@@ -704,7 +702,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
                 onPointerCancel={(e)=>{e.stopPropagation();handleHeartCancel()}}
                 onPointerLeave={(e)=>{e.stopPropagation();handleHeartCancel()}}
                 className="story-action-button"
-                style={{pointerEvents:"auto",color:isLiked?"#ff304f":"#fff"}}
+                style={{color:isLiked?"#ff304f":"#fff"}}
               >
                 <HeartSvg filled={isLiked} />
               </button>
@@ -716,7 +714,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
                   onClick={(e)=>{e.stopPropagation();handleSend()}}
                   disabled={isSending}
                   className="story-action-button"
-                  style={{pointerEvents:"auto",color:"#fff"}}
+                  style={{color:"#fff"}}
                 >
                   <SendSvg />
                 </button>
