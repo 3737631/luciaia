@@ -502,7 +502,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
         @keyframes story-enter-next{from{transform:translate3d(20px,0,0) scale(.995);opacity:0}to{transform:translate3d(0,0,0) scale(1);opacity:1}}
         @keyframes story-exit-prev{from{transform:translate3d(0,0,0) scale(1);opacity:1}to{transform:translate3d(16px,0,0) scale(.995);opacity:0}}
         @keyframes story-enter-prev{from{transform:translate3d(-20px,0,0) scale(.995);opacity:0}to{transform:translate3d(0,0,0) scale(1);opacity:1}}
-        .story-desktop-shell{position:fixed;inset:0;z-index:9999;display:flex;justify-content:center;align-items:center;overflow:hidden;background:#000;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;overscroll-behavior:none}
+        .story-desktop-shell{position:fixed;inset:0;z-index:9999;display:flex;justify-content:center;align-items:center;overflow:hidden;background:linear-gradient(135deg,#1a0a2e,#2d1b4e,#1a0a2e);touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;overscroll-behavior:none}
         .story-desktop-shell img{-webkit-touch-callout:none;pointer-events:none}
         .story-blurred-background{position:absolute;inset:-40px;background-position:center;background-size:cover;filter:blur(28px);transform:scale(1.08);opacity:0.55;pointer-events:none;will-change:background-image}
         .story-slide{position:absolute;inset:0;will-change:transform,opacity}
@@ -510,7 +510,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
         .story-slide-enter{animation-duration:180ms;animation-timing-function:cubic-bezier(0.22,1,0.36,1);animation-fill-mode:forwards}
         .story-action-button{width:40px;height:40px;display:grid;place-items:center;padding:0;border:0;background:transparent;color:#fff;-webkit-tap-highlight-color:transparent;cursor:pointer;transition:transform 120ms ease}
         .story-action-button:active{transform:scale(.84)}
-        .story-mobile-frame{position:relative;z-index:2;width:min(430px,calc(100vw - 32px));height:min(92dvh,860px);aspect-ratio:9/16;overflow:hidden;background:#000;border-radius:14px;box-shadow:0 20px 70px rgba(0,0,0,.55);will-change:transform}
+        .story-mobile-frame{position:relative;z-index:2;width:min(430px,calc(100vw - 32px));height:min(92dvh,860px);aspect-ratio:9/16;overflow:hidden;background:linear-gradient(135deg,#1a0a2e,#2d1b4e,#1a0a2e);border-radius:14px;box-shadow:0 20px 70px rgba(0,0,0,.55);will-change:transform}
         @media(max-width:767px){.story-desktop-shell{display:block}.story-blurred-background{display:none}.story-mobile-frame{width:100%!important;height:100dvh!important;max-width:none!important;aspect-ratio:auto!important;border-radius:0!important;box-shadow:none!important}}
       `}</style>
 
@@ -541,7 +541,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
       >
         <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,.38)",pointerEvents:"none",zIndex:1}} />
         <div className="story-blurred-background" style={{backgroundImage:`url(${currentImage})`}} />
-        <div ref={frameRef} className="story-mobile-frame" style={{touchAction:"none",background:`#000 url("${currentImage}") center/cover no-repeat`}}>
+        <div ref={frameRef} className="story-mobile-frame" style={{touchAction:"none",background:`linear-gradient(135deg,#1a0a2e,#2d1b4e,#1a0a2e) url("${currentImage}") center/cover no-repeat`}}>
           {/* Image layers */}
           <div className="story-slide"
             style={{
@@ -841,5 +841,6 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     </>
   );
 
+  if (!imageLoaded) return null;
   return createPortal(storyContent, document.body);
 }
