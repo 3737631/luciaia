@@ -75,7 +75,6 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     from: number; to: number; dir: 'next' | 'prev';
   } | null>(null);
   const [timeAgo, setTimeAgo] = useState("");
-  const [imageLoaded, setImageLoaded] = useState(false);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
@@ -123,9 +122,6 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     const t = setInterval(update, 30000);
     return () => clearInterval(t);
   }, []);
-
-  // Reset loaded state on story change
-  useEffect(() => { setImageLoaded(false); }, [currentIndex]);
 
   // Body lock — keep document in place while viewer is open
   useEffect(() => {
@@ -525,8 +521,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
               />
             ) : (
               <img src={currentImage} alt="" draggable={false}
-                onLoad={() => setImageLoaded(true)}
-                style={{width:"100%",height:"100%",display:"block",objectFit:"cover",objectPosition:"center center",opacity:imageLoaded?1:0,transition:"opacity 180ms ease"}}
+                style={{width:"100%",height:"100%",display:"block",objectFit:"cover",objectPosition:"center center",background:"#141414"}}
               />
             )}
           </div>
