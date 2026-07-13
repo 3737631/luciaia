@@ -9,10 +9,10 @@ const HOLD_REACTIONS = ["😂", "😍", "😮", "😢", "👏", "🔥"];
 const HOLD_TO_OPEN_MS = 300;
 const STORY_DURATION = 6000;
 const PROGRESS_INTERVAL = 50;
-const TAP_MAX_MS = 180;
+const TAP_MAX_MS = 150;
 const TAP_MAX_MOVE = 10;
 const SWIPE_THRESHOLD = 45;
-const LONG_PRESS_MS = 180;
+const LONG_PRESS_MS = 200;
 const TRANSITION_MS = 220;
 
 const font = `-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif`;
@@ -292,21 +292,19 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     const target = e.target as HTMLElement;
     if (target.closest('button, input, textarea, a, [role="button"], [data-story-interactive]')) return;
-    if (transition || closing) return;
+    if (transition || closing || transitionLockedRef.current) return;
     try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch {}
     gestureRef.current = {
       startX: e.clientX, startY: e.clientY, startTime: performance.now(),
       moved: false, longPress: false, gestureConsumed: false,
     };
-    // Schedule long-press detection
-    const lpTimer = setTimeout(() => {
+    const tid = setTimeout(() => {
       if (mountedRef.current && gestureRef.current && !gestureRef.current.moved) {
         gestureRef.current.longPress = true;
         setPaused(true);
       }
     }, LONG_PRESS_MS);
-    // Store timer for cleanup
-    (e.currentTarget as HTMLElement).dataset.lpTimer = String(lpTimer);
+    (e.currentTarget as HTMLElement).dataset.lpTimer = String(tid);
   }, [transition, closing]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
@@ -384,13 +382,12 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     const el = e.currentTarget as HTMLElement;
     const t = el.dataset.lpTimer;
     if (t) { clearTimeout(Number(t)); delete el.dataset.lpTimer; }
-    gestureRef.current.gestureConsumed = true;
+    if (gestureRef.current) gestureRef.current.gestureConsumed = true;
     resetGesture(el, e.pointerId);
   }, []);
 
   function resetGesture(el: HTMLElement, pointerId: number) {
     try { el.releasePointerCapture(pointerId); } catch {}
-    if (gestureRef.current?.longPress) setPaused(false);
     gestureRef.current = undefined as any;
   }
 
@@ -418,9 +415,8 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
         @keyframes story-enter-next{from{transform:translate3d(28px,0,0) scale(.995);opacity:0}to{transform:translate3d(0,0,0) scale(1);opacity:1}}
         @keyframes story-exit-prev{from{transform:translate3d(0,0,0) scale(1);opacity:1}to{transform:translate3d(22px,0,0) scale(.995);opacity:0}}
         @keyframes story-enter-prev{from{transform:translate3d(-28px,0,0) scale(.995);opacity:0}to{transform:translate3d(0,0,0) scale(1);opacity:1}}
-        .story-desktop-shell{position:fixed;inset:0;z-index:9999;display:flex;justify-content:center;align-items:center;overflow:hidden;background:#000;touch-action:pan-y;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+        .story-desktop-shell{position:fixed;inset:0;z-index:9999;display:flex;justify-content:center;align-items:center;overflow:hidden;background:#000;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
         .story-blurred-background{position:absolute;inset:-40px;background-position:center;background-size:cover;filter:blur(28px);transform:scale(1.08);opacity:0.55;pointer-events:none;will-change:background-image}
-        .story-desktop-shell::after{content:"";position:absolute;inset:0;background:rgba(0,0,0,.38);pointer-events:none}
         .story-mobile-frame{position:relative;z-index:2;width:min(430px,calc(100vw - 32px));height:min(92dvh,860px);aspect-ratio:9/16;overflow:hidden;background:#000;border-radius:14px;box-shadow:0 20px 70px rgba(0,0,0,.55)}
         .story-slide{position:absolute;inset:0;will-change:transform,opacity}
         .story-slide-exit{animation-duration:220ms;animation-timing-function:cubic-bezier(0.22,1,0.36,1);animation-fill-mode:forwards}
@@ -452,8 +448,9 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
       >
+        <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,.38)",pointerEvents:"none",zIndex:1}} />
         <div className="story-blurred-background" style={{backgroundImage:`url(${currentImage})`}} />
-        <div className="story-mobile-frame" style={{touchAction:"pan-y"}}>
+        <div className="story-mobile-frame" style={{touchAction:"none"}}>
           {/* Image layers */}
           <div className="story-slide"
             style={{
