@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { getGirlImage } from "@/lib/images";
+import { getDailyStoryIndex } from "@/lib/getDailyStoryIndex";
 import type { Girl } from "@/data/girls";
 import StoryViewer from "./StoryViewer";
 
@@ -10,19 +11,31 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export default function StoriesRow({ girls }: { girls: Girl[] }) {
   const [seen, setSeen] = useState<Set<string>>(new Set());
-  const [storyOpen, setStoryOpen] = useState(false);
+  const [storyChar, setStoryChar] = useState<{ id: string; image: string; avatar: string; name: string } | null>(null);
 
-  const handleClick = (id: string) => {
-    setSeen((prev) => new Set(prev).add(id));
-    if (id === "iris") {
-      setStoryOpen(true);
-      return false;
-    }
+  const handleClick = (girl: Girl) => {
+    setSeen((prev) => new Set(prev).add(girl.id));
+    if (!girl.storyImages?.length) return;
+    const idx = getDailyStoryIndex(girl.id, girl.storyImages.length);
+    if (idx === -1) return;
+    setStoryChar({
+      id: girl.id,
+      image: `${basePath}${girl.storyImages[idx]}`,
+      avatar: girl.cloudinaryImage ?? getGirlImage(girl.id, null, null, null, girl.cloudinaryImage),
+      name: girl.name,
+    });
   };
 
   return (
     <>
-      {storyOpen && <StoryViewer onClose={() => setStoryOpen(false)} />}
+      {storyChar && (
+        <StoryViewer
+          storyImage={storyChar.image}
+          avatarUrl={storyChar.avatar}
+          displayName={storyChar.name}
+          onClose={() => setStoryChar(null)}
+        />
+      )}
       <div style={{
         display: "flex",
         gap: 16,
@@ -33,12 +46,12 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
       }}>
       {girls.map((girl) => {
         const isSeen = seen.has(girl.id);
-        const isIris = girl.id === "iris";
+        const hasStory = (girl.storyImages?.length ?? 0) > 0;
         return (
           <Link
             key={girl.id}
-            href={isIris ? "#" : `${basePath}/chat/${girl.id}`}
-            onClick={(e) => { if (isIris) e.preventDefault(); handleClick(girl.id); }}
+            href={hasStory ? "#" : `${basePath}/chat/${girl.id}`}
+            onClick={(e) => { if (hasStory) e.preventDefault(); handleClick(girl); }}
             style={{
               display: "flex",
               flexDirection: "column",

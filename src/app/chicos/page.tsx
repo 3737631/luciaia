@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import GirlCard from "@/components/GirlCard";
 import StoriesRow from "@/components/StoriesRow";
@@ -12,9 +12,28 @@ const maleIds = new Set(["axel", "liam"]);
 const maleChars = girls.filter((g) => maleIds.has(g.id));
 const filters = ["Todos", "Dominante", "Tímido"];
 
+const HERO_IMAGES = ["hero-banner2.png", "hero-banner3.png", "hero-banner4.png", "hero-banner.png"];
+
 export default function ChicosPage() {
   const [activeFilter, setActiveFilter] = useState("Todos");
   const [animKey, setAnimKey] = useState(0);
+  const [heroIndex, setHeroIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState(0);
+
+  const handleTouchStart = (e: React.TouchEvent) => setTouchStart(e.touches[0].clientX);
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const diff = touchStart - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) {
+      setHeroIndex((i) => (diff > 0 ? (i + 1) : (i - 1 + HERO_IMAGES.length)) % HERO_IMAGES.length);
+    }
+  };
+
+  useEffect(() => {
+    const t = setInterval(() => setHeroIndex((i) => (i + 1) % HERO_IMAGES.length), 4000);
+    return () => clearInterval(t);
+  }, []);
+
+  const POSITIONS = ["15% center", "8% center", "50% center", "30% center"];
 
   const filtered = activeFilter === "Todos"
     ? maleChars
@@ -24,16 +43,24 @@ export default function ChicosPage() {
     <>
       <Header />
 
-      <div style={{ position: "relative", width: "100%" }}>
-        <div style={{
-          position: "absolute", inset: 0,
-          background: "linear-gradient(90deg, #111 0%, transparent 6%, transparent 94%, #111 100%)",
-          zIndex: 1, pointerEvents: "none",
-        }} />
-        <img src={`${basePath}/hero-banner.png`} alt=""
+      <div style={{ position: "relative", width: "100%" }}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        <img key={heroIndex} src={`${basePath}/${HERO_IMAGES[heroIndex]}`} alt=""
           draggable={false}
           onContextMenu={(e) => e.preventDefault()}
-          style={{ width: "100%", display: "block", height: "28vh", objectFit: "cover", userSelect: "none", WebkitUserSelect: "none", pointerEvents: "none" }} />
+          style={{ width: "100%", display: "block", minHeight: "25vh", objectFit: "cover", objectPosition: POSITIONS[heroIndex], animation: "fadeIn 0.3s ease", userSelect: "none", WebkitUserSelect: "none", pointerEvents: "none" }}
+        />
+      </div>
+      <div style={{ display: "flex", justifyContent: "center", gap: 8, padding: "10px 0 6px" }}>
+        {HERO_IMAGES.map((_, i) => (
+          <div key={i} style={{
+            width: i === heroIndex ? 24 : 6, height: 6, borderRadius: 999,
+            background: i === heroIndex ? "#FF5798" : "rgba(255,255,255,0.15)",
+            transition: "all 0.3s ease",
+          }} />
+        ))}
       </div>
 
       <main style={{ minHeight: "100vh", maxWidth: 1200, margin: "0 auto", padding: "0 var(--container-padding)" }}>

@@ -8,8 +8,8 @@ import { girls } from "@/data/girls";
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 const femaleIds = new Set([
-  "luna","nia","vera","alma","kira","maya","sasha","yuki",
-  "zara","iris","shadow","morgana","roxy","athena","eva",
+  "luna","nia","vera","alma","kira","sasha",
+  "zara","shadow","morgana","roxy","athena","eva",
   "cora","mira","yumi_lib","raven","sky","jade","gemma",
   "nova","lena"
 ]);

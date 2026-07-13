@@ -22,6 +22,7 @@ export interface Girl {
   voiceLineExamples: string[];
   imagePosition?: string;
   cloudinaryImage?: string;
+  storyImages?: string[];
 }
 
 export const girls: Girl[] = [
@@ -250,6 +251,10 @@ export const girls: Girl[] = [
       "Hoy voy a estar muy cerca de ti durante el entrenamiento.",
     ],
     cloudinaryImage: "https://res.cloudinary.com/dmuxgamms/image/upload/v1783787864/photo_2026-07-11_18-36-20_utm1x1.jpg",
+    storyImages: Array.from({ length: 12 }, (_, i) => {
+      const n = i + 1;
+      return `/axel_stories/axel_story_${n}.png`;
+    }),
   },
   {
     id: "liam",
@@ -314,7 +319,7 @@ export const girls: Girl[] = [
       "*sonríe mientras estira las piernas* no tengo todo el día, forastero. pero si te quedas, te prometo que esta noche no la olvidarás.",
       "*se incorpora sobre las rodillas acerca su rostro al tuyo* si me liberas, te llevaré a un lugar que pocos han visto. pero tienes que decidirte rápido.",
     ],
-    badge: "Nueva",
+    badge: "Popular",
     style: "Salvaje y misteriosa",
     personality: "dominante",
     personalityLabel: "Intensa y enigmática",
@@ -327,6 +332,10 @@ export const girls: Girl[] = [
       "Atrévete a soltarme y descubre lo que pasa.",
     ],
     cloudinaryImage: "https://res.cloudinary.com/dmuxgamms/image/upload/v1783787865/photo_2026-07-11_18-36-22_ryoeed.jpg",
+    storyImages: Array.from({ length: 21 }, (_, i) => {
+      const n = i + 1;
+      return `/iris_stories/iris_story_${n}.${n <= 9 ? "jpg" : "png"}`;
+    }),
   },
   {
     id: "shadow",
