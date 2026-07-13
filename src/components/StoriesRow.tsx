@@ -71,6 +71,7 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
           characters={storyChar.characters}
           startCharIndex={storyChar.startCharIndex}
           onClose={() => setStoryChar(null)}
+          onMarkSeen={(id) => setSeen((prev) => new Set(prev).add(id))}
         />
       )}
       <div style={{

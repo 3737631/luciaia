@@ -15,6 +15,7 @@ const SWIPE_THRESHOLD = 45;
 const SWIPE_DOWN_THRESHOLD = 80;
 const LONG_PRESS_MS = 200;
 const TRANSITION_MS = 180;
+const CUBE_TRANSITION_MS = 400;
 
 const font = `-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif`;
 const eFont = `"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
@@ -47,10 +48,11 @@ function SendSvg() {
   );
 }
 
-export default function StoryViewer({ characters, startCharIndex, onClose }: {
+export default function StoryViewer({ characters, startCharIndex, onClose, onMarkSeen }: {
   characters: Array<{ id: string; images: string[]; avatar: string; name: string }>;
   startCharIndex: number;
   onClose: () => void;
+  onMarkSeen?: (id: string) => void;
 }) {
   const [charIndex, setCharIndex] = useState(startCharIndex);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -190,15 +192,18 @@ export default function StoryViewer({ characters, startCharIndex, onClose }: {
 
   const goTo = useCallback((toCharIdx: number, toIdx: number, dir: 'next' | 'prev') => {
     if (transition || closing || transitionLockedRef.current) return;
+    const isCube = charIndex !== toCharIdx;
     transitionLockedRef.current = true;
     if (isComposerFocused) hiddenInputRef.current?.blur();
     setTransition({ from: currentIndex, to: toIdx, dir, fromChar: charIndex, toChar: toCharIdx });
+    if (isCube) onMarkSeen?.(characters[charIndex].id);
     const destImages = characters[toCharIdx].images;
     setProgress(destImages.map((_, i) => {
       if (i < toIdx) return 100;
       if (i === toIdx) return 0;
       return 0;
     }));
+    const duration = isCube ? CUBE_TRANSITION_MS : TRANSITION_MS;
     setTimeout(() => {
       if (!mountedRef.current) return;
       setCharIndex(toCharIdx);
@@ -207,8 +212,8 @@ export default function StoryViewer({ characters, startCharIndex, onClose }: {
       autoFiredRef.current = false;
       transitionLockedRef.current = false;
       setImageLoaded(true);
-    }, TRANSITION_MS);
-  }, [transition, closing, isComposerFocused, currentIndex, charIndex, characters]);
+    }, duration);
+  }, [transition, closing, isComposerFocused, currentIndex, charIndex, characters, onMarkSeen]);
 
   const goToNext = useCallback(() => {
     if (currentIndex < len - 1) {
@@ -501,16 +506,18 @@ export default function StoryViewer({ characters, startCharIndex, onClose }: {
   const exitImage = transition ? characters[transition.fromChar].images[transition.from] : null;
   const enterImage = transition ? characters[transition.toChar].images[transition.to] : null;
 
+  const isCubeTrans = transition && transition.fromChar !== transition.toChar;
   const exitAnim = transition
-    ? (transition.fromChar !== transition.toChar
+    ? (isCubeTrans
       ? (transition.dir === 'next' ? 'cube-exit-next' : 'cube-exit-prev')
       : (transition.dir === 'next' ? 'story-exit-next' : 'story-exit-prev'))
     : null;
   const enterAnim = transition
-    ? (transition.fromChar !== transition.toChar
+    ? (isCubeTrans
       ? (transition.dir === 'next' ? 'cube-enter-next' : 'cube-enter-prev')
       : (transition.dir === 'next' ? 'story-enter-next' : 'story-enter-prev'))
     : null;
+  const animDuration = isCubeTrans ? CUBE_TRANSITION_MS : TRANSITION_MS;
 
   const storyContent = (
     <>
@@ -578,7 +585,7 @@ export default function StoryViewer({ characters, startCharIndex, onClose }: {
           <div className="story-slide"
             style={{
               zIndex:transition ? 3 : 2,
-              animation: exitAnim ? `${exitAnim} 180ms cubic-bezier(0.22,1,0.36,1) forwards` : 'none',
+              animation: exitAnim ? `${exitAnim} ${animDuration}ms cubic-bezier(0.22,1,0.36,1) forwards` : 'none',
               backfaceVisibility: transition && transition.fromChar !== transition.toChar ? 'hidden' : undefined,
             }}
           >
@@ -597,7 +604,7 @@ export default function StoryViewer({ characters, startCharIndex, onClose }: {
             <div className="story-slide"
               style={{
                 zIndex:4,
-                animation: `${enterAnim} 180ms cubic-bezier(0.22,1,0.36,1) forwards`,
+                animation: `${enterAnim} ${animDuration}ms cubic-bezier(0.22,1,0.36,1) forwards`,
                 backfaceVisibility: transition.fromChar !== transition.toChar ? 'hidden' : undefined,
               }}
             >
