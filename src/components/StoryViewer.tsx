@@ -9,6 +9,11 @@ const HOLD_REACTIONS = ["😂", "😍", "😮", "😢", "👏", "🔥"];
 const HOLD_TO_OPEN_MS = 300;
 const STORY_DURATION = 6000;
 const PROGRESS_INTERVAL = 50;
+const TAP_MAX_MS = 180;
+const TAP_MAX_MOVE = 10;
+const SWIPE_THRESHOLD = 45;
+const LONG_PRESS_MS = 180;
+const TRANSITION_MS = 220;
 
 const font = `-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif`;
 const eFont = `"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
@@ -41,43 +46,49 @@ function SendSvg() {
   );
 }
 
-function isInteractive(el: EventTarget | null): boolean {
-  if (!(el instanceof HTMLElement)) return false;
-  const t = el.tagName.toLowerCase();
-  if (t === "input" || t === "textarea" || t === "button") return true;
-  if (el.closest("[data-si]")) return true;
-  return false;
-}
-
-export default function StoryViewer({ storyImage, avatarUrl, displayName, onClose }: { storyImage: string; avatarUrl: string; displayName: string; onClose: () => void }) {
+export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displayName, onClose }: {
+  storyImages: string[];
+  storyIndex: number;
+  avatarUrl: string;
+  displayName: string;
+  onClose: () => void;
+}) {
+  const len = storyImages.length;
+  const [currentIndex, setCurrentIndex] = useState(storyIndex);
+  const [progress, setProgress] = useState<number[]>(() =>
+    storyImages.map((_, i) => i < storyIndex ? 100 : i === storyIndex ? 0 : 0)
+  );
+  const [paused, setPaused] = useState(false);
+  const [closing, setClosing] = useState(false);
+  const [reactionPickerOpen, setReactionPickerOpen] = useState(false);
+  const [highlightedReaction, setHighlightedReaction] = useState<string | null>(null);
+  const [keyboardInset, setKeyboardInset] = useState(0);
+  const [isComposerFocused, setIsComposerFocused] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [likeParticles, setLikeParticles] = useState<{ id: string; x: number; y: number }[]>([]);
   const [floatingEmojis, setFloatingEmojis] = useState<{ id: string; emoji: string; x: number; y: number }[]>([]);
   const [msgConfirm, setMsgConfirm] = useState<string | null>(null);
-  const [isPressingStory, setIsPressingStory] = useState(false);
-  const [closing, setClosing] = useState(false);
-  const [reactionPickerOpen, setReactionPickerOpen] = useState(false);
-  const [highlightedReaction, setHighlightedReaction] = useState<string | null>(null);
-  const [keyboardInset, setKeyboardInset] = useState(0);
-  const [isComposerFocused, setIsComposerFocused] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [transition, setTransition] = useState<{
+    from: number; to: number; dir: 'next' | 'prev';
+  } | null>(null);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const hiddenInputRef = useRef<HTMLInputElement>(null);
   const heartBtnRef = useRef<HTMLButtonElement>(null);
   const scrollYRef = useRef(0);
   const mountedRef = useRef(true);
-  const touchRef = useRef({ x: 0, y: 0, time: 0 });
-  const pressingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isPausedRef = useRef(false);
   const heartHoldTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const heartOpenedPicker = useRef(false);
   const highlightRef = useRef<string | null>(null);
+  const autoFiredRef = useRef(false);
+  const transitionLockedRef = useRef(false);
 
-  const isPaused = isPressingStory || reactionPickerOpen || isSending || closing;
-  isPausedRef.current = isPaused;
+  const gestureRef = useRef({
+    startX: 0, startY: 0, startTime: 0,
+    moved: false, longPress: false, gestureConsumed: false,
+  });
 
   // Visual viewport — detect keyboard open via viewport shrink
   useEffect(() => {
@@ -118,30 +129,79 @@ export default function StoryViewer({ storyImage, avatarUrl, displayName, onClos
     };
   }, []);
 
+  const handleClose = useCallback(() => {
+    if (closing) return; setClosing(true);
+    setTimeout(() => { if (mountedRef.current) onClose(); }, 180);
+  }, [closing, onClose]);
+
+  const goTo = useCallback((toIdx: number, dir: 'next' | 'prev') => {
+    if (transition || closing || transitionLockedRef.current) return;
+    if (toIdx < 0 || toIdx >= len) return;
+    transitionLockedRef.current = true;
+    if (isComposerFocused) hiddenInputRef.current?.blur();
+    setTransition({ from: currentIndex, to: toIdx, dir });
+    setProgress(storyImages.map((_, i) => {
+      if (i < toIdx) return 100;
+      if (i === toIdx) return 0;
+      return 0;
+    }));
+    setTimeout(() => {
+      if (!mountedRef.current) return;
+      setCurrentIndex(toIdx);
+      setTransition(null);
+      autoFiredRef.current = false;
+      transitionLockedRef.current = false;
+    }, TRANSITION_MS);
+  }, [transition, closing, len, isComposerFocused, currentIndex, storyImages]);
+
+  const goToNext = useCallback(() => {
+    goTo(currentIndex + 1, 'next');
+  }, [currentIndex, goTo]);
+
+  const goToPrev = useCallback(() => {
+    goTo(currentIndex - 1, 'prev');
+  }, [currentIndex, goTo]);
+
   // Keyboard shortcuts
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (e.key === "Escape") { handleClose(); return; }
-      if (e.key === "ArrowRight" || e.key === "ArrowLeft") { handleClose(); return; }
+      if (e.key === "ArrowRight" && currentIndex < len - 1) { e.preventDefault(); goToNext(); return; }
+      if (e.key === "ArrowLeft" && currentIndex > 0) { e.preventDefault(); goToPrev(); return; }
     };
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [currentIndex, len, handleClose, goToNext, goToPrev]);
 
-  // Progress timer — single bar that loops
+  // Progress timer
   useEffect(() => {
-    if (closing) return;
+    if (closing || transition || paused) return;
     const interval = setInterval(() => {
-      if (isPausedRef.current || !mountedRef.current) return;
-      setProgress((p) => {
-        const next = p + (100 / (STORY_DURATION / PROGRESS_INTERVAL));
-        if (next >= 100) return 0;
-        return next;
+      if (!mountedRef.current) return;
+      setProgress(prev => {
+        if (prev[currentIndex] >= 100) return prev;
+        const step = 100 / (STORY_DURATION / PROGRESS_INTERVAL);
+        const newP = [...prev];
+        newP[currentIndex] = Math.min(prev[currentIndex] + step, 100);
+        return newP;
       });
     }, PROGRESS_INTERVAL);
     return () => clearInterval(interval);
-  }, [closing]);
+  }, [closing, transition, paused, currentIndex]);
+
+  // Auto-advance when progress reaches 100
+  useEffect(() => {
+    if (closing || transition || autoFiredRef.current) return;
+    if (progress[currentIndex] >= 100) {
+      if (currentIndex < len - 1) {
+        autoFiredRef.current = true;
+        const t = setTimeout(() => { autoFiredRef.current = false; goToNext(); }, 300);
+        return () => { clearTimeout(t); autoFiredRef.current = false; };
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [progress[currentIndex], closing, transition, currentIndex, len]);
 
   // Reaction picker pointer tracking
   useEffect(() => {
@@ -169,12 +229,8 @@ export default function StoryViewer({ storyImage, avatarUrl, displayName, onClos
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reactionPickerOpen]);
 
-  const handleClose = useCallback(() => {
-    if (closing) return; setClosing(true);
-    setTimeout(() => { if (mountedRef.current) onClose(); }, 180);
-  }, [closing, onClose]);
-
-  const sendReaction = useCallback((emoji: string, originX?: number, originY?: number) => {
+  const sendReaction = useCallback((emoji: string | null, originX?: number, originY?: number) => {
+    if (!emoji) return;
     triggerHaptic(15);
     saveInteraction(`daily_${displayName}`, displayName, "reaction", emoji);
     const id = crypto.randomUUID?.() ?? `${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
@@ -231,48 +287,126 @@ export default function StoryViewer({ storyImage, avatarUrl, displayName, onClos
     heartOpenedPicker.current = false;
   }, []);
 
-  const handleRootDown = useCallback((e: React.PointerEvent) => {
-    if (isInteractive(e.target)) return;
+  // ── Unified pointer event handlers ──
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('button, input, textarea, a, [role="button"], [data-story-interactive]')) return;
+    if (transition || closing) return;
     try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch {}
-    touchRef.current = { x: e.clientX, y: e.clientY, time: Date.now() };
-    pressingTimer.current = setTimeout(() => { if (mountedRef.current) setIsPressingStory(true); }, 150);
+    gestureRef.current = {
+      startX: e.clientX, startY: e.clientY, startTime: performance.now(),
+      moved: false, longPress: false, gestureConsumed: false,
+    };
+    // Schedule long-press detection
+    const lpTimer = setTimeout(() => {
+      if (mountedRef.current && gestureRef.current && !gestureRef.current.moved) {
+        gestureRef.current.longPress = true;
+        setPaused(true);
+      }
+    }, LONG_PRESS_MS);
+    // Store timer for cleanup
+    (e.currentTarget as HTMLElement).dataset.lpTimer = String(lpTimer);
+  }, [transition, closing]);
+
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    const g = gestureRef.current;
+    if (!g || g.gestureConsumed) return;
+    const dx = e.clientX - g.startX;
+    const dy = e.clientY - g.startY;
+    if (Math.abs(dx) > TAP_MAX_MOVE || Math.abs(dy) > TAP_MAX_MOVE) {
+      if (!g.moved) {
+        g.moved = true;
+        // Cancel long-press timer on move
+        const el = e.currentTarget as HTMLElement;
+        const t = el.dataset.lpTimer;
+        if (t) { clearTimeout(Number(t)); delete el.dataset.lpTimer; }
+        if (g.longPress) setPaused(false);
+      }
+    }
   }, []);
 
-  const handleRootMove = useCallback((e: React.PointerEvent) => {
-    if (!touchRef.current.time) return;
-    if (Math.abs(e.clientX - touchRef.current.x) > 10 || Math.abs(e.clientY - touchRef.current.y) > 10) {
-      touchRef.current = { x: 0, y: 0, time: 0 };
-      if (pressingTimer.current) clearTimeout(pressingTimer.current);
-      if (isPressingStory) setIsPressingStory(false);
-    }
-  }, [isPressingStory]);
+  const handlePointerUp = useCallback((e: React.PointerEvent) => {
+    const el = e.currentTarget as HTMLElement;
+    const t = el.dataset.lpTimer;
+    if (t) { clearTimeout(Number(t)); delete el.dataset.lpTimer; }
 
-  const handleRootUp = useCallback((e: React.PointerEvent) => {
-    if (isInteractive(e.target)) {
-      touchRef.current = { x: 0, y: 0, time: 0 };
-      if (pressingTimer.current) clearTimeout(pressingTimer.current);
-      if (isPressingStory) setIsPressingStory(false);
+    const target = e.target as HTMLElement;
+    if (target.closest('button, input, textarea, a, [role="button"], [data-story-interactive]')) {
+      resetGesture(el, e.pointerId);
       return;
     }
-    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
-    if (pressingTimer.current) clearTimeout(pressingTimer.current);
-    if (isPressingStory) setIsPressingStory(false);
-    const st = touchRef.current;
-    touchRef.current = { x: 0, y: 0, time: 0 };
-    if (!st.time) return;
-    const dx = e.clientX - st.x, dy = e.clientY - st.y;
-    const absDx = Math.abs(dx), absDy = Math.abs(dy);
-    const elapsed = Date.now() - st.time;
-    if (dy > 70 && absDy > absDx * 1.5) { handleClose(); return; }
-    if ((absDx > 50 || absDy > 60) && absDx > absDy) { handleClose(); return; }
-    if (elapsed < 400 && absDx < 15 && absDy < 15) { handleClose(); }
-  }, [handleClose, isPressingStory]);
 
-  const handleRootCancel = useCallback(() => {
-    touchRef.current = { x: 0, y: 0, time: 0 };
-    if (pressingTimer.current) clearTimeout(pressingTimer.current);
-    if (isPressingStory) setIsPressingStory(false);
-  }, [isPressingStory]);
+    const g = gestureRef.current;
+    if (!g) return;
+    resetGesture(el, e.pointerId);
+
+    if (g.gestureConsumed) return;
+
+    const dx = e.clientX - g.startX;
+    const elapsed = performance.now() - g.startTime;
+
+    // Long press — resume pause, do not navigate
+    if (g.longPress) {
+      setPaused(false);
+      return;
+    }
+
+    // Swipe (horizontal drag > SWIPE_THRESHOLD)
+    if (g.moved && Math.abs(dx) > SWIPE_THRESHOLD) {
+      g.gestureConsumed = true;
+      if (dx < 0 && currentIndex < len - 1) { goToNext(); return; }
+      if (dx > 0 && currentIndex > 0) { goToPrev(); return; }
+      return;
+    }
+
+    // Quick tap
+    if (!g.moved && elapsed < TAP_MAX_MS) {
+      const zoneX = e.clientX - el.getBoundingClientRect().left;
+      const zoneW = el.clientWidth;
+      if (zoneX < zoneW * 0.45 && currentIndex > 0) {
+        g.gestureConsumed = true;
+        goToPrev();
+        return;
+      }
+      if (zoneX >= zoneW * 0.55 && currentIndex < len - 1) {
+        g.gestureConsumed = true;
+        goToNext();
+        return;
+      }
+      return;
+    }
+
+    // Fallback: if moved but below swipe threshold, nothing
+  }, [currentIndex, len, goToNext, goToPrev]);
+
+  const handlePointerCancel = useCallback((e: React.PointerEvent) => {
+    const el = e.currentTarget as HTMLElement;
+    const t = el.dataset.lpTimer;
+    if (t) { clearTimeout(Number(t)); delete el.dataset.lpTimer; }
+    gestureRef.current.gestureConsumed = true;
+    resetGesture(el, e.pointerId);
+  }, []);
+
+  function resetGesture(el: HTMLElement, pointerId: number) {
+    try { el.releasePointerCapture(pointerId); } catch {}
+    if (gestureRef.current?.longPress) setPaused(false);
+    gestureRef.current = undefined as any;
+  }
+
+  // ── Render ──
+
+  const currentImage = storyImages[currentIndex];
+  const prevImage = transition && transition.dir === 'prev' ? storyImages[transition.from] : null;
+  const nextImage = transition && transition.dir === 'next' ? storyImages[transition.from] : null;
+  const enterImage = transition ? storyImages[transition.to] : null;
+
+  const exitAnim = transition
+    ? (transition.dir === 'next' ? 'story-exit-next' : 'story-exit-prev')
+    : null;
+  const enterAnim = transition
+    ? (transition.dir === 'next' ? 'story-enter-next' : 'story-enter-prev')
+    : null;
 
   const storyContent = (
     <>
@@ -282,14 +416,21 @@ export default function StoryViewer({ storyImage, avatarUrl, displayName, onClos
         @keyframes mc{0%{opacity:0;transform:translateX(-50%) translateY(6px) scale(.92)}15%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}70%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}100%{opacity:0;transform:translateX(-50%) translateY(-4px) scale(.95)}}
         @keyframes hp{0%{transform:scale(1)}35%{transform:scale(1.28)}65%{transform:scale(.92)}100%{transform:scale(1)}}
         @keyframes qrs{0%{opacity:0;transform:translateY(8px) scale(.92)}100%{opacity:1;transform:translateY(0) scale(1)}}
-        .story-desktop-shell{position:fixed;inset:0;z-index:9999;display:flex;justify-content:center;align-items:center;overflow:hidden;background:#000}
-        .story-blurred-background{position:absolute;inset:-40px;background-position:center;background-size:cover;filter:blur(28px);transform:scale(1.08);opacity:0.55;pointer-events:none}
+        @keyframes story-exit-next{from{transform:translate3d(0,0,0) scale(1);opacity:1}to{transform:translate3d(-22px,0,0) scale(.995);opacity:0}}
+        @keyframes story-enter-next{from{transform:translate3d(28px,0,0) scale(.995);opacity:0}to{transform:translate3d(0,0,0) scale(1);opacity:1}}
+        @keyframes story-exit-prev{from{transform:translate3d(0,0,0) scale(1);opacity:1}to{transform:translate3d(22px,0,0) scale(.995);opacity:0}}
+        @keyframes story-enter-prev{from{transform:translate3d(-28px,0,0) scale(.995);opacity:0}to{transform:translate3d(0,0,0) scale(1);opacity:1}}
+        .story-desktop-shell{position:fixed;inset:0;z-index:9999;display:flex;justify-content:center;align-items:center;overflow:hidden;background:#000;touch-action:pan-y;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+        .story-blurred-background{position:absolute;inset:-40px;background-position:center;background-size:cover;filter:blur(28px);transform:scale(1.08);opacity:0.55;pointer-events:none;will-change:background-image}
         .story-desktop-shell::after{content:"";position:absolute;inset:0;background:rgba(0,0,0,.38);pointer-events:none}
         .story-mobile-frame{position:relative;z-index:2;width:min(430px,calc(100vw - 32px));height:min(92dvh,860px);aspect-ratio:9/16;overflow:hidden;background:#000;border-radius:14px;box-shadow:0 20px 70px rgba(0,0,0,.55)}
+        .story-slide{position:absolute;inset:0;will-change:transform,opacity}
+        .story-slide-exit{animation-duration:220ms;animation-timing-function:cubic-bezier(0.22,1,0.36,1);animation-fill-mode:forwards}
+        .story-slide-enter{animation-duration:220ms;animation-timing-function:cubic-bezier(0.22,1,0.36,1);animation-fill-mode:forwards}
         @media(max-width:767px){.story-desktop-shell{display:block}.story-blurred-background{display:none}.story-desktop-shell::after{display:none}.story-mobile-frame{width:100%;height:100dvh;max-width:none;aspect-ratio:auto;border-radius:0;box-shadow:none}}
       `}</style>
 
-      {/* Hidden real input at TOP — iOS won't scroll the page to reveal it */}
+      {/* Hidden real input at TOP */}
       <input ref={hiddenInputRef}
         value={message}
         onChange={(e)=>setMessage(e.target.value)}
@@ -307,254 +448,289 @@ export default function StoryViewer({ storyImage, avatarUrl, displayName, onClos
       <div ref={rootRef} className="story-desktop-shell"
         style={{
           fontFamily:font,WebkitFontSmoothing:"antialiased",
-          WebkitTapHighlightColor:"transparent",userSelect:"none",WebkitUserSelect:"none",
-          touchAction:"none",
         }}
-        onPointerDown={handleRootDown}
-        onPointerMove={handleRootMove}
-        onPointerUp={handleRootUp}
-        onPointerCancel={handleRootCancel}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
       >
-        <div className="story-blurred-background" style={{backgroundImage:`url(${storyImage})`}} />
-        <div className="story-mobile-frame">
-        {/* Single daily story image fills entire container via object-fit:cover */}
-        <div style={{ position:"absolute",top:0,left:0,right:0,bottom:0,overflow:"hidden",background:"#000" }}>
-          <img src={storyImage} alt="" draggable={false} className="story-image"
+        <div className="story-blurred-background" style={{backgroundImage:`url(${currentImage})`}} />
+        <div className="story-mobile-frame" style={{touchAction:"pan-y"}}>
+          {/* Image layers */}
+          <div className="story-slide"
             style={{
-              position:"absolute",top:0,left:0,right:0,bottom:0,width:"100%",height:"100%",display:"block",
-              objectFit:"cover",objectPosition:"center center",
+              zIndex:transition ? 3 : 2,
+              animation: exitAnim ? `${exitAnim} 220ms cubic-bezier(0.22,1,0.36,1) forwards` : 'none',
             }}
-          />
-        </div>
-
-        {/* Gradient overlays */}
-        <div style={{
-          position:"absolute",zIndex:20,inset:"0 0 auto",height:145,
-          background:"linear-gradient(to bottom,rgba(0,0,0,.62) 0%,rgba(0,0,0,.28) 54%,transparent 100%)",
-          pointerEvents:"none"
-        }} />
-        <div style={{
-          position:"absolute",zIndex:20,inset:"auto 0 0",height:200,
-          background:"linear-gradient(to top,rgba(0,0,0,.58) 0%,rgba(0,0,0,.23) 52%,transparent 100%)",
-          pointerEvents:"none"
-        }} />
-
-        {/* Progress bar */}
-        <div style={{
-          position:"absolute",zIndex:40,top:"calc(env(safe-area-inset-top,0px) + 7px)",left:10,right:10,
-          height:2,borderRadius:999,overflow:"hidden",pointerEvents:"none",
-          transition:"opacity 110ms ease",opacity:isPressingStory?0.18:1,
-          background:"rgba(255,255,255,.34)"
-        }}>
-          <div style={{
-            height:"100%",borderRadius:"inherit",background:"rgba(255,255,255,.96)",
-            transformOrigin:"left center",width:`${Math.min(progress,100)}%`,
-            transition:"width 0.05s linear"
-          }} />
-        </div>
-
-        {/* Header */}
-        <div style={{
-          position:"absolute",zIndex:40,
-          top:"calc(env(safe-area-inset-top,0px) + 7px + 2px + 9px)",left:10,right:10,
-          display:"flex",alignItems:"center",minHeight:38,pointerEvents:"none",
-          transition:"opacity 110ms ease",opacity:isPressingStory?0.18:1,
-        }}>
-          <img src={avatarUrl} alt="" style={{
-            width:31,height:31,borderRadius:"50%",objectFit:"cover",flex:"0 0 auto",
-            border:"1.5px solid rgba(255,255,255,.85)"
-          }} />
-          <span style={{
-            marginLeft:8,fontFamily:font,fontSize:14,lineHeight:"17px",fontWeight:600,color:"#fff",
-            textShadow:"0 1px 2px rgba(0,0,0,.35)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"
-          }}>
-            {displayName}
-          </span>
-          <span style={{
-            marginLeft:6,fontFamily:font,fontSize:13,lineHeight:"17px",fontWeight:400,
-            color:"rgba(255,255,255,.72)",textShadow:"0 1px 2px rgba(0,0,0,.35)",
-            whiteSpace:"nowrap",flexShrink:0
-          }}>
-            Ahora
-          </span>
-          <div style={{ marginLeft:"auto",display:"flex",alignItems:"center",gap:6 }}>
-            <button aria-label="Cerrar" onClick={(e)=>{e.stopPropagation();handleClose()}}
-              style={{
-                pointerEvents:"auto",width:38,height:38,display:"grid",placeItems:"center",
-                padding:0,border:0,background:"transparent",color:"#fff",
-                WebkitTapHighlightColor:"transparent",cursor:"pointer"
-              }}>
-              <CloseSvg />
-            </button>
+          >
+            {transition ? (
+              <img src={storyImages[transition.from]} alt="" draggable={false}
+                style={{width:"100%",height:"100%",display:"block",objectFit:"cover",objectPosition:"center center"}}
+              />
+            ) : (
+              <img src={currentImage} alt="" draggable={false}
+                style={{width:"100%",height:"100%",display:"block",objectFit:"cover",objectPosition:"center center",
+                  transition:"opacity 180ms ease-out",
+                  opacity:paused?0.72:1,
+                }}
+              />
+            )}
           </div>
-        </div>
 
-        {/* Reaction picker overlay */}
-        {reactionPickerOpen && (
-          <div style={{
-            position:"absolute",zIndex:55,inset:0,
-            background:"rgba(0,0,0,.26)",pointerEvents:"none"
-          }} />
-        )}
-
-        {/* Reaction picker */}
-        <div style={{
-          position:"absolute",zIndex:65,left:"50%",
-          bottom:`${keyboardInset > 100 ? keyboardInset + 122 : 122}px`,
-          transform:reactionPickerOpen?"translateX(-50%) translateY(0) scale(1)":"translateX(-50%) translateY(8px) scale(.96)",
-          opacity:reactionPickerOpen?1:0,
-          pointerEvents:reactionPickerOpen?"auto":"none",
-          transition:"opacity 180ms cubic-bezier(.2,.8,.2,1), transform 180ms cubic-bezier(.2,.8,.2,1)",
-          width:"min(78vw,330px)",
-          display:"grid",gridTemplateColumns:"repeat(3,1fr)",rowGap:24,columnGap:28,
-        }}>
-          {HOLD_REACTIONS.map((emoji) => (
-            <button key={emoji} data-re={emoji} aria-label={emoji}
-              data-active={highlightedReaction===emoji?"true":undefined}
-              onClick={(e)=>{e.stopPropagation()}}
+          {transition && (
+            <div className="story-slide"
               style={{
-                width:74,height:74,display:"grid",placeItems:"center",padding:0,border:0,
-                background:"transparent",fontFamily:eFont,fontSize:58,lineHeight:1,
-                WebkitTapHighlightColor:"transparent",touchAction:"none",cursor:"pointer",
+                zIndex:4,
+                animation: `${enterAnim} 220ms cubic-bezier(0.22,1,0.36,1) forwards`,
               }}
             >
-              {emoji}
-            </button>
-          ))}
-        </div>
-
-        {/* Story composer — blocks all gesture propagation */}
-        <div
-          onPointerDown={(e)=>{e.preventDefault();e.stopPropagation()}}
-          onPointerUp={(e)=>{e.preventDefault();e.stopPropagation()}}
-          onClick={(e)=>{e.preventDefault();e.stopPropagation()}}
-          onTouchStart={(e)=>{e.stopPropagation()}}
-          onTouchEnd={(e)=>{e.stopPropagation()}}
-          style={{
-            position:"absolute",zIndex:50,left:0,right:0,
-            bottom:`${keyboardInset > 100 ? keyboardInset : 0}px`,
-            pointerEvents:"auto",
-          }}>
-          {/* Quick reactions */}
-          {isComposerFocused && keyboardInset > 100 && (
-            <div style={{
-              display:"flex",justifyContent:"center",gap:4,
-              padding:"0 14px 8px",
-              animation:"qrs 200ms cubic-bezier(.2,.75,.25,1) forwards",
-            }}>
-              {QUICK_REACTIONS.map((emoji) => (
-                <button key={emoji} data-si
-                  onClick={(e)=>{e.stopPropagation();const r=e.currentTarget.getBoundingClientRect();sendReaction(emoji,r.left+r.width/2,r.top+r.height/2)}}
-                  style={{
-                    width:44,height:44,display:"grid",placeItems:"center",padding:0,border:0,
-                    borderRadius:"50%",background:"rgba(255,255,255,.14)",
-                    backdropFilter:"blur(4px)",WebkitBackdropFilter:"blur(4px)",
-                    fontFamily:eFont,fontSize:22,WebkitTapHighlightColor:"transparent",
-                    cursor:"pointer",pointerEvents:"auto",
-                  }}
-                >
-                  {emoji}
-                </button>
-              ))}
+              <img src={enterImage!} alt="" draggable={false}
+                style={{width:"100%",height:"100%",display:"block",objectFit:"cover",objectPosition:"center center"}}
+              />
             </div>
           )}
 
-          {/* Input row — fake div, not a real input */}
+          {/* Gradient overlays */}
           <div style={{
-            display:"flex",alignItems:"center",gap:8,
-            padding:"8px 14px calc(env(safe-area-inset-bottom,0px) + 10px)",
-            pointerEvents:"none",
-          }}>
-            <div
-              onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); if (document.activeElement !== hiddenInputRef.current) hiddenInputRef.current?.focus({ preventScroll: true }); }}
-              style={{
-                flex:1,height:42,display:"flex",alignItems:"center",gap:4,
-                padding:"0 4px 0 16px",borderRadius:999,
-                border:"1px solid rgba(255,255,255,.44)",
-                background:"rgba(24,24,24,.44)",
-                pointerEvents:"auto",cursor:"text",
-                color:message?"#fff":"rgba(255,255,255,.82)",
-                fontFamily:font,fontSize:16,lineHeight:"20px",fontWeight:400,
-                whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",
-              }}
-            >
-              {message || "Enviar mensaje..."}
-            </div>
+            position:"absolute",zIndex:20,inset:"0 0 auto",height:145,
+            background:"linear-gradient(to bottom,rgba(0,0,0,.62) 0%,rgba(0,0,0,.28) 54%,transparent 100%)",
+            pointerEvents:"none"
+          }} />
+          <div style={{
+            position:"absolute",zIndex:20,inset:"auto 0 0",height:200,
+            background:"linear-gradient(to top,rgba(0,0,0,.58) 0%,rgba(0,0,0,.23) 52%,transparent 100%)",
+            pointerEvents:"none"
+          }} />
 
-            {message.trim() && (
-              <button aria-label="Enviar" data-si
-                onPointerDown={(e)=>{e.stopPropagation()}}
-                onClick={(e)=>{e.stopPropagation();handleSend()}}
-                disabled={isSending}
+          {/* Progress bars */}
+          <div style={{
+            position:"absolute",zIndex:40,
+            top:"calc(env(safe-area-inset-top,0px) + 7px)",
+            left:10,right:10,height:2,
+            display:"flex",gap:3,pointerEvents:"none",
+            transition:"opacity 110ms ease",opacity:paused?0.18:1,
+          }}>
+            {storyImages.map((_, idx) => {
+              const val = transition && transition.from === idx ? 100 : (progress[idx] || 0);
+              return (
+                <div key={idx} style={{
+                  flex:1,height:"100%",borderRadius:999,overflow:"hidden",
+                  background:"rgba(255,255,255,.34)",
+                }}>
+                  <div style={{
+                    height:"100%",borderRadius:"inherit",
+                    background:"rgba(255,255,255,.96)",
+                    width:`${Math.min(val,100)}%`,
+                    transition: idx === currentIndex && !transition && !paused
+                      ? "width 0.05s linear"
+                      : "width 220ms cubic-bezier(0.22,1,0.36,1)",
+                  }} />
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Header */}
+          <div style={{
+            position:"absolute",zIndex:40,
+            top:"calc(env(safe-area-inset-top,0px) + 7px + 2px + 9px)",left:10,right:10,
+            display:"flex",alignItems:"center",minHeight:38,pointerEvents:"none",
+            transition:"opacity 110ms ease",opacity:paused?0.18:1,
+          }} data-story-interactive>
+            <img src={avatarUrl} alt="" style={{
+              width:31,height:31,borderRadius:"50%",objectFit:"cover",flex:"0 0 auto",
+              border:"1.5px solid rgba(255,255,255,.85)"
+            }} />
+            <span style={{
+              marginLeft:8,fontFamily:font,fontSize:14,lineHeight:"17px",fontWeight:600,color:"#fff",
+              textShadow:"0 1px 2px rgba(0,0,0,.35)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"
+            }}>
+              {displayName}
+            </span>
+            <span style={{
+              marginLeft:6,fontFamily:font,fontSize:13,lineHeight:"17px",fontWeight:400,
+              color:"rgba(255,255,255,.72)",textShadow:"0 1px 2px rgba(0,0,0,.35)",
+              whiteSpace:"nowrap",flexShrink:0
+            }}>
+              Ahora
+            </span>
+            <div style={{ marginLeft:"auto",display:"flex",alignItems:"center",gap:6 }}>
+              <button aria-label="Cerrar" data-story-interactive
+                onClick={(e)=>{e.stopPropagation();handleClose()}}
                 style={{
-                  width:34,height:34,display:"grid",placeItems:"center",padding:0,border:0,
-                  borderRadius:"50%",background:"#fff",
-                  color:"#000",WebkitTapHighlightColor:"transparent",
-                  cursor:"pointer",pointerEvents:"auto",flexShrink:0,
+                  pointerEvents:"auto",width:38,height:38,display:"grid",placeItems:"center",
+                  padding:0,border:0,background:"transparent",color:"#fff",
+                  WebkitTapHighlightColor:"transparent",cursor:"pointer"
+                }}>
+                <CloseSvg />
+              </button>
+            </div>
+          </div>
+
+          {/* Reaction picker overlay */}
+          {reactionPickerOpen && (
+            <div style={{
+              position:"absolute",zIndex:55,inset:0,
+              background:"rgba(0,0,0,.26)",pointerEvents:"none"
+            }} />
+          )}
+
+          {/* Reaction picker */}
+          <div style={{
+            position:"absolute",zIndex:65,left:"50%",
+            bottom:`${keyboardInset > 100 ? keyboardInset + 122 : 122}px`,
+            transform:reactionPickerOpen?"translateX(-50%) translateY(0) scale(1)":"translateX(-50%) translateY(8px) scale(.96)",
+            opacity:reactionPickerOpen?1:0,
+            pointerEvents:reactionPickerOpen?"auto":"none",
+            transition:"opacity 180ms cubic-bezier(.2,.8,.2,1), transform 180ms cubic-bezier(.2,.8,.2,1)",
+            width:"min(78vw,330px)",
+            display:"grid",gridTemplateColumns:"repeat(3,1fr)",rowGap:24,columnGap:28,
+          }}>
+            {HOLD_REACTIONS.map((emoji) => (
+              <button key={emoji} data-re={emoji} aria-label={emoji} data-story-interactive
+                data-active={highlightedReaction===emoji?"true":undefined}
+                onClick={(e)=>{e.stopPropagation()}}
+                style={{
+                  width:74,height:74,display:"grid",placeItems:"center",padding:0,border:0,
+                  background:"transparent",fontFamily:eFont,fontSize:58,lineHeight:1,
+                  WebkitTapHighlightColor:"transparent",touchAction:"none",cursor:"pointer",
                 }}
               >
-                <SendSvg />
+                {emoji}
               </button>
+            ))}
+          </div>
+
+          {/* Story composer */}
+          <div data-story-interactive
+            onPointerDown={(e)=>{e.preventDefault();e.stopPropagation()}}
+            onPointerUp={(e)=>{e.preventDefault();e.stopPropagation()}}
+            onClick={(e)=>{e.preventDefault();e.stopPropagation()}}
+            onTouchStart={(e)=>{e.stopPropagation()}}
+            onTouchEnd={(e)=>{e.stopPropagation()}}
+            style={{
+              position:"absolute",zIndex:50,left:0,right:0,
+              bottom:`${keyboardInset > 100 ? keyboardInset : 0}px`,
+              pointerEvents:"auto",
+            }}>
+            {isComposerFocused && keyboardInset > 100 && (
+              <div style={{
+                display:"flex",justifyContent:"center",gap:4,
+                padding:"0 14px 8px",
+                animation:"qrs 200ms cubic-bezier(.2,.75,.25,1) forwards",
+              }}>
+                {QUICK_REACTIONS.map((emoji) => (
+                  <button key={emoji} data-story-interactive
+                    onClick={(e)=>{e.stopPropagation();const r=e.currentTarget.getBoundingClientRect();sendReaction(emoji,r.left+r.width/2,r.top+r.height/2)}}
+                    style={{
+                      width:44,height:44,display:"grid",placeItems:"center",padding:0,border:0,
+                      borderRadius:"50%",background:"rgba(255,255,255,.14)",
+                      backdropFilter:"blur(4px)",WebkitBackdropFilter:"blur(4px)",
+                      fontFamily:eFont,fontSize:22,WebkitTapHighlightColor:"transparent",
+                      cursor:"pointer",pointerEvents:"auto",
+                    }}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
             )}
 
-            <button ref={heartBtnRef} aria-label="Reaccionar" data-si
-              onPointerDown={(e)=>{e.stopPropagation();handleHeartDown(e as any)}}
-              onPointerUp={(e)=>{e.stopPropagation();handleHeartUp(e as any)}}
-              onPointerCancel={(e)=>{e.stopPropagation();handleHeartCancel()}}
-              onPointerLeave={(e)=>{e.stopPropagation();handleHeartCancel()}}
-              style={{
-                width:42,height:42,display:"grid",placeItems:"center",padding:0,border:0,
-                background:"transparent",color:isLiked?"#ff304f":"#fff",
-                WebkitTapHighlightColor:"transparent",cursor:"pointer",pointerEvents:"auto",
-              }}
-            >
-              <HeartSvg filled={isLiked} />
-            </button>
-          </div>
-        </div>
+            <div style={{
+              display:"flex",alignItems:"center",gap:8,
+              padding:"8px 14px calc(env(safe-area-inset-bottom,0px) + 10px)",
+              pointerEvents:"none",
+            }}>
+              <div data-story-interactive
+                onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); if (document.activeElement !== hiddenInputRef.current) hiddenInputRef.current?.focus({ preventScroll: true }); }}
+                style={{
+                  flex:1,height:42,display:"flex",alignItems:"center",gap:4,
+                  padding:"0 4px 0 16px",borderRadius:999,
+                  border:"1px solid rgba(255,255,255,.44)",
+                  background:"rgba(24,24,24,.44)",
+                  pointerEvents:"auto",cursor:"text",
+                  color:message?"#fff":"rgba(255,255,255,.82)",
+                  fontFamily:font,fontSize:16,lineHeight:"20px",fontWeight:400,
+                  whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",
+                }}
+              >
+                {message || "Enviar mensaje..."}
+              </div>
 
-        {/* Like particles */}
-        {likeParticles.map((p) => (
-          <div key={p.id} style={{
-            position:"absolute",left:p.x - 12,top:p.y - 12,width:24,height:24,
-            color:"#ff304f",pointerEvents:"none",zIndex:80,
-            animation:"lp 650ms cubic-bezier(.18,.75,.25,1) forwards",
-          }}>
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="#ff304f" stroke="none" aria-hidden="true">
-              <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21.3l7.8-7.8 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" />
-            </svg>
-          </div>
-        ))}
+              {message.trim() && (
+                <button aria-label="Enviar" data-story-interactive
+                  onPointerDown={(e)=>{e.stopPropagation()}}
+                  onClick={(e)=>{e.stopPropagation();handleSend()}}
+                  disabled={isSending}
+                  style={{
+                    width:34,height:34,display:"grid",placeItems:"center",padding:0,border:0,
+                    borderRadius:"50%",background:"#fff",
+                    color:"#000",WebkitTapHighlightColor:"transparent",
+                    cursor:"pointer",pointerEvents:"auto",flexShrink:0,
+                  }}
+                >
+                  <SendSvg />
+                </button>
+              )}
 
-        {/* Floating emojis */}
-        {floatingEmojis.map((fe) => (
-          <div key={fe.id} style={{
-            position:"absolute",zIndex:95,left:fe.x - 17,top:fe.y - 17,
-            fontFamily:eFont,fontSize:34,lineHeight:1,pointerEvents:"none",
-            animation:"ef 820ms cubic-bezier(.2,.74,.24,1) forwards",
-          }}>
-            {fe.emoji}
+              <button ref={heartBtnRef} aria-label="Reaccionar" data-story-interactive
+                onPointerDown={(e)=>{e.stopPropagation();handleHeartDown(e as any)}}
+                onPointerUp={(e)=>{e.stopPropagation();handleHeartUp(e as any)}}
+                onPointerCancel={(e)=>{e.stopPropagation();handleHeartCancel()}}
+                onPointerLeave={(e)=>{e.stopPropagation();handleHeartCancel()}}
+                style={{
+                  width:42,height:42,display:"grid",placeItems:"center",padding:0,border:0,
+                  background:"transparent",color:isLiked?"#ff304f":"#fff",
+                  WebkitTapHighlightColor:"transparent",cursor:"pointer",pointerEvents:"auto",
+                }}
+              >
+                <HeartSvg filled={isLiked} />
+              </button>
+            </div>
           </div>
-        ))}
 
-        {/* Message confirm */}
-        {msgConfirm && (
-          <div style={{
-            position:"absolute",left:"50%",bottom:72,transform:"translateX(-50%)",
-            padding:"6px 10px",borderRadius:999,color:"#fff",background:"rgba(24,24,24,.72)",
-            fontFamily:font,fontSize:11,fontWeight:500,pointerEvents:"none",whiteSpace:"nowrap",
-            animation:"mc 800ms ease-out forwards",
-          }}>
-            {msgConfirm}
-          </div>
-        )}
+          {/* Like particles */}
+          {likeParticles.map((p) => (
+            <div key={p.id} style={{
+              position:"absolute",left:p.x - 12,top:p.y - 12,width:24,height:24,
+              color:"#ff304f",pointerEvents:"none",zIndex:80,
+              animation:"lp 650ms cubic-bezier(.18,.75,.25,1) forwards",
+            }}>
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="#ff304f" stroke="none" aria-hidden="true">
+                <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21.3l7.8-7.8 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" />
+              </svg>
+            </div>
+          ))}
 
-        {/* Closing overlay */}
-        {closing && (
-          <div style={{
-            position:"absolute",inset:0,zIndex:200,background:"#000",pointerEvents:"none"
-          }} />
-        )}
+          {/* Floating emojis */}
+          {floatingEmojis.map((fe) => (
+            <div key={fe.id} style={{
+              position:"absolute",zIndex:95,left:fe.x - 17,top:fe.y - 17,
+              fontFamily:eFont,fontSize:34,lineHeight:1,pointerEvents:"none",
+              animation:"ef 820ms cubic-bezier(.2,.74,.24,1) forwards",
+            }}>
+              {fe.emoji}
+            </div>
+          ))}
+
+          {/* Message confirm */}
+          {msgConfirm && (
+            <div style={{
+              position:"absolute",left:"50%",bottom:72,transform:"translateX(-50%)",
+              padding:"6px 10px",borderRadius:999,color:"#fff",background:"rgba(24,24,24,.72)",
+              fontFamily:font,fontSize:11,fontWeight:500,pointerEvents:"none",whiteSpace:"nowrap",
+              animation:"mc 800ms ease-out forwards",
+            }}>
+              {msgConfirm}
+            </div>
+          )}
+
+          {/* Closing overlay */}
+          {closing && (
+            <div style={{
+              position:"absolute",inset:0,zIndex:200,background:"#000",pointerEvents:"none"
+            }} />
+          )}
         </div>
       </div>
     </>

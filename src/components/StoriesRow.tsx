@@ -11,14 +11,14 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export default function StoriesRow({ girls }: { girls: Girl[] }) {
   const [seen, setSeen] = useState<Set<string>>(new Set());
-  const [storyChar, setStoryChar] = useState<{ id: string; image: string; avatar: string; name: string } | null>(null);
+  const [storyChar, setStoryChar] = useState<{ id: string; images: string[]; initialIndex: number; avatar: string; name: string } | null>(null);
 
   const preloadStoryImage = (girl: Girl) => {
     if (!girl.storyImages?.length) return;
-    const idx = getDailyStoryIndex(girl.id, girl.storyImages.length);
-    if (idx === -1) return;
-    const img = new Image();
-    img.src = `${basePath}${girl.storyImages[idx]}`;
+    girl.storyImages.forEach((img) => {
+      const el = new Image();
+      el.src = `${basePath}${img}`;
+    });
   };
 
   const handleClick = (girl: Girl) => {
@@ -28,7 +28,8 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
     if (idx === -1) return;
     setStoryChar({
       id: girl.id,
-      image: `${basePath}${girl.storyImages[idx]}`,
+      images: girl.storyImages.map((img) => `${basePath}${img}`),
+      initialIndex: idx,
       avatar: girl.cloudinaryImage ?? getGirlImage(girl.id, null, null, null, girl.cloudinaryImage),
       name: girl.name,
     });
@@ -38,7 +39,8 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
     <>
       {storyChar && (
         <StoryViewer
-          storyImage={storyChar.image}
+          storyImages={storyChar.images}
+          storyIndex={storyChar.initialIndex}
           avatarUrl={storyChar.avatar}
           displayName={storyChar.name}
           onClose={() => setStoryChar(null)}
