@@ -506,10 +506,8 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
         .story-desktop-shell img{-webkit-touch-callout:none;pointer-events:none}
         .story-blurred-background{position:absolute;inset:-40px;background-position:center;background-size:cover;filter:blur(28px);transform:scale(1.08);opacity:0.55;pointer-events:none;will-change:background-image}
         .story-slide{position:absolute;inset:0;will-change:transform,opacity}
-        .story-slide>img{animation:fi 260ms ease-out forwards}
         .story-slide-exit{animation-duration:180ms;animation-timing-function:cubic-bezier(0.22,1,0.36,1);animation-fill-mode:forwards}
         .story-slide-enter{animation-duration:180ms;animation-timing-function:cubic-bezier(0.22,1,0.36,1);animation-fill-mode:forwards}
-        @keyframes fi{from{opacity:0}to{opacity:1}}
         .story-action-button{width:40px;height:40px;display:grid;place-items:center;padding:0;border:0;background:transparent;color:#fff;-webkit-tap-highlight-color:transparent;cursor:pointer;transition:transform 120ms ease}
         .story-action-button:active{transform:scale(.84)}
         .story-mobile-frame{position:relative;z-index:2;width:min(430px,calc(100vw - 32px));height:min(92dvh,860px);aspect-ratio:9/16;overflow:hidden;background:#000;border-radius:14px;box-shadow:0 20px 70px rgba(0,0,0,.55);will-change:transform}
@@ -551,7 +549,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
               animation: exitAnim ? `${exitAnim} 180ms cubic-bezier(0.22,1,0.36,1) forwards` : 'none',
             }}
           >
-            {transition ? (
+            {imageLoaded && (transition ? (
               <img src={storyImages[transition.from]} alt="" draggable={false}
                 style={{width:"100%",height:"100%",display:"block",objectFit:"cover",objectPosition:"center center"}}
               />
@@ -559,7 +557,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
               <img src={currentImage} alt="" draggable={false}
                 style={{width:"100%",height:"100%",display:"block",objectFit:"cover",objectPosition:"center center"}}
               />
-            )}
+            ))}
           </div>
 
           {transition && (
