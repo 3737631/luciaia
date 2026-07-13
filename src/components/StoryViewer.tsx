@@ -47,17 +47,18 @@ function SendSvg() {
   );
 }
 
-export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displayName, onClose }: {
-  storyImages: string[];
-  storyIndex: number;
-  avatarUrl: string;
-  displayName: string;
+export default function StoryViewer({ characters, startCharIndex, onClose }: {
+  characters: Array<{ id: string; images: string[]; avatar: string; name: string }>;
+  startCharIndex: number;
   onClose: () => void;
 }) {
+  const [charIndex, setCharIndex] = useState(startCharIndex);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const currentChar = characters[charIndex];
+  const storyImages = currentChar.images;
   const len = storyImages.length;
-  const [currentIndex, setCurrentIndex] = useState(storyIndex);
   const [progress, setProgress] = useState<number[]>(() =>
-    storyImages.map((_, i) => i < storyIndex ? 100 : i === storyIndex ? 0 : 0)
+    storyImages.map((_, i) => i < 0 ? 100 : i === 0 ? 0 : 0)
   );
   const [paused, setPaused] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -72,7 +73,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
   const [floatingEmojis, setFloatingEmojis] = useState<{ id: string; emoji: string; x: number; y: number }[]>([]);
   const [msgConfirm, setMsgConfirm] = useState<string | null>(null);
   const [transition, setTransition] = useState<{
-    from: number; to: number; dir: 'next' | 'prev';
+    from: number; to: number; dir: 'next' | 'prev'; fromChar: number; toChar: number;
   } | null>(null);
   const [timeAgo, setTimeAgo] = useState("");
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -151,16 +152,19 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     };
   }, []);
 
-  // Preload all story images; show content once the first image (storyIndex) is ready
+  // Preload all story images for current character
   useEffect(() => {
-    const idx = storyIndex;
-    storyImages.forEach((url, i) => {
+    setImageLoaded(false);
+    const idx = currentIndex;
+    const images = characters[charIndex].images;
+    let loaded = 0;
+    images.forEach((url, i) => {
       const img = new Image();
-      img.onload = () => { if (i === idx && mountedRef.current) setImageLoaded(true); };
-      img.onerror = () => { if (i === idx && mountedRef.current) setImageLoaded(true); };
+      img.onload = () => { loaded++; if (i === idx && mountedRef.current) { setImageLoaded(true); } };
+      img.onerror = () => { loaded++; if (i === idx && mountedRef.current) { setImageLoaded(true); } };
       img.src = url;
     });
-  }, []);
+  }, [characters, charIndex]);
 
   // Entry animation when first image loads
   useEffect(() => {
@@ -184,45 +188,59 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     setTimeout(() => { if (mountedRef.current) onClose(); }, 100);
   }, [closing, onClose]);
 
-  const goTo = useCallback((toIdx: number, dir: 'next' | 'prev') => {
+  const goTo = useCallback((toCharIdx: number, toIdx: number, dir: 'next' | 'prev') => {
     if (transition || closing || transitionLockedRef.current) return;
-    if (toIdx < 0 || toIdx >= len) return;
     transitionLockedRef.current = true;
     if (isComposerFocused) hiddenInputRef.current?.blur();
-    setTransition({ from: currentIndex, to: toIdx, dir });
-    setProgress(storyImages.map((_, i) => {
+    setTransition({ from: currentIndex, to: toIdx, dir, fromChar: charIndex, toChar: toCharIdx });
+    const destImages = characters[toCharIdx].images;
+    setProgress(destImages.map((_, i) => {
       if (i < toIdx) return 100;
       if (i === toIdx) return 0;
       return 0;
     }));
     setTimeout(() => {
       if (!mountedRef.current) return;
+      setCharIndex(toCharIdx);
       setCurrentIndex(toIdx);
       setTransition(null);
       autoFiredRef.current = false;
       transitionLockedRef.current = false;
+      setImageLoaded(true);
     }, TRANSITION_MS);
-  }, [transition, closing, len, isComposerFocused, currentIndex, storyImages]);
+  }, [transition, closing, isComposerFocused, currentIndex, charIndex, characters]);
 
   const goToNext = useCallback(() => {
-    goTo(currentIndex + 1, 'next');
-  }, [currentIndex, goTo]);
+    if (currentIndex < len - 1) {
+      goTo(charIndex, currentIndex + 1, 'next');
+    } else if (charIndex < characters.length - 1) {
+      goTo(charIndex + 1, 0, 'next');
+    }
+  }, [currentIndex, len, charIndex, characters, goTo]);
 
   const goToPrev = useCallback(() => {
-    goTo(currentIndex - 1, 'prev');
-  }, [currentIndex, goTo]);
+    if (currentIndex > 0) {
+      goTo(charIndex, currentIndex - 1, 'prev');
+    } else if (charIndex > 0) {
+      goTo(charIndex - 1, characters[charIndex - 1].images.length - 1, 'prev');
+    }
+  }, [currentIndex, charIndex, characters, goTo]);
 
   // Keyboard shortcuts
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (e.key === "Escape") { handleClose(); return; }
-      if (e.key === "ArrowRight" && currentIndex < len - 1) { e.preventDefault(); goToNext(); return; }
-      if (e.key === "ArrowLeft" && currentIndex > 0) { e.preventDefault(); goToPrev(); return; }
+      if (e.key === "ArrowRight") {
+        if (currentIndex < len - 1 || charIndex < characters.length - 1) { e.preventDefault(); goToNext(); return; }
+      }
+      if (e.key === "ArrowLeft") {
+        if (currentIndex > 0 || charIndex > 0) { e.preventDefault(); goToPrev(); return; }
+      }
     };
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentIndex, len, handleClose, goToNext, goToPrev]);
+  }, [currentIndex, len, charIndex, characters.length, handleClose, goToNext, goToPrev]);
 
   // Progress timer — 20fps via setInterval to minimise re-renders (iOS keyboard stability)
   useEffect(() => {
@@ -244,14 +262,14 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
   useEffect(() => {
     if (closing || transition || autoFiredRef.current) return;
     if (progress[currentIndex] >= 100) {
-      if (currentIndex < len - 1) {
+      if (currentIndex < len - 1 || charIndex < characters.length - 1) {
         autoFiredRef.current = true;
         const t = setTimeout(() => { autoFiredRef.current = false; goToNext(); }, 150);
         return () => { clearTimeout(t); autoFiredRef.current = false; };
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [progress[currentIndex], closing, transition, currentIndex, len]);
+  }, [progress[currentIndex], closing, transition, currentIndex, len, charIndex, characters.length]);
 
   // Reaction picker pointer tracking
   useEffect(() => {
@@ -282,7 +300,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
   const sendReaction = useCallback((emoji: string | null, originX?: number, originY?: number) => {
     if (!emoji) return;
     triggerHaptic(15);
-    saveInteraction(`daily_${displayName}`, displayName, "reaction", emoji);
+    saveInteraction(`daily_${currentChar.name}`, currentChar.name, "reaction", emoji);
     const id = crypto.randomUUID?.() ?? `${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
     if (originX != null && originY != null) {
       setFloatingEmojis((p) => [...p, { id, emoji, x: originX, y: originY }]);
@@ -294,17 +312,18 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     }
     setTimeout(() => { if (mountedRef.current) setFloatingEmojis((p) => p.filter((r) => r.id !== id)); }, 850);
     setReactionPickerOpen(false); setHighlightedReaction(null); highlightRef.current = null;
-  }, [displayName]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentChar.name]);
 
   const handleSend = useCallback(() => {
     if (!message.trim() || isSending) return;
     setIsSending(true); triggerHaptic(10);
-    saveInteraction(`daily_${displayName}`, displayName, "message", message.trim());
+    saveInteraction(`daily_${currentChar.name}`, currentChar.name, "message", message.trim());
     setMessage(""); hiddenInputRef.current?.blur();
     setMsgConfirm("Mensaje enviado");
     setTimeout(() => { if (mountedRef.current) setMsgConfirm(null); }, 800);
     setTimeout(() => { if (mountedRef.current) setIsSending(false); }, 300);
-  }, [message, displayName, isSending]);
+  }, [message, currentChar.name, isSending]);
 
   const handleHeartDown = useCallback((e: React.PointerEvent) => {
     e.stopPropagation();
@@ -438,8 +457,8 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     // Swipe (horizontal drag > SWIPE_THRESHOLD)
     if (g.moved && Math.abs(dx) > SWIPE_THRESHOLD) {
       g.gestureConsumed = true;
-      if (dx < 0 && currentIndex < len - 1) { goToNext(); return; }
-      if (dx > 0 && currentIndex > 0) { goToPrev(); return; }
+      if (dx < 0 && (currentIndex < len - 1 || charIndex < characters.length - 1)) { goToNext(); return; }
+      if (dx > 0 && (currentIndex > 0 || charIndex > 0)) { goToPrev(); return; }
       return;
     }
 
@@ -447,21 +466,19 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     if (!g.moved && elapsed < TAP_MAX_MS) {
       const zoneX = e.clientX - el.getBoundingClientRect().left;
       const zoneW = el.clientWidth;
-      if (zoneX < zoneW * 0.45 && currentIndex > 0) {
+      if (zoneX < zoneW * 0.45 && (currentIndex > 0 || charIndex > 0)) {
         g.gestureConsumed = true;
         goToPrev();
         return;
       }
-      if (zoneX >= zoneW * 0.55 && currentIndex < len - 1) {
+      if (zoneX >= zoneW * 0.55 && (currentIndex < len - 1 || charIndex < characters.length - 1)) {
         g.gestureConsumed = true;
         goToNext();
         return;
       }
       return;
     }
-
-    // Fallback: if moved but below swipe threshold, nothing
-  }, [currentIndex, len, goToNext, goToPrev, handleClose]);
+  }, [currentIndex, len, charIndex, characters.length, goToNext, goToPrev, handleClose]);
 
   const handlePointerCancel = useCallback((e: React.PointerEvent) => {
     const el = e.currentTarget as HTMLElement;
@@ -479,14 +496,20 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
 
   // ── Render ──
 
-  const currentImage = storyImages[currentIndex];
-  const enterImage = transition ? storyImages[transition.to] : null;
+  const currentCharImages = characters[charIndex].images;
+  const currentImage = currentCharImages[currentIndex];
+  const exitImage = transition ? characters[transition.fromChar].images[transition.from] : null;
+  const enterImage = transition ? characters[transition.toChar].images[transition.to] : null;
 
   const exitAnim = transition
-    ? (transition.dir === 'next' ? 'story-exit-next' : 'story-exit-prev')
+    ? (transition.fromChar !== transition.toChar
+      ? (transition.dir === 'next' ? 'cube-exit-next' : 'cube-exit-prev')
+      : (transition.dir === 'next' ? 'story-exit-next' : 'story-exit-prev'))
     : null;
   const enterAnim = transition
-    ? (transition.dir === 'next' ? 'story-enter-next' : 'story-enter-prev')
+    ? (transition.fromChar !== transition.toChar
+      ? (transition.dir === 'next' ? 'cube-enter-next' : 'cube-enter-prev')
+      : (transition.dir === 'next' ? 'story-enter-next' : 'story-enter-prev'))
     : null;
 
   const storyContent = (
@@ -502,6 +525,10 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
         @keyframes story-enter-next{from{transform:translate3d(20px,0,0) scale(.995);opacity:0}to{transform:translate3d(0,0,0) scale(1);opacity:1}}
         @keyframes story-exit-prev{from{transform:translate3d(0,0,0) scale(1);opacity:1}to{transform:translate3d(16px,0,0) scale(.995);opacity:0}}
         @keyframes story-enter-prev{from{transform:translate3d(-20px,0,0) scale(.995);opacity:0}to{transform:translate3d(0,0,0) scale(1);opacity:1}}
+        @keyframes cube-exit-next{from{transform:rotateY(0deg) translateZ(0);opacity:1}to{transform:rotateY(-90deg) translateZ(0);opacity:.85}}
+        @keyframes cube-enter-next{from{transform:rotateY(90deg) translateZ(0);opacity:0}to{transform:rotateY(0deg) translateZ(0);opacity:1}}
+        @keyframes cube-exit-prev{from{transform:rotateY(0deg) translateZ(0);opacity:1}to{transform:rotateY(90deg) translateZ(0);opacity:.85}}
+        @keyframes cube-enter-prev{from{transform:rotateY(-90deg) translateZ(0);opacity:0}to{transform:rotateY(0deg) translateZ(0);opacity:1}}
         .story-desktop-shell{position:fixed;inset:0;z-index:9999;display:flex;justify-content:center;align-items:center;overflow:hidden;background:#000;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;overscroll-behavior:none}
         .story-desktop-shell img{-webkit-touch-callout:none;pointer-events:none}
         .story-blurred-background{position:absolute;inset:-40px;background-position:center;background-size:cover;filter:blur(28px);transform:scale(1.08);opacity:0.55;pointer-events:none;will-change:background-image}
@@ -542,16 +569,21 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
       >
         <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,.38)",pointerEvents:"none",zIndex:1}} />
         <div className="story-blurred-background" style={{backgroundImage:`url(${currentImage})`}} />
-        <div ref={frameRef} className="story-mobile-frame" style={{touchAction:"none"}}>
+        <div ref={frameRef} className="story-mobile-frame" style={{
+          touchAction:"none",
+          perspective: (transition && transition.fromChar !== transition.toChar) ? '1000px' : undefined,
+          transformStyle: (transition && transition.fromChar !== transition.toChar) ? 'preserve-3d' : undefined,
+        }}>
           {/* Image layers */}
           <div className="story-slide"
             style={{
               zIndex:transition ? 3 : 2,
               animation: exitAnim ? `${exitAnim} 180ms cubic-bezier(0.22,1,0.36,1) forwards` : 'none',
+              backfaceVisibility: transition && transition.fromChar !== transition.toChar ? 'hidden' : undefined,
             }}
           >
             {transition ? (
-              <img src={storyImages[transition.from]} alt="" draggable={false}
+              <img src={exitImage!} alt="" draggable={false}
                 style={{width:"100%",height:"100%",display:"block",objectFit:"cover",objectPosition:"center center"}}
               />
             ) : (
@@ -566,6 +598,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
               style={{
                 zIndex:4,
                 animation: `${enterAnim} 180ms cubic-bezier(0.22,1,0.36,1) forwards`,
+                backfaceVisibility: transition.fromChar !== transition.toChar ? 'hidden' : undefined,
               }}
             >
               <img src={enterImage!} alt="" draggable={false}
@@ -607,7 +640,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
             transition:"opacity 110ms ease",
             opacity:paused?0.18:1,
           }}>
-            {storyImages.map((_, idx) => {
+            {currentCharImages.map((_, idx) => {
               const val = progress[idx] || 0;
               return (
                 <div key={idx} style={{
@@ -641,7 +674,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
             transition:"opacity 110ms ease",
             opacity:paused?0.18:1,
           }} data-story-interactive>
-            <img src={avatarUrl} alt="" style={{
+            <img src={currentChar.avatar} alt="" style={{
               width:30,height:30,borderRadius:"50%",objectFit:"cover",flex:"0 0 auto",
               border:"1.5px solid rgba(255,255,255,.85)",
             }} />
@@ -651,7 +684,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
               textShadow:"0 1px 2px rgba(0,0,0,.4)",
               whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",
             }}>
-              {displayName}
+              {currentChar.name}
             </span>
             <span style={{
               marginLeft:6,fontFamily:font,fontSize:12.5,lineHeight:"17px",fontWeight:400,
