@@ -12,8 +12,9 @@ const PROGRESS_INTERVAL = 50;
 const TAP_MAX_MS = 150;
 const TAP_MAX_MOVE = 10;
 const SWIPE_THRESHOLD = 45;
+const SWIPE_DOWN_THRESHOLD = 80;
 const LONG_PRESS_MS = 200;
-const TRANSITION_MS = 220;
+const TRANSITION_MS = 180;
 
 const font = `-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif`;
 const eFont = `"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
@@ -76,6 +77,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
   const [timeAgo, setTimeAgo] = useState("");
 
   const rootRef = useRef<HTMLDivElement>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
   const hiddenInputRef = useRef<HTMLInputElement>(null);
   const heartBtnRef = useRef<HTMLButtonElement>(null);
   const scrollYRef = useRef(0);
@@ -89,6 +91,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
   const gestureRef = useRef({
     startX: 0, startY: 0, startTime: 0,
     moved: false, longPress: false, gestureConsumed: false,
+    dx: 0, dy: 0, isSwipingDown: false,
   });
 
   // Visual viewport — detect keyboard open via viewport shrink
@@ -311,9 +314,12 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     if (target.closest('button, input, textarea, a, [role="button"], [data-story-interactive]')) return;
     if (transition || closing || transitionLockedRef.current) return;
     try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch {}
+    // Reset any drag transform
+    if (frameRef.current) { frameRef.current.style.transform = ""; frameRef.current.style.borderRadius = ""; frameRef.current.style.transition = ""; }
     gestureRef.current = {
       startX: e.clientX, startY: e.clientY, startTime: performance.now(),
       moved: false, longPress: false, gestureConsumed: false,
+      dx: 0, dy: 0, isSwipingDown: false,
     };
     const tid = setTimeout(() => {
       if (mountedRef.current && gestureRef.current && !gestureRef.current.moved) {
@@ -329,17 +335,34 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     if (!g || g.gestureConsumed) return;
     const dx = e.clientX - g.startX;
     const dy = e.clientY - g.startY;
+    g.dx = dx; g.dy = dy;
+    // Vertical swipe down — drag to close
+    if (dy > 0 && dy > Math.abs(dx) * 1.2 && !transition && !closing) {
+      if (!g.isSwipingDown) { g.isSwipingDown = true; setPaused(true); }
+      const drag = Math.min(dy, 180);
+      if (frameRef.current) {
+        frameRef.current.style.transition = "none";
+        frameRef.current.style.transform = `translateY(${drag}px)`;
+        frameRef.current.style.borderRadius = `${Math.max(0, 14 - drag / 12)}px`;
+      }
+      return;
+    }
+    if (g.isSwipingDown && dy < 20) {
+      g.isSwipingDown = false;
+      setPaused(false);
+      if (frameRef.current) { frameRef.current.style.transition = "transform 250ms ease, border-radius 250ms ease"; frameRef.current.style.transform = ""; frameRef.current.style.borderRadius = ""; }
+    }
+    // Horizontal or other movement — existing logic
     if (Math.abs(dx) > TAP_MAX_MOVE || Math.abs(dy) > TAP_MAX_MOVE) {
       if (!g.moved) {
         g.moved = true;
-        // Cancel long-press timer on move
         const el = e.currentTarget as HTMLElement;
         const t = el.dataset.lpTimer;
         if (t) { clearTimeout(Number(t)); delete el.dataset.lpTimer; }
         if (g.longPress) setPaused(false);
       }
     }
-  }, []);
+  }, [transition, closing]);
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
     const el = e.currentTarget as HTMLElement;
@@ -356,10 +379,20 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     if (!g) return;
     resetGesture(el, e.pointerId);
 
+    // Reset drag transform
+    if (frameRef.current) { frameRef.current.style.transition = ""; frameRef.current.style.transform = ""; frameRef.current.style.borderRadius = ""; }
+
     if (g.gestureConsumed) return;
 
     const dx = e.clientX - g.startX;
+    const dy = e.clientY - g.startY;
     const elapsed = performance.now() - g.startTime;
+
+    // Swipe down to close
+    if (dy > SWIPE_DOWN_THRESHOLD && dy > Math.abs(dx) * 1.2) {
+      handleClose();
+      return;
+    }
 
     // Long press — resume pause, do not navigate
     if (g.longPress) {
@@ -393,7 +426,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     }
 
     // Fallback: if moved but below swipe threshold, nothing
-  }, [currentIndex, len, goToNext, goToPrev]);
+  }, [currentIndex, len, goToNext, goToPrev, handleClose]);
 
   const handlePointerCancel = useCallback((e: React.PointerEvent) => {
     const el = e.currentTarget as HTMLElement;
@@ -401,6 +434,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     if (t) { clearTimeout(Number(t)); delete el.dataset.lpTimer; }
     if (gestureRef.current) gestureRef.current.gestureConsumed = true;
     resetGesture(el, e.pointerId);
+    if (frameRef.current) { frameRef.current.style.transform = ""; frameRef.current.style.borderRadius = ""; frameRef.current.style.transition = ""; }
   }, []);
 
   function resetGesture(el: HTMLElement, pointerId: number) {
@@ -440,7 +474,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
         .story-slide-enter{animation-duration:220ms;animation-timing-function:cubic-bezier(0.22,1,0.36,1);animation-fill-mode:forwards}
         .story-action-button{width:40px;height:40px;display:grid;place-items:center;padding:0;border:0;background:transparent;color:#fff;-webkit-tap-highlight-color:transparent;cursor:pointer;transition:transform 120ms ease}
         .story-action-button:active{transform:scale(.84)}
-        .story-mobile-frame{position:relative;z-index:2;width:min(430px,calc(100vw - 32px));height:min(92dvh,860px);aspect-ratio:9/16;overflow:hidden;background:#000;border-radius:14px;box-shadow:0 20px 70px rgba(0,0,0,.55)}
+        .story-mobile-frame{position:relative;z-index:2;width:min(430px,calc(100vw - 32px));height:min(92dvh,860px);aspect-ratio:9/16;overflow:hidden;background:#000;border-radius:14px;box-shadow:0 20px 70px rgba(0,0,0,.55);will-change:transform}
         @media(max-width:767px){.story-desktop-shell{display:block}.story-blurred-background{display:none}.story-mobile-frame{width:100%!important;height:100dvh!important;max-width:none!important;aspect-ratio:auto!important;border-radius:0!important;box-shadow:none!important}}
       `}</style>
 
@@ -471,7 +505,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
       >
         <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,.38)",pointerEvents:"none",zIndex:1}} />
         <div className="story-blurred-background" style={{backgroundImage:`url(${currentImage})`}} />
-        <div className="story-mobile-frame" style={{touchAction:"none"}}>
+        <div ref={frameRef} className="story-mobile-frame" style={{touchAction:"none"}}>
           {/* Image layers */}
           <div className="story-slide"
             style={{
