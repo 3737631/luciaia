@@ -151,13 +151,13 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     };
   }, []);
 
-  // Preload every story image upfront → zero black flash on navigation
+  // Preload all story images; show content once the first image (storyIndex) is ready
   useEffect(() => {
-    let loaded = 0;
-    storyImages.forEach((url) => {
+    const idx = storyIndex;
+    storyImages.forEach((url, i) => {
       const img = new Image();
-      img.onload = () => { loaded++; if (loaded === storyImages.length && mountedRef.current) setImageLoaded(true); };
-      img.onerror = () => { loaded++; if (loaded === storyImages.length && mountedRef.current) setImageLoaded(true); };
+      img.onload = () => { if (i === idx && mountedRef.current) setImageLoaded(true); };
+      img.onerror = () => { if (i === idx && mountedRef.current) setImageLoaded(true); };
       img.src = url;
     });
   }, []);
