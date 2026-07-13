@@ -513,18 +513,18 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
         @media(max-width:767px){.story-desktop-shell{display:block}.story-blurred-background{display:none}.story-mobile-frame{width:100%!important;height:100dvh!important;max-width:none!important;aspect-ratio:auto!important;border-radius:0!important;box-shadow:none!important}}
       `}</style>
 
-      {/* Hidden real input at TOP */}
+      {/* Hidden input at top — triggers keyboard without shifting the frame */}
       <input ref={hiddenInputRef}
         value={message}
-        onChange={(e)=>setMessage(e.target.value)}
+        onChange={(e) => setMessage(e.target.value)}
         onFocus={() => setIsComposerFocused(true)}
         onBlur={() => { setIsComposerFocused(false); setKeyboardInset(0); }}
-        onKeyDown={(e)=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();handleSend()}}}
+        onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
         inputMode="text" autoComplete="off"
         style={{
-          position:"fixed",top:1,left:1,width:2,height:2,
-          opacity:0.01,fontSize:16,border:0,padding:0,margin:0,
-          zIndex:10001,
+          position: "fixed", top: 1, left: 1, width: 2, height: 2,
+          opacity: 0.01, fontSize: 16, border: 0, padding: 0, margin: 0,
+          zIndex: 10001,
         }}
       />
 
@@ -741,14 +741,14 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
               </div>
             )}
 
-            {/* Message row — flex: [input longest possible] [send] [heart at edge] */}
+            {/* Message row — flex: [input] [send] [heart at edge] */}
             <div style={{
               display:"flex",alignItems:"center",gap:6,
               padding:"8px 14px calc(env(safe-area-inset-bottom,0px) + 10px)",
             }}>
-              {/* Message input shell */}
+              {/* Message shell — tap to focus hidden input */}
               <div data-story-interactive
-                onPointerDown={(e) => { e.stopPropagation(); if (document.activeElement !== hiddenInputRef.current) hiddenInputRef.current?.focus({ preventScroll: true }); }}
+                onPointerDown={(e) => { e.stopPropagation(); hiddenInputRef.current?.focus({ preventScroll: true }); }}
                 style={{
                   flex:1,height:41,minWidth:0,display:"flex",alignItems:"center",
                   padding:"0 15px",borderRadius:999,
