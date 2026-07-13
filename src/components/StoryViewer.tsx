@@ -41,8 +41,8 @@ function CloseSvg() {
 
 function SendSvg() {
   return (
-    <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M22 2 11 13" /><path d="m22 2-7 20-4-9-9-4Z" />
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3.4 20.4 20.85 12 3.4 3.6 10 12Z" />
     </svg>
   );
 }
@@ -774,7 +774,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
                   onClick={(e)=>{e.stopPropagation();handleSend()}}
                   disabled={isSending}
                   className="story-action-button"
-                  style={{width:34,height:34,borderRadius:"50%",background:"#fff",color:"#000"}}
+                  style={{width:34,height:34,borderRadius:"50%",background:"#fff",color:"#000",display:"flex",alignItems:"center",justifyContent:"center",padding:0}}
                 >
                   <SendSvg />
                 </button>
