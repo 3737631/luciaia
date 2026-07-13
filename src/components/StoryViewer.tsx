@@ -8,7 +8,7 @@ const QUICK_REACTIONS = ["😍", "😂", "😮", "😢", "🔥"];
 const HOLD_REACTIONS = ["😂", "😍", "😮", "😢", "👏", "🔥"];
 const HOLD_TO_OPEN_MS = 300;
 const STORY_DURATION = 6000;
-const PROGRESS_INTERVAL = 50;
+const PROGRESS_INTERVAL = 16;
 const TAP_MAX_MS = 150;
 const TAP_MAX_MOVE = 10;
 const SWIPE_THRESHOLD = 45;
@@ -198,20 +198,23 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIndex, len, handleClose, goToNext, goToPrev]);
 
-  // Progress timer
+  // Progress timer — RAF for 60fps smooth bar updates
   useEffect(() => {
     if (closing || transition || paused) return;
-    const interval = setInterval(() => {
-      if (!mountedRef.current) return;
+    let raf: number;
+    const step = 100 / (STORY_DURATION / PROGRESS_INTERVAL);
+    const tick = () => {
+      if (!mountedRef.current) { raf = requestAnimationFrame(tick); return; }
       setProgress(prev => {
         if (prev[currentIndex] >= 100) return prev;
-        const step = 100 / (STORY_DURATION / PROGRESS_INTERVAL);
         const newP = [...prev];
         newP[currentIndex] = Math.min(prev[currentIndex] + step, 100);
         return newP;
       });
-    }, PROGRESS_INTERVAL);
-    return () => clearInterval(interval);
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
   }, [closing, transition, paused, currentIndex]);
 
   // Auto-advance when progress reaches 100
@@ -342,7 +345,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     g.dx = dx; g.dy = dy;
     // Vertical swipe down — drag to close
     if (dy > 0 && dy > Math.abs(dx) * 1.2 && !transition && !closing) {
-      if (!g.isSwipingDown) { g.isSwipingDown = true; setPaused(true); }
+      if (!g.isSwipingDown) g.isSwipingDown = true;
       const drag = Math.min(dy, 180);
       if (frameRef.current) {
         frameRef.current.style.transition = "none";
@@ -353,7 +356,6 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     }
     if (g.isSwipingDown && dy < 20) {
       g.isSwipingDown = false;
-      setPaused(false);
       if (frameRef.current) { frameRef.current.style.transition = "transform 250ms ease, border-radius 250ms ease"; frameRef.current.style.transform = ""; frameRef.current.style.borderRadius = ""; }
     }
     // Horizontal or other movement — existing logic
@@ -586,6 +588,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
                     height:"100%",borderRadius:"inherit",
                     background:"rgba(255,255,255,.96)",
                     width:"100%",
+                    willChange:"transform",
                     transform:`scaleX(${Math.min(val,100)/100})`,
                     transformOrigin:"left center",
                     transition: transition
