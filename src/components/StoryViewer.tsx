@@ -75,6 +75,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     from: number; to: number; dir: 'next' | 'prev';
   } | null>(null);
   const [timeAgo, setTimeAgo] = useState("");
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
@@ -87,6 +88,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
   const highlightRef = useRef<string | null>(null);
   const autoFiredRef = useRef(false);
   const transitionLockedRef = useRef(false);
+  const initialLoadRef = useRef(true);
 
   const gestureRef = useRef({
     startX: 0, startY: 0, startTime: 0,
@@ -149,14 +151,23 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
     };
   }, []);
 
-  // Entry animation on mount
+  // Preload first image → show viewer once ready (no flash)
   useEffect(() => {
+    const img = new Image();
+    img.onload = () => { if (mountedRef.current) setImageLoaded(true); };
+    img.src = currentImage;
+  }, []);
+
+  // Entry animation when first image loads
+  useEffect(() => {
+    if (!imageLoaded || !initialLoadRef.current) return;
+    initialLoadRef.current = false;
     const el = frameRef.current;
     if (!el) return;
     el.style.animation = "sfe 260ms cubic-bezier(0.22,1,0.36,1) forwards";
     const t = setTimeout(() => { if (el) el.style.animation = ""; }, 350);
     return () => clearTimeout(t);
-  }, []);
+  }, [imageLoaded]);
 
   const handleClose = useCallback(() => {
     if (closing) return; setClosing(true);
@@ -543,7 +554,7 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
               />
             ) : (
               <img src={currentImage} alt="" draggable={false}
-                style={{width:"100%",height:"100%",display:"block",objectFit:"cover",objectPosition:"center center",background:"#141414"}}
+                style={{width:"100%",height:"100%",display:"block",objectFit:"cover",objectPosition:"center center"}}
               />
             )}
           </div>
@@ -828,6 +839,13 @@ export default function StoryViewer({ storyImages, storyIndex, avatarUrl, displa
       </div>
     </>
   );
+
+  if (!imageLoaded) {
+    return createPortal(
+      <div style={{position:"fixed",inset:0,zIndex:9999,background:"#000"}} />,
+      document.body
+    );
+  }
 
   return createPortal(storyContent, document.body);
 }
