@@ -226,6 +226,10 @@ export const girls: Girl[] = [
       "Tú primero, no sé qué decir…",
     ],
     cloudinaryImage: "https://res.cloudinary.com/dmuxgamms/image/upload/v1783787856/photo_2026-07-11_18-36-09_f9jps3.jpg",
+    storyImages: Array.from({ length: 13 }, (_, i) => {
+      const n = i + 1;
+      return `/yuki_stories/yuki_story_${n}.png`;
+    }),
   },
   // === Male characters ===
   {
