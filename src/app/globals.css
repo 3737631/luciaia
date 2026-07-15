@@ -624,20 +624,18 @@ body {
 
 @media (max-width: 768px) {
   .fantasy-card {
-    position: relative !important;
     display: grid !important;
-    grid-template-columns: 44px minmax(0, 1fr) 92px !important;
+    grid-template-columns: 48px minmax(0, 1fr) 104px !important;
     align-items: center !important;
-    gap: 10px !important;
+    column-gap: 12px !important;
 
-    width: calc(100% - 28px) !important;
-    height: 92px !important;
-    min-height: 92px !important;
-    max-height: 92px !important;
+    width: calc(100vw - 28px) !important;
+    height: 88px !important;
+    min-height: 88px !important;
+    max-height: 88px !important;
 
-    margin: 14px auto 18px !important;
-    padding: 11px 12px !important;
-
+    margin: 14px calc(14px - var(--container-padding, 12px)) 18px !important;
+    padding: 10px 12px !important;
     box-sizing: border-box !important;
     overflow: hidden !important;
 
@@ -646,20 +644,20 @@ body {
 
     background:
       radial-gradient(
-        circle at 90% 50%,
-        rgba(255, 47, 120, 0.07),
-        transparent 36%
+        circle at 94% 50%,
+        rgba(255, 47, 120, 0.055),
+        transparent 30%
       ),
       linear-gradient(
         110deg,
-        #0d0a0d 0%,
-        #0a090b 60%,
-        #10090e 100%
+        #0c0a0c 0%,
+        #09090a 68%,
+        #0e090d 100%
       ) !important;
 
     box-shadow:
       0 8px 20px rgba(0, 0, 0, 0.28),
-      0 0 12px rgba(255, 47, 120, 0.025) !important;
+      0 0 10px rgba(255, 47, 120, 0.025) !important;
   }
 
   .fantasy-card__icon {
@@ -667,52 +665,44 @@ body {
     display: grid !important;
     place-items: center !important;
 
-    width: 44px !important;
-    height: 44px !important;
-    min-width: 44px !important;
+    width: 48px !important;
+    height: 48px !important;
 
-    color: #ff3b83 !important;
-    transform: none !important;
     margin: 0 !important;
     padding: 0 !important;
-    z-index: auto !important;
+    transform: none !important;
+    color: #ff3b83 !important;
   }
 
   .fantasy-card__icon svg {
     display: block !important;
-    width: 40px !important;
-    height: 40px !important;
-    max-width: 40px !important;
-    max-height: 40px !important;
+    width: 42px !important;
+    height: 42px !important;
+    max-width: 42px !important;
+    max-height: 42px !important;
 
-    overflow: visible !important;
-    transform: none !important;
     margin: 0 !important;
-
-    filter:
-      drop-shadow(0 0 6px rgba(255, 59, 131, 0.18)) !important;
+    transform: none !important;
+    overflow: visible !important;
   }
 
   .fantasy-card__text {
     min-width: 0 !important;
-    width: auto !important;
     margin: 0 !important;
     padding: 0 !important;
   }
 
   .fantasy-card__text h2 {
-    margin: 0 0 3px !important;
+    margin: 0 0 4px !important;
     padding: 0 !important;
 
     color: #fff !important;
-    font-size: 19px !important;
+    font-size: 20px !important;
     font-weight: 800 !important;
     line-height: 1 !important;
     letter-spacing: -0.035em !important;
 
     white-space: nowrap !important;
-    overflow: visible !important;
-    text-overflow: clip !important;
   }
 
   .fantasy-card__text h2 span {
@@ -724,45 +714,48 @@ body {
     padding: 0 !important;
 
     color: rgba(255, 255, 255, 0.7) !important;
-    font-size: 10.5px !important;
+    font-size: 11px !important;
     font-weight: 400 !important;
-    line-height: 1.2 !important;
+    line-height: 1.18 !important;
 
-    display: -webkit-box !important;
-    -webkit-box-orient: vertical !important;
-    -webkit-line-clamp: 2 !important;
-
-    overflow: hidden !important;
+    display: block !important;
+    overflow: visible !important;
     white-space: normal !important;
     text-overflow: clip !important;
+
+    -webkit-line-clamp: unset !important;
+    -webkit-box-orient: unset !important;
   }
 
   .fantasy-card__button {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 6px !important;
+    gap: 7px !important;
 
-    width: 92px !important;
-    min-width: 92px !important;
-    max-width: 92px !important;
+    width: 104px !important;
+    min-width: 104px !important;
+    max-width: 104px !important;
 
-    height: 42px !important;
-    min-height: 42px !important;
-    max-height: 42px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
 
     margin: 0 !important;
-    padding: 0 10px !important;
+    padding: 0 12px !important;
 
     border: 0 !important;
     border-radius: 999px !important;
 
-    background:
-      linear-gradient(135deg, #ff2f78, #ff4c91) !important;
+    background: linear-gradient(
+      135deg,
+      #ff2f78,
+      #ff4c91
+    ) !important;
 
     color: #fff !important;
     font: inherit !important;
-    font-size: 14px !important;
+    font-size: 15px !important;
     font-weight: 650 !important;
     line-height: 1 !important;
     white-space: nowrap !important;
