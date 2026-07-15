@@ -133,6 +133,8 @@ export default function AnimePage() {
       </div>
 
       <main style={{ minHeight: "100vh", maxWidth: 1200, margin: "0 auto", padding: "0 var(--container-padding)" }}>
+        <StoriesRow girls={animeChars} />
+
         <section className="fantasy-creator">
           <div className="fantasy-creator__wand" aria-hidden="true">
             <svg viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg" fill="none">
@@ -152,7 +154,6 @@ export default function AnimePage() {
             Crear <span aria-hidden="true">→</span>
           </button>
         </section>
-        <StoriesRow girls={animeChars} />
 
         <section id="characters">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
