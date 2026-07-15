@@ -485,86 +485,102 @@ body {
 
 .fantasy-creator {
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr) 104px;
+  grid-template-columns: 74px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 10px;
-  width: calc(100% - 28px);
-  min-height: 120px;
-  margin: 18px auto 24px;
-  padding: 16px 14px;
-  border-radius: 20px;
+  gap: 22px;
+
+  width: min(calc(100% - 40px), 980px);
+  min-height: 118px;
+  margin: 22px auto 26px;
+  padding: 20px 26px;
+
   box-sizing: border-box;
   overflow: hidden;
-  background: linear-gradient(135deg, rgba(255,87,152,0.10), rgba(255,106,165,0.06));
-  border: 1px solid rgba(255,87,152,0.12);
+
+  border: 1px solid rgba(255, 55, 132, 0.46);
+  border-radius: 24px;
+
+  background:
+    radial-gradient(
+      circle at 82% 42%,
+      rgba(255, 45, 120, 0.11),
+      transparent 40%
+    ),
+    linear-gradient(
+      115deg,
+      rgba(25, 14, 21, 0.98),
+      rgba(10, 9, 12, 0.99)
+    );
+
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.28),
+    0 0 22px rgba(255, 45, 120, 0.05);
 }
 
-.fantasy-creator__icon {
-  width: 46px;
-  height: 46px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, rgba(255,87,152,0.18), rgba(255,106,165,0.10));
-  border-radius: 14px;
-  color: #FF5798;
+.fantasy-creator__wand {
+  display: grid;
+  place-items: center;
+  width: 68px;
+  height: 68px;
+  color: #ff3b83;
 }
 
-.fantasy-creator__icon svg {
-  width: 44px;
-  height: 44px;
+.fantasy-creator__wand svg {
+  width: 64px;
+  height: 64px;
+  overflow: visible;
+  filter: drop-shadow(0 0 10px rgba(255, 59, 131, 0.22));
 }
 
-.fantasy-creator__content {
+.fantasy-creator__copy {
   min-width: 0;
 }
 
-.fantasy-creator__title {
-  margin: 0 0 5px;
-  font-size: clamp(19px, 5.1vw, 23px);
-  font-weight: 700;
-  line-height: 1.05;
-  letter-spacing: -0.03em;
+.fantasy-creator__copy h2 {
+  margin: 0 0 6px;
   color: #fff;
+  font-size: clamp(27px, 2.5vw, 38px);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
   white-space: nowrap;
 }
 
-.fantasy-creator__description {
+.fantasy-creator__copy h2 span {
+  color: #ff3b83;
+}
+
+.fantasy-creator__copy p {
+  max-width: 590px;
   margin: 0;
-  font-size: clamp(11.5px, 3.1vw, 14px);
-  line-height: 1.32;
-  color: rgba(255,255,255,0.55);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  color: rgba(255, 255, 255, 0.74);
+  font-size: clamp(15px, 1.5vw, 18px);
+  line-height: 1.35;
 }
 
 .fantasy-creator__button {
-  width: 104px;
-  min-width: 104px;
-  min-height: 48px;
-  padding: 10px 12px;
-  gap: 7px;
-  font-size: 15px;
-  white-space: nowrap;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 14px;
-  border: 0;
-  background: linear-gradient(135deg, #FF5798, #FF6AA5);
-  color: #fff;
-  font-weight: 700;
-  cursor: pointer;
-  transition: transform 160ms cubic-bezier(.32,.72,0,1), box-shadow 160ms ease;
-  font-family: inherit;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
+  gap: 12px;
 
-.fantasy-creator__button:active {
-  transform: scale(0.94);
+  min-width: 148px;
+  min-height: 56px;
+  padding: 12px 24px;
+
+  border: 0;
+  border-radius: 999px;
+
+  background: linear-gradient(135deg, #ff2f78, #ff4c91);
+  color: #fff;
+
+  font: inherit;
+  font-size: 18px;
+  font-weight: 650;
+  white-space: nowrap;
+
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(255, 47, 120, 0.2);
 }
 
 /* ═══ Desktop ═══ */
@@ -602,98 +618,78 @@ body {
     margin-top: 8px;
     font-size: 14px;
   }
+}
 
+@media (max-width: 768px) {
   .fantasy-creator {
-    grid-template-columns: 68px minmax(0, 1fr) 150px;
-    gap: 18px;
-    width: min(calc(100% - 64px), 980px);
-    min-height: 108px;
-    margin: 22px auto 28px;
-    padding: 20px 24px;
-    border-radius: 22px;
+    grid-template-columns: 50px minmax(0, 1fr) 102px;
+    gap: 11px;
+
+    width: calc(100% - 28px);
+    min-height: 112px;
+    margin: 18px auto 22px;
+    padding: 16px 14px;
+
+    border-radius: 20px;
   }
 
-  .fantasy-creator__icon {
-    width: 62px;
-    height: 62px;
+  .fantasy-creator__wand {
+    width: 48px;
+    height: 48px;
   }
 
-  .fantasy-creator__icon svg {
-    width: 58px;
-    height: 58px;
+  .fantasy-creator__wand svg {
+    width: 46px;
+    height: 46px;
   }
 
-  .fantasy-creator__title {
-    margin: 0 0 5px;
-    font-size: clamp(27px, 2.6vw, 36px);
-    line-height: 1.05;
+  .fantasy-creator__copy h2 {
+    margin-bottom: 5px;
+    font-size: clamp(19px, 5.3vw, 24px);
   }
 
-  .fantasy-creator__description {
-    max-width: 540px;
-    margin: 0;
-    font-size: clamp(14px, 1.5vw, 18px);
-    line-height: 1.35;
+  .fantasy-creator__copy p {
+    font-size: clamp(11.5px, 3.1vw, 14px);
+    line-height: 1.3;
+
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
   .fantasy-creator__button {
-    width: 150px;
-    min-width: 150px;
-    min-height: 54px;
-    padding: 12px 20px;
-    font-size: 18px;
+    min-width: 102px;
+    min-height: 48px;
+    padding: 10px 13px;
+    gap: 7px;
+    font-size: 15px;
   }
 }
 
-/* ═══ Mobile narrow ═══ */
-
 @media (max-width: 390px) {
-  .story-item {
-    width: 64px;
-  }
-
-  .story-ring {
-    width: 64px;
-    height: 64px;
-  }
-
-  .story-avatar {
-    width: 64px;
-    height: 64px;
-  }
-
-  .story-image {
-    width: 64px;
-    height: 64px;
-  }
-
   .fantasy-creator {
-    grid-template-columns: 42px minmax(0, 1fr) 92px;
+    grid-template-columns: 42px minmax(0, 1fr) 90px;
     gap: 8px;
     padding: 14px 11px;
   }
 
-  .fantasy-creator__icon {
+  .fantasy-creator__wand,
+  .fantasy-creator__wand svg {
     width: 40px;
     height: 40px;
   }
 
-  .fantasy-creator__icon svg {
-    width: 40px;
-    height: 40px;
-  }
-
-  .fantasy-creator__title {
+  .fantasy-creator__copy h2 {
     font-size: 18px;
   }
 
-  .fantasy-creator__description {
+  .fantasy-creator__copy p {
     font-size: 11px;
   }
 
   .fantasy-creator__button {
-    width: 92px;
-    min-width: 92px;
+    min-width: 90px;
     min-height: 44px;
     padding: 8px 9px;
     font-size: 14px;
