@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { getGirlImage } from "@/lib/images";
 import { getDailyStorySelection } from "@/lib/getDailyStoryIndex";
 import { getSeenStories, markStorySeen } from "@/lib/storySeenService";
-import { preloadImage, isImageCached } from "@/lib/preloadImage";
+import { preloadImage, isImageReady } from "@/lib/preloadImage";
 import type { Girl } from "@/data/girls";
 import StoryViewer from "./StoryViewer";
 
@@ -18,7 +18,7 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
     startCharIndex: number;
     ready: boolean;
   } | null>(null);
-  const openingRef = useRef(false);
+  const [criticalStoriesReady, setCriticalStoriesReady] = useState(false);
 
   // ── Build URL lists for preload ──
   const avatarUrls = useMemo(
@@ -39,6 +39,8 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
     [girls]
   );
 
+  const stableFirstStoriesKey = useMemo(() => firstStoryUrls.join("|"), [firstStoryUrls]);
+
   const remainingStoryUrls = useMemo(
     () => {
       const urls: string[] = [];
@@ -54,42 +56,37 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
     [girls]
   );
 
-  const stableImageKey = useMemo(
-    () => [...avatarUrls, ...firstStoryUrls, ...remainingStoryUrls].join("|"),
-    [avatarUrls, firstStoryUrls, remainingStoryUrls]
-  );
+  const stableRemainingKey = useMemo(() => remainingStoryUrls.join("|"), [remainingStoryUrls]);
 
-  // ── Priority preload at page mount ──
+  // ── Priority preload: first stories (immediate) ──
   useEffect(() => {
     let cancelled = false;
 
-    // Priority 1: first stories + avatars
-    Promise.all(
-      [...new Set([...avatarUrls, ...firstStoryUrls])].map(preloadImage)
-    ).then(() => {
+    Promise.all(firstStoryUrls.map(preloadImage)).then(() => {
       if (cancelled) return;
-
-      // Background: remaining stories
-      const loadRemaining = () => {
-        [...new Set(remainingStoryUrls)].forEach(preloadImage);
-      };
-
-      if ("requestIdleCallback" in window) {
-        (window as any).requestIdleCallback(loadRemaining, { timeout: 1000 });
-      } else {
-        setTimeout(loadRemaining, 100);
-      }
+      setCriticalStoriesReady(true);
     });
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stableImageKey]);
+  }, [stableFirstStoriesKey]);
 
-  // ── Open stories ──
-  async function openStories(girl: Girl) {
-    if (openingRef.current) return;
+  // ── Background preload: remaining stories (after first are ready) ──
+  useEffect(() => {
+    if (!criticalStoriesReady) return;
+    const loadRemaining = () => {
+      remainingStoryUrls.forEach((u) => preloadImage(u));
+    };
+    if ("requestIdleCallback" in window) {
+      (window as any).requestIdleCallback(loadRemaining, { timeout: 500 });
+    } else {
+      setTimeout(loadRemaining, 0);
+    }
+  }, [criticalStoriesReady, stableRemainingKey]);
+
+  // ── Open stories (synchronous — no async, no await) ──
+  const openStories = useCallback((girl: Girl) => {
+    if (!criticalStoriesReady) return;
 
     const chars = girls
       .filter((g) => g.storyImages?.length)
@@ -105,27 +102,13 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
     const startIndex = chars.findIndex((c) => c.id === girl.id);
     if (startIndex === -1) return;
 
-    const firstImage = chars[startIndex]?.images?.[0];
-    if (!firstImage) return;
-
-    openingRef.current = true;
-
-    const ready = await preloadImage(firstImage);
-
-    if (!ready) {
-      openingRef.current = false;
-      return;
-    }
+    const firstSrc = chars[startIndex]?.images?.[0];
+    if (!firstSrc || !isImageReady(firstSrc)) return;
 
     setSeen((prev) => { const next = new Set(prev); next.add(girl.id); return next; });
     markStorySeen(girl.id);
-
     setStoryChar({ characters: chars, startCharIndex: startIndex, ready: true });
-
-    requestAnimationFrame(() => {
-      openingRef.current = false;
-    });
-  }
+  }, [girls, criticalStoriesReady]);
 
   return (
     <>
@@ -133,6 +116,7 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
         <StoryViewer
           characters={storyChar.characters}
           startCharIndex={storyChar.startCharIndex}
+          initialImageSrc={storyChar.characters[storyChar.startCharIndex]?.images?.[0] ?? ""}
           onClose={() => setStoryChar(null)}
           onMarkSeen={(id) => { setSeen((prev) => { const next = new Set(prev); next.add(id); return next; }); markStorySeen(id); }}
         />
@@ -189,7 +173,7 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
                   src={getGirlImage(girl.id, null, null, null, girl.cloudinaryImage)}
                   alt={girl.name}
                   loading="eager"
-                  fetchPriority="high"
+                  fetchPriority="auto"
                   style={{
                     width: "100%",
                     height: "100%",

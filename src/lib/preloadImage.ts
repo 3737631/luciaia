@@ -1,39 +1,66 @@
-const decodedImages = new Map<string, Promise<boolean>>();
+type ImageStatus = "pending" | "ready" | "error";
+
+type ImageCacheEntry = {
+  status: ImageStatus;
+  image: HTMLImageElement;
+  promise: Promise<boolean>;
+};
+
+const imageCache = new Map<string, ImageCacheEntry>();
+
+function waitForImageLoad(image: HTMLImageElement): Promise<boolean> {
+  if (image.complete) {
+    return Promise.resolve(image.naturalWidth > 0);
+  }
+  return new Promise((resolve) => {
+    image.onload = () => resolve(true);
+    image.onerror = () => resolve(false);
+  });
+}
 
 export function preloadImage(src: string): Promise<boolean> {
   if (!src) return Promise.resolve(false);
 
-  if (decodedImages.has(src)) {
-    return decodedImages.get(src)!;
-  }
+  const existing = imageCache.get(src);
+  if (existing) return existing.promise;
 
-  const promise = new Promise<boolean>((resolve) => {
-    const img = new Image();
+  const image = new Image();
+  const entry: ImageCacheEntry = {
+    status: "pending",
+    image,
+    promise: Promise.resolve(false),
+  };
 
-    const finish = async () => {
-      try {
-        if (typeof img.decode === "function") {
-          await img.decode();
-        }
-      } catch {}
-
-      resolve(img.naturalWidth > 0);
-    };
-
-    img.onload = finish;
-    img.onerror = () => resolve(false);
-    img.src = src;
-
-    if (img.complete && img.naturalWidth > 0) {
-      finish();
+  entry.promise = (async () => {
+    image.src = src;
+    const loaded = await waitForImageLoad(image);
+    if (!loaded) {
+      entry.status = "error";
+      return false;
     }
-  });
+    try {
+      if (typeof image.decode === "function") {
+        await image.decode();
+      }
+    } catch {}
+    if (image.naturalWidth <= 0) {
+      entry.status = "error";
+      return false;
+    }
+    entry.status = "ready";
+    return true;
+  })();
 
-  decodedImages.set(src, promise);
-  return promise;
+  imageCache.set(src, entry);
+  return entry.promise;
 }
 
-export function isImageCached(src: string): boolean {
-  if (!src) return false;
-  return decodedImages.has(src);
+export function isImageReady(src: string): boolean {
+  return imageCache.get(src)?.status === "ready";
 }
+
+export function getImageStatus(src: string): ImageStatus | "missing" {
+  return imageCache.get(src)?.status ?? "missing";
+}
+
+export { isImageReady as isImageCached };

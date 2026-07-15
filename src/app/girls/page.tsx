@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Header from "@/components/Header";
 import GirlCard from "@/components/GirlCard";
 import StoriesRow from "@/components/StoriesRow";
 import { girls } from "@/data/girls";
 import { getGirlImage } from "@/lib/images";
+import { getDailyStorySelection } from "@/lib/getDailyStoryIndex";
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 const femaleIds = new Set([
@@ -33,6 +34,20 @@ export default function GirlsPage() {
   const [heroIndex, setHeroIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
   const preloadedRef = useRef(false);
+
+  // Preload link hrefs for first story of each visible character
+  const firstStoryPreloads = useMemo(
+    () =>
+      femaleGirls
+        .filter((g) => g.storyImages?.length)
+        .map((g) => {
+          const indices = getDailyStorySelection(g.id, g.storyImages!.length);
+          if (indices.length === 0) return null;
+          return `${basePath}${g.storyImages![indices[0]]}`;
+        })
+        .filter(Boolean) as string[],
+    []
+  );
 
   const handleTouchStart = (e: React.TouchEvent) => setTouchStart(e.touches[0].clientX);
   const handleTouchEnd = (e: React.TouchEvent) => {
@@ -93,6 +108,11 @@ export default function GirlsPage() {
   return (
     <>
       <Header />
+
+      {/* Preload first story images for visible characters */}
+      {firstStoryPreloads.map((src) => (
+        <link key={src} rel="preload" as="image" href={src} fetchPriority="high" />
+      ))}
 
       <div style={{ position: "relative", width: "100%" }}
         onTouchStart={handleTouchStart}

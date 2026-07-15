@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { saveInteraction } from "@/lib/storyInteractionsService";
-import { preloadImage as preloadAndDecodeImage, isImageCached } from "@/lib/preloadImage";
+import { preloadImage as preloadAndDecodeImage, isImageReady } from "@/lib/preloadImage";
 
 const QUICK_REACTIONS = ["😍", "😂", "😮", "😢", "🔥"];
 const HOLD_REACTIONS = ["😂", "😍", "😮", "😢", "👏", "🔥"];
@@ -89,9 +89,10 @@ function createGesture(e: React.PointerEvent): GestureState {
   };
 }
 
-export default function StoryViewer({ characters, startCharIndex, onClose, onMarkSeen }: {
+export default function StoryViewer({ characters, startCharIndex, initialImageSrc, onClose, onMarkSeen }: {
   characters: Array<{ id: string; images: string[]; avatar: string; name: string }>;
   startCharIndex: number;
+  initialImageSrc: string;
   onClose: () => void;
   onMarkSeen?: (id: string) => void;
 }) {
@@ -133,7 +134,7 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
   const [viewerReady, setViewerReady] = useState(false);
 
   // Dual-layer image states: current always visible, incoming fades in on top
-  const [currentImageSrc, setCurrentImageSrc] = useState(() => characters[startCharIndex]?.images?.[0] ?? "");
+  const [currentImageSrc, setCurrentImageSrc] = useState(() => initialImageSrc);
   const [incomingImageSrc, setIncomingImageSrc] = useState<string | null>(null);
   const [incomingVisible, setIncomingVisible] = useState(false);
   const imageSwitchLockRef = useRef(false);
@@ -250,7 +251,6 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
       if (c.images) urls.push(...c.images);
     });
     [...new Set(urls.filter(Boolean))].forEach((u) => preloadAndDecodeImage(u));
-    setCurrentImageSrc(characters[charIndex]?.images?.[currentIndex] ?? "");
     setViewerReady(true);
   }, [characters]);
 
@@ -260,7 +260,7 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
     characters[idx].images.forEach((url) => {
       if (preloadedUrlsRef.current.has(url)) return;
       preloadedUrlsRef.current.add(url);
-      if (!isImageCached(url)) preloadAndDecodeImage(url);
+      if (!isImageReady(url)) preloadAndDecodeImage(url);
     });
   }, [characters]);
 
@@ -275,7 +275,7 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
       nextPerson?.images?.[0],
       prevPerson?.images?.[Math.max(0, prevPerson.images.length - 1)],
     ].filter(Boolean) as string[];
-    urls.forEach((u) => { if (!isImageCached(u)) preloadAndDecodeImage(u); });
+    urls.forEach((u) => { if (!isImageReady(u)) preloadAndDecodeImage(u); });
   }, [characters]);
 
   useEffect(() => {
@@ -1139,10 +1139,10 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
             undefined, undefined, null,
             <div className="story-media-stage">
               {currentImageSrc && (
-                <img src={currentImageSrc} className="story-media story-media--current" alt="" draggable={false} />
+                <img src={currentImageSrc} className="story-media story-media--current" alt="" draggable={false} decoding="sync" fetchPriority="high" />
               )}
               {incomingImageSrc && (
-                <img src={incomingImageSrc} className={`story-media story-media--incoming${incomingVisible ? " is-visible" : ""}`} alt="" draggable={false} />
+                <img src={incomingImageSrc} className={`story-media story-media--incoming${incomingVisible ? " is-visible" : ""}`} alt="" draggable={false} decoding="async" fetchPriority="auto" />
               )}
             </div>
           )
