@@ -105,8 +105,6 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
     const firstSrc = chars[startIndex]?.images?.[0];
     if (!firstSrc || !isImageReady(firstSrc)) return;
 
-    setSeen((prev) => { const next = new Set(prev); next.add(girl.id); return next; });
-    markStorySeen(girl.id);
     setStoryChar({ characters: chars, startCharIndex: startIndex, ready: true });
   }, [girls, criticalStoriesReady]);
 

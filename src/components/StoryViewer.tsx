@@ -439,7 +439,6 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
       await transitionToStory(currentIndex + 1, "next");
       return;
     }
-    onMarkSeen?.(characters[charIndex].id);
     if (hasNextGroup) {
       await transitionToGroup(charIndex + 1, 0, "next");
       return;
