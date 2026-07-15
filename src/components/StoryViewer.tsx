@@ -18,7 +18,7 @@ const SWIPE_COMPLETE_DISTANCE = 0.22;
 const SWIPE_VELOCITY_THRESHOLD = 0.45;
 const SWIPE_DOWN_THRESHOLD = 60;
 const STORY_TRANSITION_MS = 200;
-const STORY_FADE_MS = 80;
+const STORY_FADE_MS = 100;
 const APPLE_SPRING = "cubic-bezier(.32,.72,0,1)";
 
 const font = `-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif`;
@@ -483,13 +483,13 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
   const cancelDrag = useCallback(() => {
     const el = frameRef.current;
     if (!el) return;
-    el.style.transition = `transform 180ms ${APPLE_SPRING}`;
+    el.style.transition = `transform 200ms ${APPLE_SPRING}`;
     el.style.transform = `translate3d(0, 0, 0)`;
     setPaused(false);
     progressFrozenRef.current = false;
     setTimeout(() => {
       if (el) { el.style.transition = ""; el.style.transform = ""; }
-    }, 190);
+    }, 210);
   }, []);
 
   // ── Keyboard shortcuts ──
@@ -848,8 +848,8 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
               transition: isTransitioning
                 ? "none"
                 : idx === activeIdx && !paused
-                  ? "transform 0.05s linear"
-                  : `transform 220ms ${APPLE_SPRING}`,
+                  ? "transform 0.06s linear"
+                  : `transform 280ms ${APPLE_SPRING}`,
             }} />
           </div>
         ))}
@@ -1055,10 +1055,10 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
         @keyframes hp{0%{transform:scale(1)}35%{transform:scale(1.28)}65%{transform:scale(.92)}100%{transform:scale(1)}}
         @keyframes qrs{0%{opacity:0;transform:translateY(12px) scale(.92)}100%{opacity:1;transform:translateY(0) scale(1)}}
         @keyframes cf-out{from{opacity:1}to{opacity:0}}
-        @keyframes close-open{from{opacity:.92}to{opacity:1}}
-        .story-desktop-shell{position:fixed;inset:0;z-index:9999;display:flex;justify-content:center;align-items:center;overflow:hidden;background:#000;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;overscroll-behavior:none;height:100vh;height:100dvh;min-height:100dvh;animation:close-open 100ms ease-out both}
-        .story-desktop-shell.is-closing-down{animation:none;transform:translate3d(0,105%,0);opacity:0;transition:transform 260ms cubic-bezier(.32,.72,0,1),opacity 220ms ease}
-        .story-desktop-shell.is-closing-right{animation:none;transform:translate3d(105%,0,0);opacity:0;transition:transform 250ms cubic-bezier(.32,.72,0,1),opacity 210ms ease}
+        @keyframes close-open{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+        .story-desktop-shell{position:fixed;inset:0;z-index:9999;display:flex;justify-content:center;align-items:center;overflow:hidden;background:#000;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;overscroll-behavior:none;height:100vh;height:100dvh;min-height:100dvh;animation:close-open 120ms ease-out both}
+        .story-desktop-shell.is-closing-down{animation:none;transform:translate3d(0,105%,0);opacity:0;transition:transform 280ms cubic-bezier(.32,.72,0,1),opacity 240ms ease}
+        .story-desktop-shell.is-closing-right{animation:none;transform:translate3d(105%,0,0);opacity:0;transition:transform 280ms cubic-bezier(.32,.72,0,1),opacity 240ms ease}
         @keyframes sc-left{from{transform:translateX(0) rotateY(0deg)}to{transform:translateX(-48%) rotateY(72deg)}}
         @keyframes si-right{from{transform:translateX(48%) rotateY(-72deg)}to{transform:translateX(0) rotateY(0deg)}}
         @keyframes sc-right{from{transform:translateX(0) rotateY(0deg)}to{transform:translateX(48%) rotateY(-72deg)}}
@@ -1068,7 +1068,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
         .story-media-stage{position:absolute;inset:0;overflow:hidden;background:#000;z-index:2}
         .story-media{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover;object-position:center;pointer-events:none}
         .story-media--current{z-index:1;opacity:1}
-        .story-media--incoming{z-index:2;opacity:0;pointer-events:none;transition:opacity 80ms ease-out}
+        .story-media--incoming{z-index:2;opacity:0;pointer-events:none;will-change:opacity;transition:opacity ${STORY_FADE_MS}ms ease-out}
         .story-media--incoming.is-visible{opacity:1}
         .story-action-button{width:40px;height:40px;display:grid;place-items:center;padding:0;border:0;background:transparent;color:#fff;-webkit-tap-highlight-color:transparent;cursor:pointer;transition:transform 160ms ${APPLE_SPRING}}
         .story-action-button:active{transform:scale(.88)}
@@ -1078,10 +1078,10 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
         .story-chrome{transition:opacity 170ms ease}
         .story-perspective{position:absolute;inset:0;z-index:2;overflow:hidden;background:#000;perspective:1100px}
         .story-face{position:absolute;inset:0;width:100%;height:100%;overflow:hidden;background:#000;backface-visibility:hidden;will-change:transform;transform-style:preserve-3d}
-        .story-face.is-next{animation:sc-left 290ms cubic-bezier(.32,.72,0,1) both}
-        .story-face--incoming.is-next{animation:si-right 290ms cubic-bezier(.32,.72,0,1) both}
-        .story-face.is-prev{animation:sc-right 290ms cubic-bezier(.32,.72,0,1) both}
-        .story-face--incoming.is-prev{animation:si-left 290ms cubic-bezier(.32,.72,0,1) both}
+        .story-face.is-next{animation:sc-left 270ms cubic-bezier(.32,.72,0,1) both}
+        .story-face--incoming.is-next{animation:si-right 270ms cubic-bezier(.32,.72,0,1) both}
+        .story-face.is-prev{animation:sc-right 270ms cubic-bezier(.32,.72,0,1) both}
+        .story-face--incoming.is-prev{animation:si-left 270ms cubic-bezier(.32,.72,0,1) both}
         .story-face--incoming{transform-origin:right center}
         .story-face.is-prev{transform-origin:right center}
         .story-face--incoming.is-prev{transform-origin:left center}
