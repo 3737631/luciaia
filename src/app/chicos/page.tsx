@@ -133,11 +133,27 @@ export default function ChicosPage() {
 
         <section className="fantasy-card">
           <div className="fantasy-card__icon" aria-hidden="true">
-            <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="none">
-              <path d="M12 35.5 31.5 16l5 5L17 40.5h-5v-5Z" fill="currentColor" />
-              <path d="m31 11 2-5 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z" fill="currentColor" />
-              <path d="m11 10 1.5-3.5L14 10l3.5 1.5L14 13l-1.5 3.5L11 13l-3.5-1.5L11 10Z" fill="currentColor" />
-              <path d="m39 31 1.5-3.5L42 31l3.5 1.5L42 34l-1.5 3.5L39 34l-3.5-1.5L39 31Z" fill="currentColor" />
+            <svg
+              viewBox="0 0 48 48"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+            >
+              <path
+                d="M13 35.5 30.5 18l4.5 4.5L17.5 40H13v-4.5Z"
+                fill="currentColor"
+              />
+              <path
+                d="m31 12.5 1.8-4.3 1.8 4.3 4.3 1.8-4.3 1.8-1.8 4.3-1.8-4.3-4.3-1.8 4.3-1.8Z"
+                fill="currentColor"
+              />
+              <path
+                d="m14 13 1.2-2.8 1.2 2.8 2.8 1.2-2.8 1.2-1.2 2.8-1.2-2.8-2.8-1.2L14 13Z"
+                fill="currentColor"
+              />
+              <path
+                d="m38 31.5 1.2-2.8 1.2 2.8 2.8 1.2-2.8 1.2-1.2 2.8-1.2-2.8-2.8-1.2 2.8-1.2Z"
+                fill="currentColor"
+              />
             </svg>
           </div>
           <div className="fantasy-card__text">
@@ -145,7 +161,7 @@ export default function ChicosPage() {
             <p>Diseña tu chico ideal con IA y pásalo bien con él.</p>
           </div>
           <button type="button" className="fantasy-card__button" onClick={() => { const h = document.querySelector('[href="#crear"]'); if (h instanceof HTMLElement) h.click(); }}>
-            Crear <span aria-hidden="true">→</span>
+            <span>Crear</span><span aria-hidden="true">→</span>
           </button>
         </section>
 
