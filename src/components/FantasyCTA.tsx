@@ -31,15 +31,15 @@ export function FantasyCTA({
             fill="currentColor"
           />
           <path
-            d="m36 5 2.8 5L44 10l-5.2 2.8L36 15l-2.8-5L28 10l5.2-2.8 2.8-5Z"
+            d="m35 3 3 4L42 10l-4 3L35 17l-3-4L28 10l4-3 3-4Z"
             fill="currentColor"
           />
           <path
-            d="m9 10 2.4 4L15 14l-3.6 2.4L9 18l-2.4-4L3 14l3.6-2.4 2.4-4Z"
+            d="m11 15 2 3L16 20l-3 2L11 25l-2-3L6 20l3-2 2-3Z"
             fill="currentColor"
           />
           <path
-            d="m45 15 2.4 4L51 19l-3.6 2.4L45 23l-2.4-4L39 19l3.6-2.4 2.4-4Z"
+            d="m43 15 2 3L48 20l-3 2L43 25l-2-3L38 20l3-2 2-3Z"
             fill="currentColor"
           />
         </svg>

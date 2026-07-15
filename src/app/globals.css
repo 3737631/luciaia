@@ -632,6 +632,12 @@ body {
   .nuvia-fantasy-cta {
     grid-template-columns: 58px minmax(0, 1fr) 104px;
     column-gap: 10px;
+
+    height: 94px;
+    min-height: 94px;
+    max-height: 94px;
+
+    border-radius: 24px;
   }
 
   .nuvia-fantasy-cta__icon {
@@ -693,11 +699,12 @@ body {
     column-gap: 8px;
 
     width: calc(100vw - 24px);
-    height: 96px;
-    min-height: 96px;
-    max-height: 96px;
+    height: 90px;
+    min-height: 90px;
+    max-height: 90px;
 
     padding: 11px 10px;
+    border-radius: 22px;
   }
 
   .nuvia-fantasy-cta__icon {
