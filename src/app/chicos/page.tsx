@@ -96,6 +96,7 @@ export default function ChicosPage() {
         <img key={heroIndex} src={`${basePath}/${HERO_IMAGES[heroIndex]}`} alt=""
           draggable={false}
           onContextMenu={(e) => e.preventDefault()}
+          loading="eager" fetchPriority="high"
           style={{ width: "100%", display: "block", minHeight: "25vh", objectFit: "cover", objectPosition: POSITIONS[heroIndex], animation: "fadeIn 0.3s ease", userSelect: "none", WebkitUserSelect: "none", pointerEvents: "none" }}
         />
       </div>

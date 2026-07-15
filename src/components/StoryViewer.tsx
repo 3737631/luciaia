@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { saveInteraction } from "@/lib/storyInteractionsService";
+import { preloadImage as preloadAndDecodeImage, isImageCached } from "@/lib/preloadImage";
 
 const QUICK_REACTIONS = ["😍", "😂", "😮", "😢", "🔥"];
 const HOLD_REACTIONS = ["😂", "😍", "😮", "😢", "👏", "🔥"];
@@ -21,27 +22,6 @@ const STORY_FADE_MS = 80;
 const APPLE_SPRING = "cubic-bezier(.32,.72,0,1)";
 
 const font = `-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif`;
-
-const storyImageCache = new Map<string, Promise<boolean>>();
-
-export function preloadAndDecodeImage(src: string): Promise<boolean> {
-  if (!src) return Promise.resolve(false);
-  if (storyImageCache.has(src)) return storyImageCache.get(src)!;
-  const promise = new Promise<boolean>((resolve) => {
-    const img = new Image();
-    img.onload = async () => {
-      try { if (typeof img.decode === "function") await img.decode(); } catch {}
-      resolve(true);
-    };
-    img.onerror = () => { resolve(false); };
-    img.src = src;
-    if (img.complete && img.naturalWidth > 0) {
-      Promise.resolve(typeof img.decode === "function" ? img.decode().catch(() => undefined) : undefined).finally(() => resolve(true));
-    }
-  });
-  storyImageCache.set(src, promise);
-  return promise;
-}
 const eFont = `"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
 
 function triggerHaptic(p: number | number[] = 12) {
@@ -273,7 +253,7 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
     characters[idx].images.forEach((url) => {
       if (preloadedUrlsRef.current.has(url)) return;
       preloadedUrlsRef.current.add(url);
-      if (!storyImageCache.has(url)) preloadAndDecodeImage(url);
+      if (!isImageCached(url)) preloadAndDecodeImage(url);
     });
   }, [characters]);
 
@@ -288,7 +268,7 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
       nextPerson?.images?.[0],
       prevPerson?.images?.[Math.max(0, prevPerson.images.length - 1)],
     ].filter(Boolean) as string[];
-    urls.forEach((u) => { if (!storyImageCache.has(u)) preloadAndDecodeImage(u); });
+    urls.forEach((u) => { if (!isImageCached(u)) preloadAndDecodeImage(u); });
   }, [characters]);
 
   useEffect(() => {
@@ -1057,7 +1037,6 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
         @keyframes hp{0%{transform:scale(1)}35%{transform:scale(1.28)}65%{transform:scale(.92)}100%{transform:scale(1)}}
         @keyframes qrs{0%{opacity:0;transform:translateY(12px) scale(.92)}100%{opacity:1;transform:translateY(0) scale(1)}}
         @keyframes cf-out{from{opacity:1}to{opacity:0}}
-        @keyframes close-open{from{opacity:.92}to{opacity:1}}
         @keyframes close-open{from{opacity:.92}to{opacity:1}}
         .story-desktop-shell{position:fixed;inset:0;z-index:9999;display:flex;justify-content:center;align-items:center;overflow:hidden;background:#000;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;overscroll-behavior:none;height:100vh;height:100dvh;min-height:100dvh;animation:close-open 100ms ease-out both}
         .story-desktop-shell.is-closing-down{animation:none;transform:translate3d(0,105%,0);opacity:0;transition:transform 260ms cubic-bezier(.32,.72,0,1),opacity 220ms ease}
