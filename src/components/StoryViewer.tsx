@@ -768,18 +768,8 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
       return;
     }
     if (g.dragging && g.axis === "horizontal") {
-      const width = el.clientWidth || window.innerWidth;
-      const distanceProgress = Math.abs(dx) / width;
-      const velocity = Math.abs(dx) / Math.max(elapsed, 1);
-
-      if (distanceProgress >= SWIPE_COMPLETE_DISTANCE || velocity >= SWIPE_VELOCITY_THRESHOLD) {
-        // Complete — no off‑screen animation, transitionToStory handles the cross‑fade
-        setPaused(false);
-        completeDrag(dx < 0 ? "next" : "prev");
-      } else {
-        // Cancel: animate back
-        cancelDrag();
-      }
+      setPaused(false);
+      completeDrag(dx < 0 ? "next" : "prev");
       gestureRef.current = null;
       suppressClickRef.current = performance.now() + 350;
       return;
