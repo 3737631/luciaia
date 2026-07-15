@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Header from "@/components/Header";
 import GirlCard from "@/components/GirlCard";
 import StoriesRow from "@/components/StoriesRow";
 import { girls } from "@/data/girls";
+import { getGirlImage } from "@/lib/images";
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 const femaleIds = new Set([
@@ -13,16 +14,25 @@ const femaleIds = new Set([
   "cora","mira","yumi_lib","raven","sky","jade","gemma",
   "nova","lena"
 ]);
+const maleIds = new Set(["axel", "liam"]);
+const animeIds = new Set(["maya", "iris", "yuki"]);
 const femaleGirls = girls.filter(g => femaleIds.has(g.id));
+const maleChars = girls.filter((g) => maleIds.has(g.id));
+const animeChars = girls.filter((g) => animeIds.has(g.id));
 const filters = ["Todas", "Nuevas", "Populares"];
 
 const HERO_IMAGES = ["hero-banner2.png", "hero-banner3.png", "hero-banner4.png", "hero-banner.png"];
 
+const preloadImage = (src: string): Promise<void> =>
+  new Promise((r) => { const img = new Image(); img.onload = () => r(); img.onerror = () => r(); img.src = src; });
+
 export default function GirlsPage() {
+  const [appReady, setAppReady] = useState(false);
   const [activeFilter, setActiveFilter] = useState("Todas");
   const [animKey, setAnimKey] = useState(0);
   const [heroIndex, setHeroIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
+  const preloadedRef = useRef(false);
 
   const handleTouchStart = (e: React.TouchEvent) => setTouchStart(e.touches[0].clientX);
   const handleTouchEnd = (e: React.TouchEvent) => {
@@ -37,6 +47,29 @@ export default function GirlsPage() {
     return () => clearInterval(t);
   }, []);
 
+  // Preload critical images and other categories
+  useEffect(() => {
+    if (preloadedRef.current) return;
+    preloadedRef.current = true;
+    const critical = [
+      `${basePath}/${HERO_IMAGES[0]}`,
+      ...femaleGirls.slice(0, 8).map(g => getGirlImage(g.id, null, null, null, g.cloudinaryImage)),
+    ];
+    // Also preload avatars for story circles
+    femaleGirls.slice(0, 8).forEach(g => {
+      const url = getGirlImage(g.id, null, null, null, g.cloudinaryImage);
+      critical.push(url);
+    });
+    // Background preload other categories' key images
+    const otherImages: string[] = [];
+    HERO_IMAGES.forEach(h => otherImages.push(`${basePath}/${h}`));
+    maleChars.slice(0, 4).forEach(g => otherImages.push(getGirlImage(g.id, null, null, null, g.cloudinaryImage)));
+    animeChars.slice(0, 4).forEach(g => otherImages.push(getGirlImage(g.id, null, null, null, g.cloudinaryImage)));
+    otherImages.forEach(src => { const img = new Image(); img.src = src; });
+
+    Promise.all(critical.map(preloadImage)).then(() => setAppReady(true));
+  }, []);
+
   const POSITIONS = ["15% center", "8% center", "50% center", "30% center"];
 
   const filtered = activeFilter === "Todas"
@@ -47,6 +80,15 @@ export default function GirlsPage() {
         if (activeFilter === "Populares") return b === "popular";
         return false;
       });
+
+  if (!appReady) {
+    return (
+      <div style={{ position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "#111", zIndex: 99999 }}>
+        <div style={{ width: 24, height: 24, border: "2px solid rgba(255,255,255,0.1)", borderTopColor: "#FF5798", borderRadius: "50%", animation: "appSpin 600ms linear infinite" }} />
+        <style>{`@keyframes appSpin{to{transform:rotate(360deg)}}`}</style>
+      </div>
+    );
+  }
 
   return (
     <>

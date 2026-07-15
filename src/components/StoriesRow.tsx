@@ -1,45 +1,58 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { getGirlImage } from "@/lib/images";
 import { getDailyStorySelection } from "@/lib/getDailyStoryIndex";
+import { getSeenStories, markStorySeen } from "@/lib/storySeenService";
 import type { Girl } from "@/data/girls";
-import StoryViewer from "./StoryViewer";
+import StoryViewer, { preloadAndDecodeImage } from "./StoryViewer";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export default function StoriesRow({ girls }: { girls: Girl[] }) {
-  const [seen, setSeen] = useState<Set<string>>(new Set());
+  const [seen, setSeen] = useState<Set<string>>(() => getSeenStories());
   const [storyChar, setStoryChar] = useState<{
     characters: Array<{ id: string; images: string[]; avatar: string; name: string }>;
     startCharIndex: number;
     ready: boolean;
   } | null>(null);
-  const imagesLoadedRef = useRef(new Set<string>());
 
-  const preloadStoryImage = (girl: Girl, onReady?: () => void) => {
-    const imgs = girl.storyImages;
-    if (!imgs || !imgs.length) return;
-    const indices = getDailyStorySelection(girl.id, imgs.length);
-    let loaded = 0;
-    let done = false;
-    indices.forEach((i) => {
-      const url = `${basePath}${imgs[i]}`;
-      const el = new Image();
-      el.onload = () => { imagesLoadedRef.current.add(url); loaded++; if (loaded === indices.length && !done) { done = true; onReady?.(); } };
-      el.onerror = () => { loaded++; if (loaded === indices.length && !done) { done = true; onReady?.(); } };
-      el.src = url;
+  // Priority preload at page mount: first stories + avatars
+  const preloadUrls = useMemo(() => {
+    const urls: string[] = [];
+    girls.forEach((g) => {
+      if (g.cloudinaryImage) urls.push(getGirlImage(g.id, null, null, null, g.cloudinaryImage));
+      if (g.storyImages?.length) {
+        const indices = getDailyStorySelection(g.id, g.storyImages.length);
+        if (indices.length > 0) urls.push(`${basePath}${g.storyImages[indices[0]]}`);
+      }
     });
-  };
-
-  // Preload story images for all girls as soon as the page loads
-  useEffect(() => {
-    girls.forEach((girl) => preloadStoryImage(girl));
+    return [...new Set(urls.filter(Boolean))];
   }, [girls]);
 
-  const handleClick = (girl: Girl) => {
-    setSeen((prev) => new Set(prev).add(girl.id));
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all(preloadUrls.map((u) => preloadAndDecodeImage(u))).then(() => {
+      if (cancelled) return;
+      // Background: preload remaining stories
+      const remaining: string[] = [];
+      girls.forEach((g) => {
+        const si = g.storyImages;
+        if (!si?.length) return;
+        const indices = getDailyStorySelection(g.id, si.length);
+        indices.slice(1).forEach((i) => {
+          remaining.push(`${basePath}${si[i]}`);
+        });
+      });
+      [...new Set(remaining.filter(Boolean))].forEach((u) => preloadAndDecodeImage(u));
+    });
+    return () => { cancelled = true; };
+  }, [preloadUrls, girls]);
+
+  const handleClick = async (girl: Girl) => {
+    setSeen((prev) => { const next = new Set(prev); next.add(girl.id); return next; });
+    markStorySeen(girl.id);
     const chars = girls
       .filter((g) => g.storyImages?.length)
       .map((g) => {
@@ -53,15 +66,10 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
       });
     const startIndex = chars.findIndex((c) => c.id === girl.id);
     if (startIndex === -1) return;
-    const ready = chars.every((c) => c.images.every((url) => imagesLoadedRef.current.has(url)));
-    setStoryChar({ characters: chars, startCharIndex: startIndex, ready });
-    if (!ready) {
-      preloadStoryImage(girl, () =>
-        setStoryChar((prev) =>
-          prev?.startCharIndex === startIndex ? { ...prev, ready: true } : prev
-        )
-      );
-    }
+    // Decode first image before mounting viewer
+    const firstImage = chars[startIndex]?.images?.[0];
+    if (firstImage) await preloadAndDecodeImage(firstImage);
+    setStoryChar({ characters: chars, startCharIndex: startIndex, ready: true });
   };
 
   return (
@@ -71,7 +79,7 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
           characters={storyChar.characters}
           startCharIndex={storyChar.startCharIndex}
           onClose={() => setStoryChar(null)}
-          onMarkSeen={(id) => setSeen((prev) => new Set(prev).add(id))}
+          onMarkSeen={(id) => { setSeen((prev) => { const next = new Set(prev); next.add(id); return next; }); markStorySeen(id); }}
         />
       )}
       <div style={{
@@ -89,7 +97,7 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
           <Link
             key={girl.id}
             href={hasStory ? "#" : `${basePath}/chat/${girl.id}`}
-            onPointerDown={() => { if (hasStory) preloadStoryImage(girl); }}
+            onPointerDown={() => {}}
             onClick={(e) => { if (hasStory) e.preventDefault(); handleClick(girl); }}
             style={{
               display: "flex",
