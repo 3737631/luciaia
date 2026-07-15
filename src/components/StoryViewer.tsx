@@ -389,6 +389,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
 
   const finishCubeTransition = useCallback(() => {
     if (!incomingChar) return;
+    onMarkSeen?.(characters[incomingChar.charIdx].id);
     const newSrc = characters[incomingChar.charIdx]?.images?.[incomingChar.storyIdx] ?? "";
     setCurrentImageSrc(newSrc);
     setCharIndex(incomingChar.charIdx);
@@ -398,7 +399,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
     autoFiredRef.current = false;
     transitionLockedRef.current = false;
     progressFrozenRef.current = false;
-  }, [incomingChar, characters]);
+  }, [incomingChar, characters, onMarkSeen]);
 
   const transitionToGroup = useCallback(async (toCharIdx: number, toIdx: number, dir: "next" | "prev") => {
     if (transition || closing || transitionLockedRef.current) return;
@@ -439,6 +440,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
       await transitionToStory(currentIndex + 1, "next");
       return;
     }
+    onMarkSeen?.(characters[charIndex].id);
     if (hasNextGroup) {
       await transitionToGroup(charIndex + 1, 0, "next");
       return;
