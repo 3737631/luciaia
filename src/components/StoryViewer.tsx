@@ -132,6 +132,12 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
 
   const [viewerReady, setViewerReady] = useState(false);
 
+  // Dual-layer image states: current always visible, incoming fades in on top
+  const [currentImageSrc, setCurrentImageSrc] = useState(() => characters[startCharIndex]?.images?.[0] ?? "");
+  const [incomingImageSrc, setIncomingImageSrc] = useState<string | null>(null);
+  const [incomingVisible, setIncomingVisible] = useState(false);
+  const imageSwitchLockRef = useRef(false);
+
   // Transition state: null or { type:'story'|'group', dir, fromChar, toChar, from, to }
   const [transition, setTransition] = useState<{
     type: "story" | "group";
@@ -244,6 +250,7 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
       if (c.images) urls.push(...c.images);
     });
     [...new Set(urls.filter(Boolean))].forEach((u) => preloadAndDecodeImage(u));
+    setCurrentImageSrc(characters[charIndex]?.images?.[currentIndex] ?? "");
     setViewerReady(true);
   }, [characters]);
 
@@ -341,23 +348,20 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
   // ── Transition functions ──
 
   const transitionToStory = useCallback(async (toIdx: number, dir: "next" | "prev") => {
-    if (transitionLockedRef.current || closing) return;
+    if (imageSwitchLockRef.current || closing) return;
     const nextUrl = characters[charIndex]?.images[toIdx];
     if (!nextUrl) return;
     await preloadAndDecodeImage(nextUrl);
-    if (!mountedRef.current || transitionLockedRef.current || closing) return;
-    transitionLockedRef.current = true;
+    if (!mountedRef.current || imageSwitchLockRef.current || closing) return;
+    imageSwitchLockRef.current = true;
     if (isComposerFocused) hiddenInputRef.current?.blur();
     stopProgress();
 
-    exitSnapshotRef.current = { charIdx: charIndex, imgIdx: currentIndex, progress: [...progress] };
     setProgress((prev) => {
       const next = [...prev];
       if (dir === "next") {
-        // Going forward: mark current as completed
         next[currentIndex] = 100;
       }
-      // Reset target and all after it to 0
       for (let i = toIdx; i < next.length; i++) {
         next[i] = 0;
       }
@@ -365,15 +369,28 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
     });
     setCurrentIndex(toIdx);
 
+    // Dual-layer: place incoming image (hidden), then reveal after paint
+    setIncomingImageSrc(nextUrl);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (mountedRef.current) setIncomingVisible(true);
+      });
+    });
+
+    // After fade completes, swap incoming → current
     setTimeout(() => {
       if (!mountedRef.current) return;
-      exitSnapshotRef.current = null;
-      transitionLockedRef.current = false;
+      setCurrentImageSrc(nextUrl);
+      setIncomingVisible(false);
+      setIncomingImageSrc(null);
+      imageSwitchLockRef.current = false;
     }, STORY_FADE_MS);
-  }, [closing, isComposerFocused, charIndex, currentIndex, characters, progress, stopProgress]);
+  }, [closing, isComposerFocused, charIndex, currentIndex, characters, stopProgress]);
 
   const finishCubeTransition = useCallback(() => {
     if (!incomingChar) return;
+    const newSrc = characters[incomingChar.charIdx]?.images?.[incomingChar.storyIdx] ?? "";
+    setCurrentImageSrc(newSrc);
     setCharIndex(incomingChar.charIdx);
     setCurrentIndex(incomingChar.storyIdx);
     setIncomingChar(null);
@@ -381,8 +398,7 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
     autoFiredRef.current = false;
     transitionLockedRef.current = false;
     progressFrozenRef.current = false;
-    exitSnapshotRef.current = null;
-  }, [incomingChar]);
+  }, [incomingChar, characters]);
 
   const transitionToGroup = useCallback(async (toCharIdx: number, toIdx: number, dir: "next" | "prev") => {
     if (transition || closing || transitionLockedRef.current) return;
@@ -418,7 +434,7 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
   }, [transition, closing, isComposerFocused, charIndex, currentIndex, characters, progress, onMarkSeen, incomingChar]);
 
   const handleNext = useCallback(async () => {
-    if (transitionLockedRef.current) return;
+    if (transitionLockedRef.current || imageSwitchLockRef.current) return;
     if (hasNextStory) {
       await transitionToStory(currentIndex + 1, "next");
       return;
@@ -434,7 +450,7 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
   useEffect(() => { handleNextRef.current = handleNext; }, [handleNext]);
 
   const handlePrevious = useCallback(async () => {
-    if (transitionLockedRef.current) return;
+    if (transitionLockedRef.current || imageSwitchLockRef.current) return;
     stopProgress();
     if (currentIndex > 0) {
       await transitionToStory(currentIndex - 1, "prev");
@@ -885,7 +901,7 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
 
   // ── Helper: render full story frame ──
 
-  function renderFrame(ci: number, si: number, ref?: React.Ref<HTMLDivElement>, extraStyle?: React.CSSProperties, dataState?: string, snapshot?: { url: string; charIdx: number; imgIdx: number } | null) {
+  function renderFrame(ci: number, si: number, ref?: React.Ref<HTMLDivElement>, extraStyle?: React.CSSProperties, dataState?: string, snapshot?: { url: string; charIdx: number; imgIdx: number } | null, mediaContent?: React.ReactNode) {
     const c = characters[ci];
     const imgUrl = c.images[si];
     return (
@@ -893,13 +909,14 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
         data-long-press={longPressActive ? "true" : undefined}
         style={{ touchAction: "none", overflow: "hidden", position: "relative", zIndex: 2, ...extraStyle }}
       >
-        {/* Media layer (active / new image) */}
-        <div className="story-media-layer" data-state={dataState ?? "active"} style={{ position: "absolute", inset: 0, zIndex: 2, background: "#000" }}>
-          <div style={{ position: "absolute", inset: "-30px", backgroundImage: `url(${imgUrl})`, backgroundSize: "cover", backgroundPosition: "center", filter: "blur(24px) brightness(0.4)", pointerEvents: "none" }} />
-          <div style={{ position: "absolute", inset: 0, backgroundImage: `url(${imgUrl})`, backgroundSize: "cover", backgroundPosition: "center", pointerEvents: "none" }} />
-        </div>
+        {mediaContent ?? (
+          <div className="story-media-layer" data-state={dataState ?? "active"} style={{ position: "absolute", inset: 0, zIndex: 2, background: "#000" }}>
+            <div style={{ position: "absolute", inset: "-30px", backgroundImage: `url(${imgUrl})`, backgroundSize: "cover", backgroundPosition: "center", filter: "blur(24px) brightness(0.4)", pointerEvents: "none" }} />
+            <div style={{ position: "absolute", inset: 0, backgroundImage: `url(${imgUrl})`, backgroundSize: "cover", backgroundPosition: "center", pointerEvents: "none" }} />
+          </div>
+        )}
 
-        {/* Cross‑fade overlay (old image fading out) — only during story transition */}
+        {/* Cross‑fade overlay (old image fading out) — during story transition (CSS bg mode only) */}
         {snapshot && (
           <div className="story-media-layer" style={{
             position: "absolute", inset: 0, zIndex: 4, background: "#000", pointerEvents: "none",
@@ -1047,6 +1064,11 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
         @keyframes si-left{from{transform:translateX(-48%) rotateY(72deg)}to{transform:translateX(0) rotateY(0deg)}}
         .story-desktop-shell img{-webkit-touch-callout:none;pointer-events:none}
         .story-blurred-background{position:absolute;inset:-40px;background-position:center;background-size:cover;filter:blur(28px);transform:scale(1.08);opacity:0.55;pointer-events:none;will-change:background-image}
+        .story-media-stage{position:absolute;inset:0;overflow:hidden;background:#000;z-index:2}
+        .story-media{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover;object-position:center;pointer-events:none}
+        .story-media--current{z-index:1;opacity:1}
+        .story-media--incoming{z-index:2;opacity:0;pointer-events:none;transition:opacity 80ms ease-out}
+        .story-media--incoming.is-visible{opacity:1}
         .story-action-button{width:40px;height:40px;display:grid;place-items:center;padding:0;border:0;background:transparent;color:#fff;-webkit-tap-highlight-color:transparent;cursor:pointer;transition:transform 160ms ${APPLE_SPRING}}
         .story-action-button:active{transform:scale(.88)}
         .story-mobile-frame{position:relative;width:min(430px,calc(100vw - 32px));height:100vh;height:100dvh;min-height:100dvh;overflow:hidden;background:#000;border-radius:14px;box-shadow:0 20px 70px rgba(0,0,0,.55);will-change:transform}
@@ -1093,8 +1115,8 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
         <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,.38)", pointerEvents: "none", zIndex: 1 }} />
 
         {/* Blurred background behind the frame */}
-        {!incomingChar && (
-          <div className="story-blurred-background" style={{ backgroundImage: `url(${currentChar.images[currentIndex]})` }} />
+        {!incomingChar && currentImageSrc && (
+          <div className="story-blurred-background" style={{ backgroundImage: `url(${currentImageSrc})` }} />
         )}
 
         {incomingChar ? (
@@ -1112,15 +1134,18 @@ export default function StoryViewer({ characters, startCharIndex, onClose, onMar
             </div>
           </div>
         ) : (
-          /* ── NORMAL: single frame with optional cross‑fade overlay ── */
-          (() => {
-            const snap = exitSnapshotRef.current;
-            const snapUrl = snap ? characters[snap.charIdx]?.images[snap.imgIdx] ?? "" : null;
-            return renderFrame(charIndex, currentIndex, frameRef,
-              undefined, undefined,
-              snap && snapUrl ? { url: snapUrl, charIdx: snap.charIdx, imgIdx: snap.imgIdx } : null
-            );
-          })()
+          /* ── NORMAL: single frame with dual-layer img — never a black frame ── */
+          renderFrame(charIndex, currentIndex, frameRef,
+            undefined, undefined, null,
+            <div className="story-media-stage">
+              {currentImageSrc && (
+                <img src={currentImageSrc} className="story-media story-media--current" alt="" draggable={false} />
+              )}
+              {incomingImageSrc && (
+                <img src={incomingImageSrc} className={`story-media story-media--incoming${incomingVisible ? " is-visible" : ""}`} alt="" draggable={false} />
+              )}
+            </div>
+          )
         )}
 
         {/* ═══ SHARED OVERLAYS ═══ */}
