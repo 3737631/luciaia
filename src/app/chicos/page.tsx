@@ -133,13 +133,11 @@ export default function ChicosPage() {
 
         <section className="fantasy-creator">
           <div className="fantasy-creator__wand" aria-hidden="true">
-            <svg viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg" fill="none">
-              <path d="M19 52 47 24l7 7-28 28H19v-7Z" fill="currentColor" />
-              <path d="m45 18 3-8 3 8 8 3-8 3-3 8-3-8-8-3 8-3Z" fill="currentColor" />
-              <path d="m19 15 2-5 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z" fill="currentColor" />
-              <path d="m57 46 2-5 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z" fill="currentColor" />
-              <circle cx="12" cy="35" r="2.5" fill="currentColor" />
-              <circle cx="60" cy="15" r="2" fill="currentColor" />
+            <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="none">
+              <path d="M12 35.5 31.5 16l5 5L17 40.5h-5v-5Z" fill="currentColor" />
+              <path d="m31 11 2-5 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z" fill="currentColor" />
+              <path d="m11 10 1.5-3.5L14 10l3.5 1.5L14 13l-1.5 3.5L11 13l-3.5-1.5L11 10Z" fill="currentColor" />
+              <path d="m39 31 1.5-3.5L42 31l3.5 1.5L42 34l-1.5 3.5L39 34l-3.5-1.5L39 31Z" fill="currentColor" />
             </svg>
           </div>
           <div className="fantasy-creator__copy">
