@@ -121,73 +121,28 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
           onMarkSeen={(id) => { setSeen((prev) => { const next = new Set(prev); next.add(id); return next; }); markStorySeen(id); }}
         />
       )}
-      <div style={{
-        display: "flex",
-        gap: 16,
-        overflowX: "auto",
-        padding: "12px 0 8px",
-        scrollbarWidth: "none",
-        WebkitOverflowScrolling: "touch",
-      }}>
+      <div className="stories-row">
       {girls.map((girl) => {
         const isSeen = seen.has(girl.id);
         const hasStory = (girl.storyImages?.length ?? 0) > 0;
         return (
           <div
             key={girl.id}
+            className="story-item"
             onClick={() => { if (hasStory) openStories(girl); else window.location.href = `${basePath}/chat/${girl.id}`; }}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 6,
-              textDecoration: "none",
-              flexShrink: 0,
-              cursor: "pointer",
-              position: "relative" as const,
-              zIndex: 2,
-              touchAction: "manipulation",
-              WebkitTapHighlightColor: "transparent",
-            }}
           >
-            <div style={{
-              width: 60,
-              height: 60,
-              borderRadius: "50%",
-              padding: 3,
-              background: isSeen
-                ? "rgba(255,255,255,0.12)"
-                : "linear-gradient(135deg, #FF5798, #FF6AA5)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}>
-              <div style={{
-                width: "100%",
-                height: "100%",
-                borderRadius: "50%",
-                overflow: "hidden",
-                background: "#1a1a1a",
-              }}>
+            <div className={"story-ring" + (isSeen ? " is-seen" : "")}>
+              <div className="story-avatar">
                 <img
                   src={getGirlImage(girl.id, null, null, null, girl.cloudinaryImage)}
                   alt={girl.name}
                   loading="eager"
                   fetchPriority="auto"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                  }}
+                  className="story-image"
                 />
               </div>
             </div>
-            <span style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: isSeen ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.85)",
-              whiteSpace: "nowrap",
-            }}>
+            <span className={"story-name" + (isSeen ? " is-seen" : "")}>
               {girl.name}
             </span>
           </div>

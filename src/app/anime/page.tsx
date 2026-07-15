@@ -133,6 +133,25 @@ export default function AnimePage() {
       </div>
 
       <main style={{ minHeight: "100vh", maxWidth: 1200, margin: "0 auto", padding: "0 var(--container-padding)" }}>
+        <div className="fantasy-creator">
+          <div className="fantasy-creator__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 4V2m0 2v2m0-2h2m-2 0h-2" />
+              <path d="M6.5 6.5 3 10l3.5 3.5" />
+              <path d="M18 10l3.5 3.5L18 17" />
+              <path d="M4 18l2.5-2.5L9 18" />
+              <path d="M12 4l2.5 2.5L12 9" />
+            </svg>
+          </div>
+          <div className="fantasy-creator__content">
+            <h2 className="fantasy-creator__title">Crea tu fantasía</h2>
+            <p className="fantasy-creator__description">Diseña tu personaje ideal con IA y pásalo bien</p>
+          </div>
+          <button className="fantasy-creator__button" onClick={() => { const h = document.querySelector('[href="#crear"]'); if (h instanceof HTMLElement) h.click(); }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Crear
+          </button>
+        </div>
         <StoriesRow girls={animeChars} />
 
         <section id="characters">
