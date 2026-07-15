@@ -481,339 +481,276 @@ body {
   color: rgba(255,255,255,0.35);
 }
 
-/* ═══ Fantasy Card ═══ */
+.nuvia-fantasy-cta {
+  position: relative;
+  left: 50%;
 
-.fantasy-card {
   display: grid;
-  grid-template-columns: 74px minmax(0, 1fr) auto;
+  grid-template-columns: 64px minmax(0, 1fr) 138px;
   align-items: center;
-  gap: 22px;
+  column-gap: 18px;
 
-  width: min(calc(100% - 40px), 980px);
-  min-height: 118px;
-  margin: 22px auto 26px;
-  padding: 20px 26px;
+  width: min(calc(100vw - 40px), 1040px);
+  min-height: 112px;
+
+  margin: 20px 0 24px;
+  padding: 18px 24px;
 
   box-sizing: border-box;
   overflow: hidden;
 
-  border: 1px solid rgba(255, 55, 132, 0.46);
-  border-radius: 24px;
+  transform: translateX(-50%);
+
+  border: 1px solid rgba(255, 56, 132, 0.4);
+  border-radius: 22px;
 
   background:
     radial-gradient(
-      circle at 82% 42%,
-      rgba(255, 45, 120, 0.11),
-      transparent 40%
+      circle at 90% 50%,
+      rgba(255, 48, 122, 0.065),
+      transparent 33%
     ),
     linear-gradient(
-      115deg,
-      rgba(25, 14, 21, 0.98),
-      rgba(10, 9, 12, 0.99)
+      110deg,
+      #100b0f 0%,
+      #09090b 62%,
+      #0e090d 100%
     );
 
   box-shadow:
-    0 12px 30px rgba(0, 0, 0, 0.28),
-    0 0 22px rgba(255, 45, 120, 0.05);
+    0 12px 30px rgba(0, 0, 0, 0.3),
+    0 0 18px rgba(255, 47, 120, 0.035);
 }
 
-.fantasy-card__icon {
-  display: grid;
-  place-items: center;
-  width: 68px;
-  height: 68px;
+.nuvia-fantasy-cta__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 64px;
+  height: 64px;
+
+  margin: 0;
+  padding: 0;
+
   color: #ff3b83;
 }
 
-.fantasy-card__icon svg {
-  width: 64px;
-  height: 64px;
+.nuvia-fantasy-cta__icon svg {
+  display: block;
+  width: 58px;
+  height: 58px;
+
+  margin: 0;
   overflow: visible;
-  filter: drop-shadow(0 0 10px rgba(255, 59, 131, 0.22));
+
+  filter:
+    drop-shadow(0 0 8px rgba(255, 59, 131, 0.2));
 }
 
-.fantasy-card__text {
+.nuvia-fantasy-cta__copy {
+  display: flex;
   min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+
+  margin: 0;
+  padding: 0;
 }
 
-.fantasy-card__text h2 {
+.nuvia-fantasy-cta__title {
   margin: 0 0 6px;
+  padding: 0;
+
   color: #fff;
-  font-size: clamp(27px, 2.5vw, 38px);
+
+  font-size: clamp(27px, 3vw, 38px);
   font-weight: 800;
-  line-height: 1.02;
+  line-height: 1;
   letter-spacing: -0.035em;
   white-space: nowrap;
 }
 
-.fantasy-card__text h2 span {
+.nuvia-fantasy-cta__title span {
   color: #ff3b83;
 }
 
-.fantasy-card__text p {
-  max-width: 590px;
+.nuvia-fantasy-cta__description {
+  max-width: 610px;
   margin: 0;
-  color: rgba(255, 255, 255, 0.74);
-  font-size: clamp(15px, 1.5vw, 18px);
-  line-height: 1.35;
+  padding: 0;
+
+  color: rgba(255, 255, 255, 0.72);
+
+  font-size: clamp(14px, 1.5vw, 18px);
+  font-weight: 400;
+  line-height: 1.3;
 }
 
-.fantasy-card__button {
+.nuvia-fantasy-cta__button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  justify-self: end;
 
-  min-width: 148px;
-  min-height: 56px;
-  padding: 12px 24px;
+  width: 138px;
+  height: 54px;
+  gap: 7px;
+
+  margin: 0;
+  padding: 0 20px;
 
   border: 0;
   border-radius: 999px;
 
-  background: linear-gradient(135deg, #ff2f78, #ff4c91);
+  background:
+    linear-gradient(135deg, #ff2f78, #ff4c91);
+
   color: #fff;
 
   font: inherit;
   font-size: 18px;
   font-weight: 650;
+  line-height: 1;
   white-space: nowrap;
 
   cursor: pointer;
-  box-shadow: 0 10px 24px rgba(255, 47, 120, 0.2);
+
+  box-shadow:
+    0 9px 20px rgba(255, 47, 120, 0.18);
 }
 
-/* ═══ Desktop ═══ */
-
-@media (min-width: 769px) {
-
-  .stories-row {
-    width: min(100% - 48px, 1180px);
-    margin-left: auto;
-    margin-right: auto;
-    gap: 22px;
-    padding: 14px 4px 18px;
-  }
-
-  .story-item {
-    width: 82px;
-  }
-
-  .story-ring {
-    width: 82px;
-    height: 82px;
-  }
-
-  .story-avatar {
-    width: 82px;
-    height: 82px;
-  }
-
-  .story-image {
-    width: 82px;
-    height: 82px;
-  }
-
-  .story-name {
-    margin-top: 8px;
-    font-size: 14px;
-  }
+.nuvia-fantasy-cta__arrow {
+  display: inline-block;
+  font-size: 21px;
+  font-weight: 400;
+  line-height: 1;
+  transform: translateY(-1px);
 }
-
-/* ═══ Mobile ═══ */
 
 @media (max-width: 768px) {
-  .fantasy-card {
-    display: grid !important;
-    grid-template-columns: 48px minmax(0, 1fr) 96px !important;
-    column-gap: 14px !important;
+  .nuvia-fantasy-cta {
+    left: 50%;
 
-    width: calc(100vw - 28px) !important;
-    height: 88px !important;
-    min-height: 88px !important;
-    max-height: 88px !important;
+    grid-template-columns: 50px minmax(0, 1fr) 104px;
+    column-gap: 12px;
 
-    margin: 14px calc(14px - var(--container-padding, 12px)) 18px !important;
-    padding: 10px 12px !important;
-    box-sizing: border-box !important;
-    overflow: hidden !important;
+    width: calc(100vw - 32px);
+    height: 100px;
+    min-height: 100px;
+    max-height: 100px;
 
-    border: 1px solid rgba(255, 55, 132, 0.38) !important;
-    border-radius: 18px !important;
+    margin: 16px 0 20px;
+    padding: 12px 14px;
+
+    transform: translateX(-50%);
+
+    border-radius: 19px;
 
     background:
       radial-gradient(
         circle at 94% 50%,
-        rgba(255, 47, 120, 0.055),
+        rgba(255, 47, 120, 0.05),
         transparent 30%
       ),
       linear-gradient(
         110deg,
-        #0c0a0c 0%,
-        #09090a 68%,
-        #0e090d 100%
-      ) !important;
-
-    box-shadow:
-      0 8px 20px rgba(0, 0, 0, 0.28),
-      0 0 10px rgba(255, 47, 120, 0.025) !important;
+        #0e0a0d 0%,
+        #09090b 68%,
+        #0d090c 100%
+      );
   }
 
-  .fantasy-card__icon {
-    position: relative !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-
-    width: 48px !important;
-    height: 48px !important;
-
-    margin: 0 !important;
-    padding: 0 !important;
-    align-self: center !important;
-    color: #ff3b83 !important;
+  .nuvia-fantasy-cta__icon {
+    width: 50px;
+    height: 50px;
   }
 
-  .fantasy-card__icon svg {
-    display: block !important;
-    width: 40px !important;
-    height: 40px !important;
-
-    margin: 0 !important;
-    overflow: visible !important;
-    transform: translateY(1px) !important;
+  .nuvia-fantasy-cta__icon svg {
+    width: 46px;
+    height: 46px;
   }
 
-  .fantasy-card__text {
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: center !important;
+  .nuvia-fantasy-cta__title {
+    margin-bottom: 4px;
 
-    min-width: 0 !important;
-    height: 100% !important;
-
-    margin: 0 !important;
-    padding: 0 4px 0 0 !important;
+    font-size: clamp(20px, 5.2vw, 24px);
+    line-height: 1;
   }
 
-  .fantasy-card__text h2 {
-    margin: 0 0 4px !important;
-    padding: 0 !important;
+  .nuvia-fantasy-cta__description {
+    max-width: none;
 
-    color: #fff !important;
-    font-size: 20px !important;
-    font-weight: 800 !important;
-    line-height: 1 !important;
-    letter-spacing: -0.035em !important;
+    font-size: clamp(11px, 2.95vw, 13.5px);
+    line-height: 1.22;
 
-    white-space: nowrap !important;
+    display: block;
+    overflow: visible;
+    white-space: normal;
+    text-overflow: clip;
   }
 
-  .fantasy-card__text h2 span {
-    color: #ff3b83 !important;
+  .nuvia-fantasy-cta__button {
+    width: 104px;
+    min-width: 104px;
+    height: 46px;
+    min-height: 46px;
+
+    padding: 0 12px;
+    gap: 6px;
+
+    font-size: 15px;
   }
 
-  .fantasy-card__text p {
-    margin: 0 !important;
-    padding: 0 !important;
-
-    color: rgba(255, 255, 255, 0.7) !important;
-    font-size: 11px !important;
-    font-weight: 400 !important;
-    max-width: 100% !important;
-    line-height: 1.16 !important;
-
-    display: block !important;
-    overflow: visible !important;
-    white-space: normal !important;
-    text-overflow: clip !important;
-
-    -webkit-line-clamp: unset !important;
-    -webkit-box-orient: unset !important;
-  }
-
-  .fantasy-card__button {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    align-self: center !important;
-    justify-self: end !important;
-
-    gap: 5px !important;
-
-    width: 96px !important;
-    min-width: 96px !important;
-    max-width: 96px !important;
-
-    height: 42px !important;
-    min-height: 42px !important;
-    max-height: 42px !important;
-
-    margin: 0 !important;
-    padding: 0 10px !important;
-
-    border: 0 !important;
-    border-radius: 999px !important;
-
-    background: linear-gradient(
-      135deg,
-      #ff2f78,
-      #ff4c91
-    ) !important;
-
-    color: #fff !important;
-    font: inherit !important;
-    font-size: 15px !important;
-    font-weight: 650 !important;
-    line-height: 1 !important;
-    white-space: nowrap !important;
-
-    box-shadow:
-      0 7px 16px rgba(255, 47, 120, 0.16) !important;
+  .nuvia-fantasy-cta__arrow {
+    font-size: 18px;
   }
 }
 
 @media (max-width: 390px) {
-  .fantasy-card {
-    grid-template-columns: 38px minmax(0, 1fr) 82px !important;
-    gap: 8px !important;
+  .nuvia-fantasy-cta {
+    grid-template-columns: 43px minmax(0, 1fr) 91px;
+    column-gap: 9px;
 
-    width: calc(100% - 22px) !important;
-    height: 88px !important;
-    min-height: 88px !important;
-    max-height: 88px !important;
+    width: calc(100vw - 24px);
+    height: 96px;
+    min-height: 96px;
+    max-height: 96px;
 
-    padding: 10px !important;
+    padding: 11px 10px;
   }
 
-  .fantasy-card__icon,
-  .fantasy-card__icon svg {
-    width: 36px !important;
-    height: 36px !important;
-    min-width: 36px !important;
-    max-width: 36px !important;
+  .nuvia-fantasy-cta__icon {
+    width: 43px;
+    height: 43px;
   }
 
-  .fantasy-card__text h2 {
-    font-size: 17px !important;
+  .nuvia-fantasy-cta__icon svg {
+    width: 40px;
+    height: 40px;
   }
 
-  .fantasy-card__text p {
-    font-size: 9.5px !important;
-    line-height: 1.18 !important;
+  .nuvia-fantasy-cta__title {
+    font-size: 18px;
   }
 
-  .fantasy-card__button {
-    width: 82px !important;
-    min-width: 82px !important;
-    max-width: 82px !important;
+  .nuvia-fantasy-cta__description {
+    font-size: 10.5px;
+    line-height: 1.18;
+  }
 
-    height: 40px !important;
-    min-height: 40px !important;
-    max-height: 40px !important;
+  .nuvia-fantasy-cta__button {
+    width: 91px;
+    min-width: 91px;
+    height: 43px;
+    min-height: 43px;
 
-    padding: 0 8px !important;
-    font-size: 13px !important;
+    padding: 0 9px;
+    font-size: 14px;
+  }
+
+  .nuvia-fantasy-cta__arrow {
+    font-size: 17px;
   }
 }
 

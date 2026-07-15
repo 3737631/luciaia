@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import Header from "@/components/Header";
 import GirlCard from "@/components/GirlCard";
 import StoriesRow from "@/components/StoriesRow";
+import { FantasyCTA } from "@/components/FantasyCTA";
 import { girls } from "@/data/girls";
 import { getGirlImage } from "@/lib/images";
 import { getDailyStorySelection } from "@/lib/getDailyStoryIndex";
@@ -138,39 +139,7 @@ export default function GirlsPage() {
       <main style={{ minHeight: "100vh", maxWidth: 1200, margin: "0 auto", padding: "0 var(--container-padding)" }}>
         <StoriesRow girls={femaleGirls} />
 
-        <section className="fantasy-card">
-          <div className="fantasy-card__icon" aria-hidden="true">
-            <svg
-              viewBox="0 0 48 48"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-            >
-              <path
-                d="M13 35.5 30.5 18l4.5 4.5L17.5 40H13v-4.5Z"
-                fill="currentColor"
-              />
-              <path
-                d="m31 12.5 1.8-4.3 1.8 4.3 4.3 1.8-4.3 1.8-1.8 4.3-1.8-4.3-4.3-1.8 4.3-1.8Z"
-                fill="currentColor"
-              />
-              <path
-                d="m14 13 1.2-2.8 1.2 2.8 2.8 1.2-2.8 1.2-1.2 2.8-1.2-2.8-2.8-1.2L14 13Z"
-                fill="currentColor"
-              />
-              <path
-                d="m38 31.5 1.2-2.8 1.2 2.8 2.8 1.2-2.8 1.2-1.2 2.8-1.2-2.8-2.8-1.2 2.8-1.2Z"
-                fill="currentColor"
-              />
-            </svg>
-          </div>
-          <div className="fantasy-card__text">
-            <h2>Crea tu <span>fantasía</span></h2>
-            <p>Describe cómo quieres que sea y Nuvia la convertirá en un personaje único con IA.</p>
-          </div>
-          <button type="button" className="fantasy-card__button" onClick={() => { const h = document.querySelector('[href="#crear"]'); if (h instanceof HTMLElement) h.click(); }}>
-            <span>Crear</span><span aria-hidden="true">→</span>
-          </button>
-        </section>
+        <FantasyCTA mode="girls" onCreate={() => { const h = document.querySelector('[href="#crear"]'); if (h instanceof HTMLElement) h.click(); }} />
 
         <section id="characters">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
