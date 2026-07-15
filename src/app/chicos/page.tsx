@@ -131,8 +131,8 @@ export default function ChicosPage() {
       <main style={{ minHeight: "100vh", maxWidth: 1200, margin: "0 auto", padding: "0 var(--container-padding)" }}>
         <StoriesRow girls={maleChars} />
 
-        <section className="fantasy-creator">
-          <div className="fantasy-creator__wand" aria-hidden="true">
+        <section className="fantasy-card">
+          <div className="fantasy-card__icon" aria-hidden="true">
             <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="none">
               <path d="M12 35.5 31.5 16l5 5L17 40.5h-5v-5Z" fill="currentColor" />
               <path d="m31 11 2-5 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z" fill="currentColor" />
@@ -140,11 +140,11 @@ export default function ChicosPage() {
               <path d="m39 31 1.5-3.5L42 31l3.5 1.5L42 34l-1.5 3.5L39 34l-3.5-1.5L39 31Z" fill="currentColor" />
             </svg>
           </div>
-          <div className="fantasy-creator__copy">
+          <div className="fantasy-card__text">
             <h2>Crea tu <span>fantasía</span></h2>
             <p>Diseña tu chico ideal con IA y pásalo bien con él.</p>
           </div>
-          <button type="button" className="fantasy-creator__button" onClick={() => { const h = document.querySelector('[href="#crear"]'); if (h instanceof HTMLElement) h.click(); }}>
+          <button type="button" className="fantasy-card__button" onClick={() => { const h = document.querySelector('[href="#crear"]'); if (h instanceof HTMLElement) h.click(); }}>
             Crear <span aria-hidden="true">→</span>
           </button>
         </section>
