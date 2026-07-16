@@ -366,9 +366,12 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
       const next = [...prev];
       if (dir === "next") {
         next[currentIndex] = 100;
-      }
-      for (let i = toIdx; i < next.length; i++) {
-        next[i] = 0;
+        for (let i = toIdx; i < next.length; i++) {
+          next[i] = 0;
+        }
+      } else {
+        next[currentIndex] = 100;
+        next[toIdx] = 0;
       }
       return next;
     });
