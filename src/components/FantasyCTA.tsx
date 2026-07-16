@@ -3,6 +3,8 @@ type FantasyCTAProps = {
   onCreate: () => void;
 };
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
 export function FantasyCTA({
   mode,
   onCreate,
@@ -21,28 +23,11 @@ export function FantasyCTA({
         className="nuvia-fantasy-cta__icon"
         aria-hidden="true"
       >
-        <svg
-          viewBox="0 0 52 52"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-        >
-          <path
-            d="M12 41 33 20l5 5-21 21h-5v-5Z"
-            fill="currentColor"
-          />
-          <path
-            d="M40,4 L48,12 L40,20 L32,12 Z"
-            fill="currentColor"
-          />
-          <path
-            d="M16,8 L21,13 L16,18 L11,13 Z"
-            fill="currentColor"
-          />
-          <path
-            d="M46,26 L49,29 L46,32 L43,29 Z"
-            fill="currentColor"
-          />
-        </svg>
+        <img
+          src={`${basePath}/fantasy-neon.jpg`}
+          alt=""
+          className="nuvia-fantasy-cta__image"
+        />
       </div>
 
       <div className="nuvia-fantasy-cta__copy">

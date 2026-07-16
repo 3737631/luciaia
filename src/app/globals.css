@@ -548,6 +548,14 @@ body {
     drop-shadow(0 0 8px rgba(255, 59, 131, 0.2));
 }
 
+.nuvia-fantasy-cta__image {
+  display: block;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 .nuvia-fantasy-cta__copy {
   display: flex;
   min-width: 0;
