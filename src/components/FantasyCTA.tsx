@@ -27,19 +27,19 @@ export function FantasyCTA({
           fill="none"
         >
           <path
-            d="M13 39 34 18l5 5-21 21h-5v-5Z"
+            d="M12 41 33 20l5 5-21 21h-5v-5Z"
             fill="currentColor"
           />
           <path
-            d="m35 3 3 4L42 10l-4 3L35 17l-3-4L28 10l4-3 3-4Z"
+            d="M40,4 L48,12 L40,20 L32,12 Z"
             fill="currentColor"
           />
           <path
-            d="m11 15 2 3L16 20l-3 2L11 25l-2-3L6 20l3-2 2-3Z"
+            d="M16,8 L21,13 L16,18 L11,13 Z"
             fill="currentColor"
           />
           <path
-            d="m43 15 2 3L48 20l-3 2L43 25l-2-3L38 20l3-2 2-3Z"
+            d="M46,26 L49,29 L46,32 L43,29 Z"
             fill="currentColor"
           />
         </svg>
