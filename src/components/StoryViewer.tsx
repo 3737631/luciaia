@@ -1070,7 +1070,6 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
         .story-face--incoming.is-prev{transform-origin:left center}
 
         @media(max-width:767px){.story-desktop-shell{display:block}.story-blurred-background{display:none}.story-mobile-frame{width:100%!important;max-width:none!important;aspect-ratio:auto!important;border-radius:0!important;box-shadow:none!important}}
-        @media(min-width:768px){.story-face{width:min(430px,calc(100vw - 32px));left:50%;right:auto;margin-left:calc(min(430px,100vw - 32px)/-2);height:100vh;height:100dvh}}
       `}</style>
 
       {/* Hidden input */}
