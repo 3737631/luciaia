@@ -116,7 +116,9 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
   const [highlightedReaction, setHighlightedReaction] = useState<string | null>(null);
   const [keyboardInset, setKeyboardInset] = useState(0);
   const [isComposerFocused, setIsComposerFocused] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
+  const [likedStories, setLikedStories] = useState<Record<string, boolean>>({});
+  const storyKey = `${charIndex}-${currentIndex}`;
+  const isLiked = likedStories[storyKey] ?? false;
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [likeParticles, setLikeParticles] = useState<{ id: string; x: number; y: number }[]>([]);
@@ -589,18 +591,22 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
     if (heartHoldTimer.current) clearTimeout(heartHoldTimer.current);
     if (!heartOpenedPicker.current) {
       triggerHaptic(15);
-      setIsLiked((prev) => !prev);
-      if (!isLiked) {
-        const btn = heartBtnRef.current;
-        const x = btn ? btn.getBoundingClientRect().left + btn.offsetWidth / 2 : window.innerWidth / 2;
-        const y = btn ? btn.getBoundingClientRect().top : window.innerHeight - 80;
-        const id = crypto.randomUUID?.() ?? `${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
-        setLikeParticles((p) => [...p, { id, x, y }]);
-        setTimeout(() => { if (mountedRef.current) setLikeParticles((p) => p.filter((x) => x.id !== id)); }, 650);
-      }
+      setLikedStories((prev) => {
+        const key = `${charIndex}-${currentIndex}`;
+        const isNowLiked = !prev[key];
+        if (isNowLiked) {
+          const btn = heartBtnRef.current;
+          const x = btn ? btn.getBoundingClientRect().left + btn.offsetWidth / 2 : window.innerWidth / 2;
+          const y = btn ? btn.getBoundingClientRect().top : window.innerHeight - 80;
+          const id = crypto.randomUUID?.() ?? `${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+          setLikeParticles((p) => [...p, { id, x, y }]);
+          setTimeout(() => { if (mountedRef.current) setLikeParticles((p) => p.filter((x) => x.id !== id)); }, 650);
+        }
+        return { ...prev, [key]: isNowLiked };
+      });
     }
     heartOpenedPicker.current = false;
-  }, [isLiked]);
+  }, [charIndex, currentIndex]);
 
   const handleHeartCancel = useCallback(() => {
     if (heartHoldTimer.current) clearTimeout(heartHoldTimer.current);
