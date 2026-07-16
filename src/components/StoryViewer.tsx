@@ -142,6 +142,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
   const [currentImageSrc, setCurrentImageSrc] = useState(() => initialImageSrc);
   const [incomingImageSrc, setIncomingImageSrc] = useState<string | null>(null);
   const [incomingVisible, setIncomingVisible] = useState(false);
+  const [storyTransitioning, setStoryTransitioning] = useState(false);
   const imageSwitchLockRef = useRef(false);
 
   // Transition state: null or { type:'story'|'group', dir, fromChar, toChar, from, to }
@@ -366,15 +367,13 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
       const next = [...prev];
       if (dir === "next") {
         next[currentIndex] = 100;
-        for (let i = toIdx; i < next.length; i++) {
-          next[i] = 0;
-        }
-      } else {
-        next[currentIndex] = 100;
-        next[toIdx] = 0;
+      }
+      for (let i = toIdx; i < next.length; i++) {
+        next[i] = 0;
       }
       return next;
     });
+    setStoryTransitioning(true);
     setCurrentIndex(toIdx);
 
     // Dual-layer: place incoming image (hidden), then reveal after paint
@@ -392,6 +391,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
       setIncomingVisible(false);
       setIncomingImageSrc(null);
       imageSwitchLockRef.current = false;
+      setStoryTransitioning(false);
     }, STORY_FADE_MS);
   }, [closing, isComposerFocused, charIndex, currentIndex, characters, stopProgress]);
 
@@ -938,7 +938,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
         }} />
 
         {/* Progress bars */}
-        {renderProgressBars(progress, si, !!incomingChar)}
+        {renderProgressBars(progress, si, !!incomingChar || storyTransitioning)}
 
         {/* Header */}
         {renderHeader(c)}
