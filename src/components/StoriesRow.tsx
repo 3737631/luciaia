@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { getGirlImage } from "@/lib/images";
 import { getDailyStorySelection } from "@/lib/getDailyStoryIndex";
 import { getSeenStories, markStorySeen } from "@/lib/storySeenService";
@@ -12,6 +12,7 @@ import StoryViewer from "./StoryViewer";
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export default function StoriesRow({ girls }: { girls: Girl[] }) {
+  const router = useRouter();
   const [seen, setSeen] = useState<Set<string>>(() => getSeenStories());
   const [storyChar, setStoryChar] = useState<{
     characters: Array<{ id: string; images: string[]; avatar: string; name: string }>;
@@ -124,7 +125,7 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
           <div
             key={girl.id}
             className="story-item"
-            onClick={() => { if (hasStory) openStories(girl); else window.location.href = `${basePath}/chat/${girl.id}`; }}
+            onClick={() => { if (hasStory) openStories(girl); else router.push(`/chat/${girl.id}`); }}
           >
             <div className={"story-ring" + (isSeen ? " is-seen" : "")}>
               <div className="story-avatar">
