@@ -67,23 +67,18 @@ export default function GirlsPage() {
   useEffect(() => {
     if (preloadedRef.current) return;
     preloadedRef.current = true;
-    const critical = [
-      `${basePath}/${HERO_IMAGES[0]}`,
-      ...femaleGirls.slice(0, 8).map(g => getGirlImage(g.id, null, null, null, g.cloudinaryImage)),
+    const uniqueAvatars = new Set(femaleGirls.slice(0, 8).map(g => getGirlImage(g.id, null, null, null, g.cloudinaryImage)).filter(Boolean));
+    const allCritical = [
+      ...HERO_IMAGES.map(h => `${basePath}/${h}`),
+      ...uniqueAvatars,
     ];
-    // Also preload avatars for story circles
-    femaleGirls.slice(0, 8).forEach(g => {
+    // Background preload other categories
+    [...maleChars.slice(0, 4), ...animeChars.slice(0, 4)].forEach(g => {
       const url = getGirlImage(g.id, null, null, null, g.cloudinaryImage);
-      critical.push(url);
+      const img = new Image(); img.src = url;
     });
-    // Background preload other categories' key images
-    const otherImages: string[] = [];
-    HERO_IMAGES.forEach(h => otherImages.push(`${basePath}/${h}`));
-    maleChars.slice(0, 4).forEach(g => otherImages.push(getGirlImage(g.id, null, null, null, g.cloudinaryImage)));
-    animeChars.slice(0, 4).forEach(g => otherImages.push(getGirlImage(g.id, null, null, null, g.cloudinaryImage)));
-    otherImages.forEach(src => { const img = new Image(); img.src = src; });
 
-    Promise.all(critical.map(preloadImage)).then(() => setAppReady(true));
+    Promise.all(allCritical.map(preloadImage)).then(() => setAppReady(true));
   }, []);
 
   const POSITIONS = ["15% center", "8% center", "50% center", "30% center"];
