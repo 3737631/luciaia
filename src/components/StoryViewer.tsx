@@ -117,8 +117,6 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
   const [keyboardInset, setKeyboardInset] = useState(0);
   const [isComposerFocused, setIsComposerFocused] = useState(false);
   const [likedStories, setLikedStories] = useState<Record<string, boolean>>({});
-  const storyKey = `${charIndex}-${currentIndex}`;
-  const isLiked = likedStories[storyKey] ?? false;
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [likeParticles, setLikeParticles] = useState<{ id: string; x: number; y: number }[]>([]);
@@ -132,6 +130,11 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
     storyIdx: number;
     direction: "next" | "prev";
   } | null>(null);
+
+  const effectiveCharIndex = incomingChar !== null ? incomingChar.charIdx : charIndex;
+  const effectiveCurrentIndex = incomingChar !== null ? incomingChar.storyIdx : currentIndex;
+  const storyKey = `${effectiveCharIndex}-${effectiveCurrentIndex}`;
+  const isLiked = likedStories[storyKey] ?? false;
 
   const [viewerReady, setViewerReady] = useState(false);
 
