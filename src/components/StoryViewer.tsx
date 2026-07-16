@@ -685,30 +685,10 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
       return;
     }
 
-    // Horizontal axis: interactive drag
+    // Horizontal axis: preload adjacent group only
     if (g.axis === "horizontal") {
-      if (!g.dragging && Math.abs(dx) > DRAG_START_DISTANCE) {
-        g.dragging = true;
-        setPaused(true);
-        progressFrozenRef.current = true;
-        // Preload adjacent group
-        if (dx < 0 && hasNextGroup) preloadGroup(charIndex + 1);
-        if (dx > 0 && hasPrevGroup) preloadGroup(charIndex - 1);
-      }
-
-      if (g.dragging) {
-        g.moved = true;
-        const width = (e.currentTarget as HTMLElement).clientWidth || window.innerWidth;
-
-        // Apply transform directly via RAF
-        if (dragRAFRef.current) cancelAnimationFrame(dragRAFRef.current);
-        dragRAFRef.current = requestAnimationFrame(() => {
-          const el = frameRef.current;
-          if (!el) return;
-          el.style.transition = "none";
-          el.style.transform = `translate3d(${dx}px, 0, 0)`;
-        });
-      }
+      if (dx < 0 && hasNextGroup) preloadGroup(charIndex + 1);
+      if (dx > 0 && hasPrevGroup) preloadGroup(charIndex - 1);
     }
   }, [transition, closing, hasNextGroup, hasPrevGroup, charIndex, preloadGroup]);
 
@@ -767,9 +747,13 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
       gestureRef.current = null;
       return;
     }
-    if (g.dragging && g.axis === "horizontal") {
-      setPaused(false);
-      completeDrag(dx < 0 ? "next" : "prev");
+    // ═══ Horizontal swipe: navigate like a tap ═══
+    if (g.axis === "horizontal" && g.moved) {
+      if (dx < 0) {
+        handleNext();
+      } else {
+        handlePrevious();
+      }
       gestureRef.current = null;
       suppressClickRef.current = performance.now() + 350;
       return;
