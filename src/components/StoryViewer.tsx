@@ -1042,10 +1042,10 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
         .story-desktop-shell{position:fixed;inset:0;z-index:9999;display:flex;justify-content:center;align-items:center;overflow:hidden;background:#000;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;overscroll-behavior:none;height:100vh;height:100dvh;min-height:100dvh;animation:close-open 120ms ease-out both}
         .story-desktop-shell.is-closing-down{animation:none;transform:translate3d(0,105%,0);opacity:0;transition:transform 280ms cubic-bezier(.32,.72,0,1),opacity 240ms ease}
         .story-desktop-shell.is-closing-right{animation:none;transform:translate3d(105%,0,0);opacity:0;transition:transform 280ms cubic-bezier(.32,.72,0,1),opacity 240ms ease}
-        @keyframes sc-left{from{transform:translateX(0) rotateY(0deg)}to{transform:translateX(-100%) rotateY(72deg)}}
-        @keyframes si-right{from{transform:translateX(100%) rotateY(-72deg)}to{transform:translateX(0) rotateY(0deg)}}
-        @keyframes sc-right{from{transform:translateX(0) rotateY(0deg)}to{transform:translateX(100%) rotateY(-72deg)}}
-        @keyframes si-left{from{transform:translateX(-100%) rotateY(72deg)}to{transform:translateX(0) rotateY(0deg)}}
+        @keyframes sc-left{from{transform:translateX(0) rotateY(0deg)}to{transform:translateX(-48%) rotateY(72deg)}}
+        @keyframes si-right{from{transform:translateX(48%) rotateY(-72deg)}to{transform:translateX(0) rotateY(0deg)}}
+        @keyframes sc-right{from{transform:translateX(0) rotateY(0deg)}to{transform:translateX(48%) rotateY(-72deg)}}
+        @keyframes si-left{from{transform:translateX(-48%) rotateY(72deg)}to{transform:translateX(0) rotateY(0deg)}}
         .story-desktop-shell img{-webkit-touch-callout:none;pointer-events:none}
         .story-blurred-background{position:absolute;inset:-40px;background-position:center;background-size:cover;filter:blur(28px);transform:scale(1.08);opacity:0.55;pointer-events:none;will-change:background-image}
         .story-media-stage{position:absolute;inset:0;overflow:hidden;background:#000;z-index:2}
