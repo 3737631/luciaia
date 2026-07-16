@@ -5,7 +5,7 @@ import Link from "next/link";
 import { getGirlImage } from "@/lib/images";
 import { getDailyStorySelection } from "@/lib/getDailyStoryIndex";
 import { getSeenStories, markStorySeen } from "@/lib/storySeenService";
-import { preloadImage, isImageReady } from "@/lib/preloadImage";
+import { preloadImage } from "@/lib/preloadImage";
 import type { Girl } from "@/data/girls";
 import StoryViewer from "./StoryViewer";
 
@@ -86,8 +86,6 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
 
   // ── Open stories (synchronous — no async, no await) ──
   const openStories = useCallback((girl: Girl) => {
-    if (!criticalStoriesReady) return;
-
     const chars = girls
       .filter((g) => g.storyImages?.length)
       .map((g) => {
@@ -102,13 +100,10 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
     const startIndex = chars.findIndex((c) => c.id === girl.id);
     if (startIndex === -1) return;
 
-    const firstSrc = chars[startIndex]?.images?.[0];
-    if (!firstSrc || !isImageReady(firstSrc)) return;
-
     setSeen((prev) => { const next = new Set(prev); next.add(girl.id); return next; });
     markStorySeen(girl.id);
     setStoryChar({ characters: chars, startCharIndex: startIndex, ready: true });
-  }, [girls, criticalStoriesReady]);
+  }, [girls]);
 
   return (
     <>

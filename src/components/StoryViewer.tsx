@@ -1069,6 +1069,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
         .story-face.is-prev{transform-origin:right center}
         .story-face--incoming.is-prev{transform-origin:left center}
 
+        @media(min-width:768px){.story-perspective{width:min(430px,calc(100vw - 32px));left:50%;right:auto;transform:translateX(-50%)}}
         @media(max-width:767px){.story-desktop-shell{display:block}.story-blurred-background{display:none}.story-mobile-frame{width:100%!important;max-width:none!important;aspect-ratio:auto!important;border-radius:0!important;box-shadow:none!important}}
       `}</style>
 
