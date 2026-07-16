@@ -8,6 +8,7 @@ import { getGirlImage } from "@/lib/images";
 import { getCustomization } from "@/lib/storage";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+const chatPath = (id: string) => `/chat/${id}`;
 
 function shouldBeOnline(): boolean {
   return Math.random() < 0.55;
@@ -48,8 +49,8 @@ export default function GirlCard({ girl, index = 0 }: { girl: Girl; index?: numb
       role="button"
       tabIndex={0}
       aria-label={`${girl.name}, ${girl.age} años`}
-      onClick={() => router.push(`${basePath}/chat/${girl.id}`)}
-      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); router.push(`${basePath}/chat/${girl.id}`); } }}
+      onClick={() => router.push(chatPath(girl.id))}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); router.push(chatPath(girl.id)); } }}
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0)" : "translateY(16px)",
@@ -97,7 +98,7 @@ export default function GirlCard({ girl, index = 0 }: { girl: Girl; index?: numb
       </div>
 
       <Link
-        href={`${basePath}/chat/${girl.id}`}
+        href={chatPath(girl.id)}
         className="person-action"
         onClick={(e) => e.stopPropagation()}
       >
@@ -106,7 +107,7 @@ export default function GirlCard({ girl, index = 0 }: { girl: Girl; index?: numb
 
       <div className="person-quick-actions">
         <Link
-          href={`${basePath}/call/${girl.id}`}
+          href={`/call/${girl.id}`}
           className="quick-action-button"
           title="Llamada"
           aria-label={`Llamar a ${girl.name}`}
@@ -117,7 +118,7 @@ export default function GirlCard({ girl, index = 0 }: { girl: Girl; index?: numb
           </svg>
         </Link>
         <Link
-          href={`${basePath}/call/${girl.id}`}
+          href={`/call/${girl.id}`}
           className="quick-action-button"
           title="Videollamada"
           aria-label={`Videollamada con ${girl.name}`}
