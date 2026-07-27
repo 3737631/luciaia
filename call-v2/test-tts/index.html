@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Test TTS ElevenLabs</title>
+<style>
+body{background:#0B0B0F;color:#fff;font-family:system-ui;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:20px;gap:16px}
+h1{color:#FF3B7F;font-size:22px;margin:0}
+select,button,input{font-size:16px;padding:10px 16px;border-radius:12px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.06);color:#fff;width:100%;max-width:360px}
+button{background:#FF3B7F;color:#fff;border:none;cursor:pointer;font-weight:600;transition:0.2s}
+button:hover{background:#e63572}
+button:disabled{opacity:0.5;cursor:default}
+label{font-size:13px;color:rgba(255,255,255,0.6);width:100%;max-width:360px}
+#status{font-size:13px;color:rgba(255,255,255,0.5);text-align:center}
+audio{width:100%;max-width:360px;margin-top:8px}
+</style>
+</head>
+<body>
+<h1>🔊 Test ElevenLabs TTS</h1>
+
+<label>Personaje:</label>
+<select id="voice">
+  <option value="female-alma">Alma (Sarah - madura)</option>
+  <option value="female-athena">Athena (Laura - extrovertida)</option>
+  <option value="female-cora">Cora (Alice - británica)</option>
+  <option value="female-eva">Eva (Matilda - profesional)</option>
+  <option value="female-gemma">Gemma (Jessica - cálida)</option>
+  <option value="female-iris">Iris (Bella - brillante)</option>
+  <option value="female-jade">Jade (Lily - actriz)</option>
+  <option value="female-kira">Kira (Matilda - profesional)</option>
+  <option value="female-lena">Lena (Laura - extrovertida)</option>
+  <option value="female-luna">Luna (Jessica - cálida)</option>
+  <option value="female-maya">Maya (Alice - británica)</option>
+  <option value="female-mira">Mira (Lily - actriz)</option>
+  <option value="female-morgana">Morgana (Bella - brillante)</option>
+  <option value="female-nia">Nia (Lily - actriz)</option>
+  <option value="female-nova">Nova (Sarah - madura)</option>
+  <option value="female-raven">Raven (Matilda - profesional)</option>
+  <option value="female-roxy">Roxy (Lily - actriz)</option>
+  <option value="female-sasha">Sasha (Bella - brillante)</option>
+  <option value="female-shadow">Shadow (Lily - actriz)</option>
+  <option value="female-sky">Sky (Alice - británica)</option>
+  <option value="female-vera">Vera (Lily - actriz)</option>
+  <option value="female-yuki">Yuki (Sarah - madura)</option>
+  <option value="female-yumi_lib">Yumi (Laura - extrovertida)</option>
+  <option value="female-zara">Zara (Jessica - cálida)</option>
+  <option value="male-axel">Axel (Adam - grave, firme)</option>
+  <option value="male-liam">Liam (Brian - profundo, resonante)</option>
+</select>
+
+<label>Texto:</label>
+<input id="text" value="Hola, ¿cómo estás? Me alegra mucho verte. Tenía ganas de hablar contigo."/>
+
+<button id="btn">▶ Escuchar</button>
+<audio id="player" controls></audio>
+<div id="status">Esperando...</div>
+
+<script>window.__voiceId="female-alma"</script>
+<script>
+(function(){
+  var btn=document.getElementById("btn");
+  var sel=document.getElementById("voice");
+  var txt=document.getElementById("text");
+  var player=document.getElementById("player");
+  var st=document.getElementById("status");
+
+  sel.addEventListener("change",function(){window.__voiceId=sel.value;st.textContent="VoiceId: "+sel.value});
+
+  btn.addEventListener("click",async function(){
+    btn.disabled=true;
+    st.textContent="Llamando a ElevenLabs...";
+    player.src="";
+
+    try{
+      var r=await fetch("https://rebviqktyvzwwqqmvtsi.supabase.co/functions/v1/voice",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          action:"tts",
+          text:txt.value,
+          voiceId:sel.value
+        })
+      });
+      var j=await r.json();
+      if(j.audio&&j.contentType){
+        player.src="data:"+j.contentType+";base64,"+j.audio;
+        player.play();
+        st.textContent="✓ Audio recibido ("+Math.round(j.audio.length/1.37)+" bytes) - reproduciendo...";
+      }else{
+        st.textContent="✗ Error: respuesta incompleta - "+JSON.stringify(j);
+      }
+    }catch(e){
+      st.textContent="✗ Error: "+e.message;
+    }
+    btn.disabled=false;
+  });
+})();
+</script>
+</body>
+</html>
