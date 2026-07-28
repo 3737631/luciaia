@@ -72,6 +72,10 @@ export const girls: Girl[] = [
       "Las luces no son lo único encendido aquí.",
     ],
     cloudinaryImage: "https://res.cloudinary.com/dmuxgamms/image/upload/v1783787896/photo_2026-07-11_18-34-52_h8ind9.jpg",
+    storyImages: Array.from({ length: 8 }, (_, i) => {
+      const n = i + 1;
+      return `/nia_stories/nia_story_${n}.jpg`;
+    }),
   },
   {
     id: "vera",
@@ -100,6 +104,10 @@ export const girls: Girl[] = [
       "Hoy vas a hacerme caso, ¿no?",
     ],
     cloudinaryImage: "https://res.cloudinary.com/dmuxgamms/image/upload/v1783787856/photo_2026-07-11_18-35-56_aymgxp.jpg",
+    storyImages: Array.from({ length: 10 }, (_, i) => {
+      const n = i + 1;
+      return `/vera_stories/vera_story_${n}.jpg`;
+    }),
   },
   {
     id: "alma",
@@ -127,6 +135,10 @@ export const girls: Girl[] = [
       "Me encanta cuando me escribes así.",
     ],
     cloudinaryImage: "https://res.cloudinary.com/dmuxgamms/image/upload/v1783787855/photo_2026-07-11_18-35-10_og8col.jpg",
+    storyImages: Array.from({ length: 8 }, (_, i) => {
+      const n = i + 1;
+      return `/alma_stories/alma_story_${n}.jpg`;
+    }),
   },
   {
     id: "kira",
@@ -200,6 +212,10 @@ export const girls: Girl[] = [
       "Huele a tarde de domingo. mi favorita.",
     ],
     cloudinaryImage: "https://res.cloudinary.com/dmuxgamms/image/upload/v1783787855/photo_2026-07-11_18-35-41_tizzv2.jpg",
+    storyImages: Array.from({ length: 9 }, (_, i) => {
+      const n = i + 1;
+      return `/sasha_stories/sasha_story_${n}.jpg`;
+    }),
   },
   {
     id: "yuki",
@@ -320,6 +336,10 @@ export const girls: Girl[] = [
       "Tranquilo, que luego te ayudo con lo que necesites.",
     ],
     cloudinaryImage: "https://res.cloudinary.com/dmuxgamms/image/upload/v1783787895/photo_2026-07-11_18-34-49_c1ke0s.jpg",
+    storyImages: Array.from({ length: 8 }, (_, i) => {
+      const n = i + 1;
+      return `/zara_stories/zara_story_${n}.jpg`;
+    }),
   },
   {
     id: "iris",
@@ -371,6 +391,10 @@ export const girls: Girl[] = [
       "Si te quedas, preparo café.",
     ],
     cloudinaryImage: "https://res.cloudinary.com/dmuxgamms/image/upload/v1783787856/photo_2026-07-11_18-35-54_cha4yn.jpg",
+    storyImages: Array.from({ length: 12 }, (_, i) => {
+      const n = i + 1;
+      return `/shadow_stories/shadow_story_${n}.jpg`;
+    }),
   },
   {
     id: "morgana",
@@ -394,6 +418,10 @@ export const girls: Girl[] = [
       "La vida va despacio cuando estoy contigo.",
     ],
     cloudinaryImage: "https://res.cloudinary.com/dmuxgamms/image/upload/v1783787856/photo_2026-07-11_18-36-01_scmnk8.jpg",
+    storyImages: Array.from({ length: 20 }, (_, i) => {
+      const n = i + 1;
+      return `/morgana_stories/morgana_story_${n}.jpg`;
+    }),
   },
   {
     id: "roxy",
@@ -417,6 +445,10 @@ export const girls: Girl[] = [
       "Cuando termines, te espero en los vestidores.",
     ],
     cloudinaryImage: "https://res.cloudinary.com/dmuxgamms/image/upload/v1783787856/photo_2026-07-11_18-35-52_ncgqxt.jpg",
+    storyImages: Array.from({ length: 16 }, (_, i) => {
+      const n = i + 1;
+      return `/roxy_stories/roxy_story_${n}.jpg`;
+    }),
   },
   {
     id: "athena",
@@ -463,6 +495,10 @@ export const girls: Girl[] = [
       "El vino lo pago yo. La compañía la pones tú.",
     ],
     cloudinaryImage: "https://res.cloudinary.com/dmuxgamms/image/upload/v1783787856/photo_2026-07-11_18-36-03_fhen3l.jpg",
+    storyImages: Array.from({ length: 17 }, (_, i) => {
+      const n = i + 1;
+      return `/eva_stories/eva_story_${n}.jpg`;
+    }),
   },
   {
     id: "cora",
@@ -510,6 +546,10 @@ export const girls: Girl[] = [
       "No te vayas aún, que el sol está en su punto... y yo también.",
     ],
     cloudinaryImage: "https://res.cloudinary.com/dmuxgamms/image/upload/v1783787855/photo_2026-07-11_18-35-37_w1ezq5.jpg",
+    storyImages: Array.from({ length: 10 }, (_, i) => {
+      const n = i + 1;
+      return `/mira_stories/mira_story_${n}.jpg`;
+    }),
   },
   {
     id: "yumi_lib",
@@ -533,6 +573,10 @@ export const girls: Girl[] = [
       "Los libros son buenos, pero contigo prefiero no leer.",
     ],
     cloudinaryImage: "https://res.cloudinary.com/dmuxgamms/image/upload/v1783787855/photo_2026-07-11_18-35-33_xxnecy.jpg",
+    storyImages: Array.from({ length: 9 }, (_, i) => {
+      const n = i + 1;
+      return `/yumi_lib_stories/yumi_lib_story_${n}.jpg`;
+    }),
   },
   {
     id: "raven",
@@ -556,6 +600,10 @@ export const girls: Girl[] = [
       "La tinta entra lento. Como yo cuando quiero algo.",
     ],
     cloudinaryImage: "https://res.cloudinary.com/dmuxgamms/image/upload/v1783787855/photo_2026-07-11_18-35-31_cqowjn.jpg",
+    storyImages: Array.from({ length: 7 }, (_, i) => {
+      const n = i + 1;
+      return `/raven_stories/raven_story_${n}.jpg`;
+    }),
   },
   {
     id: "sky",
@@ -602,6 +650,10 @@ export const girls: Girl[] = [
       "¿Te gusta el diseño? todo es personalizable.",
     ],
     cloudinaryImage: "https://res.cloudinary.com/dmuxgamms/image/upload/v1783787855/photo_2026-07-11_18-35-20_f6pz0y.jpg",
+    storyImages: Array.from({ length: 8 }, (_, i) => {
+      const n = i + 1;
+      return `/jade_stories/jade_story_${n}.jpg`;
+    }),
   },
   {
     id: "gemma",
@@ -649,6 +701,10 @@ export const girls: Girl[] = [
       "El vino está bueno, pero tú hueles mejor.",
     ],
     cloudinaryImage: "https://res.cloudinary.com/dmuxgamms/image/upload/v1783787855/photo_2026-07-11_18-35-07_mlouoo.jpg",
+    storyImages: Array.from({ length: 9 }, (_, i) => {
+      const n = i + 1;
+      return `/nova_stories/nova_story_${n}.jpg`;
+    }),
   },
   {
     id: "lena",
