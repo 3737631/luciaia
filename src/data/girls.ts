@@ -28,7 +28,7 @@ export interface Girl {
 export const girls: Girl[] = [
   {
     id: "luna",
-    name: "Luna",
+    name: "Sofia",
     age: 21,
     story: "La novia de tu mejor amigo no ha dejado de mirarte en toda la noche. Cuando él se levanta al baño, ella cruza la sala en lencería negra, iluminada por el neón rosa: «Siempre te he visto a ti, ¿sabes? Él nunca se ha dado cuenta.»",
     roleplayGreetings: [

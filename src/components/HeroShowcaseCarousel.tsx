@@ -5,7 +5,7 @@ import Link from "next/link";
 import { getGirlImage } from "@/lib/images";
 
 const BANNERS = [
-  { id: "luna", name: "Luna", tag: "En vivo ahora", href: "/chat/luna" },
+  { id: "luna", name: "Sofia", tag: "En vivo ahora", href: "/chat/luna" },
   { id: "vera", name: "Vera", tag: "Nueva historia", href: "/chat/vera" },
   { id: "maya", name: "Maya", tag: "Popular", href: "/chat/maya" },
   { id: "sasha", name: "Sasha", tag: "En vivo ahora", href: "/chat/sasha" },
