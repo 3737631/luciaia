@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
-import "./chatexperience.css";
 import AnimatedBackground from "@/components/AnimatedBackground";
 
 const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
@@ -10,12 +9,6 @@ export const metadata: Metadata = {
   title: "NuviaChat — Chica IA ficticia por chat y videollamada",
   description:
     "Prueba una experiencia +18 con personajes IA ficticios. Chat, voz y videollamada simulada. Sin registro y sin anuncios.",
-};
-
-export const viewport = {
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
 };
 
 export default function RootLayout({
