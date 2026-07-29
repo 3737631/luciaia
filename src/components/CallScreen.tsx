@@ -43,7 +43,29 @@ type Mode = "idle" | "listening" | "processing" | "speaking";
 const CHUNK_MS = 2000;
 const DEBOUNCE_MS = 1200;
 
+const voiceIdMap: Record<string, string> = {
+  luna: "female-luna", nia: "female-nia", vera: "female-vera", alma: "female-alma",
+  kira: "female-kira", maya: "female-maya", sasha: "female-sasha", yuki: "female-yuki",
+  axel: "male-axel", liam: "male-liam", athena: "female-athena", eva: "female-eva",
+  cora: "female-cora", mira: "female-mira", yumi_lib: "female-yumi_lib", raven: "female-raven",
+  sky: "female-sky", jade: "female-jade", gemma: "female-gemma", nova: "female-nova",
+  lena: "female-lena", shadow: "female-shadow", morgana: "female-morgana", roxy: "female-roxy",
+  iris: "female-iris", zara: "female-zara",
+};
+
 export default function CallScreen({ girl }: { girl: Girl }) {
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      (window as any).__voiceId = voiceIdMap[girl.id] || `female-${girl.id}`;
+      const el = document.querySelector<HTMLElement>('[style*="z-index:9999"]');
+      if (el) {
+        el.style.setProperty("padding-top", "60px", "important");
+        const mo = new MutationObserver(() => el.style.setProperty("padding-top", "60px", "important"));
+        mo.observe(el, { attributes: true, attributeFilter: ["style"] });
+      }
+    }
+  }, [girl.id]);
+
   const custom = getCustomization(girl.id);
   const background = custom?.background ?? girl.defaultBackground ?? "neon-room";
 
@@ -507,68 +529,54 @@ export default function CallScreen({ girl }: { girl: Girl }) {
   }
 
   if (callState === "ringing" || callState === "connecting") {
+    const img = girl.cloudinaryImage;
     return (
-      <div className={`relative flex min-h-screen flex-col bg-gradient-to-b ${backgroundGradients[background]}`}>
-        <div className="flex flex-1 flex-col items-center justify-center px-5">
-          <div className="flex flex-col items-center animate-fadeUp">
-            <div className="relative mb-8">
-              {callState === "ringing" && (
-                <>
-                  <div className="absolute -inset-8 rounded-full border-2 border-pink/15 animate-ping" style={{ animationDuration: "2.5s" }} />
-                  <div className="absolute -inset-4 rounded-full border border-pink/25" />
-                </>
-              )}
-              <Avatar
-                name={girl.id}
-                accentColor={girl.accentColor}
-                accentColorSecondary={girl.accentColorSecondary}
-                hair={custom?.hair ?? girl.defaultHair}
-                pose={custom?.pose ?? girl.defaultPose}
-                background={custom?.background ?? girl.defaultBackground}
-                size={200}
-                animated
-              />
+      <>
+        {/* v20260727000541 */}
+        <style>{'div[style*="z-index:9999"]{padding-top:60px!important}'}</style>
+        <script dangerouslySetInnerHTML={{ __html: `window.__voiceId="${voiceIdMap[girl.id] || `female-${girl.id}`}"` }} />
+        <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, overflow: "hidden", background: "#08050a", overscrollBehavior: "none", touchAction: "manipulation", fontFamily: "-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',Arial,sans-serif", WebkitUserSelect: "none", userSelect: "none", display: "grid", gridTemplateRows: "auto 1fr auto", minHeight: "100dvh" }}>
+          {img && <img src={img} alt="" style={{ position: "absolute", inset: -60, width: "calc(100% + 120px)", height: "calc(100% + 120px)", objectFit: "cover", objectPosition: "center 30%", filter: "blur(48px) brightness(0.28) saturate(0.7)", transform: "scale(1.15)", opacity: 0.5, pointerEvents: "none" }} />}
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(20,5,15,0.4) 0%, rgba(8,4,12,0.85) 100%)", pointerEvents: "none" }} />
+          <div style={{ position: "absolute", top: "45%", left: "50%", transform: "translate(-50%, -50%)", width: "min(70vw, 320px)", height: "min(70vw, 320px)", borderRadius: "50%", background: "radial-gradient(circle, rgba(180,50,100,0.07) 0%, transparent 70%)", pointerEvents: "none" }} />
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 1, transform: "translateY(-14px)", minHeight: 0, padding: "0 24px" }}>
+            <div style={{ position: "relative", width: "min(180px, calc(100vw - 200px), 184px)", height: "min(180px, calc(100vw - 200px), 184px)", flexShrink: 0 }}>
+              {callState === "ringing" && <div style={{ position: "absolute", inset: -7, borderRadius: "50%", border: "1px solid rgba(180,50,100,0.18)", transform: "scale(1)", opacity: 0.3, pointerEvents: "none" }} />}
+              {img ? <img src={img} alt={girl.name} style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", objectPosition: "center", border: "1px solid rgba(255,255,255,0.14)" }} /> : <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "linear-gradient(135deg,#ff4c98,#a855f7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48, fontWeight: 700, color: "#f7f7f8" }}>{girl.name[0]}</div>}
             </div>
-            <h1 className="text-3xl font-bold tracking-tight">{girl.name}</h1>
-            <p className="mt-1 text-sm text-muted/70">{girl.style}</p>
-            <p className="mt-8 text-xs text-muted/50 tracking-widest uppercase animate-pulse">
-              {callState === "ringing" ? "Llamando..." : "Conectando..."}
-            </p>
+            <div style={{ marginTop: 22, fontSize: "clamp(36px, 9vw, 42px)", fontWeight: 650, lineHeight: 1, color: "rgba(255,255,255,0.97)", textAlign: "center" }}>{girl.name}</div>
+            <div style={{ marginTop: 13, fontSize: 17, fontWeight: 400, color: "rgba(255,255,255,0.68)", textAlign: "center", lineHeight: 1.25, height: 22 }}>{callState === "ringing" ? "Llamando" : "Conectando"}</div>
+            <div style={{ marginTop: 3, fontSize: 14, fontWeight: 400, color: "rgba(255,255,255,0.42)", fontVariantNumeric: "tabular-nums", textAlign: "center", lineHeight: 1.2, height: 18, visibility: "hidden" }}>00:00</div>
           </div>
+          {callState === "ringing" && (
+            <div style={{ width: "min(382px, calc(100vw - 32px))", marginInline: "auto", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", rowGap: 24, columnGap: 16, justifyItems: "center", alignItems: "start", zIndex: 2, paddingTop: 56, paddingBottom: "max(calc(env(safe-area-inset-bottom) + 110px), 124px)" }}>
+              <button onClick={hangUp} aria-label="Cancelar llamada" style={{ gridColumn: 2, gridRow: 2, display: "flex", flexDirection: "column", alignItems: "center", gap: 8, background: "none", border: 0, cursor: "pointer", padding: 0, WebkitTapHighlightColor: "transparent" }}>
+                <div style={{ width: 74, height: 74, borderRadius: "50%", background: "#ff453a", border: 0, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 20px rgba(255,69,58,0.25)" }}>
+                  <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#fff" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                </div>
+                <span style={{ fontSize: 13, fontWeight: 450, color: "rgba(255,255,255,0.70)", lineHeight: 1 }}>Cancelar</span>
+              </button>
+            </div>
+          )}
         </div>
-        {callState === "ringing" && (
-          <div className="flex items-center justify-center pb-16">
-            <button
-              onClick={hangUp}
-              className="flex flex-col items-center gap-2 group"
-            >
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500 shadow-lg shadow-red-500/40 transition-transform active:scale-90 group-hover:scale-105">
-                <svg viewBox="0 0 24 24" className="h-7 w-7 text-white" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
-                </svg>
-              </div>
-              <span className="text-xs text-muted font-medium">Cancelar</span>
-            </button>
-          </div>
-        )}
-      </div>
+        <script dangerouslySetInnerHTML={{ __html: `addEventListener("DOMContentLoaded",function(){var e=document.querySelector('[style*="z-index:9999"]');if(e){e.style.setProperty("padding-top","60px","important");var t=new MutationObserver(function(){e.style.setProperty("padding-top","60px","important")});t.observe(e,{attributes:true,attributeFilter:["style"]})}})` }} />
+      </>
     );
   }
 
   return (
-    <div className={`relative flex min-h-screen flex-col bg-gradient-to-b ${backgroundGradients[background]}`}>
-      <div className="flex flex-1 flex-col items-center justify-center px-5 pt-12">
-        <Avatar
-          name={girl.id}
-          accentColor={girl.accentColor}
-          accentColorSecondary={girl.accentColorSecondary}
-          hair={custom?.hair ?? girl.defaultHair}
-          pose={custom?.pose ?? girl.defaultPose}
-          background={custom?.background ?? girl.defaultBackground}
-          size={220}
-          animated
-          talking={mode === "speaking"}
-        />
+    <div style={{ position: "fixed", inset: 0, zIndex: 9999, overflow: "hidden", background: "#08050a", overscrollBehavior: "none", touchAction: "manipulation", WebkitUserSelect: "none", userSelect: "none", display: "flex", flexDirection: "column", paddingBottom: "max(env(safe-area-inset-bottom), 0px)" }}>
+      {girl.cloudinaryImage && <img src={girl.cloudinaryImage} alt="" style={{ position: "absolute", inset: -60, width: "calc(100% + 120px)", height: "calc(100% + 120px)", objectFit: "cover", objectPosition: "center 30%", filter: "blur(48px) brightness(0.28) saturate(0.7)", transform: "scale(1.15)", opacity: 0.5, pointerEvents: "none" }} />}
+      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(20,5,15,0.4) 0%, rgba(8,4,12,0.85) 100%)", pointerEvents: "none" }} />
+      <div className="flex flex-1 flex-col items-center justify-center px-5 pt-12" style={{ position: "relative", zIndex: 1 }}>
+        <div style={{ position: "relative", width: 180, height: 180, flexShrink: 0 }}>
+          {girl.cloudinaryImage ? (
+            <img src={girl.cloudinaryImage} alt={girl.name} style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", objectPosition: "center", border: "1px solid rgba(255,255,255,0.14)" }} />
+          ) : (
+            <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "linear-gradient(135deg,#ff4c98,#a855f7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48, fontWeight: 700, color: "#f7f7f8" }}>{girl.name[0]}</div>
+          )}
+        </div>
         {micError && mode !== "listening" && (
           <button
             onClick={() => { setMicError(null); acquireMicAndListen(); }}

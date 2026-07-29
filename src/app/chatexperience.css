@@ -1,0 +1,81 @@
+.ce-container{background:#060708;width:100%;min-height:100dvh;overflow-y:auto;overflow-x:hidden;padding:0 14px max(18px,env(safe-area-inset-bottom))}
+.ce-topBar{display:flex;align-items:center;justify-content:space-between;height:52px}
+.ce-topBtn{background:none;border:0;color:#f7f7f8;padding:0;display:flex;align-items:center;justify-content:center;width:44px;height:44px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.ce-topBtn svg{width:24px;height:24px}
+.ce-heroCard{width:100%;margin-top:4px;border-radius:20px;overflow:hidden;border:1px solid #2a2c31;background:#111215;box-shadow:0 12px 34px rgba(0,0,0,.38);position:relative}
+.ce-heroImg{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
+.ce-heroGrad{position:absolute;bottom:0;left:0;right:0;height:60%;background:linear-gradient(0deg,#111215 0,transparent);pointer-events:none}
+.ce-heroInfo{position:absolute;bottom:0;left:0;right:0;padding:16px 16px 10px}
+.ce-heroNameRow{display:flex;align-items:center;gap:6px}
+.ce-heroName{font-size:24px;font-weight:700;color:#f7f7f8;letter-spacing:-.03em;line-height:1.1}
+.ce-verified{display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#3897f0;color:#f7f7f8;flex-shrink:0}
+.ce-verified svg{width:13px;height:13px}
+.ce-statusRow{display:flex;align-items:center;gap:6px;margin-top:4px}
+.ce-onlineDot{width:8px;height:8px;border-radius:50%;background:#34c759;flex-shrink:0}
+.ce-statusText{font-size:13px;color:hsla(240,7%,97%,.7);font-weight:500}
+.ce-histRow{height:44px;display:flex;align-items:center;padding:0 16px;gap:10px;background:linear-gradient(180deg,#15161a,#101114);border-top:1px solid hsla(0,0%,100%,.08);text-decoration:none;cursor:pointer;color:inherit}
+.ce-histIcon{width:18px;height:18px;flex-shrink:0;color:hsla(240,7%,97%,.55)}
+.ce-histText{flex:1;font-size:14px;font-weight:500;color:hsla(240,7%,97%,.65);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ce-histChevron{width:17px;height:17px;flex-shrink:0;color:hsla(240,7%,97%,.2)}
+.ce-question{font-size:15px;font-weight:600;color:hsla(240,7%,97%,.8);margin-top:18px;margin-bottom:13px;line-height:1.2}
+.ce-optionCard{width:100%;min-height:72px;border-radius:18px;background:linear-gradient(180deg,#15161a,#111215);border:1px solid #303238;padding:12px 16px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:all .12s ease;-webkit-tap-highlight-color:transparent;position:relative;margin-bottom:9px;color:inherit;font:inherit;text-align:left}
+.ce-optionCard:active{transform:scale(.985)}
+.ce-optionIconWrap{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ce-optionIconPink{background:#ff4c98}
+.ce-optionIcon{width:21px;height:21px;flex-shrink:0}
+.ce-iconDark{color:#111215}
+.ce-iconPurpleWrap{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:linear-gradient(135deg,#7c3aed,#a855f7)}
+.ce-iconPurple{width:21px;height:21px;color:#f7f7f8;flex-shrink:0}
+.ce-iconGreenWrap{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:linear-gradient(135deg,#059669,#10b981)}
+.ce-iconGreen{width:21px;height:21px;color:#f7f7f8;flex-shrink:0}
+.ce-optionContent{flex:1;min-width:0}
+.ce-optionTitle{font-size:15px;font-weight:600;color:#f7f7f8;line-height:1.2}
+.ce-optionTitleRow{display:flex;align-items:center;gap:8px}
+.ce-optionDesc{font-size:12px;color:hsla(240,7%,97%,.5);margin-top:2px;line-height:1.3}
+.ce-optionBadge{display:inline-flex;align-items:center;height:20px;padding:0 9px;border-radius:999px;background:linear-gradient(135deg,#ff3b6f,#ff8a5c);font-size:10px;font-weight:700;color:#f7f7f8;letter-spacing:.03em;flex-shrink:0}
+.ce-badgePremium{background:linear-gradient(135deg,#d4af37,#f5d76e);color:#1a1a1a}
+.ce-optionChevron{width:20px;height:20px;flex-shrink:0;color:hsla(240,7%,97%,.2)}
+.ce-lockIcon{width:18px;height:18px;flex-shrink:0;color:hsla(240,7%,97%,.15)}
+.ce-premiumTitle{font-size:13px;font-weight:600;color:hsla(240,7%,97%,.4);text-transform:uppercase;letter-spacing:.08em;margin-top:22px;margin-bottom:12px}
+.ce-premiumGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.ce-premiumCard{background:linear-gradient(180deg,#15161a,#101114);border:1px solid #2a2c31;border-radius:16px;padding:18px 14px 14px;display:flex;flex-direction:column;align-items:center;gap:11px;text-align:center;position:relative;overflow:hidden}
+.ce-premiumLock{position:absolute;top:10px;right:10px;width:18px;height:18px;color:hsla(240,7%,97%,.15)}
+.ce-premiumIcon{width:28px;height:28px;color:hsla(240,7%,97%,.25)}
+.ce-premiumCardText{font-size:13px;font-weight:500;color:hsla(240,7%,97%,.45);line-height:1.2}
+.ce-premiumCta{width:100%;margin-top:14px;padding:14px 20px;border-radius:16px;background:linear-gradient(135deg,#ff3b6f,#ff8a5c);border:0;display:flex;flex-direction:column;align-items:flex-start;gap:3px;cursor:pointer;position:relative;transition:transform .12s ease;-webkit-tap-highlight-color:transparent;color:#f7f7f8;font:inherit}
+.ce-premiumCta:active{transform:scale(.985)}
+.ce-premiumCtaTitle{font-size:15px;font-weight:700;color:#f7f7f8;line-height:1.3}
+.ce-premiumCtaDesc{font-size:12px;color:hsla(240,7%,97%,.8);line-height:1.3}
+.ce-premiumCtaChevron{position:absolute;right:18px;top:50%;margin-top:-10px;width:22px;height:22px;color:hsla(240,7%,97%,.8)}
+.ce-chatRoot{position:fixed;inset:0;display:flex;flex-direction:column;background:#060708;z-index:50}
+.ce-chatBg{position:absolute;inset:0;background-size:320px 320px;background-repeat:repeat;opacity:.15;pointer-events:none;z-index:0}
+.ce-chatOverlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,7,8,.4),#060708);pointer-events:none;z-index:1}
+.ce-chatHeader{position:relative;z-index:10;padding:max(8px,env(safe-area-inset-top,0px)) 8px 0;background:rgba(6,7,8,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid hsla(0,0%,100%,.06)}
+.ce-chatHeaderInner{display:flex;align-items:center;height:52px;gap:10px}
+.ce-chatBackBtn{background:none;border:0;color:#f7f7f8;padding:0;display:flex;align-items:center;justify-content:center;width:40px;height:40px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.ce-chatAvatar{width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0}
+.ce-chatNameBlock{flex:1;min-width:0}
+.ce-chatName{font-size:15px;font-weight:600;color:#f7f7f8;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ce-chatStatus{display:flex;align-items:center;gap:4px;margin-top:1px}
+.ce-chatStatusDot{width:6px;height:6px;border-radius:50%;background:#34c759;flex-shrink:0}
+.ce-chatStatusText{font-size:11px;color:hsla(240,7%,97%,.5);font-weight:500}
+.ce-chatHeaderIcon{width:36px;height:36px;display:flex;align-items:center;justify-content:center;color:hsla(240,7%,97%,.65);border-radius:50%;flex-shrink:0;background:none;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.ce-chatHeaderIcon svg{width:22px;height:22px}
+.ce-msgArea{flex:1;overflow-y:auto;overflow-x:hidden;padding:12px 14px 8px;display:flex;flex-direction:column;gap:2px;position:relative;z-index:5;scrollbar-width:thin}
+.ce-msgRow{display:flex;align-items:flex-end;gap:8px;margin-bottom:4px}
+.ce-msgRight{justify-content:flex-end}
+.ce-msgLeft{justify-content:flex-start}
+.ce-bubble{max-width:78%;padding:9px 14px;border-radius:20px;position:relative;word-break:break-word;overflow-wrap:anywhere;font-size:15px;line-height:1.4;letter-spacing:-.01em}
+.ce-bubbleLeft{background:#1e1f24;border-bottom-left-radius:6px;color:#e6e6e8}
+.ce-bubbleRight{background:linear-gradient(135deg,#ff3b6f,#ff6a5c);border-bottom-right-radius:6px;color:#f7f7f8}
+.ce-composer{position:relative;z-index:10;padding:8px 10px max(8px,env(safe-area-inset-bottom,0px));background:rgba(6,7,8,.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid hsla(0,0%,100%,.05)}
+.ce-composerRow{display:flex;align-items:flex-end;gap:8px}
+.ce-composerInput{flex:1;min-height:34px;max-height:120px;background:rgba(255,255,255,.06);border:1px solid hsla(0,0%,100%,.06);border-radius:22px;padding:8px 16px;font-size:16px;font-weight:400;color:#f7f7f8;outline:none;resize:none;line-height:1.3;font-family:inherit;transition:border-color .12s ease}
+.ce-composerInput:focus{border-color:hsla(0,0%,100%,.15)}
+.ce-sendBtn{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#ff3b6f,#ff6a5c);border:0;color:#f7f7f8;cursor:pointer;flex-shrink:0;transition:opacity .12s ease,transform .12s ease;-webkit-tap-highlight-color:transparent}
+.ce-sendBtn svg{width:20px;height:20px}
+.ce-sendBtn:active{transform:scale(.92)}
+.ce-sendBtn:disabled{opacity:.35;background:hsla(0,0%,100%,.06)}
+.ce-cameraBtn{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:hsla(0,0%,100%,.06);border:0;color:hsla(240,7%,97%,.6);cursor:pointer;flex-shrink:0;transition:background .12s ease;-webkit-tap-highlight-color:transparent}
+.ce-cameraBtn svg{width:19px;height:19px}
+@keyframes ce-typingBounce{0%,60%,to{transform:translateY(0)}30%{transform:translateY(-7px)}}
