@@ -504,22 +504,19 @@ body {
   border: 1px solid rgba(255, 56, 132, 0.4);
   border-radius: 22px;
 
-  background:
-    radial-gradient(
-      circle at 90% 50%,
-      rgba(255, 48, 122, 0.065),
-      transparent 33%
-    ),
-    linear-gradient(
-      110deg,
-      #100b0f 0%,
-      #09090b 62%,
-      #0e090d 100%
-    );
+  background: #000;
 
   box-shadow:
+    0 -4px 50px rgba(255, 56, 132, 0.13),
     0 12px 30px rgba(0, 0, 0, 0.3),
     0 0 18px rgba(255, 47, 120, 0.035);
+}
+
+.nuvia-fantasy-cta__button,
+.nuvia-fantasy-cta__copy,
+.nuvia-fantasy-cta__icon {
+  position: relative;
+  z-index: 1;
 }
 
 .nuvia-fantasy-cta__icon {
@@ -528,7 +525,6 @@ body {
   justify-content: center;
 
   width: 64px;
-  height: 64px;
 
   margin: 0;
   padding: 0;
@@ -550,10 +546,12 @@ body {
 
 .nuvia-fantasy-cta__image {
   display: block;
-  width: 58px;
-  height: 58px;
-  border-radius: 50%;
+  width: 72px;
+  height: 72px;
+  border-radius: 12px;
   object-fit: cover;
+  align-self: flex-end;
+  margin-bottom: -18px;
 }
 
 .nuvia-fantasy-cta__copy {
