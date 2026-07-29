@@ -21,13 +21,6 @@ import {
 import { Girl } from "@/data/girls";
 import Avatar from "./Avatar";
 
-const backgroundGradients: Record<string, string> = {
-  "neon-room": "from-pink/25 via-purple/20 to-bg",
-  "beach-night": "from-blue/25 via-purple/15 to-bg",
-  studio: "from-purple/25 via-white/5 to-bg",
-  "car-night": "from-purple/30 via-pink/10 to-bg",
-};
-
 const voiceProfiles: Record<string, { pitch: number; rate: number }> = {
   luna:  { pitch: 1.15, rate: 0.92 },
   nia:   { pitch: 1.05, rate: 1.05 },
@@ -564,98 +557,101 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     );
   }
 
+  const img = girl.cloudinaryImage;
   return (
-    <div className={`relative flex min-h-screen flex-col bg-gradient-to-b ${backgroundGradients[background]}`}>
-      <div className="flex flex-1 flex-col items-center justify-center px-5 pt-12">
-        <Avatar
-          name={girl.id}
-          accentColor={girl.accentColor}
-          accentColorSecondary={girl.accentColorSecondary}
-          hair={custom?.hair ?? girl.defaultHair}
-          pose={custom?.pose ?? girl.defaultPose}
-          background={custom?.background ?? girl.defaultBackground}
-          size={220}
-          animated
-          talking={mode === "speaking"}
-        />
-        {micError && mode !== "listening" && (
-          <button
-            onClick={() => { setMicError(null); acquireMicAndListen(); }}
-            className="mt-4 rounded-xl bg-white/10 px-5 py-2.5 text-xs text-muted hover:bg-white/20 transition-all"
-          >
-            {micError} — Toca para intentar
-          </button>
-        )}
-        <div className="mt-8 flex flex-col items-center">
-          <h2 className="text-2xl font-bold">{girl.name}</h2>
-          <p className="mt-1 text-lg text-muted font-mono tabular-nums tracking-wider">{formatDuration(callDuration)}</p>
-          <div className="mt-3 flex items-center gap-2">
-            <span className={`inline-block h-2 w-2 rounded-full ${mode === "speaking" ? "bg-green-400 animate-pulse" : mode === "listening" ? "bg-pink animate-pulse" : "bg-muted"}`} />
-            <span className="text-sm text-muted/80">
+    <>
+      <style>{'div[style*="z-index:9999"]{padding-top:60px!important}'}</style>
+      <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+      <div style={{ position: "fixed", inset: 0, zIndex: 9999, overflow: "hidden", background: "#08050a", overscrollBehavior: "none", touchAction: "manipulation", fontFamily: "-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',Arial,sans-serif", WebkitUserSelect: "none", userSelect: "none", display: "grid", gridTemplateRows: "1fr auto", minHeight: "100dvh" }}>
+        {img && <img src={img} alt="" style={{ position: "absolute", inset: -60, width: "calc(100% + 120px)", height: "calc(100% + 120px)", objectFit: "cover", objectPosition: "center 30%", filter: "blur(48px) brightness(0.28) saturate(0.7)", transform: "scale(1.15)", opacity: 0.5, pointerEvents: "none" }} />}
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(20,5,15,0.4) 0%, rgba(8,4,12,0.85) 100%)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", top: "45%", left: "50%", transform: "translate(-50%, -50%)", width: "min(70vw, 320px)", height: "min(70vw, 320px)", borderRadius: "50%", background: "radial-gradient(circle, rgba(180,50,100,0.07) 0%, transparent 70%)", pointerEvents: "none" }} />
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 1, minHeight: 0, padding: "0 24px", transform: "translateY(-14px)" }}>
+          <Avatar
+            name={girl.id}
+            accentColor={girl.accentColor}
+            accentColorSecondary={girl.accentColorSecondary}
+            hair={custom?.hair ?? girl.defaultHair}
+            pose={custom?.pose ?? girl.defaultPose}
+            background={custom?.background ?? girl.defaultBackground}
+            size={180}
+            animated
+            talking={mode === "speaking"}
+          />
+          {micError && mode !== "listening" && (
+            <button
+              onClick={() => { setMicError(null); acquireMicAndListen(); }}
+              style={{ marginTop: 16, borderRadius: 12, background: "rgba(255,255,255,0.1)", padding: "10px 20px", fontSize: 12, color: "rgba(255,255,255,0.66)", border: 0, cursor: "pointer" }}
+            >
+              {micError} — Toca para intentar
+            </button>
+          )}
+          <div style={{ marginTop: 22, fontSize: "clamp(28px, 7vw, 36px)", fontWeight: 650, lineHeight: 1, color: "rgba(255,255,255,0.97)", textAlign: "center" }}>{girl.name}</div>
+          <p style={{ marginTop: 6, fontSize: 16, fontWeight: 400, color: "rgba(255,255,255,0.55)", fontVariantNumeric: "tabular-nums", textAlign: "center", fontFamily: "ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace", letterSpacing: "0.05em" }}>{formatDuration(callDuration)}</p>
+          <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: mode === "speaking" ? "#4ade80" : mode === "listening" ? "#ff2b86" : "rgba(255,255,255,0.3)", opacity: mode === "speaking" || mode === "listening" ? 1 : 0.5 }} />
+            <span style={{ fontSize: 14, fontWeight: 400, color: "rgba(255,255,255,0.55)" }}>
               {mode === "speaking" ? `${girl.name} habla...` :
                mode === "listening" ? "Te escucho" :
                mode === "processing" ? "Pensando..." :
                statusText || "En llamada"}
             </span>
           </div>
+          {lastReply && (
+            <p style={{ marginTop: 24, maxWidth: 320, textAlign: "center", fontSize: 14, color: "rgba(255,255,255,0.55)", lineHeight: 1.6 }}>&ldquo;{lastReply}&rdquo;</p>
+          )}
         </div>
-        {lastReply && (
-          <p className="mt-8 max-w-sm text-center text-sm text-muted/70 animate-fadeUp leading-relaxed">
-            &ldquo;{lastReply}&rdquo;
-          </p>
-        )}
-      </div>
-
-      <div className="w-full px-8 pb-12">
-        {showTextPanel && (
-          <div className="mb-6 flex gap-2 animate-fadeUp">
-            <input
-              ref={inputRef}
-              value={textInput}
-              onChange={(e) => setTextInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendText()}
-              disabled={thinking}
-              placeholder="Escribe algo..."
-              className="min-h-[48px] flex-1 rounded-2xl border border-white/10 bg-black/30 px-4 text-sm outline-none focus:border-pink/50 disabled:opacity-40"
-            />
+        <div style={{ width: "min(382px, calc(100vw - 32px))", marginInline: "auto", display: "flex", flexDirection: "column", alignItems: "center", zIndex: 2, paddingBottom: "max(calc(env(safe-area-inset-bottom) + 110px), 124px)" }}>
+          {showTextPanel && (
+            <div style={{ marginBottom: 24, display: "flex", gap: 8, width: "100%" }}>
+              <input
+                ref={inputRef}
+                value={textInput}
+                onChange={(e) => setTextInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && sendText()}
+                disabled={thinking}
+                placeholder="Escribe algo..."
+                style={{ minHeight: 48, flex: 1, borderRadius: 16, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(0,0,0,0.3)", padding: "0 16px", fontSize: 14, color: "#fff", outline: "none", opacity: thinking ? 0.4 : 1 }}
+              />
+              <button
+                onClick={sendText}
+                disabled={thinking || !textInput.trim()}
+                style={{ minHeight: 48, borderRadius: 16, background: "linear-gradient(to right, #ff2b86, #8b5cf6)", padding: "0 20px", fontSize: 14, fontWeight: 600, color: "#fff", border: 0, cursor: "pointer", opacity: thinking || !textInput.trim() ? 0.4 : 1 }}
+              >
+                {thinking ? "..." : "Enviar"}
+              </button>
+            </div>
+          )}
+          <div style={{ display: "flex", alignItems: "center", gap: 48 }}>
             <button
-              onClick={sendText}
-              disabled={thinking || !textInput.trim()}
-              className="min-h-[48px] rounded-2xl bg-gradient-to-r from-pink to-purple px-5 text-sm font-semibold text-white hover:opacity-90 active:scale-95 transition-all duration-200 disabled:opacity-40"
+              onClick={() => setShowTextPanel((v) => !v)}
+              title="Teclado"
+              style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, background: "none", border: 0, cursor: "pointer", padding: 0 }}
             >
-              {thinking ? "..." : "Enviar"}
+              <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="rgba(255,255,255,0.66)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="6" width="20" height="12" rx="2" />
+                  <path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01" />
+                  <path d="M6 14h.01M10 14h.01M14 14h.01M18 14h.01" />
+                </svg>
+              </div>
+              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", letterSpacing: "0.05em", textTransform: "uppercase" }}>Teclado</span>
+            </button>
+            <button
+              onClick={hangUp}
+              title="Colgar"
+              style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, background: "none", border: 0, cursor: "pointer", padding: 0 }}
+            >
+              <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#ef4444", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 20px rgba(239,68,68,0.4)" }}>
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+                </svg>
+              </div>
+              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", letterSpacing: "0.05em", textTransform: "uppercase" }}>Colgar</span>
             </button>
           </div>
-        )}
-        <div className="flex items-center justify-center gap-12">
-          <button
-            onClick={() => setShowTextPanel((v) => !v)}
-            className="flex flex-col items-center gap-2 group"
-            title="Teclado"
-          >
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/10 group-hover:bg-white/20 transition-all">
-              <svg viewBox="0 0 24 24" className="h-6 w-6 text-muted" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="2" y="6" width="20" height="12" rx="2" />
-                <path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01" />
-                <path d="M6 14h.01M10 14h.01M14 14h.01M18 14h.01" />
-              </svg>
-            </div>
-            <span className="text-[10px] text-muted/70 tracking-wider uppercase">Teclado</span>
-          </button>
-          <button
-            onClick={hangUp}
-            className="flex flex-col items-center gap-2 group"
-            title="Colgar"
-          >
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500 shadow-lg shadow-red-500/40 transition-transform active:scale-90">
-              <svg viewBox="0 0 24 24" className="h-7 w-7 text-white" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
-              </svg>
-            </div>
-            <span className="text-[10px] text-muted/70 tracking-wider uppercase">Colgar</span>
-          </button>
         </div>
       </div>
-    </div>
+    </>
   );
 }
