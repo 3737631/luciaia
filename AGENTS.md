@@ -1,3 +1,30 @@
+# REGLA 0 — NUNCA CAMBIES EL OBJETIVO DE LA TAREA (prioridad máxima)
+
+Esta regla está por encima de todas las demás.
+
+Si el usuario te pide investigar, solo investigas.
+Si durante la investigación descubres una posible solución, no empieces a implementarla.
+Debes detenerte y esperar su autorización.
+
+Reglas derivadas:
+- No crear archivos nuevos salvo que sean imprescindibles para la tarea solicitada.
+- No modificar componentes que no formen parte del cambio solicitado.
+- No reconstruir interfaces desde HTML o JS compilado.
+- No proponer migraciones de arquitectura mientras no resuelvan directamente el problema que el usuario está intentando solucionar.
+- Antes de empezar cualquier cambio, escribe en una frase cuál es exactamente el objetivo que vas a cumplir.
+- Si durante el trabajo ese objetivo cambia, debes detenerte y pedir confirmación.
+
+Toda respuesta en la que modifiques código debe terminar con este bloque exacto:
+
+```
+Objetivo cumplido.
+Archivos modificados: (lista)
+Archivos creados: (lista)
+Archivos eliminados: (lista)
+git diff --stat
+Confirmación de que no se modificó ningún archivo fuera del alcance de la petición.
+```
+
 # REGLA CRÍTICA — NUNCA RESTAURAR VERSIONES ANTIGUAS
 
 Este proyecto tiene una única fuente de verdad: el estado ACTUAL del repositorio (HEAD).
