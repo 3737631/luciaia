@@ -7,6 +7,7 @@ export function FantasyCTA({
   mode,
   onCreate,
 }: FantasyCTAProps) {
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
   const description =
     mode === "boys"
       ? "Diseña tu chico ideal con IA y pásalo bien con él."
@@ -21,12 +22,11 @@ export function FantasyCTA({
         className="nuvia-fantasy-cta__icon"
         aria-hidden="true"
       >
-        <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img">
-          <path d="m56 6 2-5 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z" fill="currentColor" />
-          <path d="m17 12 2-5 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z" fill="currentColor" />
-          <path d="m52 41 2-5 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z" fill="currentColor" />
-          <path d="M18 46 42 22l6 6-24 24H18v-6Z" fill="currentColor" />
-        </svg>
+        <img
+          src={`${basePath}/fantasy-neon.jpg`}
+          alt=""
+          className="nuvia-fantasy-cta__image"
+        />
       </div>
 
       <div className="nuvia-fantasy-cta__copy">
