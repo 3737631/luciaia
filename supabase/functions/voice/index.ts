@@ -7,35 +7,68 @@ const corsHeaders = {
 // @deno-types="npm:edge-tts-universal"
 import { UniversalEdgeTTS } from "npm:edge-tts-universal";
 
-const DEFAULT_VOICE = "hpp4J3VqNfWAUOO0d1Us"; // Bella
+const DEFAULT_VOICE = "es-MX-DaliaNeural"; // voz femenina por defecto
 
+// Voces de Microsoft Edge TTS (gratis, sin clave, reales y diferenciadas).
+// Femeninas: es-MX-DaliaNeural, es-ES-ElviraNeural, es-US-PalomaNeural,
+// es-AR-ElenaNeural, es-CO-SalomeNeural, es-CL-CatalinaNeural,
+// es-PE-CamilaNeural, es-PR-KarinaNeural, es-EC-AndreaNeural, es-VE-PaolaNeural
+// Masculinas: es-MX-JorgeNeural, es-ES-AlvaroNeural, es-US-AlonsoNeural,
+// es-AR-TomasNeural, es-CO-GonzaloNeural, es-CL-LorenzoNeural,
+// es-PE-AlexNeural, es-BO-MarceloNeural, es-EC-LuisNeural, es-VE-SebastianNeural
+const FEMALE_VOICES = [
+  "es-MX-DaliaNeural",
+  "es-ES-ElviraNeural",
+  "es-US-PalomaNeural",
+  "es-AR-ElenaNeural",
+  "es-CO-SalomeNeural",
+  "es-CL-CatalinaNeural",
+  "es-PE-CamilaNeural",
+  "es-PR-KarinaNeural",
+  "es-EC-AndreaNeural",
+  "es-VE-PaolaNeural",
+];
+const MALE_VOICES = [
+  "es-MX-JorgeNeural",
+  "es-ES-AlvaroNeural",
+  "es-US-AlonsoNeural",
+  "es-AR-TomasNeural",
+  "es-CO-GonzaloNeural",
+  "es-CL-LorenzoNeural",
+  "es-PE-AlexNeural",
+  "es-BO-MarceloNeural",
+  "es-EC-LuisNeural",
+  "es-VE-SebastianNeural",
+];
+
+// Asigna a cada personaje una voz femenina o masculina DISTINTA.
 const VOICE_MAP: Record<string, string> = {
-  "female-luna": "hpp4J3VqNfWAUOO0d1Us", // Bella
-  "female-nia": "EXAVITQu4vr4xnSDxMaL", // Sarah
-  "female-vera": "Xb7hH8MSUJpSbSDYk0k2", // Alice
-  "female-alma": "FGY2WhTYpPnrIDTdsKH5", // Laura
-  "female-kira": "pFZP5JQG7iQjIQuC4Bku", // Lily
-  "female-maya": "cgSgspJ2msm6clMCkdW9", // Jessica
-  "female-sasha": "XrExE9yKIg1WjnnlVkGX", // Matilda
-  "female-yuki": "hpp4J3VqNfWAUOO0d1Us", // Bella
-  "male-axel": "pNInz6obpgDQGcFmaJgB", // Adam
-  "male-liam": "TX3LPaxmHKxFdv7VOQHJ", // Liam
-  "female-athena": "EXAVITQu4vr4xnSDxMaL", // Sarah
-  "female-eva": "Xb7hH8MSUJpSbSDYk0k2", // Alice
-  "female-cora": "FGY2WhTYpPnrIDTdsKH5", // Laura
-  "female-mira": "pFZP5JQG7iQjIQuC4Bku", // Lily
-  "female-yumi_lib": "cgSgspJ2msm6clMCkdW9", // Jessica
-  "female-raven": "XrExE9yKIg1WjnnlVkGX", // Matilda
-  "female-sky": "hpp4J3VqNfWAUOO0d1Us", // Bella
-  "female-jade": "EXAVITQu4vr4xnSDxMaL", // Sarah
-  "female-gemma": "Xb7hH8MSUJpSbSDYk0k2", // Alice
-  "female-nova": "FGY2WhTYpPnrIDTdsKH5", // Laura
-  "female-lena": "pFZP5JQG7iQjIQuC4Bku", // Lily
-  "female-shadow": "cgSgspJ2msm6clMCkdW9", // Jessica
-  "female-morgana": "XrExE9yKIg1WjnnlVkGX", // Matilda
-  "female-roxy": "hpp4J3VqNfWAUOO0d1Us", // Bella
-  "female-iris": "EXAVITQu4vr4xnSDxMaL", // Sarah
-  "female-zara": "Xb7hH8MSUJpSbSDYk0k2", // Alice
+  "female-luna": "es-MX-DaliaNeural",
+  "female-nia": "es-ES-ElviraNeural",
+  "female-vera": "es-US-PalomaNeural",
+  "female-alma": "es-AR-ElenaNeural",
+  "female-kira": "es-CO-SalomeNeural",
+  "female-maya": "es-CL-CatalinaNeural",
+  "female-sasha": "es-PE-CamilaNeural",
+  "female-yuki": "es-PR-KarinaNeural",
+  "female-athena": "es-EC-AndreaNeural",
+  "female-eva": "es-VE-PaolaNeural",
+  "female-cora": "es-ES-ElviraNeural",
+  "female-mira": "es-MX-DaliaNeural",
+  "female-yumi_lib": "es-CL-CatalinaNeural",
+  "female-raven": "es-US-PalomaNeural",
+  "female-sky": "es-AR-ElenaNeural",
+  "female-jade": "es-CO-SalomeNeural",
+  "female-gemma": "es-MX-DaliaNeural",
+  "female-nova": "es-PE-CamilaNeural",
+  "female-lena": "es-PR-KarinaNeural",
+  "female-shadow": "es-EC-AndreaNeural",
+  "female-morgana": "es-VE-PaolaNeural",
+  "female-roxy": "es-CL-CatalinaNeural",
+  "female-iris": "es-AR-ElenaNeural",
+  "female-zara": "es-US-PalomaNeural",
+  "male-axel": "es-MX-JorgeNeural",
+  "male-liam": "es-ES-AlvaroNeural",
 };
 
 function resolveVoice(voice?: string): string {
@@ -97,10 +130,20 @@ Deno.serve(async (req) => {
 
       const activeVoice = resolveVoice(voice);
 
-      const elevenLabsKey = Deno.env.get("ELEVENLABS_API_KEY");
+      // Primary: Microsoft Edge TTS (free, unlimited, no key, real differentiated voices)
+      try {
+        const tts = new UniversalEdgeTTS(text, activeVoice);
+        const result = await tts.synthesize();
+        const audioBuffer = await result.audio.arrayBuffer();
+        const base64Audio = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
+        return new Response(JSON.stringify({ audio: base64Audio, contentType: "audio/mp3" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      } catch (e) {
+        console.error("[voice] Edge TTS failed", String(e));
+      }
 
-      // Primary: ElevenLabs direct API (real voices)
-      if (elevenLabsKey) {
+      // Secondary: ElevenLabs direct API (only if a real key is set)
+      const elevenLabsKey = Deno.env.get("ELEVENLABS_API_KEY");
+      if (elevenLabsKey && elevenLabsKey.startsWith("sk_")) {
         try {
           const ttsRes = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${activeVoice}`, {
             method: "POST",
@@ -124,17 +167,6 @@ Deno.serve(async (req) => {
         } catch (e) {
           console.error("[voice] ElevenLabs direct error", String(e));
         }
-      }
-
-      // Fallback: Microsoft Edge TTS (free, unlimited, no key needed)
-      try {
-        const tts = new UniversalEdgeTTS(text, activeVoice);
-        const result = await tts.synthesize();
-        const audioBuffer = await result.audio.arrayBuffer();
-        const base64Audio = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
-        return new Response(JSON.stringify({ audio: base64Audio, contentType: "audio/mp3" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      } catch (e) {
-        console.error("[voice] Edge TTS failed", String(e));
       }
 
       // Fallback: Google Translate TTS (free, no key needed)
