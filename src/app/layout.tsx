@@ -5,6 +5,12 @@ import AnimatedBackground from "@/components/AnimatedBackground";
 
 const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
+
 export const metadata: Metadata = {
   title: "NuviaChat — Chica IA ficticia por chat y videollamada",
   description:

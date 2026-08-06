@@ -173,6 +173,8 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
   const dragRAFRef = useRef(0);
   const progressAnimationRef = useRef(0);
   const progressStartedAtRef = useRef(0);
+  const progressFillRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const progressValueRef = useRef(0);
   const handleNextRef = useRef<() => void>(() => {});
   const progressFrozenRef = useRef(false);
   const preloadedUrlsRef = useRef(new Set<string>());
@@ -315,7 +317,10 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
   const startProgress = useCallback(() => {
     stopProgress();
     if (closing || progressFrozenRef.current || paused || transition) return;
+    const startFrom = progressValueRef.current;
     progressStartedAtRef.current = performance.now();
+    const fill = progressFillRefs.current[currentIndex];
+    if (fill) fill.style.transform = `scaleX(${startFrom / 100})`;
     setProgress((prev) => {
       const next = [...prev];
       if (next[currentIndex] === 0) return prev;
@@ -328,13 +333,10 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
         return;
       }
       const elapsed = now - progressStartedAtRef.current;
-      const nextVal = Math.min(100, (elapsed / STORY_DURATION) * 100);
-      setProgress((prev) => {
-        if (prev[currentIndex] >= 100) return prev;
-        const next = [...prev];
-        next[currentIndex] = nextVal;
-        return next;
-      });
+      const nextVal = Math.min(100, startFrom + (elapsed / STORY_DURATION) * 100);
+      progressValueRef.current = nextVal;
+      const fillEl = progressFillRefs.current[currentIndex];
+      if (fillEl) fillEl.style.transform = `scaleX(${nextVal / 100})`;
       if (nextVal < 100) {
         progressAnimationRef.current = requestAnimationFrame(tick);
       } else {
@@ -363,6 +365,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
     if (isComposerFocused) hiddenInputRef.current?.blur();
     stopProgress();
 
+    progressValueRef.current = 0;
     setProgress((prev) => {
       const next = [...prev];
       if (dir === "next") {
@@ -400,6 +403,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
     onMarkSeen?.(characters[incomingChar.charIdx].id);
     const newSrc = characters[incomingChar.charIdx]?.images?.[incomingChar.storyIdx] ?? "";
     setCurrentImageSrc(newSrc);
+    progressValueRef.current = 0;
     setCharIndex(incomingChar.charIdx);
     setCurrentIndex(incomingChar.storyIdx);
     setIncomingChar(null);
@@ -417,6 +421,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
       exitSnapshotRef.current = { charIdx: charIndex, imgIdx: currentIndex, progress: [...progress] };
       onMarkSeen?.(characters[charIndex].id);
       progressFrozenRef.current = true;
+      progressValueRef.current = 0;
       setProgress(characters[toCharIdx].images.map((_, i) => i < toIdx ? 100 : i === toIdx ? 0 : 0));
       setCharIndex(toCharIdx);
       setCurrentIndex(toIdx);
@@ -437,6 +442,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
     progressFrozenRef.current = true;
 
     setTransition({ type: "group", dir, fromChar: charIndex, toChar: toCharIdx, from: currentIndex, to: toIdx });
+    progressValueRef.current = 0;
     setProgress(characters[toCharIdx].images.map((_, i) => i < toIdx ? 100 : i === toIdx ? 0 : 0));
 
     setIncomingChar({ charIdx: toCharIdx, storyIdx: toIdx, direction: dir });
@@ -473,6 +479,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
     }
     // First story of first character — restart progress, don't close
     transitionLockedRef.current = true;
+    progressValueRef.current = 0;
     setProgress((prev) => { const n = [...prev]; n[0] = 0; return n; });
     progressStartedAtRef.current = performance.now();
     setTimeout(() => { transitionLockedRef.current = false; startProgress(); }, 50);
@@ -824,19 +831,27 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
             flex: 1, height: 2.2, borderRadius: 999, overflow: "hidden",
             background: "rgba(255,255,255,.34)",
           }}>
-            <div style={{
-              height: "100%", borderRadius: "inherit",
-              background: "rgba(255,255,255,.96)",
-              width: "100%",
-              willChange: "transform",
-              transform: `scaleX(${Math.min(val || 0, 100) / 100})`,
-              transformOrigin: "left center",
-              transition: isTransitioning
-                ? "none"
-                : idx === activeIdx && !paused
-                  ? "transform 0.06s linear"
-                  : `transform 280ms ${APPLE_SPRING}`,
-            }} />
+            <div
+              ref={(el) => {
+                progressFillRefs.current[idx] = el;
+                if (el) {
+                  const v = idx === activeIdx ? progressValueRef.current : Math.min(val || 0, 100);
+                  el.style.transform = `scaleX(${v / 100})`;
+                }
+              }}
+              style={{
+                height: "100%", borderRadius: "inherit",
+                background: "rgba(255,255,255,.96)",
+                width: "100%",
+                willChange: "transform",
+                transformOrigin: "left center",
+                transition: isTransitioning
+                  ? "none"
+                  : idx === activeIdx && !paused
+                    ? "transform 0.06s linear"
+                    : `transform 280ms ${APPLE_SPRING}`,
+              }}
+            />
           </div>
         ))}
       </div>
@@ -888,7 +903,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
 
   // ── Helper: render full story frame ──
 
-  function renderFrame(ci: number, si: number, ref?: React.Ref<HTMLDivElement>, extraStyle?: React.CSSProperties, dataState?: string, snapshot?: { url: string; charIdx: number; imgIdx: number } | null, mediaContent?: React.ReactNode) {
+  function renderFrame(ci: number, si: number, ref?: React.Ref<HTMLDivElement>, extraStyle?: React.CSSProperties, dataState?: string, snapshot?: { url: string; charIdx: number; imgIdx: number } | null, mediaContent?: React.ReactNode, hideProgress = false) {
     const c = characters[ci];
     const imgUrl = c.images[si];
     return (
@@ -938,7 +953,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
         }} />
 
         {/* Progress bars */}
-        {renderProgressBars(progress, si, !!incomingChar || storyTransitioning)}
+        {!hideProgress && renderProgressBars(progress, si, !!incomingChar || storyTransitioning)}
 
         {/* Header */}
         {renderHeader(c)}
@@ -1113,7 +1128,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
             <div className={"story-face" + (incomingChar.direction === "next" ? " is-next" : " is-prev")}
               onAnimationEnd={(e) => { if (e.animationName === "sc-left" || e.animationName === "sc-right") finishCubeTransition(); }}
             >
-              {renderFrame(charIndex, currentIndex)}
+              {renderFrame(charIndex, currentIndex, undefined, undefined, undefined, undefined, undefined, true)}
             </div>
             <div className={"story-face story-face--incoming" + (incomingChar.direction === "next" ? " is-next" : " is-prev")}
               onAnimationEnd={(e) => { if (e.animationName === "si-right" || e.animationName === "si-left") finishCubeTransition(); }}

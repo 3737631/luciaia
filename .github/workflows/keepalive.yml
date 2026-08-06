@@ -1,0 +1,22 @@
+name: Keep Supabase active
+
+on:
+  schedule:
+    - cron: "0 10 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping voice function
+        env:
+          URL: ${{ vars.NEXT_PUBLIC_SUPABASE_FUNCTION_URL }}
+          ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          # La petición llega a la función (actividad = no pausa) sin coste de IA
+          curl -fsS -o /dev/null \
+            -X POST "$URL/voice" \
+            -H "Content-Type: application/json" \
+            -H "apikey: $ANON_KEY" \
+            --data '{"action":"ping"}'

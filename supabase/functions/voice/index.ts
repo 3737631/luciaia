@@ -4,6 +4,45 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+// @deno-types="npm:edge-tts-universal"
+import { UniversalEdgeTTS } from "npm:edge-tts-universal";
+
+const DEFAULT_VOICE = "hpp4J3VqNfWAUOO0d1Us"; // Bella
+
+const VOICE_MAP: Record<string, string> = {
+  "female-luna": "hpp4J3VqNfWAUOO0d1Us", // Bella
+  "female-nia": "EXAVITQu4vr4xnSDxMaL", // Sarah
+  "female-vera": "Xb7hH8MSUJpSbSDYk0k2", // Alice
+  "female-alma": "FGY2WhTYpPnrIDTdsKH5", // Laura
+  "female-kira": "pFZP5JQG7iQjIQuC4Bku", // Lily
+  "female-maya": "cgSgspJ2msm6clMCkdW9", // Jessica
+  "female-sasha": "XrExE9yKIg1WjnnlVkGX", // Matilda
+  "female-yuki": "hpp4J3VqNfWAUOO0d1Us", // Bella
+  "male-axel": "pNInz6obpgDQGcFmaJgB", // Adam
+  "male-liam": "TX3LPaxmHKxFdv7VOQHJ", // Liam
+  "female-athena": "EXAVITQu4vr4xnSDxMaL", // Sarah
+  "female-eva": "Xb7hH8MSUJpSbSDYk0k2", // Alice
+  "female-cora": "FGY2WhTYpPnrIDTdsKH5", // Laura
+  "female-mira": "pFZP5JQG7iQjIQuC4Bku", // Lily
+  "female-yumi_lib": "cgSgspJ2msm6clMCkdW9", // Jessica
+  "female-raven": "XrExE9yKIg1WjnnlVkGX", // Matilda
+  "female-sky": "hpp4J3VqNfWAUOO0d1Us", // Bella
+  "female-jade": "EXAVITQu4vr4xnSDxMaL", // Sarah
+  "female-gemma": "Xb7hH8MSUJpSbSDYk0k2", // Alice
+  "female-nova": "FGY2WhTYpPnrIDTdsKH5", // Laura
+  "female-lena": "pFZP5JQG7iQjIQuC4Bku", // Lily
+  "female-shadow": "cgSgspJ2msm6clMCkdW9", // Jessica
+  "female-morgana": "XrExE9yKIg1WjnnlVkGX", // Matilda
+  "female-roxy": "hpp4J3VqNfWAUOO0d1Us", // Bella
+  "female-iris": "EXAVITQu4vr4xnSDxMaL", // Sarah
+  "female-zara": "Xb7hH8MSUJpSbSDYk0k2", // Alice
+};
+
+function resolveVoice(voice?: string): string {
+  if (voice && VOICE_MAP[voice]) return VOICE_MAP[voice];
+  return DEFAULT_VOICE;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -51,27 +90,28 @@ Deno.serve(async (req) => {
     }
 
     if (action === "tts") {
-      const { text } = body;
+      const { text, voice } = body;
       if (!text) {
         return new Response(JSON.stringify({ error: "Missing text" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
-      const apiKey = Deno.env.get("OPENROUTER_API_KEY");
+      const activeVoice = resolveVoice(voice);
 
-      // Try ElevenLabs via OpenRouter (most realistic)
-      if (apiKey) {
+      const elevenLabsKey = Deno.env.get("ELEVENLABS_API_KEY");
+
+      // Primary: ElevenLabs direct API (real voices)
+      if (elevenLabsKey) {
         try {
-          const ttsRes = await fetch("https://openrouter.ai/api/v1/audio/speech", {
+          const ttsRes = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${activeVoice}`, {
             method: "POST",
             headers: {
-              Authorization: `Bearer ${apiKey}`,
+              "xi-api-key": elevenLabsKey,
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              model: "elevenlabs/eleven-turbo-v2",
-              input: text,
-              voice: "EXAVITQu4vrVxn15KGsZ",
-              response_format: "mp3",
+              text,
+              model_id: "eleven_flash_v2_5",
+              voice_settings: { stability: 0.5, similarity_boost: 0.75, style: 0, use_speaker_boost: true },
             }),
           });
 
@@ -80,32 +120,21 @@ Deno.serve(async (req) => {
             const base64Audio = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
             return new Response(JSON.stringify({ audio: base64Audio, contentType: "audio/mp3" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
           }
-        } catch {}
+          console.error("[voice] ElevenLabs direct failed", ttsRes.status, await ttsRes.text());
+        } catch (e) {
+          console.error("[voice] ElevenLabs direct error", String(e));
+        }
       }
 
-      // Try OpenAI via OpenRouter
-      if (apiKey) {
-        try {
-          const ttsRes = await fetch("https://openrouter.ai/api/v1/audio/speech", {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${apiKey}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              model: "openai/gpt-4o-mini-tts-2025-12-15",
-              input: text,
-              voice: "shimmer",
-              response_format: "mp3",
-            }),
-          });
-
-          if (ttsRes.ok) {
-            const audioBuffer = await ttsRes.arrayBuffer();
-            const base64Audio = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
-            return new Response(JSON.stringify({ audio: base64Audio, contentType: "audio/mp3" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-          }
-        } catch {}
+      // Fallback: Microsoft Edge TTS (free, unlimited, no key needed)
+      try {
+        const tts = new UniversalEdgeTTS(text, activeVoice);
+        const result = await tts.synthesize();
+        const audioBuffer = await result.audio.arrayBuffer();
+        const base64Audio = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
+        return new Response(JSON.stringify({ audio: base64Audio, contentType: "audio/mp3" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      } catch (e) {
+        console.error("[voice] Edge TTS failed", String(e));
       }
 
       // Fallback: Google Translate TTS (free, no key needed)

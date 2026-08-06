@@ -18,12 +18,14 @@ import {
   saveToHistory,
   ChatMessage,
 } from "@/lib/memory";
-import Avatar from "./Avatar";
+import styles from "./ChatExperience.module.css";
 
 const MINOR_KEYWORDS = [
   "soy menor", "tengo 17", "tengo 16", "tengo 15", "tengo 14",
   "tengo 13", "menor de edad", "soy niño", "soy niña",
 ];
+
+const bp = () => process.env.NEXT_PUBLIC_BASE_PATH || "";
 
 export default function ChatWindow({ girl }: { girl: Girl }) {
   const [messages, setMessages] = useState<{ id: string; from: "user" | "girl"; text: string }[]>([]);
@@ -31,14 +33,13 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   const [typing, setTyping] = useState(false);
   const [blocked, setBlocked] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [mode, setMode] = useState<"text" | "actions">("actions");
+  const [mode, setMode] = useState<"text" | "actions">("text");
   const [showModePicker, setShowModePicker] = useState(true);
   const [customScenario, setCustomScenario] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef(true);
   const messagesRef = useRef(messages);
   messagesRef.current = messages;
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
 
   useEffect(() => {
     const raw = localStorage.getItem("custom_scenario");
@@ -211,157 +212,177 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   }
 
   if (showModePicker) {
+    const p = bp();
     return (
-      <div className="mx-auto flex h-[calc(100vh-64px)] max-w-sm flex-col items-center justify-center gap-6 px-4">
-        <div className="text-center">
-          <Avatar
-            name={girl.id}
-            accentColor={girl.accentColor}
-            accentColorSecondary={girl.accentColorSecondary}
-            hair={girl.defaultHair}
-            pose={girl.defaultPose}
-            background={girl.defaultBackground}
-            size={80}
-          />
-          <h2 className="mt-4 text-xl font-bold">{girl.name}</h2>
-          <p className="mt-1 text-sm text-muted">{girl.style} · {girl.personalityLabel}</p>
+      <div className={styles.container}>
+        <div className={styles.topBar}>
+          <button className={styles.topBarBtn} onClick={() => { window.location.href = `${p}/girls`; }} aria-label="Volver atrás">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          </button>
+          <button className={`${styles.topBarBtn} ${styles.dotsBtn}`} aria-label="Menú">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
         </div>
-        <p className="text-center text-sm text-muted">Elige cómo quieres chatear:</p>
-        <button
-          onClick={() => { setMode("text"); setShowModePicker(false); }}
-          className="w-full rounded-2xl border border-white/[0.06] bg-[#14141c] px-6 py-4 text-left transition hover:border-white/15"
-        >
-          <span className="flex items-center gap-2 text-lg font-semibold">
-            <svg viewBox="0 0 24 24" className="h-5 w-5 text-muted" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            </svg>
-            Chat
-          </span>
-          <p className="mt-1 text-xs text-muted">Solo texto, conversación normal</p>
+        <div className={styles.heroCard}>
+          <div style={{ position: "relative" }}>
+            <img src={girl.cloudinaryImage} alt={girl.name} className={styles.heroImage} />
+            <div className={styles.heroGradient} />
+            <div className={styles.heroInfo}>
+              <div className={styles.heroNameRow}>
+                <span className={styles.heroName}>{girl.name}</span>
+                <span className={styles.verifiedBadge}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              </div>
+              <div className={styles.statusRow}>
+                <span className={styles.onlineDot} />
+                <span className={styles.statusText}>En línea</span>
+              </div>
+            </div>
+          </div>
+          <a className={styles.personalityRow} href={`${p}/history/`}>
+            <svg className={styles.personalityIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span className={styles.personalityText}>Historial con {girl.name}</span>
+            <svg className={styles.personalityChevron} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+        </div>
+        <p className={styles.question}>¿Qué quieres hacer?</p>
+        <button className={styles.optionCard} onClick={() => { setMode("text"); setShowModePicker(false); if (scrollRef.current) setTimeout(() => scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" }), 100); }}>
+          <div className={`${styles.optionIconWrap} ${styles.optionIconWrapPink}`}>
+            <svg className={`${styles.optionIcon} ${styles.iconDark}`} viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <div className={styles.optionContent}>
+            <div className={styles.optionTitle}>Enviar un mensaje</div>
+            <div className={styles.optionDesc}>Habla libremente con {girl.name}</div>
+          </div>
+          <svg className={styles.optionChevron} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
-        <button
-          onClick={() => startRoleplay()}
-          className="w-full rounded-2xl border border-pink/30 bg-pink/[0.07] px-6 py-4 text-left transition hover:bg-pink/15"
-        >
-          <span className="flex items-center gap-2 text-lg font-semibold">
-            <svg viewBox="0 0 24 24" className="h-5 w-5 text-pink" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/>
-              <path d="M12 8v4"/>
-              <path d="M12 12h2.5a1.5 1.5 0 0 1 0 3H12"/>
-              <path d="M9 14h-1.5a1.5 1.5 0 0 0 0 3H12"/>
-              <circle cx="19" cy="5" r="2" fill="currentColor" opacity="0.3"/>
-              <circle cx="5" cy="19" r="2" fill="currentColor" opacity="0.3"/>
-            </svg>
-            Roleplay
-          </span>
-          <p className="mt-1 text-xs text-muted">{girl.story}</p>
+        <button className={styles.optionCard} onClick={startRoleplay}>
+          <div className={styles.iconPurpleWrap}>
+            <svg className={styles.iconPurple} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.4 7.2L22 9.6l-5.6 4.8 1.6 7.6L12 18l-6 4 1.6-7.6L2 9.6l7.6-.4z"/></svg>
+          </div>
+          <div className={styles.optionContent}>
+            <div className={styles.optionTitleRow}>
+              <span className={styles.optionTitle}>Vivir una historia</span>
+              <span className={styles.optionBadge}>NUEVO</span>
+            </div>
+            <div className={styles.optionDescMulti}>Tú eliges el camino,<br/>cada decisión cambia la historia</div>
+          </div>
+          <svg className={styles.optionChevron} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+        <button className={styles.optionCard} onClick={() => { window.location.href = `${p}/call/${girl.id}?mode=voice`; }}>
+          <div className={styles.iconBlueWrap}>
+            <svg className={styles.iconBlue} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          </div>
+          <div className={styles.optionContent}>
+            <div className={styles.optionTitle}>Llamada</div>
+            <div className={styles.optionDesc}>Habla por voz con {girl.name}</div>
+          </div>
+          <svg className={styles.optionChevron} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+        <button className={styles.optionCard} onClick={() => { window.location.href = `${p}/call/${girl.id}?mode=video`; }}>
+          <div className={styles.iconGreenWrap}>
+            <svg className={styles.iconGreen} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          </div>
+          <div className={styles.optionContent}>
+            <div className={styles.optionTitleRow}>
+              <span className={styles.optionTitle}>Videollamada</span>
+              <span className={`${styles.optionBadge} ${styles.badgePremium}`}>PREMIUM</span>
+            </div>
+            <div className={styles.optionDesc}>Habla cara a cara con {girl.name}</div>
+          </div>
+          <svg className={styles.lockIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </button>
+        <p className={styles.premiumSectionTitle}>Funciones Premium</p>
+        <div className={styles.premiumGrid}>
+          {[
+            { icon: "image", label: "Fotos privadas", svg: <><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></> },
+            { icon: "mic", label: "Notas de voz", svg: <><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></> },
+            { icon: "camera", label: "Selfies personalizadas", svg: <><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></> },
+            { icon: "file-text", label: "Respuestas más largas", svg: <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></> },
+          ].map((item) => (
+            <div key={item.label} className={styles.premiumCard} aria-label={item.label}>
+              <div className={styles.premiumLock}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+              <svg className={styles.premiumIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{item.svg}</svg>
+              <span className={styles.premiumCardText}>{item.label}</span>
+            </div>
+          ))}
+        </div>
+        <button className={styles.premiumCta}>
+          <span className={styles.premiumCtaTitle}>Desbloquea todo el contenido Premium</span>
+          <span className={styles.premiumCtaDesc}>Acceso ilimitado a todas las funciones exclusivas</span>
+          <svg className={styles.premiumCtaChevron} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
       </div>
     );
   }
 
+  const p = bp();
   return (
-    <div className="mx-auto flex h-[calc(100vh-64px)] max-w-2xl flex-col px-4 py-4">
-      {/* Header */}
-      <div className="mb-3 flex items-center gap-3 rounded-2xl border border-white/[0.06] bg-[#14141c] px-4 py-3 shadow-lg">
-        <Avatar
-          name={girl.id}
-          accentColor={girl.accentColor}
-          accentColorSecondary={girl.accentColorSecondary}
-          hair={girl.defaultHair}
-          pose={girl.defaultPose}
-          background={girl.defaultBackground}
-          size={44}
-          animated
-          talking={typing}
-        />
-        <div className="min-w-0 flex-1">
-          <p className="font-semibold tracking-tight">{girl.name}</p>
-          <p className="flex items-center gap-1 text-xs text-green-400/80">
-            <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
-            Conectada
-          </p>
+    <div className={styles.chatRoot}>
+      <div className={styles.chatBgPattern} />
+      <div className={styles.chatBgOverlay} />
+      <div className={styles.chatHeader}>
+        <div className={styles.chatHeaderInner}>
+          <button className={styles.chatBackBtn} onClick={() => { window.location.href = `${p}/girls`; }} aria-label="Volver">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          </button>
+          {girl.cloudinaryImage ? (
+            <img src={girl.cloudinaryImage} alt={girl.name} className={styles.chatAvatar} />
+          ) : (
+            <div className={styles.chatAvatarFallback}>{girl.name[0]}</div>
+          )}
+          <div className={styles.chatNameBlock}>
+            <div className={styles.chatName}>{girl.name}</div>
+            <div className={styles.chatStatus}>
+              <span className={styles.chatStatusDot} />
+              <span className={styles.chatStatusText}>En línea</span>
+            </div>
+          </div>
+          <button className={`${styles.chatHeaderIcon} ${styles.video}`} title="Videollamada" onClick={() => { window.location.href = `${p}/call/${girl.id}?mode=video`; }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+          </button>
+          <button className={`${styles.chatHeaderIcon} ${styles.menu}`} title="Menú" onClick={() => {}}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
         </div>
-        <button
-          onClick={clearMemory}
-          className="rounded-xl bg-white/10 px-3 py-1.5 text-xs text-muted hover:bg-white/20 transition-all active:scale-95 shrink-0"
-        >
-          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-        </button>
       </div>
-
-      {/* Messages */}
-      <div ref={scrollRef} className="flex-1 overflow-x-hidden overflow-y-auto space-y-3 rounded-2xl border border-white/[0.06] bg-[#14141c]/80 p-4 shadow-inner backdrop-blur-sm">
+      <div ref={scrollRef} className={styles.messagesArea}>
         {messages.map((m) => (
-          <div key={m.id} className={`flex animate-fadeUp ${m.from === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed break-words overflow-wrap-anywhere ${
-              m.from === "user"
-                ? "bg-gradient-to-r from-pink to-purple text-white shadow-lg shadow-pink/15"
-                : "border border-white/[0.06] bg-white/[0.04] text-ink backdrop-blur-sm"
-            }`}>
+          <div key={m.id} className={`${styles.messageRow} ${m.from === "user" ? styles.messageRowRight : styles.messageRowLeft}`}>
+            <div className={`${styles.bubble} ${m.from === "user" ? styles.bubbleRight : styles.bubbleLeft}`}>
               {renderText(m.text)}
             </div>
           </div>
         ))}
-        {!typing && !blocked && messages.length <= 1 && (
-          <div className="flex flex-wrap gap-2 pt-2">
-            {["Háblame suave", "Sorpréndeme", "Sé directa", "Conóceme"].map((label) => (
-              <button
-                key={label}
-                onClick={() => { setInput(label); }}
-                className="rounded-xl border border-white/[0.06] bg-white/[0.03] px-3.5 py-2 text-xs font-medium text-muted/80 transition-all hover:border-white/20 hover:text-white active:scale-95"
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        )}
         {typing && (
-          <div className="flex justify-start">
-            <div className="rounded-2xl border border-white/[0.06] bg-white/[0.04] px-4 py-2.5 text-sm text-muted/80 backdrop-blur-sm">
-              {girl.name} está escribiendo
-              <span className="ml-1 inline-flex">
-                <span className="animate-pulseGlow">.</span>
-                <span className="animate-pulseGlow" style={{ animationDelay: "0.2s" }}>.</span>
-                <span className="animate-pulseGlow" style={{ animationDelay: "0.4s" }}>.</span>
-              </span>
+          <div className={`${styles.messageRow} ${styles.messageRowLeft}`}>
+            <div className={`${styles.typingBubble}`}>
+              {[0, 1, 2].map((i) => (
+                <span key={i} className={styles.typingDot} />
+              ))}
             </div>
           </div>
         )}
-        {error && (
-          <p className="py-2 text-center text-xs text-muted/60">{error}</p>
-        )}
+        {error && <p style={{ textAlign: "center", fontSize: 12, color: "hsla(240,7%,97%,.3)", padding: 8 }}>{error}</p>}
       </div>
-
-      {/* Input */}
-      <div className="mt-3 flex gap-2">
-        <input
-          value={input}
-          disabled={blocked || typing}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && send()}
-          placeholder={blocked ? "Chat bloqueado" : "Escribe un mensaje..."}
-          className="min-h-[48px] flex-1 rounded-2xl border border-white/[0.06] bg-white/[0.04] px-4 text-[16px] outline-none focus:border-pink/50 disabled:opacity-40 transition-colors"
-        />
-        <button
-          onClick={requestImage}
-          disabled={blocked || typing}
-          className="rounded-2xl border border-white/[0.10] bg-white/[0.04] px-3 py-3 text-muted hover:bg-white/[0.08] hover:text-white transition-all active:scale-95 disabled:opacity-40 shrink-0"
-          title="Pídeme una foto"
-        >
-          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-            <circle cx="8.5" cy="8.5" r="1.5"/>
-            <polyline points="21 15 16 10 5 21"/>
-          </svg>
-        </button>
-        <button
-          onClick={send}
-          disabled={blocked || typing}
-          className="rounded-2xl bg-gradient-to-r from-pink to-purple-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-pink/20 transition-all hover:shadow-xl hover:shadow-pink/25 active:scale-95 disabled:opacity-40"
-        >
-          Enviar
-        </button>
+      <div className={styles.composer}>
+        <div className={styles.composerRow}>
+          <div className={styles.composerInputWrap}>
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && send()}
+              placeholder="Escribe un mensaje..."
+              disabled={blocked}
+              className={styles.composerInput}
+            />
+          </div>
+          <button className={styles.cameraBtn} onClick={requestImage} disabled={blocked || typing} title="Pídeme una foto">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </button>
+          <button className={styles.sendBtn} onClick={send} disabled={blocked || typing || !input.trim()}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
       </div>
     </div>
   );

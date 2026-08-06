@@ -1,4 +1,4 @@
-$src = "C:\Users\Paquito\Downloads\luciaia-clone\out"
+$src = "C:\Users\Paquito\Downloads\muñeca ia 3\out"
 $repo = "https://github.com/3737631/luciaia.git"
 $dst = "C:\Users\Paquito\AppData\Local\Temp\gh-pages-deploy"
 
