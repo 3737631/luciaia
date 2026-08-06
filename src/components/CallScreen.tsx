@@ -990,7 +990,7 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     try {
       const sanitized = sanitizeForTTS(greeting);
       if (!sanitized) throw new Error("empty after sanitize");
-      const result = await ttsText(sanitized);
+      const result = await ttsText(sanitized, voiceIdMap[girl.id] || `female-${girl.id}`);
       if (abort.signal.aborted || !mountedRef.current) return;
       audioEl.volume = 1;
       audioEl.src = `data:${result.contentType};base64,${result.audio}`;
@@ -1024,7 +1024,7 @@ export default function CallScreen({ girl }: { girl: Girl }) {
       try {
         const sanitized = sanitizeForTTS(greeting);
         if (!sanitized) throw new Error("empty");
-        const result = await ttsText(sanitized);
+        const result = await ttsText(sanitized, voiceIdMap[girl.id] || `female-${girl.id}`);
         if (abort.signal.aborted || !mountedRef.current) return;
         audioEl.volume = 1;
         audioEl.src = `data:${result.contentType};base64,${result.audio}`;
