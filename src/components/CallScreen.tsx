@@ -427,17 +427,20 @@ export default function CallScreen({ girl }: { girl: Girl }) {
       const sanitized = sanitizeForTTS(text);
       if (!sanitized) throw new Error("Texto vacío después de sanitizar");
       const chunks = splitForTTS(sanitized);
-      const results: { audio: string; contentType: string }[] = [];
       const voiceKey = voiceIdMap[girl.id] || `female-${girl.id}`;
-      for (const chunk of chunks) {
-        const r = await ttsText(chunk, voiceKey);
-        if (!mountedRef.current || tid !== turnIdRef.current) return;
-        results.push(r);
-      }
+      const results = await Promise.all(
+        chunks.map(async (chunk) => {
+          const r = await ttsText(chunk, voiceKey);
+          if (!mountedRef.current || tid !== turnIdRef.current) return null;
+          return r;
+        })
+      );
       if (!mountedRef.current || tid !== turnIdRef.current) return;
+      const finalResults = results.filter(Boolean) as { audio: string; contentType: string }[];
+      if (finalResults.length === 0) return;
 
       el.volume = (muted || !audioOn) ? 0 : 1;
-      for (let i = 0; i < results.length; i++) {
+      for (let i = 0; i < finalResults.length; i++) {
         if (!mountedRef.current || tid !== turnIdRef.current) return;
         await new Promise<void>((resolve, reject) => {
           const timeout = setTimeout(() => reject(new Error("timeout")), 30000);
@@ -465,7 +468,7 @@ export default function CallScreen({ girl }: { girl: Girl }) {
             clearTimeout(timeout);
             reject(new Error("audio error"));
           };
-          el.src = `data:${results[i].contentType};base64,${results[i].audio}`;
+          el.src = `data:${finalResults[i].contentType};base64,${finalResults[i].audio}`;
           const playPromise = playGuarded(el);
           playPromise.catch(e => { clearTimeout(timeout); reject(e); });
         });
@@ -814,7 +817,6 @@ export default function CallScreen({ girl }: { girl: Girl }) {
       startListening();
       return;
     }
-    processingRef.current = true;
     abortSpeechRec("user-finished");
     cleanupMediaRec();
     stopRecorder();
