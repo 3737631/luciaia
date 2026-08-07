@@ -13,7 +13,7 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export default function StoriesRow({ girls }: { girls: Girl[] }) {
   const router = useRouter();
-  const [seen, setSeen] = useState<Set<string>>(() => getSeenStories());
+  const [seen, setSeen] = useState<Record<string, string>>(() => getSeenStories());
   const [storyChar, setStoryChar] = useState<{
     characters: Array<{ id: string; images: string[]; avatar: string; name: string }>;
     startCharIndex: number;
@@ -59,6 +59,19 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
 
   const stableRemainingKey = useMemo(() => remainingStoryUrls.join("|"), [remainingStoryUrls]);
 
+  // Firma de las historias de hoy para una chica (las URLs seleccionadas hoy).
+  const storySignature = useCallback((girl: Girl): string => {
+    if (!girl.storyImages?.length) return "";
+    const idxs = getDailyStorySelection(girl.id, girl.storyImages.length);
+    return idxs.map((i) => `${basePath}${girl.storyImages![i]}`).join("|");
+  }, []);
+
+  const isStorySeen = useCallback((girl: Girl): boolean => {
+    if (!girl.storyImages?.length) return false;
+    const sig = storySignature(girl);
+    return seen[girl.id] === sig;
+  }, [seen, storySignature]);
+
   // ── Priority preload: first stories (immediate) ──
   useEffect(() => {
     let cancelled = false;
@@ -101,10 +114,10 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
     const startIndex = chars.findIndex((c) => c.id === girl.id);
     if (startIndex === -1) return;
 
-    setSeen((prev) => { const next = new Set(prev); next.add(girl.id); return next; });
-    markStorySeen(girl.id);
+    setSeen((prev) => { const next = { ...prev }; next[girl.id] = storySignature(girl); return next; });
+    markStorySeen(girl.id, storySignature(girl));
     setStoryChar({ characters: chars, startCharIndex: startIndex, ready: true });
-  }, [girls]);
+  }, [girls, storySignature]);
 
   return (
     <>
@@ -114,12 +127,12 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
           startCharIndex={storyChar.startCharIndex}
           initialImageSrc={storyChar.characters[storyChar.startCharIndex]?.images?.[0] ?? ""}
           onClose={() => setStoryChar(null)}
-          onMarkSeen={(id) => { setSeen((prev) => { const next = new Set(prev); next.add(id); return next; }); markStorySeen(id); }}
+          onMarkSeen={(id) => { const g = girls.find((x) => x.id === id); const sig = g ? storySignature(g) : ""; setSeen((prev) => { const next = { ...prev }; next[id] = sig; return next; }); markStorySeen(id, sig); }}
         />
       )}
       <div className="stories-row">
       {girls.map((girl) => {
-        const isSeen = seen.has(girl.id);
+        const isSeen = isStorySeen(girl);
         const hasStory = (girl.storyImages?.length ?? 0) > 0;
         return (
           <div

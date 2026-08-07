@@ -2,25 +2,32 @@
 
 const STORAGE_KEY = "storySeen";
 
-function getStored(): string[] {
-  if (typeof window === "undefined") return [];
+type SeenRecord = Record<string, string>;
+
+function getStored(): SeenRecord {
+  if (typeof window === "undefined") return {};
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-  } catch { return []; }
+    const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    if (Array.isArray(raw)) {
+      const rec: SeenRecord = {};
+      raw.forEach((id) => { if (typeof id === "string") rec[id] = ""; });
+      return rec;
+    }
+    if (raw && typeof raw === "object") return raw as SeenRecord;
+    return {};
+  } catch { return {}; }
 }
 
-function setStored(ids: string[]) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(ids)); } catch {}
+function setStored(rec: SeenRecord) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(rec)); } catch {}
 }
 
-export function getSeenStories(): Set<string> {
-  return new Set(getStored());
+export function getSeenStories(): SeenRecord {
+  return getStored();
 }
 
-export function markStorySeen(id: string) {
-  const ids = getStored();
-  if (!ids.includes(id)) {
-    ids.push(id);
-    setStored(ids);
-  }
+export function markStorySeen(id: string, signature: string) {
+  const rec = getStored();
+  rec[id] = signature;
+  setStored(rec);
 }

@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
     const summaryContext = summary ? "\nResumen:\n" + summary : "";
 
     const actionsLine = mode === "actions"
-      ? "- Describe tus acciones y gestos entre *asteriscos* de forma natural, ej: *me acerco y te beso en la mejilla sonrojandome*"
+      ? "- Cada mensaje DEBE empezar con tu accion o gesto entre *asteriscos* (en una linea propia antes de tus palabras), ej:\n*me acerco por detras y te abrazo*\nLuego tu texto. Siempre una accion, nunca respondas solo con texto sin accion."
       : "- NO uses asteriscos ni descripciones de acciones. Solo texto directo.";
 
     const genderLine = userGender === "mujer"
