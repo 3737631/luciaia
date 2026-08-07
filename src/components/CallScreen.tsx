@@ -1019,7 +1019,23 @@ export default function CallScreen({ girl }: { girl: Girl }) {
           startListening();
         }
       };
-      await playGuarded(audioEl);
+      const played = await Promise.race([
+        playGuarded(audioEl).then(() => true, () => false),
+        new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 2500)),
+      ]);
+      if (abort.signal.aborted || !mountedRef.current) return;
+      if (!played && callStateRef.current === "dialing") {
+        if (dotTimerRef.current) { clearInterval(dotTimerRef.current); dotTimerRef.current = null; }
+        setCS("greeting");
+        stopRingback();
+        startFreqAnimation();
+        if (!durTimerRef.current) {
+          durTimerRef.current = setInterval(() => setCallDuration(d => d + 1), 1000);
+        }
+        clearAllMemory(girl.id);
+        silentPingsRef.current = 0;
+        startListening();
+      }
     } catch (err) {
       console.warn("[CALL] greeting prep failed", err);
       if (abort.signal.aborted || !mountedRef.current) return;
