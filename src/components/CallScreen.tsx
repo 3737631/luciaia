@@ -443,9 +443,13 @@ export default function CallScreen({ girl }: { girl: Girl }) {
       for (let i = 0; i < finalResults.length; i++) {
         if (!mountedRef.current || tid !== turnIdRef.current) return;
         await new Promise<void>((resolve, reject) => {
+          const playedRef = { started: false };
           const timeout = setTimeout(() => reject(new Error("timeout")), 30000);
+          const guardTimer = setTimeout(() => resolve(), 2500);
+          const cleanup = () => { clearTimeout(timeout); clearTimeout(guardTimer); };
           el.onplaying = () => {
             clearTimeout(timeout);
+            playedRef.started = true;
             if (isGreeting && callStateRef.current === "dialing") {
               stopRingback();
               setCS("greeting");
@@ -459,18 +463,18 @@ export default function CallScreen({ girl }: { girl: Girl }) {
             }
           };
           el.onended = () => {
+            cleanup();
             stopFreqAnimation();
             setFreqData(Array(12).fill(2));
             setSubtitleText("");
             resolve();
           };
           el.onerror = () => {
-            clearTimeout(timeout);
+            cleanup();
             reject(new Error("audio error"));
           };
           el.src = `data:${finalResults[i].contentType};base64,${finalResults[i].audio}`;
-          const playPromise = playGuarded(el);
-          playPromise.catch(e => { clearTimeout(timeout); reject(e); });
+          playGuarded(el).catch(e => { clearTimeout(timeout); reject(e); });
         });
       }
     } catch (err) {
@@ -506,7 +510,9 @@ export default function CallScreen({ girl }: { girl: Girl }) {
           };
           el.onerror = () => { clearTimeout(timeout); reject(new Error("audio error")); };
           el.src = `data:${result.contentType};base64,${result.audio}`;
-          playGuarded(el).catch(e => { clearTimeout(timeout); reject(e); });
+          const pp = playGuarded(el);
+          pp.catch(e => { clearTimeout(timeout); reject(e); });
+          setTimeout(() => resolve(), 2500);
         });
       } catch (e) {
         console.warn("[CALL] TTS retry failed, usando voz del navegador", e);
