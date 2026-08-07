@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Girl, minorBlockMessage } from "@/data/girls";
 import { getCustomization } from "@/lib/storage";
 import { getFallbackResponse } from "@/lib/ai";
@@ -35,6 +36,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<"text" | "actions">("text");
   const [showModePicker, setShowModePicker] = useState(true);
+  const router = useRouter();
   const [customScenario, setCustomScenario] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef(true);
@@ -268,7 +270,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
           </div>
           <svg className={styles.optionChevron} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
-        <button className={styles.optionCard} onClick={() => { window.location.href = `${p}/call/${girl.id}?mode=voice`; }}>
+        <button className={styles.optionCard} onClick={() => { router.push(`/call/${girl.id}?mode=voice`); }}>
           <div className={styles.iconBlueWrap}>
             <svg className={styles.iconBlue} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
           </div>
@@ -278,7 +280,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
           </div>
           <svg className={styles.optionChevron} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
-        <button className={styles.optionCard} onClick={() => { window.location.href = `${p}/call/${girl.id}?mode=video`; }}>
+        <button className={styles.optionCard} onClick={() => { router.push(`/call/${girl.id}?mode=video`); }}>
           <div className={styles.iconGreenWrap}>
             <svg className={styles.iconGreen} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
           </div>
@@ -337,7 +339,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
               <span className={styles.chatStatusText}>En línea</span>
             </div>
           </div>
-          <button className={`${styles.chatHeaderIcon} ${styles.video}`} title="Videollamada" onClick={() => { window.location.href = `${p}/call/${girl.id}?mode=video`; }}>
+          <button className={`${styles.chatHeaderIcon} ${styles.video}`} title="Videollamada" onClick={() => { router.push(`/call/${girl.id}?mode=video`); }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
           </button>
           <button className={`${styles.chatHeaderIcon} ${styles.menu}`} title="Menú" onClick={() => {}}>
