@@ -46,7 +46,7 @@ function CloseSvg() {
 
 function BackArrowSvg() {
   return (
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <polyline points="15 18 9 12 15 6" />
     </svg>
   );
@@ -876,6 +876,13 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
         transition: "opacity 120ms ease",
         opacity: longPressActive ? 0 : 1,
       }} data-story-interactive>
+        <button aria-label="Volver atrás" data-story-interactive
+          onClick={(e) => { e.stopPropagation(); startViewerClose("right") }}
+          className="story-action-button"
+          style={{ pointerEvents: "auto", flex: "0 0 auto" }}
+        >
+          <BackArrowSvg />
+        </button>
         <img src={c.avatar} alt="" loading="eager" fetchPriority="high" style={{
           width: 30, height: 30, borderRadius: "50%", objectFit: "cover", flex: "0 0 auto",
           border: "1.5px solid rgba(255,255,255,.85)",
@@ -897,13 +904,6 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
           {timeAgo}
         </span>
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 2 }}>
-          <button aria-label="Volver atrás" data-story-interactive
-            onClick={(e) => { e.stopPropagation(); startViewerClose("right") }}
-            className="story-action-button"
-            style={{ pointerEvents: "auto" }}
-          >
-            <BackArrowSvg />
-          </button>
           <button aria-label="Cerrar" data-story-interactive
             onClick={(e) => { e.stopPropagation(); startViewerClose("down") }}
             className="story-action-button"

@@ -219,7 +219,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       <div className={styles.container}>
         <div className={styles.topBar}>
           <button className={styles.topBarBtn} onClick={() => { window.location.href = `${p}/girls`; }} aria-label="Volver atrás">
-            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           </button>
           <button className={`${styles.topBarBtn} ${styles.dotsBtn}`} aria-label="Menú">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
@@ -325,7 +325,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       <div className={styles.chatHeader}>
         <div className={styles.chatHeaderInner}>
           <button className={styles.chatBackBtn} onClick={() => { window.location.href = `${p}/girls`; }} aria-label="Volver">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           </button>
           {girl.cloudinaryImage ? (
             <img src={girl.cloudinaryImage} alt={girl.name} className={styles.chatAvatar} />
