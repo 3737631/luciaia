@@ -47,6 +47,8 @@ body {
 
 * { -webkit-tap-highlight-color: transparent; }
 
+img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; -webkit-user-drag: none; pointer-events: none; }
+
 .container-nuvia {
   width: 100%;
   margin: 0 auto;
