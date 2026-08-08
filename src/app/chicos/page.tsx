@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import Header from "@/components/Header";
 import GirlCard from "@/components/GirlCard";
 import StoriesRow from "@/components/StoriesRow";
+import CreateYourGirl from "@/components/CreateYourGirl";
 import { FantasyCTA } from "@/components/FantasyCTA";
 
 import { girls } from "@/data/girls";
@@ -35,6 +36,7 @@ export default function ChicosPage() {
   const [animKey, setAnimKey] = useState(0);
   const [heroIndex, setHeroIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
+  const [createOpen, setCreateOpen] = useState(false);
   const preloadedRef = useRef(false);
 
   const firstStoryPreloads = useMemo(
@@ -128,7 +130,8 @@ export default function ChicosPage() {
       <main style={{ minHeight: "100vh", maxWidth: 1200, margin: "0 auto", padding: "0 var(--container-padding)" }}>
         <StoriesRow girls={maleChars} />
 
-        <FantasyCTA mode="boys" onCreate={() => { const h = document.querySelector('[href="#crear"]'); if (h instanceof HTMLElement) h.click(); }} />
+        <FantasyCTA mode="boys" onCreate={() => setCreateOpen(true)} />
+        <CreateYourGirl open={createOpen} onClose={() => setCreateOpen(false)} />
 
         <section id="characters">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
