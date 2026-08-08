@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Girl } from "@/data/girls";
@@ -42,6 +42,29 @@ export default function GirlCard({ girl, index = 0 }: { girl: Girl; index?: numb
       ? getGirlImage(girl.id, custom.hair, custom.pose, custom.background, girl.cloudinaryImage)
       : getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground, girl.cloudinaryImage);
 
+  const startRef = useRef<{ x: number; y: number } | null>(null);
+  const handledRef = useRef(false);
+
+  const navigate = useCallback((path: string) => {
+    if (handledRef.current) return;
+    handledRef.current = true;
+    router.push(path);
+    window.setTimeout(() => { handledRef.current = false; }, 500);
+  }, [router]);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    startRef.current = { x: e.clientX, y: e.clientY };
+  }, []);
+
+  const handlePointerUp = useCallback((e: React.PointerEvent, path: string) => {
+    const start = startRef.current;
+    startRef.current = null;
+    if (!start) return;
+    const dx = e.clientX - start.x;
+    const dy = e.clientY - start.y;
+    if (Math.abs(dx) < 12 && Math.abs(dy) < 12) navigate(path);
+  }, [navigate]);
+
   return (
     <div
       ref={ref}
@@ -49,8 +72,10 @@ export default function GirlCard({ girl, index = 0 }: { girl: Girl; index?: numb
       role="button"
       tabIndex={0}
       aria-label={`${girl.name}, ${girl.age} años`}
-      onClick={() => router.push(chatPath(girl.id))}
-      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); router.push(chatPath(girl.id)); } }}
+      onClick={() => navigate(chatPath(girl.id))}
+      onPointerDown={handlePointerDown}
+      onPointerUp={(e) => handlePointerUp(e, chatPath(girl.id))}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate(chatPath(girl.id)); } }}
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0)" : "translateY(16px)",
@@ -100,7 +125,9 @@ export default function GirlCard({ girl, index = 0 }: { girl: Girl; index?: numb
       <Link
         href={chatPath(girl.id)}
         className="person-action"
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(chatPath(girl.id)); }}
+        onPointerDown={handlePointerDown}
+        onPointerUp={(e) => { e.stopPropagation(); handlePointerUp(e, chatPath(girl.id)); }}
       >
         Chatear
       </Link>
@@ -111,7 +138,9 @@ export default function GirlCard({ girl, index = 0 }: { girl: Girl; index?: numb
           className="quick-action-button"
           title="Llamada"
           aria-label={`Llamar a ${girl.name}`}
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/call/${girl.id}`); }}
+          onPointerDown={(e) => { e.stopPropagation(); handlePointerDown(e); }}
+          onPointerUp={(e) => { e.stopPropagation(); handlePointerUp(e, `/call/${girl.id}`); }}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
             <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
@@ -122,7 +151,9 @@ export default function GirlCard({ girl, index = 0 }: { girl: Girl; index?: numb
           className="quick-action-button"
           title="Videollamada"
           aria-label={`Videollamada con ${girl.name}`}
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/call/${girl.id}`); }}
+          onPointerDown={(e) => { e.stopPropagation(); handlePointerDown(e); }}
+          onPointerUp={(e) => { e.stopPropagation(); handlePointerUp(e, `/call/${girl.id}`); }}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
             <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
