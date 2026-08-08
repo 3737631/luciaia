@@ -268,6 +268,17 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   transform: translateY(0);
 }
 @media (hover: none) {
+  .person-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  .person-card:hover img {
+    transform: none;
+  }
+  .person-action:hover {
+    transform: none;
+    filter: none;
+  }
   .person-quick-actions {
     opacity: 1;
     transform: none;
