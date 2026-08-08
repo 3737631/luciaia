@@ -286,6 +286,14 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
     transform: none;
     filter: none;
   }
+  .person-action:active {
+    transform: none;
+    filter: brightness(1.18);
+  }
+  .quick-action-button:active {
+    transform: none;
+    background: rgba(255,87,152,0.35);
+  }
   .person-quick-actions {
     opacity: 1;
     transform: none;
