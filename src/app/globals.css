@@ -110,6 +110,7 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   background: #1a1a1a;
   cursor: pointer;
   isolation: isolate;
+  touch-action: manipulation;
   transition: transform 180ms ease, box-shadow 180ms ease;
 }
 .person-card:hover {
@@ -234,6 +235,7 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
+  touch-action: manipulation;
   text-decoration: none;
   box-shadow: 0 4px 14px rgba(255,87,152,0.15);
   transition: transform 160ms ease, filter 160ms ease;
@@ -309,6 +311,7 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   cursor: pointer;
+  touch-action: manipulation;
   text-decoration: none;
   transition: background 160ms ease, transform 160ms ease;
   -webkit-tap-highlight-color: transparent;
