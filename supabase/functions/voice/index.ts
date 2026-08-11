@@ -132,7 +132,8 @@ Deno.serve(async (req) => {
 
       // Primary: Microsoft Edge TTS (free, unlimited, no key, real differentiated voices)
       try {
-        const tts = new UniversalEdgeTTS(text, activeVoice);
+        // Ajustes de naturalidad: velocidad normal de conversación con tono ligeramente cálido.
+        const tts = new UniversalEdgeTTS(text, activeVoice, { rate: "+0%", pitch: "+2Hz" });
         const result = await tts.synthesize();
         const audioBuffer = await result.audio.arrayBuffer();
         const base64Audio = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
