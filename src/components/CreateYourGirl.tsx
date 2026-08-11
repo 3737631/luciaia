@@ -71,37 +71,47 @@ function compressImage(blob: Blob): Promise<string> {
 
 function buildPrompt(desc: string): string {
   const words = desc.toLowerCase();
+
   let clothing = "red lace lingerie set, thigh-high stockings, stiletto heels";
-  if (words.includes("uniforme")) clothing = "tight white nurse uniform with unbuttoned top, sheer stockings, heels";
-  else if (words.includes("vestido")) clothing = "tight black mini dress, strappy high heels";
-  else if (words.includes("bata")) clothing = "sheer silk robe loosely tied, lacy underwear underneath, heels";
-  else if (words.includes("abrigo")) clothing = "long open trench coat, nothing underneath, high heels";
-  else if (words.includes("bikini") || words.includes("bañador") || words.includes("traje de baño"))
+  if (/(nike|sudadera|hoodie|deportiv|jogger|leggins|camiseta|chaqueta|crop top|pantal[oó]n|street)/.test(words)) {
+    clothing = words.includes("nike")
+      ? "wearing a complete Nike outfit: black Nike tracksuit jacket, black Nike joggers and white Nike sneakers"
+      : "wearing the streetwear outfit as described";
+  } else if (words.includes("uniforme")) {
+    clothing = "tight white nurse uniform with unbuttoned top, sheer stockings, heels";
+  } else if (words.includes("vestido")) {
+    clothing = "tight black mini dress, strappy high heels";
+  } else if (words.includes("bata")) {
+    clothing = "sheer silk robe loosely tied, lacy underwear underneath, heels";
+  } else if (words.includes("abrigo")) {
+    clothing = "long open trench coat, nothing underneath, high heels";
+  } else if (words.includes("bikini") || words.includes("bañador") || words.includes("traje de baño")) {
     clothing = "tiny string bikini, high heels";
-  else if (words.includes("pijama") || words.includes("camisón"))
+  } else if (words.includes("pijama") || words.includes("camisón")) {
     clothing = "silk baby doll nightie, lace trim";
+  }
 
-  let body = "slim toned figure, medium breasts, perky";
-  if (words.includes("tetas grandes") || words.includes("curvas") || words.includes("curvy") || words.includes("culo grande") || words.includes("nalgas grandes") || words.includes("voluptuosa"))
-    body = "curvy hourglass, large firm breasts, wide hips, big round glutes";
-  else if (words.includes("delgada") || words.includes("fina") || words.includes("flaca"))
+  let body = "slim toned figure, medium breasts";
+  if (/(gorda|gordita|rellenita|llenita|curvy|curvas|voluptuosa|tetas grandes|culo grande|nalgas grandes)/.test(words))
+    body = "curvy plus size figure, thick full hips, big thighs, hourglass";
+  else if (/(delgada|fina|flaca)/.test(words))
     body = "very slender, small breasts, thin waist";
-  else if (words.includes("gordita") || words.includes("rellenita") || words.includes("llenita"))
-    body = "plus size thick figure, full hips, big thighs";
 
-  let pose = "full body, standing, looking at camera, both arms and legs visible";
-  if (words.includes("sentada") || words.includes("silla")) pose = "full body visible, sitting on a chair, legs crossed";
-  else if (words.includes("cama") || words.includes("acostada")) pose = "full body, lying on a bed, legs extended";
-  else if (words.includes("de rodillas")) pose = "full body, kneeling on the floor";
-  else if (words.includes("espejo")) pose = "full body, taking mirror selfie with phone in hand";
+  let framing = "waist-up portrait photo, selfie angle, face and upper body visible, looking at the camera";
+  if (words.includes("cama") || words.includes("acostada"))
+    framing = "portrait photo, lying on a bed, upper body visible, looking at the camera";
+  else if (words.includes("espejo"))
+    framing = "portrait photo, taking a mirror selfie, upper body visible";
 
-  return `ultra realistic photo of a beautiful adult woman 20 years old, ${desc}, ${clothing}, ${body}, ${pose}, ` +
-    `photorealistic skin texture, visible pores, natural skin details, soft subsurface scattering, ` +
-    `shot on Hasselblad X1D II 90mm f/2.8, professional studio lighting, soft key light, ` +
-    `cinematic color grade, sharp focus, high detail skin, natural expression, confident seductive gaze, ` +
-    `complete full body composition, all four limbs visible and correctly formed, ` +
-    `wearing proper clothing covering nipples and pubic area, realistic anatomy, ` +
-    `sensual intimate atmosphere, tasteful boudoir style`;
+  let background = "cozy stylish bedroom with pink and purple neon lighting";
+  if (/(nike|sudadera|hoodie|street|calle|urbano)/.test(words))
+    background = "urban street at night with neon signs and purple ambient lighting";
+
+  return `ultra realistic photo of a beautiful adult woman 20 years old, ${desc}, ${body}, ${clothing}, ${framing}, ` +
+    `background ${background}, photorealistic skin texture, visible pores, natural skin details, soft subsurface scattering, ` +
+    `shot on Hasselblad X1D II 90mm f/2.8, professional neon studio lighting, sharp focus, high detail skin, ` +
+    `natural expression, confident seductive gaze, ` +
+    `wearing proper clothing covering nipples and pubic area, realistic anatomy, tasteful boudoir style`;
 }
 
 type WizardStep = "describe" | "personality" | "generating" | "done";
