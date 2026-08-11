@@ -71,6 +71,22 @@ async function nscaleGenerate(prompt: string, width: number, height: number, see
   throw new Error(lastError || "nscale falló");
 }
 
+async function pollinationsGenerate(prompt: string, width: number, height: number, seed: number): Promise<Uint8Array> {
+  const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${Math.min(width, 1024)}&height=${Math.min(height, 1024)}&model=flux-realism&seed=${seed}&nologo=true&enhance=true`;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 90000);
+  try {
+    const res = await fetch(url, { redirect: "follow", signal: controller.signal });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`pollinations ${res.status}: ${text.slice(0, 200)}`);
+    }
+    return new Uint8Array(await res.arrayBuffer());
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function hfGenerate(prompt: string, width: number, height: number, token: string): Promise<Uint8Array> {
   const res = await fetch(`https://router.huggingface.co/hf-inference/models/${HF_MODEL}`, {
     method: "POST",
@@ -121,20 +137,30 @@ Deno.serve(async (req) => {
       try {
         img = await falDirectGenerate(prompt, width, height, seed, falKey);
       } catch (err) {
-        console.error("fal falla, usa nscale:", err);
+        console.error("fal sin saldo, usa pollinations:", err);
+        try {
+          img = await pollinationsGenerate(prompt, width, height, seed);
+        } catch (errP) {
+          console.error("pollinations falla, usa nscale:", errP);
+          try {
+            img = await nscaleGenerate(prompt, width, height, seed, token);
+          } catch (err2) {
+            console.error("nscale falla, prueba hf:", err2);
+            img = await hfGenerate(prompt, width, height, token);
+          }
+        }
+      }
+    } else {
+      try {
+        img = await pollinationsGenerate(prompt, width, height, seed);
+      } catch (errP) {
+        console.error("pollinations falla, usa nscale:", errP);
         try {
           img = await nscaleGenerate(prompt, width, height, seed, token);
         } catch (err2) {
           console.error("nscale falla, prueba hf:", err2);
           img = await hfGenerate(prompt, width, height, token);
         }
-      }
-    } else {
-      try {
-        img = await nscaleGenerate(prompt, width, height, seed, token);
-      } catch (err) {
-        console.error("nscale falla, prueba hf:", err);
-        img = await hfGenerate(prompt, width, height, token);
       }
     }
 
