@@ -72,19 +72,28 @@ async function nscaleGenerate(prompt: string, width: number, height: number, see
   throw new Error(lastError || "nscale falló");
 }
 
-async function pollinationsGenerate(prompt: string, width: number, height: number, seed: number): Promise<Uint8Array> {
-  const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${Math.min(width, 1024)}&height=${Math.min(height, 1024)}&model=flux-rye&seed=${seed}&nologo=true`;
+async function fetchPollinations(prompt: string, width: number, height: number, seed: number, model: string, timeoutMs: number): Promise<Uint8Array> {
+  const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${Math.min(width, 1024)}&height=${Math.min(height, 1024)}&model=${model}&seed=${seed}&nologo=true`;
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 90000);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const res = await fetch(url, { redirect: "follow", signal: controller.signal });
     if (!res.ok) {
       const text = await res.text();
-      throw new Error(`pollinations ${res.status}: ${text.slice(0, 200)}`);
+      throw new Error(`pollinations ${model} ${res.status}: ${text.slice(0, 200)}`);
     }
     return new Uint8Array(await res.arrayBuffer());
   } finally {
     clearTimeout(timer);
+  }
+}
+
+async function pollinationsGenerate(prompt: string, width: number, height: number, seed: number): Promise<Uint8Array> {
+  try {
+    return await fetchPollinations(prompt, width, height, seed, "flux", 90000);
+  } catch (err) {
+    console.error("pollinations flux falla, usa sana:", err);
+    return await fetchPollinations(prompt, width, height, seed, "sana", 60000);
   }
 }
 
