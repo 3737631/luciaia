@@ -122,7 +122,12 @@ Deno.serve(async (req) => {
         img = await falDirectGenerate(prompt, width, height, seed, falKey);
       } catch (err) {
         console.error("fal falla, usa nscale:", err);
-        img = await nscaleGenerate(prompt, width, height, seed, token);
+        try {
+          img = await nscaleGenerate(prompt, width, height, seed, token);
+        } catch (err2) {
+          console.error("nscale falla, prueba hf:", err2);
+          img = await hfGenerate(prompt, width, height, token);
+        }
       }
     } else {
       try {
