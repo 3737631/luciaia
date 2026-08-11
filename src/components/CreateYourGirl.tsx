@@ -52,14 +52,14 @@ function compressImage(blob: Blob): Promise<string> {
     const url = URL.createObjectURL(blob);
     const img = new Image();
     img.onload = () => {
-      const maxW = 640;
+      const maxW = 900;
       const scale = Math.min(1, maxW / img.width);
       const canvas = document.createElement("canvas");
       canvas.width = Math.round(img.width * scale);
       canvas.height = Math.round(img.height * scale);
       canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
       URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL("image/jpeg", 0.85));
+      resolve(canvas.toDataURL("image/jpeg", 0.9));
     };
     img.onerror = () => {
       URL.revokeObjectURL(url);
@@ -173,15 +173,15 @@ function buildPrompt(desc: string): string {
   else if (/(delgada|fina|flaca)/.test(words))
     body = "very slender, small breasts, thin waist";
 
-  let framing = "bust portrait, head and chest visible, tightly framed, subject fills most of the frame, short camera distance, 85mm portrait lens, shot at eye level, looking at the camera";
+  let framing = "professional profile photo, head and shoulders portrait, face perfectly centered, equal headroom, looking directly at the camera, close-up, 50mm f/1.4 portrait lens, blurred clean background";
   if (words.includes("cama") || words.includes("acostada"))
-    framing = "bust portrait, lying on a bed, head and chest tightly framed, looking at the camera";
+    framing = "professional profile photo, lying on a bed, head and shoulders slightly angled, face centered, looking at the camera";
   else if (words.includes("espejo"))
-    framing = "bust portrait, mirror selfie, head and chest tightly framed";
+    framing = "professional profile photo, mirror selfie, head and shoulders, face centered, looking at the camera";
   else if (/(bailando|baile|perreando|movi[eé]ndose)/.test(words))
-    framing = "medium shot, dancing pose, hips swaying, hair with natural motion, arms delicately raised, looking over one shoulder at the camera";
+    framing = "medium close-up, dancing, head and shoulders in frame, hips swaying, hair with natural motion, face clearly visible, looking at the camera";
   else if (/(caminando|paseando|andando)/.test(words))
-    framing = "medium three-quarter shot, walking toward the camera with a natural stride, slight motion in the clothing, looking at the camera";
+    framing = "medium close-up, walking toward the camera, head and shoulders in frame, face clearly visible, natural stride, looking at the camera";
 
   let background: string;
   if (/(playa|arena|mar|piscina|verano|tropical)/.test(words))
@@ -195,7 +195,7 @@ function buildPrompt(desc: string): string {
 
   return `photorealistic RAW photo of ${desc}, a ${subject}, ${body}, ${clothing}. ` +
     `${framing}, background: ${background}, ` +
-    `photorealistic skin texture, visible pores, natural skin details, detailed eyes and hair, ` +
+    `ultra realistic woman photograph, natural skin texture with visible pores, detailed iris and individual eyelashes, true-to-life face proportions, ` +
     `natural film grain, realistic proportions, anatomically correct, ` +
     `shot on Hasselblad X1D II 90mm f/1.8, natural balanced lighting, sharp focus on the face, ` +
     `confident natural expression, subtle seductive gaze, natural dynamic posture, ` +

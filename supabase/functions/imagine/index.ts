@@ -73,7 +73,7 @@ async function nscaleGenerate(prompt: string, width: number, height: number, see
 }
 
 async function pollinationsGenerate(prompt: string, width: number, height: number, seed: number): Promise<Uint8Array> {
-  const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${Math.min(width, 1024)}&height=${Math.min(height, 1024)}&model=flux-realism&seed=${seed}&nologo=true`;
+  const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${Math.min(width, 1024)}&height=${Math.min(height, 1024)}&model=flux-rye&seed=${seed}&nologo=true`;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 90000);
   try {
