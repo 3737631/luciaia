@@ -4,6 +4,17 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+function isModerationError(err: unknown): boolean {
+  return /moderation|safety|blocked|sensitive|not permitted|policy|disallow|forbidden|clear-content|nsfw/i.test(String((err as Error)?.message || err));
+}
+
+function notAllowedResponse() {
+  return new Response(JSON.stringify({ error: "Petición no permitida: solo se genera contenido cubierto y elegante. Describe la ropa en lugar del desnudo explícito." }), {
+    status: 400,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 const NSCALE_MODEL = "black-forest-labs/FLUX.1-schnell";
 const HF_MODEL = "stabilityai/stable-diffusion-3-medium-diffusers";
 
@@ -210,6 +221,7 @@ Deno.serve(async (req) => {
       try {
         img = await cloudflareRefGenerate(prompt, refImage, cfAccount, cfToken);
       } catch (errC) {
+        if (isModerationError(errC)) return notAllowedResponse();
         console.error("cf-ref falla, otras vias:", errC);
         await tryPollinationsThenRest();
       }
@@ -222,6 +234,7 @@ Deno.serve(async (req) => {
           try {
             img = await cloudflareGenerate(prompt, cfAccount, cfToken);
           } catch (errC) {
+            if (isModerationError(errC)) return notAllowedResponse();
             console.error("cloudflare falla, otras vias:", errC);
             await tryPollinationsThenRest();
           }
@@ -233,6 +246,7 @@ Deno.serve(async (req) => {
       try {
         img = await cloudflareGenerate(prompt, cfAccount, cfToken);
       } catch (errC) {
+        if (isModerationError(errC)) return notAllowedResponse();
         console.error("cloudflare falla, otras vias:", errC);
         await tryPollinationsThenRest();
       }

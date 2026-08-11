@@ -167,6 +167,10 @@ function buildPrompt(desc: string): string {
     clothing = "silk baby doll nightie, lace trim";
   }
 
+  if (/(desnud|topless|sin ropa|sin nada|al desnudo|sin sujetador|sin bragas|sin panties|en cueros|cuerpo desnudo|porno|sexo|follar|masturba)/.test(words)) {
+    clothing = "wearing only a lacy bra and matching high-waist panties, cleavage visible, nipples and pubic area properly covered";
+  }
+
   let body = "slim toned figure, medium breasts";
   if (/(gorda|gordita|rellenita|llenita|curvy|curvas|voluptuosa|tetas grandes|culo grande|nalgas grandes)/.test(words))
     body = "curvy plus size figure, thick full hips, big thighs, hourglass";
