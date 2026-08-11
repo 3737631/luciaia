@@ -119,9 +119,11 @@ async function cloudflareGenerate(prompt: string, accountId: string, token: stri
 async function cloudflareRefGenerate(prompt: string, imageDataUrl: string, accountId: string, token: string): Promise<Uint8Array> {
   const b64 = imageDataUrl.includes(",") ? imageDataUrl.split(",")[1] : imageDataUrl;
   const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+  const identityPrompt = "Keep the EXACT same face and identity as the reference photo, do not change any facial feature, the woman in the result must be exactly the woman in the reference photo. " + prompt;
   const form = new FormData();
-  form.append("prompt", prompt);
+  form.append("prompt", identityPrompt);
   form.append("image", new Blob([bytes], { type: "image/jpeg" }), "ref.jpg");
+  form.append("image_strength", "0.9");
   const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/black-forest-labs/flux-2-klein-4b`, {
     method: "POST",
     headers: { "Authorization": `Bearer ${token}` },

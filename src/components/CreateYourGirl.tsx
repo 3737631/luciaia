@@ -244,7 +244,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
     reader.onload = () => {
       const img = new Image();
       img.onload = () => {
-        const maxW = 512;
+        const maxW = 768;
         const scale = Math.min(1, maxW / img.width);
         const canvas = document.createElement("canvas");
         canvas.width = Math.round(img.width * scale);
