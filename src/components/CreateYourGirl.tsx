@@ -52,7 +52,7 @@ function compressImage(blob: Blob): Promise<string> {
     const url = URL.createObjectURL(blob);
     const img = new Image();
     img.onload = () => {
-      const maxW = 1024;
+      const maxW = 640;
       const scale = Math.min(1, maxW / img.width);
       const canvas = document.createElement("canvas");
       canvas.width = Math.round(img.width * scale);
@@ -80,16 +80,63 @@ const CONCEPTS: Array<[RegExp, string]> = [
   [/(os[a0]\b|bear)/, "anthropomorphic bear girl with round bear ears"],
 ];
 
+const FAMOUS: Array<[RegExp, string]> = [
+  [/scarlett johansson/, "a stunning woman with wavy honey-blonde hair, green eyes and full lips, resembling the famous actress Scarlett Johansson"],
+  [/margot robbie/, "a gorgeous woman with golden blonde hair, blue eyes and doll-like beauty, resembling the famous actress Margot Robbie"],
+  [/emma watson/, "an elegant woman with chestnut brown hair, hazel eyes and refined features, resembling the famous actress Emma Watson"],
+  [/megan fox/, "a striking woman with long dark hair and piercing exotic eyes, resembling the famous actress Megan Fox"],
+  [/gal gadot/, "a statuesque woman with long dark hair, olive skin and a strong jawline, resembling the famous actress Gal Gadot"],
+  [/zendaya/, "a glamorous woman with dark wavy hair, glowing skin and a model figure, resembling the famous actress Zendaya"],
+  [/ancal?ina jolie|angelina jolie/, "a stunning woman with long dark curls, full lips and striking blue-gray eyes, resembling the famous actress Angelina Jolie"],
+  [/kylie jenner/, "a glamorous woman with long dark brown hair, full lips and a curvy figure, resembling the famous influencer Kylie Jenner"],
+  [/kim kardashian/, "a curvy glamorous woman with long dark hair and striking features, resembling the famous influencer Kim Kardashian"],
+  [/taylor swift/, "a beautiful woman with wavy blonde hair, blue eyes and red lips, resembling the famous singer Taylor Swift"],
+  [/ariana grande/, "a petite gorgeous woman with long dark hair in a high ponytail and cat-eye makeup, resembling the famous singer Ariana Grande"],
+  [/beyonce/, "a stunning curvy woman with long brown waves and glowing skin, resembling the famous singer Beyonce"],
+  [/demi lovato/, "a gorgeous woman with dark brown hair, almond eyes and a warm smile, resembling the famous singer Demi Lovato"],
+  [/wonder woman|supergirl|diosa/, "a gorgeous athletic woman resembling a superheroine"],
+];
+
+const SETTINGS = [
+  "glamorous penthouse living room at night with city skyline lights behind floor-to-ceiling windows, warm brass lamps",
+  "luxury hotel suite with big windows, golden hour sunlight and elegant white linen bed",
+  "sunlit bedroom with sheer white curtains, soft morning light and cozy warm tones",
+  "sunlit bedroom with sheer white curtains, soft morning light and cozy warm tones",
+  "dark moody boudoir with warm amber candles and fairy lights, velvet textures",
+  "stylish photo studio with softbox lighting, charcoal and warm gold color grading, minimalist set",
+  "summer rooftop at dusk with string lights and city skyline, cool blue hour",
+  "art-deco hotel corridor with red velvet, brass lamps and dramatic lighting",
+  "smoky upscale lounge corner with purple and magenta mood lighting, blurred bokeh",
+];
+
+function hashString(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
 function buildPrompt(desc: string): string {
   const words = desc.toLowerCase();
 
   let subject = "beautiful adult woman";
-  for (const [re, text] of CONCEPTS) {
+  let famous = false;
+  for (const [re, text] of FAMOUS) {
     if (re.test(words)) {
       subject = text;
+      famous = true;
       break;
     }
   }
+  if (!famous) {
+    for (const [re, text] of CONCEPTS) {
+      if (re.test(words)) {
+        subject = text;
+        break;
+      }
+    }
+  }
+  if (!famous && /(famos|celebr|estrella|actriz|cantante|instagram|influencer)/.test(words))
+    subject = `${subject} resembling a famous celebrity`;
 
   let clothing = "red lace lingerie set with matching panties";
   if (/(nike|sudadera|hoodie|deportiv|jogger|leggins|camiseta|chaqueta|crop top|pantal[oó]n|street)/.test(words)) {
@@ -122,13 +169,15 @@ function buildPrompt(desc: string): string {
   else if (words.includes("espejo"))
     framing = "bust portrait, mirror selfie, head and chest tightly framed";
 
-  let background = "cozy stylish bedroom with warm pink and purple neon lighting, soft bokeh lights";
-  if (/(nike|sudadera|hoodie|street|calle|urbano)/.test(words))
-    background = "urban street at night with neon signs, cool blue and purple lighting";
-  else if (/(playa|arena|mar|piscina|verano)/.test(words))
+  let background: string;
+  if (/(playa|arena|mar|piscina|verano|tropical)/.test(words))
     background = "tropical beach at golden hour, soft warm ocean light";
+  else if (/(nike|sudadera|hoodie|street|calle|urbano|neon)/.test(words))
+    background = "urban street at night with neon signs, cool blue and purple lighting";
   else if (/(gimnasio|gym|yoga|deporte|entren)/.test(words))
     background = "modern gym with warm industrial lighting";
+  else
+    background = SETTINGS[hashString(words) % SETTINGS.length];
 
   return `photorealistic RAW photo of ${desc}, a ${subject}, ${body}, ${clothing}. ` +
     `${framing}, background: ${background}, ` +
@@ -149,6 +198,7 @@ export default function CreateYourGirl({ open, onClose }: { open: boolean; onClo
   const [step, setStep] = useState<WizardStep>("describe");
   const [selectedPersonality, setSelectedPersonality] = useState("");
   const [currentName, setCurrentName] = useState("");
+  const [genError, setGenError] = useState("");
 
   useEffect(() => {
     setCustomGirls(getCustomGirls());
@@ -156,7 +206,7 @@ export default function CreateYourGirl({ open, onClose }: { open: boolean; onClo
 
   useEffect(() => {
     if (!open) {
-      setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSelectedPersonality(""); setCurrentName("");
+setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSelectedPersonality(""); setCurrentName(""); setGenError("");
     }
   }, [open]);
 
@@ -172,21 +222,25 @@ export default function CreateYourGirl({ open, onClose }: { open: boolean; onClo
 
   async function handlePersonalityNext() {
     setStep("generating");
+    setGenError("");
     const id = generateId();
     const name = currentName;
     const story = roleplayDesc.trim() || `Tu nueva creación, ${name}, te espera para pasar una noche inolvidable.`;
     const customScenario = JSON.stringify({ girl: girlDesc.trim(), roleplay: roleplayDesc.trim() });
     localStorage.setItem("custom_scenario", customScenario);
+    const prompt = buildPrompt(girlDesc || roleplayDesc);
     let imageUrl = "";
     try {
-      const blob = await generateGirlImage({
-        prompt: buildPrompt(girlDesc || roleplayDesc),
-        width: 768,
-        height: 1024,
-      });
+      const blob = await generateGirlImage({ prompt, width: 896, height: 1152 });
       imageUrl = await compressImage(blob);
     } catch {
-      imageUrl = "";
+      try {
+        const blob = await generateGirlImage({ prompt, width: 896, height: 1152 });
+        imageUrl = await compressImage(blob);
+      } catch {
+        setGenError("No se pudo generar la imagen. Comprueba tu conexión y pulsa Reintentar.");
+        return;
+      }
     }
     const newGirl: CustomGirlData = {
       id, name, age: generateAge(), story,
@@ -198,6 +252,7 @@ export default function CreateYourGirl({ open, onClose }: { open: boolean; onClo
     };
     saveCustomGirl(newGirl);
     setCustomGirls(getCustomGirls());
+    setGenError("");
     setStep("done");
   }
 
@@ -331,6 +386,14 @@ export default function CreateYourGirl({ open, onClose }: { open: boolean; onClo
                         ))}
                       </div>
                       <p className="mt-4 text-[0.5rem] text-white/40">La IA está creando su imagen y personalidad...</p>
+                      {genError && (
+                        <div className="mt-4 w-full rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-center">
+                          <p className="text-xs text-red-300">{genError}</p>
+                          <button onClick={handlePersonalityNext} className="btn-primary mt-3 h-9 w-full text-xs font-bold active:scale-95 transition-all">
+                            Reintentar
+                          </button>
+                        </div>
+                      )}
                     </motion.div>
                   )}
 
