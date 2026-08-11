@@ -139,7 +139,17 @@ function buildPrompt(desc: string): string {
     subject = `${subject} resembling a famous celebrity`;
 
   let clothing = "red lace lingerie set with matching panties";
-  if (/(nike|sudadera|hoodie|deportiv|jogger|leggins|camiseta|chaqueta|crop top|pantal[oó]n|street)/.test(words)) {
+  if (/(enfermera|enfermero|uniforme|m[ée]dica|doctora|disfraz)/.test(words)) {
+    clothing = "wearing a tight white nurse uniform, unbuttoned white medical crop top, short white skirt, white nurse cap and white stockings, stethoscope around the neck";
+  } else if (/(polic[ií]a|guardia)/.test(words)) {
+    clothing = "wearing a tight navy blue police uniform with cap and utility belt";
+  } else if (/(camarera|mesera)/.test(words)) {
+    clothing = "wearing a short black waitress uniform with white apron and bow tie";
+  } else if (/(maid|doncella|criadita|mucama|criada)/.test(words)) {
+    clothing = "wearing a black and white French maid outfit";
+  } else if (/(profesora|maestra|secretaria|oficina|ejecutiva)/.test(words)) {
+    clothing = "wearing a tight white blouse and sleek black pencil skirt, office chic";
+  } else if (/(nike|sudadera|hoodie|deportiv|jogger|leggins|camiseta|chaqueta|crop top|pantal[oó]n|street)/.test(words)) {
     clothing = words.includes("nike")
       ? "wearing a black Nike tracksuit jacket open over a crop top"
       : "wearing the streetwear outfit as described";
@@ -168,6 +178,10 @@ function buildPrompt(desc: string): string {
     framing = "bust portrait, lying on a bed, head and chest tightly framed, looking at the camera";
   else if (words.includes("espejo"))
     framing = "bust portrait, mirror selfie, head and chest tightly framed";
+  else if (/(bailando|baile|perreando|movi[eé]ndose)/.test(words))
+    framing = "medium shot, dancing pose, hips swaying, hair with natural motion, arms delicately raised, looking over one shoulder at the camera";
+  else if (/(caminando|paseando|andando)/.test(words))
+    framing = "medium three-quarter shot, walking toward the camera with a natural stride, slight motion in the clothing, looking at the camera";
 
   let background: string;
   if (/(playa|arena|mar|piscina|verano|tropical)/.test(words))
@@ -184,7 +198,7 @@ function buildPrompt(desc: string): string {
     `photorealistic skin texture, visible pores, natural skin details, detailed eyes and hair, ` +
     `natural film grain, realistic proportions, anatomically correct, ` +
     `shot on Hasselblad X1D II 90mm f/1.8, natural balanced lighting, sharp focus on the face, ` +
-    `confident natural expression, seductive gaze, ` +
+    `confident natural expression, subtle seductive gaze, natural dynamic posture, ` +
     `wearing proper clothing covering nipples and pubic area, tasteful boudoir style`;
 }
 
@@ -231,11 +245,11 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
     const prompt = buildPrompt(girlDesc || roleplayDesc);
     let imageUrl = "";
     try {
-      const blob = await generateGirlImage({ prompt, width: 896, height: 1152 });
+      const blob = await generateGirlImage({ prompt, width: 1024, height: 1024 });
       imageUrl = await compressImage(blob);
     } catch {
       try {
-        const blob = await generateGirlImage({ prompt, width: 896, height: 1152 });
+        const blob = await generateGirlImage({ prompt, width: 1024, height: 1024 });
         imageUrl = await compressImage(blob);
       } catch {
         setGenError("No se pudo generar la imagen. Comprueba tu conexión y pulsa Reintentar.");

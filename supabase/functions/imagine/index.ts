@@ -10,7 +10,8 @@ const HF_MODEL = "stabilityai/stable-diffusion-3-medium-diffusers";
 function falSize(width: number, height: number): string {
   const ratio = width / height;
   if (ratio > 1.3) return "landscape_4_3";
-  return "portrait_4_3";
+  if (ratio < 0.77) return "portrait_4_3";
+  return "square";
 }
 
 async function falDirectGenerate(prompt: string, width: number, height: number, seed: number, falKey: string): Promise<Uint8Array> {
