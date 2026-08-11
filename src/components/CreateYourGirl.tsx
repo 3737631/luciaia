@@ -91,21 +91,21 @@ function buildPrompt(desc: string): string {
     }
   }
 
-  let clothing = "red lace lingerie set, thigh-high stockings, stiletto heels";
+  let clothing = "red lace lingerie set with matching panties";
   if (/(nike|sudadera|hoodie|deportiv|jogger|leggins|camiseta|chaqueta|crop top|pantal[oó]n|street)/.test(words)) {
     clothing = words.includes("nike")
-      ? "wearing a complete Nike outfit: black Nike tracksuit jacket, black Nike joggers and white Nike sneakers"
+      ? "wearing a black Nike tracksuit jacket open over a crop top"
       : "wearing the streetwear outfit as described";
   } else if (words.includes("uniforme")) {
-    clothing = "tight white nurse uniform with unbuttoned top, sheer stockings, heels";
+    clothing = "tight white nurse uniform with unbuttoned top";
   } else if (words.includes("vestido")) {
-    clothing = "tight black mini dress, strappy high heels";
+    clothing = "tight bodycon mini dress";
   } else if (words.includes("bata")) {
-    clothing = "sheer silk robe loosely tied, lacy underwear underneath, heels";
+    clothing = "sheer silk robe loosely tied, lace underwear underneath";
   } else if (words.includes("abrigo")) {
-    clothing = "long open trench coat, nothing underneath, high heels";
+    clothing = "long open trench coat over lingerie";
   } else if (words.includes("bikini") || words.includes("bañador") || words.includes("traje de baño")) {
-    clothing = "tiny string bikini, high heels";
+    clothing = "tiny string bikini";
   } else if (words.includes("pijama") || words.includes("camisón")) {
     clothing = "silk baby doll nightie, lace trim";
   }
@@ -116,23 +116,27 @@ function buildPrompt(desc: string): string {
   else if (/(delgada|fina|flaca)/.test(words))
     body = "very slender, small breasts, thin waist";
 
-  let framing = "extreme close-up portrait, head and shoulders, tight crop filling the frame, looking at the camera";
+  let framing = "bust portrait, head and chest visible, tightly framed, subject fills most of the frame, short camera distance, 85mm portrait lens, shot at eye level, looking at the camera";
   if (words.includes("cama") || words.includes("acostada"))
-    framing = "close-up portrait, lying on a bed, upper body tightly cropped, looking at the camera";
+    framing = "bust portrait, lying on a bed, head and chest tightly framed, looking at the camera";
   else if (words.includes("espejo"))
-    framing = "close-up portrait, mirror selfie, upper body tightly cropped";
+    framing = "bust portrait, mirror selfie, head and chest tightly framed";
 
-  let background = "cozy stylish bedroom with pink and purple neon lighting";
+  let background = "cozy stylish bedroom with warm pink and purple neon lighting, soft bokeh lights";
   if (/(nike|sudadera|hoodie|street|calle|urbano)/.test(words))
-    background = "urban street at night with neon signs and purple ambient lighting";
+    background = "urban street at night with neon signs, cool blue and purple lighting";
+  else if (/(playa|arena|mar|piscina|verano)/.test(words))
+    background = "tropical beach at golden hour, soft warm ocean light";
+  else if (/(gimnasio|gym|yoga|deporte|entren)/.test(words))
+    background = "modern gym with warm industrial lighting";
 
-  return `ultra realistic photo of a ${subject}, ${body}, ${clothing}, ${framing}, ` +
-    `background ${background}, exactly as described: ${desc}. ` +
+  return `photorealistic RAW photo of ${desc}, a ${subject}, ${body}, ${clothing}. ` +
+    `${framing}, background: ${background}, ` +
     `photorealistic skin texture, visible pores, natural skin details, detailed eyes and hair, ` +
-    `soft subsurface scattering, shot on Hasselblad X1D II 90mm f/2.8, professional studio lighting, ` +
-    `masterpiece quality, ultra high detail, 8k, sharp focus, ` +
-    `natural expression, confident seductive gaze, ` +
-    `wearing proper clothing covering nipples and pubic area, realistic anatomy, tasteful boudoir style`;
+    `natural film grain, realistic proportions, anatomically correct, ` +
+    `shot on Hasselblad X1D II 90mm f/1.8, natural balanced lighting, sharp focus on the face, ` +
+    `confident natural expression, seductive gaze, ` +
+    `wearing proper clothing covering nipples and pubic area, tasteful boudoir style`;
 }
 
 type WizardStep = "describe" | "personality" | "generating" | "done";
@@ -178,7 +182,7 @@ export default function CreateYourGirl({ open, onClose }: { open: boolean; onClo
       const blob = await generateGirlImage({
         prompt: buildPrompt(girlDesc || roleplayDesc),
         width: 768,
-        height: 960,
+        height: 1024,
       });
       imageUrl = await compressImage(blob);
     } catch {
