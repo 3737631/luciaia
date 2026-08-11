@@ -39,6 +39,7 @@ export async function generateGirlImage(payload: {
   prompt: string;
   width: number;
   height: number;
+  image?: string;
 }): Promise<Blob> {
   const endpoint =
     process.env.NEXT_PUBLIC_SUPABASE_FUNCTION_URL?.replace(/\/+$/, "") ||

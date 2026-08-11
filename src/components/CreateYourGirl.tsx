@@ -195,10 +195,12 @@ function buildPrompt(desc: string): string {
 
   return `photorealistic RAW photo of ${desc}, a ${subject}, ${body}, ${clothing}. ` +
     `${framing}, background: ${background}, ` +
-    `ultra realistic woman photograph, natural skin texture with visible pores, detailed iris and individual eyelashes, true-to-life face proportions, ` +
-    `natural film grain, realistic proportions, anatomically correct, ` +
-    `shot on Hasselblad X1D II 90mm f/1.8, natural balanced lighting, sharp focus on the face, ` +
-    `confident natural expression, subtle seductive gaze, natural dynamic posture, ` +
+    `captured on a high-end smartphone camera, ` +
+    `skin must look completely natural and authentic: visible individual pores, subtle skin irregularities, micro-texture, slight tone variations, tiny natural blemishes, very fine facial hair and small natural shine from skin oils, absolutely no plastic, airbrushed or doll-like skin, ` +
+    `face with natural asymmetries and small imperfections that make her look like a real person, moist eyes with natural highlights and individual eyelashes, separate eyebrow hairs, real lip texture with small lines and natural color variation, ` +
+    `physically realistic natural lighting with soft natural shadows, light interacts with real skin texture, no 3D render look, no CGI, no porcelain skin, no overly perfect features, no deformed hands or face, no artificial eyes, ` +
+    `realistic shallow depth of field of a physical camera, slightly variable focus, natural film grain and subtle optical imperfections, ` +
+    `natural imperfect human pose with slight asymmetry, candid natural expression, real-human feel, ` +
     `wearing proper clothing covering nipples and pubic area, tasteful boudoir style`;
 }
 
@@ -213,6 +215,7 @@ export default function CreateYourGirl({ open, onClose }: { open: boolean; onClo
   const [selectedPersonality, setSelectedPersonality] = useState("");
   const [currentName, setCurrentName] = useState("");
   const [genError, setGenError] = useState("");
+  const [refImage, setRefImage] = useState<string | null>(null);
 
   useEffect(() => {
     setCustomGirls(getCustomGirls());
@@ -220,7 +223,7 @@ export default function CreateYourGirl({ open, onClose }: { open: boolean; onClo
 
   useEffect(() => {
     if (!open) {
-setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSelectedPersonality(""); setCurrentName(""); setGenError("");
+setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSelectedPersonality(""); setCurrentName(""); setGenError(""); setRefImage(null);
     }
   }, [open]);
 
@@ -234,6 +237,26 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
     setStep("personality");
   }
 
+  function handleRefUpload(e: { target: { files: FileList | null } }) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const maxW = 512;
+        const scale = Math.min(1, maxW / img.width);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
+        setRefImage(canvas.toDataURL("image/jpeg", 0.7));
+      };
+      img.src = String(reader.result);
+    };
+    reader.readAsDataURL(file);
+  }
+
   async function handlePersonalityNext() {
     setStep("generating");
     setGenError("");
@@ -245,11 +268,11 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
     const prompt = buildPrompt(girlDesc || roleplayDesc);
     let imageUrl = "";
     try {
-      const blob = await generateGirlImage({ prompt, width: 1024, height: 1024 });
+      const blob = await generateGirlImage({ prompt, width: 1024, height: 1024, image: refImage || undefined });
       imageUrl = await compressImage(blob);
     } catch {
       try {
-        const blob = await generateGirlImage({ prompt, width: 1024, height: 1024 });
+        const blob = await generateGirlImage({ prompt, width: 1024, height: 1024, image: refImage || undefined });
         imageUrl = await compressImage(blob);
       } catch {
         setGenError("No se pudo generar la imagen. Comprueba tu conexión y pulsa Reintentar.");
@@ -351,6 +374,19 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                         placeholder="Ej: Me tiene atado a la cama del hospital, se sienta sobre mí..."
                         rows={3}
                         className="w-full rounded-xl border border-white/[0.10] bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-[#FF3C88]/50 resize-none transition-colors placeholder:text-white/20" />
+                      <label className="mb-1.5 mt-3 block text-[0.55rem] font-semibold text-white/50 uppercase tracking-widest">Foto de referencia (opcional)</label>
+                      {refImage ? (
+                        <div className="relative">
+                          <img src={refImage} alt="Referencia" className="h-28 w-full rounded-xl object-cover object-top" />
+                          <button onClick={() => setRefImage(null)} className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-xs text-white">✕</button>
+                        </div>
+                      ) : (
+                        <label className="flex h-14 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-white/[0.15] text-xs text-white/50 transition hover:border-[#FF3C88]/40 hover:text-white/80">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
+                          Subir foto para basar el personaje
+                          <input type="file" accept="image/*" className="hidden" onChange={handleRefUpload} />
+                        </label>
+                      )}
                       <button onClick={handleDescribeNext} disabled={!girlDesc.trim() && !roleplayDesc.trim()}
                         className="btn-primary mt-4 h-10 w-full text-sm font-bold disabled:opacity-40 active:scale-95 transition-all">
                         Siguiente →

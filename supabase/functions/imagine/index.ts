@@ -116,6 +116,30 @@ async function cloudflareGenerate(prompt: string, accountId: string, token: stri
   return Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
 }
 
+async function cloudflareRefGenerate(prompt: string, imageDataUrl: string, accountId: string, token: string): Promise<Uint8Array> {
+  const b64 = imageDataUrl.includes(",") ? imageDataUrl.split(",")[1] : imageDataUrl;
+  const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+  const form = new FormData();
+  form.append("prompt", prompt);
+  form.append("image", new Blob([bytes], { type: "image/jpeg" }), "ref.jpg");
+  const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/black-forest-labs/flux-2-klein-4b`, {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${token}` },
+    body: form,
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`cf-ref ${res.status}: ${text.slice(0, 200)}`);
+  }
+  const json = await res.json();
+  if (json.success !== true) {
+    throw new Error(`cf-ref ${json.errors?.[0]?.message || "error de Cloudflare"}`);
+  }
+  const out = json.result?.image;
+  if (!out) throw new Error("cf-ref: no se obtuvo imagen");
+  return Uint8Array.from(atob(out), (c) => c.charCodeAt(0));
+}
+
 async function hfGenerate(prompt: string, width: number, height: number, token: string): Promise<Uint8Array> {
   const res = await fetch(`https://router.huggingface.co/hf-inference/models/${HF_MODEL}`, {
     method: "POST",
@@ -159,6 +183,7 @@ Deno.serve(async (req) => {
     }
 
     const seed = Number(body.seed) || Math.floor(Math.random() * 1e9);
+    const refImage = typeof body.image === "string" ? body.image : "";
 
     let img: Uint8Array;
     const cfAccount = Deno.env.get("CF_ACCOUNT_ID");
@@ -179,7 +204,14 @@ Deno.serve(async (req) => {
     }
 
     const falKey = Deno.env.get("FAL_KEY");
-    if (falKey) {
+    if (refImage && cfAccount && cfToken) {
+      try {
+        img = await cloudflareRefGenerate(prompt, refImage, cfAccount, cfToken);
+      } catch (errC) {
+        console.error("cf-ref falla, otras vias:", errC);
+        await tryPollinationsThenRest();
+      }
+    } else if (falKey) {
       try {
         img = await falDirectGenerate(prompt, width, height, seed, falKey);
       } catch (err) {
