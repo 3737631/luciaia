@@ -52,14 +52,14 @@ function compressImage(blob: Blob): Promise<string> {
     const url = URL.createObjectURL(blob);
     const img = new Image();
     img.onload = () => {
-      const maxW = 768;
+      const maxW = 1024;
       const scale = Math.min(1, maxW / img.width);
       const canvas = document.createElement("canvas");
       canvas.width = Math.round(img.width * scale);
       canvas.height = Math.round(img.height * scale);
       canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
       URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL("image/jpeg", 0.82));
+      resolve(canvas.toDataURL("image/jpeg", 0.85));
     };
     img.onerror = () => {
       URL.revokeObjectURL(url);
@@ -69,8 +69,27 @@ function compressImage(blob: Blob): Promise<string> {
   });
 }
 
+const CONCEPTS: Array<[RegExp, string]> = [
+  [/(rat[oó]n|ratoncita|mouse)/, "cute sexy anthropomorphic mouse girl with furry mouse ears, whiskers and a long thin tail"],
+  [/(gata|felina)/, "sexy anthropomorphic cat girl with pointed cat ears, whiskers and a sleek tail"],
+  [/(perra|canina)/, "playful anthropomorphic dog girl with fluffy dog ears and a tail"],
+  [/(conej|bunny)/, "adorable anthropomorphic bunny girl with long rabbit ears and a fluffy tail"],
+  [/(zorra|fox)/, "alluring anthropomorphic fox girl with fox ears and a big fluffy tail"],
+  [/(loba|wolf)/, "anthropomorphic wolf girl with wolf ears and a bushy tail"],
+  [/(cierva|cervatill|deer)/, "graceful anthropomorphic deer girl with small antlers"],
+  [/(os[a0]\b|bear)/, "anthropomorphic bear girl with round bear ears"],
+];
+
 function buildPrompt(desc: string): string {
   const words = desc.toLowerCase();
+
+  let subject = "beautiful adult woman";
+  for (const [re, text] of CONCEPTS) {
+    if (re.test(words)) {
+      subject = text;
+      break;
+    }
+  }
 
   let clothing = "red lace lingerie set, thigh-high stockings, stiletto heels";
   if (/(nike|sudadera|hoodie|deportiv|jogger|leggins|camiseta|chaqueta|crop top|pantal[oó]n|street)/.test(words)) {
@@ -97,19 +116,21 @@ function buildPrompt(desc: string): string {
   else if (/(delgada|fina|flaca)/.test(words))
     body = "very slender, small breasts, thin waist";
 
-  let framing = "waist-up portrait photo, selfie angle, face and upper body visible, looking at the camera";
+  let framing = "extreme close-up portrait, head and shoulders, tight crop filling the frame, looking at the camera";
   if (words.includes("cama") || words.includes("acostada"))
-    framing = "portrait photo, lying on a bed, upper body visible, looking at the camera";
+    framing = "close-up portrait, lying on a bed, upper body tightly cropped, looking at the camera";
   else if (words.includes("espejo"))
-    framing = "portrait photo, taking a mirror selfie, upper body visible";
+    framing = "close-up portrait, mirror selfie, upper body tightly cropped";
 
   let background = "cozy stylish bedroom with pink and purple neon lighting";
   if (/(nike|sudadera|hoodie|street|calle|urbano)/.test(words))
     background = "urban street at night with neon signs and purple ambient lighting";
 
-  return `ultra realistic photo of a beautiful adult woman 20 years old, ${desc}, ${body}, ${clothing}, ${framing}, ` +
-    `background ${background}, photorealistic skin texture, visible pores, natural skin details, soft subsurface scattering, ` +
-    `shot on Hasselblad X1D II 90mm f/2.8, professional neon studio lighting, sharp focus, high detail skin, ` +
+  return `ultra realistic photo of a ${subject}, ${body}, ${clothing}, ${framing}, ` +
+    `background ${background}, exactly as described: ${desc}. ` +
+    `photorealistic skin texture, visible pores, natural skin details, detailed eyes and hair, ` +
+    `soft subsurface scattering, shot on Hasselblad X1D II 90mm f/2.8, professional studio lighting, ` +
+    `masterpiece quality, ultra high detail, 8k, sharp focus, ` +
     `natural expression, confident seductive gaze, ` +
     `wearing proper clothing covering nipples and pubic area, realistic anatomy, tasteful boudoir style`;
 }
