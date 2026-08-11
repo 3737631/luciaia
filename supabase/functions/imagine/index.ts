@@ -130,11 +130,13 @@ async function cloudflareGenerate(prompt: string, accountId: string, token: stri
 async function cloudflareRefGenerate(prompt: string, imageDataUrl: string, accountId: string, token: string): Promise<Uint8Array> {
   const b64 = imageDataUrl.includes(",") ? imageDataUrl.split(",")[1] : imageDataUrl;
   const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-  const identityPrompt = "Keep the EXACT same face and identity as the reference photo, do not change any facial feature, the woman in the result must be exactly the woman in the reference photo. " + prompt;
+  const identityPrompt = "Use the reference photo as the exact identity: the woman in the result has exactly the same face as the person in the reference photo, same facial features, same face shape, same eyes, same nose, same mouth, her identity and face must not change at all. " + prompt;
   const form = new FormData();
   form.append("prompt", identityPrompt);
-  form.append("image", new Blob([bytes], { type: "image/jpeg" }), "ref.jpg");
-  form.append("image_strength", "0.9");
+  const refBlob = new Blob([bytes], { type: "image/jpeg" });
+  form.append("image", refBlob, "ref.jpg");
+  form.append("image", refBlob, "ref2.jpg");
+  form.append("image_strength", "0.6");
   const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/black-forest-labs/flux-2-klein-4b`, {
     method: "POST",
     headers: { "Authorization": `Bearer ${token}` },
@@ -222,8 +224,17 @@ Deno.serve(async (req) => {
         img = await cloudflareRefGenerate(prompt, refImage, cfAccount, cfToken);
       } catch (errC) {
         if (isModerationError(errC)) return notAllowedResponse();
-        console.error("cf-ref falla, otras vias:", errC);
-        await tryPollinationsThenRest();
+        console.error("cf-ref falla, reintento:", errC);
+        try {
+          img = await cloudflareRefGenerate(prompt, refImage, cfAccount, cfToken);
+        } catch (errC2) {
+          if (isModerationError(errC2)) return notAllowedResponse();
+          console.error("cf-ref falla dos veces:", errC2);
+          return new Response(JSON.stringify({ error: "No se pudo crear con tu foto de referencia. Inténtalo de nuevo en unos segundos." }), {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
       }
     } else if (falKey) {
       try {
