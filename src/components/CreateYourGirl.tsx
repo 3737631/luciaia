@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { saveCustomGirl, getCustomGirls, deleteCustomGirl, CustomGirlData } from "@/lib/storage";
+import { generateGirlImage } from "@/lib/chatClient";
 
 const MINOR_WORDS = [
   "niño", "niña", "niños", "niñas", "menor", "menores", "pequeño", "pequeña",
@@ -46,6 +47,28 @@ function generateAge(): number {
   return 18 + Math.floor(Math.random() * 7);
 }
 
+function compressImage(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => {
+      const maxW = 768;
+      const scale = Math.min(1, maxW / img.width);
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL("image/jpeg", 0.82));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("No se pudo procesar la imagen"));
+    };
+    img.src = url;
+  });
+}
+
 function buildPrompt(desc: string): string {
   const words = desc.toLowerCase();
   let clothing = "red lace lingerie set, thigh-high stockings, stiletto heels";
@@ -72,26 +95,13 @@ function buildPrompt(desc: string): string {
   else if (words.includes("de rodillas")) pose = "full body, kneeling on the floor";
   else if (words.includes("espejo")) pose = "full body, taking mirror selfie with phone in hand";
 
-  const positive = encodeURIComponent(
-    `ultra realistic photo of a beautiful adult woman 20 years old, ${desc}, ${clothing}, ${body}, ${pose}, ` +
+  return `ultra realistic photo of a beautiful adult woman 20 years old, ${desc}, ${clothing}, ${body}, ${pose}, ` +
     `photorealistic skin texture, visible pores, natural skin details, soft subsurface scattering, ` +
     `shot on Hasselblad X1D II 90mm f/2.8, professional studio lighting, soft key light, ` +
     `cinematic color grade, sharp focus, high detail skin, natural expression, confident seductive gaze, ` +
     `complete full body composition, all four limbs visible and correctly formed, ` +
     `wearing proper clothing covering nipples and pubic area, realistic anatomy, ` +
-    `sensual intimate atmosphere, tasteful boudoir style`
-  );
-
-  const negative = encodeURIComponent(
-    "nude, topless, exposed breasts, nipples, areola, pubic hair, see-through, " +
-    "missing limbs, missing arms, missing legs, deformed hands, bad anatomy, " +
-    "cropped body, amputated, disfigured, ugly, mutated, extra limbs, " +
-    "cartoon, anime, drawing, painting, 3d render, illustration, oil painting, " +
-    "watermark, text, blurry, low resolution, low quality, oversaturated, " +
-    "bad proportions, distorted face, unnatural"
-  );
-
-  return `${positive}&negative=${negative}`;
+    `sensual intimate atmosphere, tasteful boudoir style`;
 }
 
 type WizardStep = "describe" | "personality" | "generating" | "done";
@@ -125,15 +135,24 @@ export default function CreateYourGirl({ open, onClose }: { open: boolean; onClo
     setStep("personality");
   }
 
-  function handlePersonalityNext() {
+  async function handlePersonalityNext() {
     setStep("generating");
     const id = generateId();
     const name = currentName;
     const story = roleplayDesc.trim() || `Tu nueva creación, ${name}, te espera para pasar una noche inolvidable.`;
-    const params = buildPrompt(girlDesc || roleplayDesc);
-    const imageUrl = `https://image.pollinations.ai/prompt/${params}&width=512&height=640&nofeed=true&seed=${Date.now()}`;
     const customScenario = JSON.stringify({ girl: girlDesc.trim(), roleplay: roleplayDesc.trim() });
     localStorage.setItem("custom_scenario", customScenario);
+    let imageUrl = "";
+    try {
+      const blob = await generateGirlImage({
+        prompt: buildPrompt(girlDesc || roleplayDesc),
+        width: 768,
+        height: 960,
+      });
+      imageUrl = await compressImage(blob);
+    } catch {
+      imageUrl = "";
+    }
     const newGirl: CustomGirlData = {
       id, name, age: generateAge(), story,
       description: girlDesc.trim() || name,
@@ -142,11 +161,9 @@ export default function CreateYourGirl({ open, onClose }: { open: boolean; onClo
       personality: selectedPersonality || "atrevida",
       baseId: "luna", imageUrl,
     };
-    setTimeout(() => {
-      saveCustomGirl(newGirl);
-      setCustomGirls(getCustomGirls());
-      setStep("done");
-    }, 2000);
+    saveCustomGirl(newGirl);
+    setCustomGirls(getCustomGirls());
+    setStep("done");
   }
 
   function handleReset() {
