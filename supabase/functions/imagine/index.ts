@@ -97,6 +97,25 @@ async function pollinationsGenerate(prompt: string, width: number, height: numbe
   }
 }
 
+async function cloudflareGenerate(prompt: string, accountId: string, token: string): Promise<Uint8Array> {
+  const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/black-forest-labs/flux-1-schnell`, {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt, width: 1024, height: 1024, steps: 4 }),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`cf ${res.status}: ${text.slice(0, 200)}`);
+  }
+  const json = await res.json();
+  if (json.success !== true) {
+    throw new Error(`cf ${json.errors?.[0]?.message || "error de Cloudflare"}`);
+  }
+  const b64 = json.result?.image;
+  if (!b64) throw new Error("cf: no se obtuvo imagen");
+  return Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+}
+
 async function hfGenerate(prompt: string, width: number, height: number, token: string): Promise<Uint8Array> {
   const res = await fetch(`https://router.huggingface.co/hf-inference/models/${HF_MODEL}`, {
     method: "POST",
@@ -142,25 +161,10 @@ Deno.serve(async (req) => {
     const seed = Number(body.seed) || Math.floor(Math.random() * 1e9);
 
     let img: Uint8Array;
-    const falKey = Deno.env.get("FAL_KEY");
-    if (falKey) {
-      try {
-        img = await falDirectGenerate(prompt, width, height, seed, falKey);
-      } catch (err) {
-        console.error("fal sin saldo, usa pollinations:", err);
-        try {
-          img = await pollinationsGenerate(prompt, width, height, seed);
-        } catch (errP) {
-          console.error("pollinations falla, usa nscale:", errP);
-          try {
-            img = await nscaleGenerate(prompt, width, height, seed, token);
-          } catch (err2) {
-            console.error("nscale falla, prueba hf:", err2);
-            img = await hfGenerate(prompt, width, height, token);
-          }
-        }
-      }
-    } else {
+    const cfAccount = Deno.env.get("CF_ACCOUNT_ID");
+    const cfToken = Deno.env.get("CF_API_TOKEN");
+
+    async function tryPollinationsThenRest() {
       try {
         img = await pollinationsGenerate(prompt, width, height, seed);
       } catch (errP) {
@@ -172,6 +176,34 @@ Deno.serve(async (req) => {
           img = await hfGenerate(prompt, width, height, token);
         }
       }
+    }
+
+    const falKey = Deno.env.get("FAL_KEY");
+    if (falKey) {
+      try {
+        img = await falDirectGenerate(prompt, width, height, seed, falKey);
+      } catch (err) {
+        console.error("fal sin saldo, prueba siguiente:", err);
+        if (cfAccount && cfToken) {
+          try {
+            img = await cloudflareGenerate(prompt, cfAccount, cfToken);
+          } catch (errC) {
+            console.error("cloudflare falla, otras vias:", errC);
+            await tryPollinationsThenRest();
+          }
+        } else {
+          await tryPollinationsThenRest();
+        }
+      }
+    } else if (cfAccount && cfToken) {
+      try {
+        img = await cloudflareGenerate(prompt, cfAccount, cfToken);
+      } catch (errC) {
+        console.error("cloudflare falla, otras vias:", errC);
+        await tryPollinationsThenRest();
+      }
+    } else {
+      await tryPollinationsThenRest();
     }
 
     return new Response(img, {
