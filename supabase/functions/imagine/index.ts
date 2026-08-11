@@ -7,6 +7,44 @@ const corsHeaders = {
 const NSCALE_MODEL = "black-forest-labs/FLUX.1-schnell";
 const HF_MODEL = "stabilityai/stable-diffusion-3-medium-diffusers";
 
+function falSize(width: number, height: number): string {
+  const ratio = width / height;
+  if (ratio > 1.3) return "landscape_4_3";
+  return "portrait_4_3";
+}
+
+async function falDirectGenerate(prompt: string, width: number, height: number, seed: number, falKey: string): Promise<Uint8Array> {
+  let lastError: string | null = null;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    if (attempt > 0) await new Promise((r) => setTimeout(r, 1500));
+    const res = await fetch("https://queue.fal.run/fal-ai/flux/dev", {
+      method: "POST",
+      headers: {
+        "Authorization": `Key ${falKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        prompt,
+        image_size: falSize(width, height),
+        num_inference_steps: 28,
+        num_images: 1,
+        seed,
+      }),
+    });
+    if (res.ok) {
+      const json = await res.json();
+      const url = json?.images?.[0]?.url;
+      if (!url) throw new Error("fal: no se obtuvo URL de imagen");
+      const img = await fetch(url);
+      if (!img.ok) throw new Error(`fal: descarga de imagen ${img.status}`);
+      return new Uint8Array(await img.arrayBuffer());
+    }
+    const text = await res.text();
+    lastError = `fal ${res.status}: ${text.slice(0, 200)}`;
+  }
+  throw new Error(lastError || "fal falló");
+}
+
 async function nscaleGenerate(prompt: string, width: number, height: number, seed: number, token: string): Promise<Uint8Array> {
   let lastError: string | null = null;
   for (let attempt = 0; attempt < 2; attempt++) {
@@ -78,11 +116,21 @@ Deno.serve(async (req) => {
     const seed = Number(body.seed) || Math.floor(Math.random() * 1e9);
 
     let img: Uint8Array;
-    try {
-      img = await nscaleGenerate(prompt, width, height, seed, token);
-    } catch (err) {
-      console.error("nscale falla, prueba hf:", err);
-      img = await hfGenerate(prompt, width, height, token);
+    const falKey = Deno.env.get("FAL_KEY");
+    if (falKey) {
+      try {
+        img = await falDirectGenerate(prompt, width, height, seed, falKey);
+      } catch (err) {
+        console.error("fal falla, usa nscale:", err);
+        img = await nscaleGenerate(prompt, width, height, seed, token);
+      }
+    } else {
+      try {
+        img = await nscaleGenerate(prompt, width, height, seed, token);
+      } catch (err) {
+        console.error("nscale falla, prueba hf:", err);
+        img = await hfGenerate(prompt, width, height, token);
+      }
     }
 
     return new Response(img, {
