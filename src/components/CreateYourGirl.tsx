@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { saveCustomGirl, getCustomGirls, deleteCustomGirl, CustomGirlData } from "@/lib/storage";
@@ -213,6 +213,9 @@ export default function CreateYourGirl({ open, onClose }: { open: boolean; onClo
   const [selectedPersonality, setSelectedPersonality] = useState("");
   const [currentName, setCurrentName] = useState("");
   const [genError, setGenError] = useState("");
+  const [variants, setVariants] = useState<string[]>([]);
+  const promptRef = useRef("");
+  const pendingRef = useRef<{ id: string; name: string; story: string } | null>(null);
 
   useEffect(() => {
     setCustomGirls(getCustomGirls());
@@ -220,7 +223,7 @@ export default function CreateYourGirl({ open, onClose }: { open: boolean; onClo
 
   useEffect(() => {
     if (!open) {
-setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSelectedPersonality(""); setCurrentName(""); setGenError("");
+setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSelectedPersonality(""); setCurrentName(""); setGenError(""); setVariants([]);
     }
   }, [open]);
 
@@ -234,31 +237,52 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
     setStep("personality");
   }
 
-  async function handlePersonalityNext() {
-    setStep("generating");
+  async function generateVariants() {
     setGenError("");
+    setVariants([]);
+    const prompt = promptRef.current;
+    const seeds = [1, 2, 3].map((i) => Math.floor(Math.random() * 1e9) + i);
+    const results = await Promise.all(
+      seeds.map(async (seed) => {
+        try {
+          const blob = await generateGirlImage({ prompt, width: 1024, height: 1024, seed });
+          return await compressImage(blob);
+        } catch {
+          try {
+            const blob = await generateGirlImage({ prompt, width: 1024, height: 1024, seed });
+            return await compressImage(blob);
+          } catch {
+            return "";
+          }
+        }
+      })
+    );
+    const ok = results.filter((r) => r.length > 0);
+    if (ok.length === 0) {
+      setGenError("No se pudo generar la imagen. Comprueba tu conexión y pulsa Reintentar.");
+      return;
+    }
+    setVariants(ok.slice(0, 3));
+  }
+
+  function handlePersonalityNext() {
+    setStep("generating");
     const id = generateId();
     const name = currentName;
     const story = roleplayDesc.trim() || `Tu nueva creación, ${name}, te espera para pasar una noche inolvidable.`;
     const customScenario = JSON.stringify({ girl: girlDesc.trim(), roleplay: roleplayDesc.trim() });
     localStorage.setItem("custom_scenario", customScenario);
-    const prompt = buildPrompt(girlDesc || roleplayDesc);
-    let imageUrl = "";
-    try {
-      const blob = await generateGirlImage({ prompt, width: 1024, height: 1024 });
-      imageUrl = await compressImage(blob);
-    } catch {
-      try {
-        const blob = await generateGirlImage({ prompt, width: 1024, height: 1024 });
-        imageUrl = await compressImage(blob);
-      } catch {
-        setGenError("No se pudo generar la imagen. Comprueba tu conexión y pulsa Reintentar.");
-        return;
-      }
-    }
+    pendingRef.current = { id, name, story };
+    promptRef.current = buildPrompt(girlDesc || roleplayDesc);
+    generateVariants();
+  }
+
+  function handleChooseVariant(imageUrl: string) {
+    const pending = pendingRef.current;
+    if (!pending) return;
     const newGirl: CustomGirlData = {
-      id, name, age: generateAge(), story,
-      description: girlDesc.trim() || name,
+      id: pending.id, name: pending.name, age: generateAge(), story: pending.story,
+      description: girlDesc.trim() || pending.name,
       girlDesc: girlDesc.trim(), roleplayDesc: roleplayDesc.trim(),
       hair: "moreno", background: "neon-room", pose: "toalla",
       personality: selectedPersonality || "atrevida",
@@ -266,6 +290,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
     };
     saveCustomGirl(newGirl);
     setCustomGirls(getCustomGirls());
+    setVariants([]);
     setGenError("");
     setStep("done");
   }
@@ -390,20 +415,39 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
 
                   {step === "generating" && (
                     <motion.div key="generating" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="flex flex-col items-center py-8">
-                      <motion.div className="h-16 w-16 rounded-full border-2 border-[#FF3C88]/40 border-t-[#FF3C88]" animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} />
-                      <motion.p className="mt-4 text-sm font-semibold text-[#FF3C88]" animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 1.5, repeat: Infinity }}>
-                        Generando a {currentName}...
-                      </motion.p>
-                      <div className="mt-6 flex gap-1">
-                        {[0, 1, 2, 3].map((i) => (
-                          <motion.div key={i} className="h-2 w-2 rounded-full bg-[#FF3C88]/60" animate={{ y: [0, -8, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.15 }} />
-                        ))}
-                      </div>
-                      <p className="mt-4 text-[0.5rem] text-white/40">La IA está creando su imagen y personalidad...</p>
+                      {variants.length === 0 ? (
+                        <>
+                          <motion.div className="h-16 w-16 rounded-full border-2 border-[#FF3C88]/40 border-t-[#FF3C88]" animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} />
+                          <motion.p className="mt-4 text-sm font-semibold text-[#FF3C88]" animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 1.5, repeat: Infinity }}>
+                            Generando a {currentName}...
+                          </motion.p>
+                          <div className="mt-6 flex gap-1">
+                            {[0, 1, 2, 3].map((i) => (
+                              <motion.div key={i} className="h-2 w-2 rounded-full bg-[#FF3C88]/60" animate={{ y: [0, -8, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.15 }} />
+                            ))}
+                          </div>
+                          <p className="mt-4 text-[0.5rem] text-white/40">La IA está creando su imagen y personalidad...</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-sm font-semibold text-[#FF3C88]">Elige la que más te guste</p>
+                          <div className="mt-4 flex w-full flex-col gap-3">
+                            {variants.map((v, i) => (
+                              <button key={i} onClick={() => handleChooseVariant(v)} className="group relative w-full overflow-hidden rounded-xl border border-white/10">
+                                <img src={v} alt={`Opción ${i + 1}`} className="h-44 w-full object-cover object-top transition-transform duration-300 group-hover:scale-105" />
+                                <span className="absolute inset-0 flex items-center justify-center bg-black/40 text-sm font-bold text-white opacity-0 transition group-hover:opacity-100">
+                                  Usar esta imagen ✓
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                          <button onClick={generateVariants} className="btn-primary mt-4 h-10 w-full text-sm font-bold active:scale-95 transition-all">Regenerar opciones</button>
+                        </>
+                      )}
                       {genError && (
                         <div className="mt-4 w-full rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-center">
                           <p className="text-xs text-red-300">{genError}</p>
-                          <button onClick={handlePersonalityNext} className="btn-primary mt-3 h-9 w-full text-xs font-bold active:scale-95 transition-all">
+                          <button onClick={generateVariants} className="btn-primary mt-3 h-9 w-full text-xs font-bold active:scale-95 transition-all">
                             Reintentar
                           </button>
                         </div>
