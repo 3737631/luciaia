@@ -80,7 +80,8 @@ export default function ChicosPage() {
       const img = new Image(); img.src = url;
     });
 
-    Promise.all(allCritical.map(preloadImage)).then(() => setAppReady(true));
+    allCritical.forEach(preloadImage);
+    setAppReady(true);
   }, []);
 
   const POSITIONS = ["15% center", "8% center", "50% center", "30% center"];
