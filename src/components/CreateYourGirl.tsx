@@ -121,7 +121,7 @@ function buildPrompt(desc: string, maxSafe = false): string {
   const explicit = EXPLICIT.test(words);
 
   if (maxSafe) {
-    return "photorealistic RAW photo of a beautiful adult woman, slim toned figure, medium breasts, wearing an elegant white floral summer dress, standing near a sunlit window, warm natural light, face clearly visible, looking at the camera, soft happy smile";
+    return "photorealistic RAW photo of a beautiful adult woman, slim toned figure, wearing an elegant white floral summer dress, standing near a sunlit window, warm natural light, face clearly visible, looking at the camera, soft happy smile";
   }
 
   let subject = "beautiful adult woman";
@@ -144,7 +144,15 @@ function buildPrompt(desc: string, maxSafe = false): string {
   if (!famous && /(famos|celebr|estrella|actriz|cantante|instagram|influencer)/.test(words))
     subject = `${subject} resembling a famous celebrity`;
 
-  let clothing = "red lace lingerie set with matching panties";
+  let hair = "long brunette hair";
+  if (/(rubia|rubio|blond|golden)/.test(words)) hair = "long blonde hair";
+  else if (/(pelirroja|pelirrojo|redhead)/.test(words)) hair = "long red hair";
+  else if (/(morena|moreno|brunet|casta[nñ]a|pelo oscuro)/.test(words)) hair = "long brunette hair";
+  else if (/(negro|negra|pelo negro|black hair)/.test(words)) hair = "long black hair";
+
+  const isShower = /(ducha|ba[nñ]era|bath|shower|regadera|ba[nñ]o)/.test(words);
+
+  let clothing = "black lace bikini set with high-waist bottoms";
   if (/(enfermera|enfermero|uniforme|m[ée]dica|doctora|disfraz)/.test(words)) {
     clothing = "wearing a tight white nurse uniform, unbuttoned white medical crop top, short white skirt, white nurse cap and white stockings, stethoscope around the neck";
   } else if (/(polic[ií]a|guardia)/.test(words)) {
@@ -164,29 +172,35 @@ function buildPrompt(desc: string, maxSafe = false): string {
   } else if (words.includes("vestido")) {
     clothing = "tight bodycon mini dress";
   } else if (words.includes("bata")) {
-    clothing = "sheer silk robe loosely tied, lace underwear underneath";
+    clothing = "elegant sheer silk robe loosely tied";
   } else if (words.includes("abrigo")) {
-    clothing = "long open trench coat over lingerie";
+    clothing = "long open trench coat over a black lace bikini";
   } else if (words.includes("bikini") || words.includes("bañador") || words.includes("traje de baño")) {
     clothing = "tiny string bikini";
   } else if (words.includes("pijama") || words.includes("camisón")) {
     clothing = "silk baby doll nightie, lace trim";
   }
 
-  if (explicit) {
-    clothing = /(ducha|ba[nñ]era|bath|shower|regadera)/.test(words)
-      ? "in the shower, her body covered by creamy white soap foam, wearing a lacy bra and panties hidden under the foam, nipples and pubic area hidden by foam and water drops"
-      : "wearing only a lacy bra and matching high-waist panties, cleavage visible, nipples and pubic area properly covered";
+  if (explicit && !isShower) {
+    clothing = "wearing a high-waist black lace bikini, elegant and covered";
   }
 
-  let body = "slim toned figure, medium breasts";
+  let scene = "";
+  if (isShower) {
+    scene = "in a shower, standing under warm running water, gentle water flow, wet hair, tile wall and soft steam, ";
+    clothing = "her shoulders and hips covered by creamy white soap foam, wearing a white one-piece swimsuit underneath, water droplets on her skin";
+  }
+
+  let body = "slim toned figure";
   if (/(gorda|gordita|rellenita|llenita|curvy|curvas|voluptuosa|tetas grandes|culo grande|nalgas grandes)/.test(words))
     body = "curvy plus size figure, thick full hips, big thighs, hourglass";
   else if (/(delgada|fina|flaca)/.test(words))
-    body = "very slender, small breasts, thin waist";
+    body = "very slender, thin waist";
 
   let framing = "professional profile photo, head and shoulders portrait, face perfectly centered, equal headroom, looking directly at the camera, close-up, 50mm f/1.4 portrait lens, blurred clean background";
-  if (words.includes("cama") || words.includes("acostada"))
+  if (isShower)
+    framing = "medium close-up, standing inside the shower, face and upper body in frame, water streams and soap foam around her, looking at the camera with a relaxed smile";
+  else if (words.includes("cama") || words.includes("acostada"))
     framing = "professional profile photo, lying on a bed, head and shoulders slightly angled, face centered, looking at the camera";
   else if (words.includes("espejo"))
     framing = "professional profile photo, mirror selfie, head and shoulders, face centered, looking at the camera";
@@ -196,7 +210,9 @@ function buildPrompt(desc: string, maxSafe = false): string {
     framing = "medium close-up, walking toward the camera, head and shoulders in frame, face clearly visible, natural stride, looking at the camera";
 
   let background: string;
-  if (/(playa|arena|mar|piscina|verano|tropical)/.test(words))
+  if (isShower)
+    background = "emerald tile shower wall, soft steam, clean bathroom light";
+  else if (/(playa|arena|mar|piscina|verano|tropical)/.test(words))
     background = "tropical beach at golden hour, soft warm ocean light";
   else if (/(nike|sudadera|hoodie|street|calle|urbano|neon)/.test(words))
     background = "urban street at night with neon signs, cool blue and purple lighting";
@@ -228,15 +244,9 @@ function buildPrompt(desc: string, maxSafe = false): string {
         .trim()
     : desc;
   const head = explicit ? (safeDesc || "a gorgeous playful adult woman") : desc;
-  return `photorealistic RAW photo of ${head}, a ${subject}, ${body}, ${clothing}. ` +
-    `${framing}, background: ${background}, ` +
-    `captured on a high-end smartphone camera, ` +
-    `skin must look completely natural and authentic: visible individual pores, subtle skin irregularities, micro-texture, slight tone variations, tiny natural blemishes, very fine facial hair and small natural shine from skin oils, absolutely no plastic, airbrushed or doll-like skin, ` +
-    `face with natural asymmetries and small imperfections that make her look like a real person, moist eyes with natural highlights and individual eyelashes, separate eyebrow hairs, real lip texture with small lines and natural color variation, ` +
-    `physically realistic natural lighting with soft natural shadows, light interacts with real skin texture, no 3D render look, no CGI, no porcelain skin, no overly perfect features, no deformed hands or face, no artificial eyes, ` +
-    `realistic shallow depth of field of a physical camera, slightly variable focus, natural film grain and subtle optical imperfections, ` +
-    `natural imperfect human pose with slight asymmetry, candid natural expression, real-human feel, ` +
-    `wearing proper clothing covering nipples and pubic area, tasteful boudoir style`;
+  return `photorealistic RAW photo of ${head}, a ${subject}, ${hair}, ${body}, ${clothing}. ` +
+    `${scene}${framing}, background: ${background}, ` +
+    `captured on a high-end smartphone camera, natural realistic skin texture, soft natural light, realistic shallow depth of field, candid natural expression, no CGI look`;
 }
 
 type WizardStep = "describe" | "personality" | "generating" | "done";

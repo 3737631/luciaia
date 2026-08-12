@@ -240,26 +240,34 @@ Deno.serve(async (req) => {
       try {
         img = await falDirectGenerate(prompt, width, height, seed, falKey);
       } catch (err) {
-        console.error("fal sin saldo, prueba siguiente:", err);
-        if (cfAccount && cfToken) {
-          try {
-            img = await cloudflareGenerate(prompt, cfAccount, cfToken);
-          } catch (errC) {
-            if (isModerationError(errC)) return notAllowedResponse();
-            console.error("cloudflare falla, otras vias:", errC);
-            await tryPollinationsThenRest();
-          }
-        } else {
+        console.error("fal falla, pollinations/nscale/hf:", err);
+        try {
           await tryPollinationsThenRest();
+        } catch (errP) {
+          console.error("rest falla, cf ultimo:", errP);
+          if (cfAccount && cfToken) {
+            try {
+              img = await cloudflareGenerate(prompt, cfAccount, cfToken);
+            } catch (errC) {
+              if (isModerationError(errC)) return notAllowedResponse();
+              throw errC;
+            }
+          } else {
+            throw errP;
+          }
         }
       }
     } else if (cfAccount && cfToken) {
       try {
-        img = await cloudflareGenerate(prompt, cfAccount, cfToken);
-      } catch (errC) {
-        if (isModerationError(errC)) return notAllowedResponse();
-        console.error("cloudflare falla, otras vias:", errC);
         await tryPollinationsThenRest();
+      } catch (errP) {
+        console.error("rest falla, cf ultimo:", errP);
+        try {
+          img = await cloudflareGenerate(prompt, cfAccount, cfToken);
+        } catch (errC) {
+          if (isModerationError(errC)) return notAllowedResponse();
+          throw errC;
+        }
       }
     } else {
       await tryPollinationsThenRest();
