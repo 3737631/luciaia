@@ -261,6 +261,7 @@ export default function CreateYourGirl({ open, onClose }: { open: boolean; onClo
   const [currentName, setCurrentName] = useState("");
   const [genError, setGenError] = useState("");
   const [refImage, setRefImage] = useState<string | null>(null);
+  const [mode, setMode] = useState<"ai" | "own">("ai");
 
   useEffect(() => {
     setCustomGirls(getCustomGirls());
@@ -268,7 +269,7 @@ export default function CreateYourGirl({ open, onClose }: { open: boolean; onClo
 
   useEffect(() => {
     if (!open) {
-setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSelectedPersonality(""); setCurrentName(""); setGenError(""); setRefImage(null);
+setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSelectedPersonality(""); setCurrentName(""); setGenError(""); setRefImage(null); setMode("ai");
     }
   }, [open]);
 
@@ -303,13 +304,28 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
   }
 
   async function handlePersonalityNext() {
-    setStep("generating");
     setGenError("");
     const id = generateId();
     const name = currentName;
     const story = roleplayDesc.trim() || `Tu nueva creación, ${name}, te espera para pasar una noche inolvidable.`;
     const customScenario = JSON.stringify({ girl: girlDesc.trim(), roleplay: roleplayDesc.trim() });
     localStorage.setItem("custom_scenario", customScenario);
+    if (mode === "own" && refImage) {
+      const newGirl: CustomGirlData = {
+        id, name, age: generateAge(), story,
+        description: girlDesc.trim() || name,
+        girlDesc: girlDesc.trim(), roleplayDesc: roleplayDesc.trim(),
+        hair: "moreno", background: "neon-room", pose: "toalla",
+        personality: selectedPersonality || "atrevida",
+        baseId: "luna", imageUrl: refImage,
+      };
+      saveCustomGirl(newGirl);
+      setCustomGirls(getCustomGirls());
+      setGenError("");
+      setStep("done");
+      return;
+    }
+    setStep("generating");
     const prompt = buildPrompt(girlDesc || roleplayDesc);
     let imageUrl = "";
     let lastErr = "";
@@ -414,6 +430,10 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                       {error && (
                         <div className="mb-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs text-red-300">{error}</div>
                       )}
+                      <div className="mb-3 grid grid-cols-2 gap-2">
+                        <button onClick={() => setMode("ai")} className={`flex h-10 items-center justify-center gap-1.5 rounded-xl border text-xs font-bold transition active:scale-95 ${mode === "ai" ? "border-[#FF3C88]/50 bg-[#FF3C88]/10 text-[#FF3C88]" : "border-white/[0.10] bg-white/[0.04] text-white/60 hover:border-white/25"}`}>✨ Crear con IA</button>
+                        <button onClick={() => setMode("own")} className={`flex h-10 items-center justify-center gap-1.5 rounded-xl border text-xs font-bold transition active:scale-95 ${mode === "own" ? "border-[#FF3C88]/50 bg-[#FF3C88]/10 text-[#FF3C88]" : "border-white/[0.10] bg-white/[0.04] text-white/60 hover:border-white/25"}`}>🖼️ Usar mi imagen</button>
+                      </div>
                       <label className="mb-1.5 block text-[0.55rem] font-semibold text-white/50 uppercase tracking-widest">Apariencia</label>
                       <textarea value={girlDesc} onChange={(e) => { setError(""); setGirlDesc(e.target.value); }}
                         placeholder="Ej: Una enfermera de noche, pelo negro, mirada intensa, uniforme blanco ajustado..."
@@ -424,7 +444,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                         placeholder="Ej: Me tiene atado a la cama del hospital, se sienta sobre mí..."
                         rows={3}
                         className="w-full rounded-xl border border-white/[0.10] bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-[#FF3C88]/50 resize-none transition-colors placeholder:text-white/20" />
-                      <label className="mb-1.5 mt-3 block text-[0.55rem] font-semibold text-white/50 uppercase tracking-widest">Foto de referencia (opcional)</label>
+                      <label className="mb-1.5 mt-3 block text-[0.55rem] font-semibold text-white/50 uppercase tracking-widest">{mode === "own" ? "Elige tu imagen (será su foto de perfil)" : "Foto de referencia (opcional)"}</label>
                       {refImage ? (
                         <div className="relative">
                           <img src={refImage} alt="Referencia" className="h-28 w-full rounded-xl object-cover object-top" />
@@ -433,11 +453,11 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                       ) : (
                         <label className="flex h-14 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-white/[0.15] text-xs text-white/50 transition hover:border-[#FF3C88]/40 hover:text-white/80">
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
-                          Subir foto para basar el personaje
+                          {mode === "own" ? "Elegir una imagen" : "Subir foto para basar el personaje"}
                           <input type="file" accept="image/*" className="hidden" onChange={handleRefUpload} />
                         </label>
                       )}
-                      <button onClick={handleDescribeNext} disabled={!girlDesc.trim() && !roleplayDesc.trim()}
+                      <button onClick={handleDescribeNext} disabled={(!girlDesc.trim() && !roleplayDesc.trim()) || (mode === "own" && !refImage)}
                         className="btn-primary mt-4 h-10 w-full text-sm font-bold disabled:opacity-40 active:scale-95 transition-all">
                         Siguiente →
                       </button>
