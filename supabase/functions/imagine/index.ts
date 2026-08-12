@@ -158,12 +158,15 @@ async function hordeGenerate(prompt: string, width: number, height: number, seed
 }
 
 async function realismWithFallback(prompt: string, width: number, height: number, seed: number, accountId: string, token: string): Promise<Uint8Array> {
-  const hordeKey = Deno.env.get("HORDE_API_KEY") ?? "";
-  if (hordeKey) {
-    try {
-      return await hordeGenerate(prompt, width, height, seed, hordeKey);
-    } catch (errH) {
-      console.error("horde falla, usa schnell:", errH);
+  const hordeEnabled = Deno.env.get("HORDE_ENABLED") === "true";
+  if (hordeEnabled) {
+    const hordeKey = Deno.env.get("HORDE_API_KEY") ?? "";
+    if (hordeKey) {
+      try {
+        return await hordeGenerate(prompt, width, height, seed, hordeKey);
+      } catch (errH) {
+        console.error("horde falla, usa schnell:", errH);
+      }
     }
   }
   try {
@@ -312,18 +315,16 @@ Deno.serve(async (req) => {
         } catch (errC2) {
           if (isModerationError(errC2)) return notAllowedResponse();
           console.error("cf-ref falla dos veces:", errC2);
+          const hordeEnabled = Deno.env.get("HORDE_ENABLED") === "true";
           const hordeKey = Deno.env.get("HORDE_API_KEY") ?? "";
-          if (hordeKey) {
+          if (hordeEnabled && hordeKey) {
             try {
               img = await hordeGenerate(prompt, width, height, seed, hordeKey, refImage);
             } catch (errH) {
               console.error("horde ref falla:", errH);
-              return new Response(JSON.stringify({ error: "No se pudo crear con tu foto de referencia. Inténtalo de nuevo en unos segundos." }), {
-                status: 500,
-                headers: { ...corsHeaders, "Content-Type": "application/json" },
-              });
             }
-          } else {
+          }
+          if (!img) {
             return new Response(JSON.stringify({ error: "No se pudo crear con tu foto de referencia. Inténtalo de nuevo en unos segundos." }), {
               status: 500,
               headers: { ...corsHeaders, "Content-Type": "application/json" },
