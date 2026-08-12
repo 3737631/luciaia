@@ -197,17 +197,17 @@ function buildPrompt(desc: string, maxSafe = false): string {
   else if (/(delgada|fina|flaca)/.test(words))
     body = "very slender, thin waist";
 
-  let framing = "professional profile photo, head and shoulders portrait, face perfectly centered, equal headroom, looking directly at the camera, close-up, 50mm f/1.4 portrait lens, blurred clean background";
+  let framing = "professional profile photo, head and shoulders portrait, face perfectly centered, equal headroom, looking directly at the camera with an alluring seductive gaze, soft subtle smile, confident flirtatious expression, close-up, 50mm f/1.4 portrait lens, blurred clean background";
   if (isShower)
-    framing = "medium close-up, standing inside the shower, face and upper body in frame, water streams and soap foam around her, looking at the camera with a relaxed smile";
+    framing = "medium close-up, standing inside the shower, face and upper body in frame, water streams and soap foam around her, looking at the camera with an alluring seductive gaze and a subtle smile, wet bare shoulders";
   else if (words.includes("cama") || words.includes("acostada"))
-    framing = "professional profile photo, lying on a bed, head and shoulders slightly angled, face centered, looking at the camera";
+    framing = "professional profile photo, lying on a bed, head and shoulders slightly angled, face centered, looking at the camera with a seductive gaze";
   else if (words.includes("espejo"))
-    framing = "professional profile photo, mirror selfie, head and shoulders, face centered, looking at the camera";
+    framing = "professional profile photo, mirror selfie, head and shoulders, face centered, looking at the camera with an alluring gaze";
   else if (/(bailando|baile|perreando|movi[eé]ndose)/.test(words))
-    framing = "medium close-up, dancing, head and shoulders in frame, hips swaying, hair with natural motion, face clearly visible, looking at the camera";
+    framing = "medium close-up, dancing, head and shoulders in frame, hips swaying, hair with natural motion, face clearly visible, looking at the camera with a sultry expression";
   else if (/(caminando|paseando|andando)/.test(words))
-    framing = "medium close-up, walking toward the camera, head and shoulders in frame, face clearly visible, natural stride, looking at the camera";
+    framing = "medium close-up, walking toward the camera, head and shoulders in frame, face clearly visible, natural stride, looking at the camera with a confident flirtatious smile";
 
   let background: string;
   if (isShower)
@@ -246,7 +246,7 @@ function buildPrompt(desc: string, maxSafe = false): string {
   const head = explicit ? (safeDesc || "a gorgeous playful adult woman") : desc;
   return `photorealistic RAW photo of ${head}, a ${subject}, ${hair}, ${body}, ${clothing}. ` +
     `${scene}${framing}, background: ${background}, ` +
-    `captured on a full-frame mirrorless camera with an 85mm f/1.4 lens, detailed realistic skin texture with visible pores and natural skin tone variations, soft cinematic light, natural facial features, realistic shallow depth of field, subtle film grain, candid natural expression`;
+    `captured on a full-frame mirrorless camera with an 85mm f/1.4 lens, ultra realistic photograph, hyper-detailed natural skin with visible pores, fine texture and subtle imperfections, soft sensual lighting on skin, soft cinematic light, natural facial features, realistic shallow depth of field, subtle film grain, sultry mood, candid natural expression, modeled after a real person`;
 }
 
 type WizardStep = "describe" | "personality" | "generating" | "done";
