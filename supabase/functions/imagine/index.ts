@@ -112,7 +112,7 @@ async function cloudflareGenerate(prompt: string, accountId: string, token: stri
   const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/black-forest-labs/flux-1-schnell`, {
     method: "POST",
     headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt, width: 1024, height: 1024, steps: 4 }),
+    body: JSON.stringify({ prompt, width: 1024, height: 1024, steps: 8 }),
   });
   if (!res.ok) {
     const text = await res.text();
@@ -125,6 +125,21 @@ async function cloudflareGenerate(prompt: string, accountId: string, token: stri
   const b64 = json.result?.image;
   if (!b64) throw new Error("cf: no se obtuvo imagen");
   return Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+}
+
+async function cloudflareWithRetry(prompt: string, accountId: string, token: string): Promise<Uint8Array> {
+  let lastErr: unknown;
+  for (let i = 0; i < 6; i++) {
+    if (i > 0) await new Promise((r) => setTimeout(r, 1500));
+    try {
+      return await cloudflareGenerate(prompt, accountId, token);
+    } catch (err) {
+      lastErr = err;
+      if (isModerationError(err)) continue;
+      throw err;
+    }
+  }
+  throw lastErr;
 }
 
 async function cloudflareRefGenerate(prompt: string, imageDataUrl: string, accountId: string, token: string): Promise<Uint8Array> {
@@ -240,33 +255,33 @@ Deno.serve(async (req) => {
       try {
         img = await falDirectGenerate(prompt, width, height, seed, falKey);
       } catch (err) {
-        console.error("fal falla, pollinations/nscale/hf:", err);
+        console.error("fal falla:", err);
         try {
-          await tryPollinationsThenRest();
-        } catch (errP) {
-          console.error("rest falla, cf ultimo:", errP);
           if (cfAccount && cfToken) {
-            try {
-              img = await cloudflareGenerate(prompt, cfAccount, cfToken);
-            } catch (errC) {
-              if (isModerationError(errC)) return notAllowedResponse();
-              throw errC;
-            }
+            img = await cloudflareWithRetry(prompt, cfAccount, cfToken);
           } else {
+            await tryPollinationsThenRest();
+          }
+        } catch (errC) {
+          console.error("cf falla, pollinations:", errC);
+          try {
+            await tryPollinationsThenRest();
+          } catch (errP) {
+            if (isModerationError(errC)) return notAllowedResponse();
             throw errP;
           }
         }
       }
     } else if (cfAccount && cfToken) {
       try {
-        await tryPollinationsThenRest();
-      } catch (errP) {
-        console.error("rest falla, cf ultimo:", errP);
+        img = await cloudflareWithRetry(prompt, cfAccount, cfToken);
+      } catch (errC) {
+        console.error("cf falla, pollinations:", errC);
         try {
-          img = await cloudflareGenerate(prompt, cfAccount, cfToken);
-        } catch (errC) {
+          await tryPollinationsThenRest();
+        } catch (errP) {
           if (isModerationError(errC)) return notAllowedResponse();
-          throw errC;
+          throw errP;
         }
       }
     } else {
