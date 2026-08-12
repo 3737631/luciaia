@@ -67,6 +67,17 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   color: transparent;
 }
 
+.nuvia-modal-scroll {
+  max-height: calc(100vh - 32px);
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+@supports (height: 100dvh) {
+  .nuvia-modal-scroll {
+    max-height: calc(100dvh - 32px);
+  }
+}
+
 @keyframes fadeUp {
   0% { opacity: 0; transform: translateY(10px); }
   100% { opacity: 1; transform: translateY(0); }
