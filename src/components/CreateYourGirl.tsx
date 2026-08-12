@@ -427,24 +427,33 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                 <AnimatePresence mode="wait">
                   {step === "describe" && (
                     <motion.div key="describe" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
+                      <p className="mb-4 text-xs text-white/45">
+                        Elige el modo y describe a tu personaje. Con IA lo genera por ti; con tu imagen usará tu foto como base.
+                      </p>
                       {error && (
-                        <div className="mb-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs text-red-300">{error}</div>
+                        <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs text-red-300">{error}</div>
                       )}
-                      <div className="mb-3 grid grid-cols-2 gap-2">
-                        <button onClick={() => setMode("ai")} className={`h-10 rounded-xl border text-xs font-bold transition active:scale-95 ${mode === "ai" ? "border-[#FF3C88]/50 bg-[#FF3C88]/10 text-[#FF3C88]" : "border-white/[0.10] bg-white/[0.04] text-white/60 hover:border-white/25"}`}>Crear con IA</button>
-                        <button onClick={() => setMode("own")} className={`h-10 rounded-xl border text-xs font-bold transition active:scale-95 ${mode === "own" ? "border-[#FF3C88]/50 bg-[#FF3C88]/10 text-[#FF3C88]" : "border-white/[0.10] bg-white/[0.04] text-white/60 hover:border-white/25"}`}>Mi imagen</button>
+                      <div className="mb-5 grid grid-cols-2 gap-2.5">
+                        <button onClick={() => setMode("ai")} className={`flex h-14 flex-col items-center justify-center gap-1.5 rounded-xl border text-xs font-bold transition active:scale-95 ${mode === "ai" ? "border-[#FF3C88]/50 bg-[#FF3C88]/10 text-[#FF3C88] shadow-[0_0_20px_rgba(255,60,136,0.12)]" : "border-white/[0.10] bg-white/[0.04] text-white/60 hover:border-white/25"}`}>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4"/><circle cx="12" cy="12" r="3"/></svg>
+                          Crear con IA
+                        </button>
+                        <button onClick={() => setMode("own")} className={`flex h-14 flex-col items-center justify-center gap-1.5 rounded-xl border text-xs font-bold transition active:scale-95 ${mode === "own" ? "border-[#FF3C88]/50 bg-[#FF3C88]/10 text-[#FF3C88] shadow-[0_0_20px_rgba(255,60,136,0.12)]" : "border-white/[0.10] bg-white/[0.04] text-white/60 hover:border-white/25"}`}>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+                          Mi imagen
+                        </button>
                       </div>
-                      <label className="mb-1.5 block text-[0.55rem] font-semibold text-white/50 uppercase tracking-widest">Apariencia</label>
+                      <label className="mb-2 block text-[0.55rem] font-semibold text-white/50 uppercase tracking-widest">Apariencia</label>
                       <textarea value={girlDesc} onChange={(e) => { setError(""); setGirlDesc(e.target.value); }}
                         placeholder="Ej: Una enfermera de noche, pelo negro, mirada intensa, uniforme blanco ajustado..."
                         rows={3}
                         className="w-full rounded-xl border border-white/[0.10] bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-[#FF3C88]/50 resize-none transition-colors placeholder:text-white/20" />
-                      <label className="mb-1.5 mt-3 block text-[0.55rem] font-semibold text-white/50 uppercase tracking-widest">Roleplay (opcional)</label>
+                      <label className="mb-2 mt-5 block text-[0.55rem] font-semibold text-white/50 uppercase tracking-widest">Roleplay (opcional)</label>
                       <textarea value={roleplayDesc} onChange={(e) => { setError(""); setRoleplayDesc(e.target.value); }}
                         placeholder="Ej: Me tiene atado a la cama del hospital, se sienta sobre mí..."
                         rows={3}
                         className="w-full rounded-xl border border-white/[0.10] bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-[#FF3C88]/50 resize-none transition-colors placeholder:text-white/20" />
-                      <label className="mb-1.5 mt-3 block text-[0.55rem] font-semibold text-white/50 uppercase tracking-widest">{mode === "own" ? "Elige tu imagen (será su foto de perfil)" : "Foto de referencia (opcional)"}</label>
+                      <label className="mb-2 mt-5 block text-[0.55rem] font-semibold text-white/50 uppercase tracking-widest">{mode === "own" ? "Elige tu imagen (será su foto de perfil)" : "Foto de referencia (opcional)"}</label>
                       {refImage ? (
                         <div className="relative">
                           <img src={refImage} alt="Referencia" className="h-28 w-full rounded-xl object-cover object-top" />
