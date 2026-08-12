@@ -419,21 +419,16 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
               transition={{ duration: 0.25, ease: "easeOut" }}
             >
               {/* Header */}
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h3 className="text-[1.4rem] font-bold leading-tight tracking-tight text-white">
-                    {step === "describe" ? "Crea tu fantasía" :
-                     step === "personality" ? "Elige personalidad" :
-                     step === "generating" ? "Generando..." : "¡Creada!"}
-                  </h3>
-                  <p className="mt-1 text-xs text-white/40">
-                    {step === "describe" ? "Describe cómo quieres que sea" :
-                     step === "personality" ? "¿Cómo te gustaría que sea contigo?" : ""}
-                  </p>
-                </div>
-                <button onClick={onClose} aria-label="Salir" className="rounded-lg px-3 py-1.5 text-xs font-semibold text-white/60 transition hover:bg-white/[0.06] hover:text-white active:scale-95">
-                  Salir
-                </button>
+              <div>
+                <h3 className="text-[1.4rem] font-bold leading-tight tracking-tight text-white">
+                  {step === "describe" ? "Crea tu fantasía" :
+                   step === "personality" ? "Elige personalidad" :
+                   step === "generating" ? "Creando..." : "¡Creada!"}
+                </h3>
+                <p className="mt-1 text-xs text-white/40">
+                  {step === "describe" ? "Describe cómo quieres que sea" :
+                   step === "personality" ? "¿Cómo te gustaría que sea contigo?" : ""}
+                </p>
               </div>
 
               {/* Progress line */}
@@ -576,9 +571,16 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
 
                   {step === "generating" && (
                     <motion.div key="generating" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="flex flex-col items-center py-20">
-                      <div className="relative flex h-20 w-20 items-center justify-center">
+                      <div className="relative flex h-24 w-24 items-center justify-center">
                         <motion.div className="absolute inset-0 rounded-full bg-[#FF5798]/15 blur-2xl" animate={{ opacity: [0.35, 0.75, 0.35], scale: [0.85, 1.15, 0.85] }} transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }} />
-                        <motion.div className="h-14 w-14 rounded-full border border-[#FF5798]/25 border-t-[#FF5798]" animate={{ rotate: 360 }} transition={{ duration: 1.8, repeat: Infinity, ease: "linear" }} />
+                        <motion.svg
+                          width="38" height="38" viewBox="0 0 24 24" fill="#FF5798"
+                          animate={{ scale: [1, 1.22, 1] }}
+                          transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
+                          style={{ originX: "50%", originY: "50%" }}
+                        >
+                          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                        </motion.svg>
                       </div>
                       <h4 className="mt-10 text-xl font-semibold tracking-tight text-white">Creando a {currentName}</h4>
                       <p className="mt-2 text-xs text-white/40">Estamos dando vida a tu nueva compañía...</p>
@@ -640,6 +642,11 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                   </div>
                 )}
               </div>
+
+              {/* Salir */}
+              <button onClick={onClose} className="mx-auto mt-10 flex w-full items-center justify-center py-3 text-sm font-medium text-white/40 transition hover:text-white active:scale-95">
+                Salir
+              </button>
             </motion.div>
           </motion.div>
         </>
