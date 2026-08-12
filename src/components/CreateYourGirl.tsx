@@ -276,9 +276,26 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
 
   useEffect(() => {
     if (open) {
-      const prev = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-      return () => { document.body.style.overflow = prev; };
+      const b = document.body;
+      const h = document.documentElement;
+      const origB = { position: b.style.position, top: b.style.top, left: b.style.left, right: b.style.right, overflow: b.style.overflow };
+      const origH = { overflow: h.style.overflow };
+      const y = window.scrollY;
+      h.style.overflow = "hidden";
+      b.style.position = "fixed";
+      b.style.top = `-${y}px`;
+      b.style.left = "0";
+      b.style.right = "0";
+      b.style.overflow = "hidden";
+      return () => {
+        b.style.position = origB.position;
+        b.style.top = origB.top;
+        b.style.left = origB.left;
+        b.style.right = origB.right;
+        b.style.overflow = origB.overflow;
+        h.style.overflow = origH.overflow;
+        window.scrollTo(0, y);
+      };
     }
   }, [open]);
 
@@ -414,8 +431,8 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                      step === "personality" ? "¿Cómo te gustaría que sea contigo?" : ""}
                   </p>
                 </div>
-                <button onClick={onClose} aria-label="Cerrar" className="-m-1 p-1 text-white/40 transition hover:text-white active:scale-90">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                <button onClick={onClose} aria-label="Salir" className="rounded-lg px-3 py-1.5 text-xs font-semibold text-white/60 transition hover:bg-white/[0.06] hover:text-white active:scale-95">
+                  Salir
                 </button>
               </div>
 
@@ -450,20 +467,20 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                       </div>
 
                       {/* Campo principal */}
-                      <label className="mb-2 block text-xs font-semibold text-white/35">Describe tu fantasía</label>
+                      <label className="mb-2 block text-sm font-semibold text-white/85">Describe tu fantasía</label>
                       <textarea value={girlDesc} onChange={(e) => { setError(""); setGirlDesc(e.target.value); }}
                         placeholder="Ej: chica de pelo negro, uniforme blanco ajustado, mirada intensa..."
                         rows={3}
-                        className="w-full resize-none rounded-xl bg-white/[0.05] px-4 py-3.5 text-sm text-white outline-none transition-colors placeholder:text-white/20 focus:bg-white/[0.08]" />
+                        className="w-full resize-none rounded-xl border border-white/[0.06] bg-white/[0.08] px-4 py-4 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-white/[0.12] focus:bg-white/[0.11]" />
 
                       {/* Roleplay */}
                       <button type="button" onClick={() => setOpenSection(openSection === "roleplay" ? null : "roleplay")}
-                        className="mt-5 flex w-full items-center justify-between py-2 text-sm font-semibold text-white/60 transition hover:text-white">
+                        className="mt-6 flex w-full items-center justify-between rounded-xl py-2 text-[0.95rem] font-semibold text-white/90 transition hover:text-white">
                         <span className="relative">
                           Roleplay
-                          {!roleplayDesc.trim() && <span className="ml-2 align-middle text-[0.6rem] font-normal text-white/30">opcional</span>}
+                          {!roleplayDesc.trim() && <span className="ml-2 align-middle text-[0.6rem] font-normal text-white/40">opcional</span>}
                         </span>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-200 ${openSection === "roleplay" ? "rotate-180" : ""}`}><path d="m6 9 6 6 6-6"/></svg>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-200 ${openSection === "roleplay" ? "rotate-180" : ""}`}><path d="m6 9 6 6 6-6"/></svg>
                       </button>
                       <AnimatePresence initial={false}>
                         {openSection === "roleplay" && (
@@ -471,7 +488,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                             <textarea value={roleplayDesc} onChange={(e) => { setError(""); setRoleplayDesc(e.target.value); }}
                               placeholder="Ej: me tiene atado a la cama del hospital..."
                               rows={2}
-                              className="mt-2 w-full resize-none rounded-xl bg-white/[0.05] px-4 py-3 text-sm text-white outline-none transition-colors placeholder:text-white/20 focus:bg-white/[0.08]" />
+                              className="mt-2 w-full resize-none rounded-xl border border-white/[0.06] bg-white/[0.08] px-4 py-3.5 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-white/[0.12] focus:bg-white/[0.11]" />
                           </motion.div>
                         )}
                       </AnimatePresence>
@@ -479,12 +496,12 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                       {/* Foto plegable (en "Mi imagen" siempre visible) */}
                       {mode !== "own" && (
                         <button type="button" onClick={() => setOpenSection(openSection === "photo" ? null : "photo")}
-                          className="mt-2 flex w-full items-center justify-between py-2 text-sm font-semibold text-white/60 transition hover:text-white">
+                          className="mt-2 flex w-full items-center justify-between rounded-xl py-2 text-[0.95rem] font-semibold text-white/90 transition hover:text-white">
                           <span>
                             Foto de referencia
-                            {!refImage && <span className="ml-2 align-middle text-[0.6rem] font-normal text-white/30">opcional</span>}
+                            {!refImage && <span className="ml-2 align-middle text-[0.6rem] font-normal text-white/40">opcional</span>}
                           </span>
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-200 ${openSection === "photo" ? "rotate-180" : ""}`}><path d="m6 9 6 6 6-6"/></svg>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-200 ${openSection === "photo" ? "rotate-180" : ""}`}><path d="m6 9 6 6 6-6"/></svg>
                         </button>
                       )}
                       <AnimatePresence initial={false}>
