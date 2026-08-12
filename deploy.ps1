@@ -1,4 +1,4 @@
-$src = "C:\Users\Paquito\Downloads\muñeca ia 3\out"
+﻿$src = Join-Path $PSScriptRoot "out"
 $repo = "https://github.com/3737631/luciaia.git"
 $dst = "C:\Users\Paquito\AppData\Local\Temp\gh-pages-deploy"
 
@@ -18,3 +18,4 @@ git remote add origin $repo 2>&1 | Out-Null
 Write-Output "Pushing..."
 git push origin gh-pages --force 2>&1
 Write-Output "DONE"
+

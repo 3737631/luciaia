@@ -420,7 +420,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
               </div>
 
               {/* Scrollable body */}
-              <div className="flex-1 overflow-y-auto px-5 pb-5 pt-1">
+              <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-5 pt-1">
                 <AnimatePresence mode="wait">
                   {step === "describe" && (
                     <motion.div key="describe" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
