@@ -532,49 +532,65 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
 
                   {step === "personality" && (
                     <motion.div key="personality" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
-                      <div className="grid grid-cols-2 gap-2.5">
+                      <button onClick={() => setStep("describe")} className="flex items-center gap-1.5 py-1 text-xs font-medium text-white/40 transition hover:text-white active:scale-95">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                        Atrás
+                      </button>
+
+                      <div className="mt-2">
                         {[
                           { value: "carinosa", label: "Cariñosa", desc: "Dulce, cercana, siempre pendiente" },
                           { value: "atrevida", label: "Atrevida", desc: "Directa, juguetona, te engancha" },
                           { value: "timida", label: "Tímida", desc: "Vergonzosa pero intensa" },
                           { value: "dominante", label: "Dominante", desc: "Sabe lo que quiere, lidera" },
-                        ].map((p) => (
-                          <button key={p.value} onClick={() => setSelectedPersonality(p.value)}
-                            className={`rounded-2xl p-3.5 text-left transition-all active:scale-95 ${
-                              selectedPersonality === p.value
-                                ? "bg-white text-neutral-950"
-                                : "bg-white/[0.05] text-white/70 hover:bg-white/[0.09]"
-                            }`}>
-                            <p className="text-sm font-bold">{p.label}</p>
-                            <p className={`mt-0.5 text-[0.5rem] ${selectedPersonality === p.value ? "text-neutral-500" : "text-white/50"}`}>{p.desc}</p>
-                          </button>
-                        ))}
+                        ].map((p) => {
+                          const active = selectedPersonality === p.value;
+                          return (
+                            <button key={p.value} onClick={() => setSelectedPersonality(p.value)}
+                              className="group flex w-full items-center gap-4 py-4 text-left transition active:scale-[0.99]">
+                              <span className="relative flex h-3.5 w-3.5 items-center justify-center">
+                                <motion.span
+                                  layoutId="personality-dot"
+                                  className={`absolute h-3.5 w-3.5 rounded-full ${active ? "bg-[#FF5798] shadow-[0_0_12px_rgba(255,87,152,0.45)]" : "bg-white/[0.12] transition-colors group-hover:bg-white/25"}`}
+                                />
+                              </span>
+                              <span className="flex-1">
+                                <span className={`block text-lg font-semibold leading-tight tracking-tight transition-colors ${active ? "text-white" : "text-white/55 group-hover:text-white/85"}`}>{p.label}</span>
+                                <span className={`block text-[0.7rem] transition-colors ${active ? "text-white/45" : "text-white/30 group-hover:text-white/45"}`}>{p.desc}</span>
+                              </span>
+                            </button>
+                          );
+                        })}
                       </div>
-                      <div className="mt-3 flex gap-2.5">
-                        <button onClick={() => setStep("describe")} className="h-[52px] rounded-2xl bg-white/[0.06] px-5 text-sm text-white/60 transition hover:bg-white/[0.10] hover:text-white active:scale-95">← Atrás</button>
-                        <button onClick={handlePersonalityNext} className="h-[52px] flex-1 rounded-2xl bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-[0.95rem] font-bold text-white transition hover:brightness-110 active:scale-[0.99]">
-                          {selectedPersonality ? `Crear a ${currentName}` : "Crear sin personalidad"}
+
+                      <div className="mt-8 flex flex-col items-center gap-4">
+                        <button onClick={handlePersonalityNext} className="h-12 w-full max-w-[320px] rounded-full bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-[0.95rem] font-bold text-white transition hover:brightness-110 active:scale-[0.99]">
+                          Continuar →
+                        </button>
+                        <button onClick={handlePersonalityNext} className="text-xs font-medium text-white/40 transition hover:text-white/70 active:scale-95">
+                          Sin personalidad
                         </button>
                       </div>
                     </motion.div>
                   )}
 
                   {step === "generating" && (
-                    <motion.div key="generating" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="flex flex-col items-center py-10">
-                      <motion.div className="h-16 w-16 rounded-full border-2 border-[#FF5798]/40 border-t-[#FF5798]" animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} />
-                      <motion.p className="mt-4 text-sm font-semibold text-[#FF5798]" animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 1.5, repeat: Infinity }}>
-                        Generando a {currentName}...
-                      </motion.p>
-                      <div className="mt-6 flex gap-1">
-                        {[0, 1, 2, 3].map((i) => (
-                          <motion.div key={i} className="h-2 w-2 rounded-full bg-[#FF5798]/60" animate={{ y: [0, -8, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.15 }} />
+                    <motion.div key="generating" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="flex flex-col items-center py-20">
+                      <div className="relative flex h-20 w-20 items-center justify-center">
+                        <motion.div className="absolute inset-0 rounded-full bg-[#FF5798]/15 blur-2xl" animate={{ opacity: [0.35, 0.75, 0.35], scale: [0.85, 1.15, 0.85] }} transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }} />
+                        <motion.div className="h-14 w-14 rounded-full border border-[#FF5798]/25 border-t-[#FF5798]" animate={{ rotate: 360 }} transition={{ duration: 1.8, repeat: Infinity, ease: "linear" }} />
+                      </div>
+                      <h4 className="mt-10 text-xl font-semibold tracking-tight text-white">Creando a {currentName}</h4>
+                      <p className="mt-2 text-xs text-white/40">Estamos dando vida a tu nueva compañía...</p>
+                      <div className="mt-8 flex gap-1.5">
+                        {[0, 1, 2].map((i) => (
+                          <motion.span key={i} className="h-1 w-1 rounded-full bg-white/30" animate={{ opacity: [0.2, 0.9, 0.2] }} transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.2 }} />
                         ))}
                       </div>
-                      <p className="mt-4 text-[0.5rem] text-white/40">La IA está creando su imagen y personalidad...</p>
                       {genError && (
-                        <div className="mt-4 w-full rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-center">
+                        <div className="mt-6 w-full rounded-2xl bg-red-500/10 px-4 py-3 text-center">
                           <p className="text-xs text-red-300">{genError}</p>
-                          <button onClick={handlePersonalityNext} className="mt-3 h-9 w-full rounded-full bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-xs font-bold text-white transition hover:brightness-110 active:scale-95">
+                          <button onClick={handlePersonalityNext} className="mt-3 h-11 w-full rounded-full bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-sm font-bold text-white transition hover:brightness-110 active:scale-[0.99]">
                             Reintentar
                           </button>
                         </div>
