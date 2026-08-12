@@ -197,7 +197,7 @@ function buildPrompt(desc: string, maxSafe = false): string {
   else if (/(delgada|fina|flaca)/.test(words))
     body = "very slender, thin waist";
 
-  let framing = "professional profile photo, head and shoulders portrait, face perfectly centered, equal headroom, looking directly at the camera with an alluring seductive gaze, soft subtle smile, confident flirtatious expression, close-up, 50mm f/1.4 portrait lens, blurred clean background";
+  let framing = "professional profile photo, head and shoulders portrait, face perfectly centered, equal headroom, looking directly at the camera with an alluring seductive gaze, soft subtle smile, confident flirtatious expression, candid close-up, natural casual framing, blurred everyday background";
   if (isShower)
     framing = "medium close-up, standing inside the shower, face and upper body in frame, water streams and soap foam around her, looking at the camera with an alluring seductive gaze and a subtle smile, wet bare shoulders";
   else if (words.includes("cama") || words.includes("acostada"))
@@ -246,7 +246,7 @@ function buildPrompt(desc: string, maxSafe = false): string {
   const head = explicit ? (safeDesc || "a gorgeous playful adult woman") : desc;
   return `photorealistic RAW photo of ${head}, a ${subject}, ${hair}, ${body}, ${clothing}. ` +
     `${scene}${framing}, background: ${background}, ` +
-    `captured on a full-frame mirrorless camera with an 85mm f/1.4 lens, ultra realistic photograph, hyper-detailed natural skin with visible pores, fine texture and subtle imperfections, soft sensual lighting on skin, soft cinematic light, natural facial features, realistic shallow depth of field, subtle film grain, sultry mood, candid natural expression, modeled after a real person`;
+    `authentic casual photo of a real person, amateur snapshot taken on a smartphone, unretouched natural photograph, no professional studio lighting, natural skin with visible pores and subtle imperfections, slight facial asymmetry, realistic human proportions, natural everyday moment, soft natural light, no airbrushing, no CGI, no plastic skin, looks like a real ordinary woman, softly sensual mood, natural seductive charm`;
 }
 
 type WizardStep = "describe" | "personality" | "generating" | "done";
