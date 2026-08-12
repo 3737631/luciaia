@@ -170,7 +170,9 @@ function buildPrompt(desc: string): string {
   }
 
   if (explicit) {
-    clothing = "wearing only a lacy bra and matching high-waist panties, cleavage visible, nipples and pubic area properly covered";
+    clothing = /(ducha|ba[nñ]era|bath|shower|regadera)/.test(words)
+      ? "in the shower, her body covered by creamy white soap foam, wearing a lacy bra and panties hidden under the foam, nipples and pubic area hidden by foam and water drops"
+      : "wearing only a lacy bra and matching high-waist panties, cleavage visible, nipples and pubic area properly covered";
   }
 
   let body = "slim toned figure, medium breasts";
@@ -199,7 +201,28 @@ function buildPrompt(desc: string): string {
   else
     background = SETTINGS[hashString(words) % SETTINGS.length];
 
-  const head = explicit ? "a gorgeous playful adult woman" : desc;
+  const safeDesc = explicit
+    ? desc
+        .replace(/desnud\w*/gi, "")
+        .replace(/topless/gi, "")
+        .replace(/sin ropa/gi, "")
+        .replace(/sin nada/gi, "")
+        .replace(/al desnudo/gi, "")
+        .replace(/sin sujetador/gi, "")
+        .replace(/sin bragas/gi, "")
+        .replace(/sin panties/gi, "")
+        .replace(/en cueros/gi, "")
+        .replace(/porno\w*/gi, "")
+        .replace(/sexo\w*|sexual\w*/gi, "")
+        .replace(/follar\w*|follando/gi, "")
+        .replace(/masturb\w*/gi, "")
+        .replace(/corrida\w*/gi, "")
+        .replace(/penetraci\w*/gi, "")
+        .replace(/polvo\w*/gi, "")
+        .replace(/\s{2,}/g, " ")
+        .trim()
+    : desc;
+  const head = explicit ? (safeDesc || "a gorgeous playful adult woman") : desc;
   return `photorealistic RAW photo of ${head}, a ${subject}, ${body}, ${clothing}. ` +
     `${framing}, background: ${background}, ` +
     `captured on a high-end smartphone camera, ` +
