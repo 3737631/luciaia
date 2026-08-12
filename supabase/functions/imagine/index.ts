@@ -157,7 +157,7 @@ async function hordeGenerate(prompt: string, width: number, height: number, seed
   return await hordePoll(json.id);
 }
 
-async function realismWithFallback(prompt: string, width: number, height: number, seed: number, accountId: string, token: string): Promise<Uint8Array> {
+async function realismWithFallback(prompt: string, width: number, height: number, seed: number): Promise<Uint8Array> {
   const hordeEnabled = Deno.env.get("HORDE_ENABLED") === "true";
   if (hordeEnabled) {
     const hordeKey = Deno.env.get("HORDE_API_KEY") ?? "";
@@ -165,50 +165,11 @@ async function realismWithFallback(prompt: string, width: number, height: number
       try {
         return await hordeGenerate(prompt, width, height, seed, hordeKey);
       } catch (errH) {
-        console.error("horde falla, usa schnell:", errH);
+        console.error("horde falla, usa pollinations:", errH);
       }
     }
   }
-  try {
-    return await cloudflareWithRetry(prompt, accountId, token);
-  } catch (errC) {
-    console.error("schnell falla, pollinations:", errC);
-    return await pollinationsGenerate(prompt, width, height, seed);
-  }
-}
-
-async function cloudflareGenerate(prompt: string, accountId: string, token: string): Promise<Uint8Array> {
-  const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/black-forest-labs/flux-1-schnell`, {
-    method: "POST",
-    headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt, width: 1024, height: 1024, steps: 8 }),
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`cf ${res.status}: ${text.slice(0, 200)}`);
-  }
-  const json = await res.json();
-  if (json.success !== true) {
-    throw new Error(`cf ${json.errors?.[0]?.message || "error de Cloudflare"}`);
-  }
-  const b64 = json.result?.image;
-  if (!b64) throw new Error("cf: no se obtuvo imagen");
-  return Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-}
-
-async function cloudflareWithRetry(prompt: string, accountId: string, token: string): Promise<Uint8Array> {
-  let lastErr: unknown;
-  for (let i = 0; i < 6; i++) {
-    if (i > 0) await new Promise((r) => setTimeout(r, 1500));
-    try {
-      return await cloudflareGenerate(prompt, accountId, token);
-    } catch (err) {
-      lastErr = err;
-      if (isModerationError(err)) continue;
-      throw err;
-    }
-  }
-  throw lastErr;
+  return await pollinationsGenerate(prompt, width, height, seed);
 }
 
 async function cloudflareRefGenerate(prompt: string, imageDataUrl: string, accountId: string, token: string): Promise<Uint8Array> {
@@ -324,13 +285,6 @@ Deno.serve(async (req) => {
               console.error("horde ref falla:", errH);
             }
           }
-          if (!img && cfAccount && cfToken) {
-            try {
-              img = await cloudflareWithRetry(prompt, cfAccount, cfToken);
-            } catch (errS) {
-              console.error("ref fallback schnell falla:", errS);
-            }
-          }
           if (!img) {
             return new Response(JSON.stringify({ error: "No se pudo crear con tu foto de referencia. Inténtalo de nuevo en unos segundos." }), {
               status: 500,
@@ -346,7 +300,7 @@ Deno.serve(async (req) => {
         console.error("fal falla:", err);
         try {
           if (cfAccount && cfToken) {
-            img = await realismWithFallback(prompt, width, height, seed, cfAccount, cfToken);
+            img = await realismWithFallback(prompt, width, height, seed);
           } else {
             await tryPollinationsThenRest();
           }
@@ -362,7 +316,7 @@ Deno.serve(async (req) => {
       }
     } else if (cfAccount && cfToken) {
       try {
-        img = await realismWithFallback(prompt, width, height, seed, cfAccount, cfToken);
+        img = await realismWithFallback(prompt, width, height, seed);
       } catch (errC) {
         console.error("cf falla, pollinations:", errC);
         try {
