@@ -115,10 +115,14 @@ function hashString(s: string): number {
   return Math.abs(h);
 }
 
-function buildPrompt(desc: string): string {
+function buildPrompt(desc: string, maxSafe = false): string {
   const words = desc.toLowerCase();
-  const EXPLICIT = /(desnud|topless|sin ropa|sin nada|al desnudo|sin sujetador|sin bragas|sin panties|en cueros|cuerpo desnudo|porno|sexo|follar|follando|masturba|polvo|corrida|penetraci)/;
+  const EXPLICIT = /(desnud|naked|nude|topless|sin ropa|sin nada|al desnudo|sin sujetador|sin bragas|sin panties|en cueros|cuerpo desnudo|porno|sexo|sexy|erot|fuck|follar|follando|masturba|polvo|corrida|penetraci|nsfw|xxx)/;
   const explicit = EXPLICIT.test(words);
+
+  if (maxSafe) {
+    return "photorealistic RAW photo of a beautiful adult woman, slim toned figure, medium breasts, wearing an elegant white floral summer dress, standing near a sunlit window, warm natural light, face clearly visible, looking at the camera, soft happy smile";
+  }
 
   let subject = "beautiful adult woman";
   let famous = false;
@@ -203,7 +207,7 @@ function buildPrompt(desc: string): string {
 
   const safeDesc = explicit
     ? desc
-        .replace(/desnud\w*/gi, "")
+        .replace(/desnud\w*|naked|nude/gi, "")
         .replace(/topless/gi, "")
         .replace(/sin ropa/gi, "")
         .replace(/sin nada/gi, "")
@@ -213,12 +217,13 @@ function buildPrompt(desc: string): string {
         .replace(/sin panties/gi, "")
         .replace(/en cueros/gi, "")
         .replace(/porno\w*/gi, "")
-        .replace(/sexo\w*|sexual\w*/gi, "")
-        .replace(/follar\w*|follando/gi, "")
+        .replace(/sexo\w*|sexual\w*|sexy|erot\w*/gi, "")
+        .replace(/fuck|follar\w*|follando/gi, "")
         .replace(/masturb\w*/gi, "")
         .replace(/corrida\w*/gi, "")
         .replace(/penetraci\w*/gi, "")
         .replace(/polvo\w*/gi, "")
+        .replace(/nsfw|xxx/gi, "")
         .replace(/\s{2,}/g, " ")
         .trim()
     : desc;
@@ -297,17 +302,22 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
     localStorage.setItem("custom_scenario", customScenario);
     const prompt = buildPrompt(girlDesc || roleplayDesc);
     let imageUrl = "";
-    try {
-      const blob = await generateGirlImage({ prompt, width: 1024, height: 1024, image: refImage || undefined });
-      imageUrl = await compressImage(blob);
-    } catch {
+    let lastErr = "";
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const p = attempt === 0 ? prompt : attempt === 1 ? buildPrompt(girlDesc || roleplayDesc, true) : buildPrompt("", true);
       try {
-        const blob = await generateGirlImage({ prompt, width: 1024, height: 1024, image: refImage || undefined });
+        const blob = await generateGirlImage({ prompt: p, width: 1024, height: 1024, image: refImage || undefined });
         imageUrl = await compressImage(blob);
+        break;
       } catch (err) {
-        setGenError(String((err as Error)?.message || "No se pudo generar la imagen. Comprueba tu conexión y pulsa Reintentar."));
-        return;
+        lastErr = String((err as Error)?.message || "");
+        await new Promise((r) => setTimeout(r, 1500));
       }
+    }
+    if (!imageUrl) {
+      const moderation = /[Pp]etici[oó]n no permitida|moder|safety|blocked|policy|forbidden|nsfw/i.test(lastErr);
+      setGenError(moderation ? "Vuelve a intentarlo en unos segundos." : (lastErr || "No se pudo generar la imagen. Comprueba tu conexión y pulsa Reintentar."));
+      return;
     }
     const newGirl: CustomGirlData = {
       id, name, age: generateAge(), story,
