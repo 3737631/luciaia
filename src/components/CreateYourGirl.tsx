@@ -389,78 +389,79 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
             onClick={onClose}
           />
           <motion.div
-            className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 pb-6 sm:items-center sm:py-4"
+            className="fixed inset-0 z-50 overflow-y-auto"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="nuvia-modal-scroll my-auto flex w-full max-w-[520px] flex-col rounded-2xl border border-white/[0.06] bg-[#101018] shadow-[0_24px_80px_rgba(0,0,0,0.55)]"
-              style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.03), transparent 40%), #101018" }}
-              initial={{ opacity: 0, scale: 0.94, y: 24 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.94, y: 24 }}
-              transition={{ type: "spring", stiffness: 320, damping: 28 }}
+              className="mx-auto w-full max-w-[480px] px-5 pb-24 pt-10 sm:pt-16"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
             >
-              {/* Fixed header */}
-              <div className="shrink-0 px-5 pt-5 pb-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-base font-bold tracking-tight text-white">
-                    {step === "describe" ? "Crear tu fantasía" :
+              {/* Header */}
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="text-[1.4rem] font-bold leading-tight tracking-tight text-white">
+                    {step === "describe" ? "Crea tu fantasía" :
                      step === "personality" ? "Elige personalidad" :
                      step === "generating" ? "Generando..." : "¡Creada!"}
                   </h3>
-                  <button onClick={onClose} aria-label="Cerrar" className="flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.06] text-white/50 transition hover:bg-white/[0.12] hover:text-white active:scale-90">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                  </button>
+                  <p className="mt-1 text-xs text-white/40">
+                    {step === "describe" ? "Describe cómo quieres que sea" :
+                     step === "personality" ? "¿Cómo te gustaría que sea contigo?" : ""}
+                  </p>
                 </div>
-
-                {/* Progress bar */}
-                <div className="mt-3 flex h-1 w-full overflow-hidden rounded-full bg-white/[0.07]">
-                  <div
-                    className="h-full rounded-full transition-all duration-500"
-                    style={{
-                      width: step === "describe" ? "33%" : step === "personality" ? "66%" : "100%",
-                      background: "linear-gradient(135deg, #FF5798, #FF6AA5)",
-                    }}
-                  />
-                </div>
+                <button onClick={onClose} aria-label="Cerrar" className="-m-1 p-1 text-white/40 transition hover:text-white active:scale-90">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
               </div>
 
-              {/* Scrollable body */}
-              <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-5 pt-1">
+              {/* Progress line */}
+              <div className="mt-5 h-0.5 w-full overflow-hidden rounded-full bg-white/[0.07]">
+                <div
+                  className="h-full transition-all duration-500"
+                  style={{
+                    width: step === "describe" ? "33%" : step === "personality" ? "66%" : "100%",
+                    background: "linear-gradient(135deg, #FF5798, #FF6AA5)",
+                  }}
+                />
+              </div>
+
+              {/* Body */}
+              <div className="mt-6">
                 <AnimatePresence mode="wait">
                   {step === "describe" && (
                     <motion.div key="describe" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
                       {error && (
-                        <div className="mb-4 rounded-2xl bg-red-500/10 px-4 py-3 text-xs text-red-300">{error}</div>
+                        <div className="mb-5 rounded-xl bg-red-500/10 px-4 py-3 text-xs text-red-300">{error}</div>
                       )}
 
                       {/* Modo */}
-                      <div className="mb-5 flex rounded-2xl bg-white/[0.06] p-1">
-                        <button onClick={() => setMode("ai")} className={`flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl text-xs font-bold transition active:scale-95 ${mode === "ai" ? "bg-white text-neutral-950" : "text-white/50 hover:text-white"}`}>
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4"/><circle cx="12" cy="12" r="3"/></svg>
+                      <div className="mb-6 flex items-center gap-1">
+                        <button onClick={() => setMode("ai")} className={`rounded-full px-4 py-2 text-sm transition active:scale-95 ${mode === "ai" ? "bg-white font-bold text-neutral-950" : "text-white/50 hover:text-white"}`}>
                           Crear con IA
                         </button>
-                        <button onClick={() => { setMode("own"); setOpenSection("photo"); }} className={`flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl text-xs font-bold transition active:scale-95 ${mode === "own" ? "bg-white text-neutral-950" : "text-white/50 hover:text-white"}`}>
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+                        <button onClick={() => { setMode("own"); setOpenSection("photo"); }} className={`rounded-full px-4 py-2 text-sm transition active:scale-95 ${mode === "own" ? "bg-white font-bold text-neutral-950" : "text-white/50 hover:text-white"}`}>
                           Mi imagen
                         </button>
                       </div>
 
                       {/* Campo principal */}
-                      <label className="mb-2 block text-[0.55rem] font-semibold text-white/50 uppercase tracking-widest">Describe tu fantasía</label>
+                      <label className="mb-2 block text-xs font-semibold text-white/35">Describe tu fantasía</label>
                       <textarea value={girlDesc} onChange={(e) => { setError(""); setGirlDesc(e.target.value); }}
-                        placeholder="Ej: Enfermera de noche, pelo negro, uniforme blanco ajustado..."
-                        rows={4}
-                        className="w-full resize-none rounded-2xl bg-white/[0.06] px-4 py-3.5 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:bg-white/[0.10]" />
+                        placeholder="Ej: chica de pelo negro, uniforme blanco ajustado, mirada intensa..."
+                        rows={3}
+                        className="w-full resize-none rounded-xl bg-white/[0.05] px-4 py-3.5 text-sm text-white outline-none transition-colors placeholder:text-white/20 focus:bg-white/[0.08]" />
 
-                      {/* Roleplay plegable */}
+                      {/* Roleplay */}
                       <button type="button" onClick={() => setOpenSection(openSection === "roleplay" ? null : "roleplay")}
-                        className="mt-4 flex w-full items-center justify-between py-1.5 text-xs font-semibold text-white/45 transition hover:text-white">
-                        <span className="flex items-center gap-2">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                          Roleplay (opcional)
+                        className="mt-5 flex w-full items-center justify-between py-2 text-sm font-semibold text-white/60 transition hover:text-white">
+                        <span className="relative">
+                          Roleplay
+                          {!roleplayDesc.trim() && <span className="ml-2 align-middle text-[0.6rem] font-normal text-white/30">opcional</span>}
                         </span>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-200 ${openSection === "roleplay" ? "rotate-180" : ""}`}><path d="m6 9 6 6 6-6"/></svg>
                       </button>
@@ -468,9 +469,9 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                         {openSection === "roleplay" && (
                           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
                             <textarea value={roleplayDesc} onChange={(e) => { setError(""); setRoleplayDesc(e.target.value); }}
-                              placeholder="Ej: Me tiene atado a la cama del hospital..."
-                              rows={3}
-                              className="mt-2 w-full resize-none rounded-2xl bg-white/[0.06] px-4 py-3.5 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:bg-white/[0.10]" />
+                              placeholder="Ej: me tiene atado a la cama del hospital..."
+                              rows={2}
+                              className="mt-2 w-full resize-none rounded-xl bg-white/[0.05] px-4 py-3 text-sm text-white outline-none transition-colors placeholder:text-white/20 focus:bg-white/[0.08]" />
                           </motion.div>
                         )}
                       </AnimatePresence>
@@ -478,10 +479,10 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                       {/* Foto plegable (en "Mi imagen" siempre visible) */}
                       {mode !== "own" && (
                         <button type="button" onClick={() => setOpenSection(openSection === "photo" ? null : "photo")}
-                          className="mt-3 flex w-full items-center justify-between py-1.5 text-xs font-semibold text-white/45 transition hover:text-white">
-                          <span className="flex items-center gap-2">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-                            Foto de referencia (opcional)
+                          className="mt-2 flex w-full items-center justify-between py-2 text-sm font-semibold text-white/60 transition hover:text-white">
+                          <span>
+                            Foto de referencia
+                            {!refImage && <span className="ml-2 align-middle text-[0.6rem] font-normal text-white/30">opcional</span>}
                           </span>
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-200 ${openSection === "photo" ? "rotate-180" : ""}`}><path d="m6 9 6 6 6-6"/></svg>
                         </button>
@@ -495,7 +496,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                                 <button onClick={() => setRefImage(null)} className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-xs text-white">✕</button>
                               </div>
                             ) : (
-                              <label className="mt-2 flex h-14 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-white/[0.06] text-xs font-semibold text-white/80 transition hover:bg-white/[0.10] hover:text-white active:scale-[0.99]">
+                              <label className="mt-2 flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-white/[0.05] text-xs font-semibold text-white/80 transition hover:bg-white/[0.09] hover:text-white active:scale-[0.99]">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
                                 {mode === "own" ? "Elegir imagen" : "Subir foto de referencia"}
                                 <input type="file" accept="image/*" className="hidden" onChange={handleRefUpload} />
@@ -506,7 +507,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                       </AnimatePresence>
 
                       <button onClick={handleDescribeNext} disabled={(!girlDesc.trim() && !roleplayDesc.trim()) || (mode === "own" && !refImage)}
-                        className="mt-5 h-11 w-full rounded-full bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-sm font-bold text-white transition hover:brightness-110 active:scale-95 disabled:opacity-40">
+                        className="mt-7 h-[52px] w-full rounded-2xl bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-[0.95rem] font-bold text-white transition hover:brightness-110 active:scale-[0.99] disabled:opacity-40">
                         Siguiente →
                       </button>
                     </motion.div>
@@ -533,8 +534,8 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                         ))}
                       </div>
                       <div className="mt-3 flex gap-2.5">
-                        <button onClick={() => setStep("describe")} className="h-10 rounded-xl bg-white/[0.06] px-4 text-sm text-white/60 transition hover:bg-white/[0.10] hover:text-white active:scale-95">← Atrás</button>
-                        <button onClick={handlePersonalityNext} className="h-10 flex-1 rounded-full bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-sm font-bold text-white transition hover:brightness-110 active:scale-95">
+                        <button onClick={() => setStep("describe")} className="h-[52px] rounded-2xl bg-white/[0.06] px-5 text-sm text-white/60 transition hover:bg-white/[0.10] hover:text-white active:scale-95">← Atrás</button>
+                        <button onClick={handlePersonalityNext} className="h-[52px] flex-1 rounded-2xl bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-[0.95rem] font-bold text-white transition hover:brightness-110 active:scale-[0.99]">
                           {selectedPersonality ? `Crear a ${currentName}` : "Crear sin personalidad"}
                         </button>
                       </div>
@@ -542,7 +543,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                   )}
 
                   {step === "generating" && (
-                    <motion.div key="generating" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="flex flex-col items-center py-8">
+                    <motion.div key="generating" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="flex flex-col items-center py-10">
                       <motion.div className="h-16 w-16 rounded-full border-2 border-[#FF5798]/40 border-t-[#FF5798]" animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} />
                       <motion.p className="mt-4 text-sm font-semibold text-[#FF5798]" animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 1.5, repeat: Infinity }}>
                         Generando a {currentName}...
@@ -566,13 +567,13 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
 
                   {step === "done" && (
                     <motion.div key="done" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4 }}>
-                      <div className="flex flex-col items-center py-4">
+                      <div className="flex flex-col items-center py-10">
                         <motion.div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#30D158]/20" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 200, damping: 10 }}>
                           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#30D158" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
                         </motion.div>
                         <p className="mt-3 text-lg font-bold text-white">{currentName} ha sido creada</p>
                         <p className="mt-1 text-xs text-white/50">Aparecerá abajo en Tus creaciones</p>
-                        <button onClick={handleReset} className="mt-5 h-10 w-full rounded-full bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-sm font-bold text-white transition hover:brightness-110 active:scale-95">
+                        <button onClick={handleReset} className="mt-6 h-[52px] w-full rounded-2xl bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-[0.95rem] font-bold text-white transition hover:brightness-110 active:scale-[0.99]">
                           Crear otra chica
                         </button>
                       </div>
