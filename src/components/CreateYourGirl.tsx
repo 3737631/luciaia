@@ -262,6 +262,7 @@ export default function CreateYourGirl({ open, onClose }: { open: boolean; onClo
   const [genError, setGenError] = useState("");
   const [refImage, setRefImage] = useState<string | null>(null);
   const [mode, setMode] = useState<"ai" | "own">("ai");
+  const [openSection, setOpenSection] = useState<"roleplay" | "photo" | null>(null);
 
   useEffect(() => {
     setCustomGirls(getCustomGirls());
@@ -269,7 +270,7 @@ export default function CreateYourGirl({ open, onClose }: { open: boolean; onClo
 
   useEffect(() => {
     if (!open) {
-setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSelectedPersonality(""); setCurrentName(""); setGenError(""); setRefImage(null); setMode("ai");
+setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSelectedPersonality(""); setCurrentName(""); setGenError(""); setRefImage(null); setMode("ai"); setOpenSection(null);
     }
   }, [open]);
 
@@ -386,7 +387,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="flex flex-col w-full max-w-[520px] max-h-[90vh] rounded-2xl border border-white/[0.08] shadow-[0_0_80px_rgba(0,0,0,0.6)] backdrop-blur-xl"
+              className="flex flex-col w-full max-w-[520px] max-h-[90dvh] rounded-2xl border border-white/[0.08] shadow-[0_0_80px_rgba(0,0,0,0.6)] backdrop-blur-xl"
               style={{ background: "linear-gradient(145deg, #121218, #0B0B0F)" }}
               initial={{ opacity: 0, scale: 0.92, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -428,46 +429,85 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                   {step === "describe" && (
                     <motion.div key="describe" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
                       <p className="mb-4 text-xs text-white/45">
-                        Elige el modo y describe a tu personaje. Con IA lo genera por ti; con tu imagen usará tu foto como base.
+                        {mode === "own"
+                          ? "Sube tu foto y ella cobrará vida con tu rostro."
+                          : "Describe cómo la imaginas y la IA la creará en segundos."}
                       </p>
                       {error && (
                         <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs text-red-300">{error}</div>
                       )}
-                      <div className="mb-5 grid grid-cols-2 gap-2.5">
-                        <button onClick={() => setMode("ai")} className={`flex h-14 flex-col items-center justify-center gap-1.5 rounded-xl border text-xs font-bold transition active:scale-95 ${mode === "ai" ? "border-[#FF3C88]/50 bg-[#FF3C88]/10 text-[#FF3C88] shadow-[0_0_20px_rgba(255,60,136,0.12)]" : "border-white/[0.10] bg-white/[0.04] text-white/60 hover:border-white/25"}`}>
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4"/><circle cx="12" cy="12" r="3"/></svg>
+
+                      {/* Modo */}
+                      <div className="mb-5 flex rounded-xl border border-white/[0.10] bg-white/[0.04] p-1">
+                        <button onClick={() => setMode("ai")} className={`flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg text-xs font-bold transition active:scale-95 ${mode === "ai" ? "bg-[#FF3C88] text-white shadow-[0_0_20px_rgba(255,60,136,0.25)]" : "text-white/60 hover:text-white"}`}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4"/><circle cx="12" cy="12" r="3"/></svg>
                           Crear con IA
                         </button>
-                        <button onClick={() => setMode("own")} className={`flex h-14 flex-col items-center justify-center gap-1.5 rounded-xl border text-xs font-bold transition active:scale-95 ${mode === "own" ? "border-[#FF3C88]/50 bg-[#FF3C88]/10 text-[#FF3C88] shadow-[0_0_20px_rgba(255,60,136,0.12)]" : "border-white/[0.10] bg-white/[0.04] text-white/60 hover:border-white/25"}`}>
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+                        <button onClick={() => { setMode("own"); setOpenSection("photo"); }} className={`flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg text-xs font-bold transition active:scale-95 ${mode === "own" ? "bg-[#FF3C88] text-white shadow-[0_0_20px_rgba(255,60,136,0.25)]" : "text-white/60 hover:text-white"}`}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
                           Mi imagen
                         </button>
                       </div>
-                      <label className="mb-2 block text-[0.55rem] font-semibold text-white/50 uppercase tracking-widest">Apariencia</label>
+
+                      {/* Campo principal */}
+                      <label className="mb-2 block text-[0.55rem] font-semibold text-white/50 uppercase tracking-widest">Describe tu fantasía</label>
                       <textarea value={girlDesc} onChange={(e) => { setError(""); setGirlDesc(e.target.value); }}
-                        placeholder="Ej: Una enfermera de noche, pelo negro, mirada intensa, uniforme blanco ajustado..."
-                        rows={3}
+                        placeholder="Ej: Enfermera de noche, pelo negro, mirada intensa, uniforme blanco ajustado..."
+                        rows={4}
                         className="w-full rounded-xl border border-white/[0.10] bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-[#FF3C88]/50 resize-none transition-colors placeholder:text-white/20" />
-                      <label className="mb-2 mt-5 block text-[0.55rem] font-semibold text-white/50 uppercase tracking-widest">Roleplay (opcional)</label>
-                      <textarea value={roleplayDesc} onChange={(e) => { setError(""); setRoleplayDesc(e.target.value); }}
-                        placeholder="Ej: Me tiene atado a la cama del hospital, se sienta sobre mí..."
-                        rows={3}
-                        className="w-full rounded-xl border border-white/[0.10] bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-[#FF3C88]/50 resize-none transition-colors placeholder:text-white/20" />
-                      <label className="mb-2 mt-5 block text-[0.55rem] font-semibold text-white/50 uppercase tracking-widest">{mode === "own" ? "Elige tu imagen (será su foto de perfil)" : "Foto de referencia (opcional)"}</label>
-                      {refImage ? (
-                        <div className="relative">
-                          <img src={refImage} alt="Referencia" className="h-28 w-full rounded-xl object-cover object-top" />
-                          <button onClick={() => setRefImage(null)} className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-xs text-white">✕</button>
-                        </div>
-                      ) : (
-                        <label className="flex h-14 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-white/[0.15] text-xs text-white/50 transition hover:border-[#FF3C88]/40 hover:text-white/80">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
-                          {mode === "own" ? "Elegir una imagen" : "Subir foto para basar el personaje"}
-                          <input type="file" accept="image/*" className="hidden" onChange={handleRefUpload} />
-                        </label>
+
+                      {/* Roleplay plegable */}
+                      <button type="button" onClick={() => setOpenSection(openSection === "roleplay" ? null : "roleplay")}
+                        className="mt-4 flex w-full items-center justify-between rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 text-xs font-bold text-white/70 transition hover:text-white">
+                        <span className="flex items-center gap-2">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                          Roleplay (opcional)
+                        </span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-200 ${openSection === "roleplay" ? "rotate-180" : ""}`}><path d="m6 9 6 6 6-6"/></svg>
+                      </button>
+                      <AnimatePresence initial={false}>
+                        {openSection === "roleplay" && (
+                          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
+                            <textarea value={roleplayDesc} onChange={(e) => { setError(""); setRoleplayDesc(e.target.value); }}
+                              placeholder="Ej: Me tiene atado a la cama del hospital, se sienta sobre mí..."
+                              rows={3}
+                              className="mt-2 w-full rounded-xl border border-white/[0.10] bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-[#FF3C88]/50 resize-none transition-colors placeholder:text-white/20" />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      {/* Foto plegable (en "Mi imagen" siempre visible) */}
+                      {mode !== "own" && (
+                        <button type="button" onClick={() => setOpenSection(openSection === "photo" ? null : "photo")}
+                          className="mt-3 flex w-full items-center justify-between rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 text-xs font-bold text-white/70 transition hover:text-white">
+                          <span className="flex items-center gap-2">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+                            Foto de referencia (opcional)
+                          </span>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-200 ${openSection === "photo" ? "rotate-180" : ""}`}><path d="m6 9 6 6 6-6"/></svg>
+                        </button>
                       )}
+                      <AnimatePresence initial={false}>
+                        {(mode === "own" || openSection === "photo") && (
+                          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
+                            {refImage ? (
+                              <div className="relative mt-2">
+                                <img src={refImage} alt="Referencia" className="h-28 w-full rounded-xl object-cover object-top" />
+                                <button onClick={() => setRefImage(null)} className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-xs text-white">✕</button>
+                              </div>
+                            ) : (
+                              <label className="mt-2 flex h-14 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-white/[0.15] text-xs text-white/50 transition hover:border-[#FF3C88]/40 hover:text-white/80">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
+                                {mode === "own" ? "Elegir una imagen" : "Subir foto para basar el personaje"}
+                                <input type="file" accept="image/*" className="hidden" onChange={handleRefUpload} />
+                              </label>
+                            )}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
                       <button onClick={handleDescribeNext} disabled={(!girlDesc.trim() && !roleplayDesc.trim()) || (mode === "own" && !refImage)}
-                        className="btn-primary mt-4 h-10 w-full text-sm font-bold disabled:opacity-40 active:scale-95 transition-all">
+                        className="btn-primary mt-5 h-11 w-full text-sm font-bold disabled:opacity-40 active:scale-95 transition-all">
                         Siguiente →
                       </button>
                     </motion.div>
