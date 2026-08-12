@@ -324,6 +324,13 @@ Deno.serve(async (req) => {
               console.error("horde ref falla:", errH);
             }
           }
+          if (!img && cfAccount && cfToken) {
+            try {
+              img = await cloudflareWithRetry(prompt, cfAccount, cfToken);
+            } catch (errS) {
+              console.error("ref fallback schnell falla:", errS);
+            }
+          }
           if (!img) {
             return new Response(JSON.stringify({ error: "No se pudo crear con tu foto de referencia. Inténtalo de nuevo en unos segundos." }), {
               status: 500,
