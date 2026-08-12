@@ -100,12 +100,7 @@ async function fetchPollinations(prompt: string, width: number, height: number, 
 }
 
 async function pollinationsGenerate(prompt: string, width: number, height: number, seed: number): Promise<Uint8Array> {
-  try {
-    return await fetchPollinations(prompt, width, height, seed, "flux", 90000);
-  } catch (err) {
-    console.error("pollinations flux falla, usa sana:", err);
-    return await fetchPollinations(prompt, width, height, seed, "sana", 60000);
-  }
+  return await fetchPollinations(prompt, width, height, seed, "sana", 90000);
 }
 
 async function hordePoll(id: string): Promise<Uint8Array> {
