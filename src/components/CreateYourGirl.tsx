@@ -117,6 +117,8 @@ function hashString(s: string): number {
 
 function buildPrompt(desc: string): string {
   const words = desc.toLowerCase();
+  const EXPLICIT = /(desnud|topless|sin ropa|sin nada|al desnudo|sin sujetador|sin bragas|sin panties|en cueros|cuerpo desnudo|porno|sexo|follar|follando|masturba|polvo|corrida|penetraci)/;
+  const explicit = EXPLICIT.test(words);
 
   let subject = "beautiful adult woman";
   let famous = false;
@@ -167,7 +169,7 @@ function buildPrompt(desc: string): string {
     clothing = "silk baby doll nightie, lace trim";
   }
 
-  if (/(desnud|topless|sin ropa|sin nada|al desnudo|sin sujetador|sin bragas|sin panties|en cueros|cuerpo desnudo|porno|sexo|follar|masturba)/.test(words)) {
+  if (explicit) {
     clothing = "wearing only a lacy bra and matching high-waist panties, cleavage visible, nipples and pubic area properly covered";
   }
 
@@ -197,7 +199,8 @@ function buildPrompt(desc: string): string {
   else
     background = SETTINGS[hashString(words) % SETTINGS.length];
 
-  return `photorealistic RAW photo of ${desc}, a ${subject}, ${body}, ${clothing}. ` +
+  const head = explicit ? "a gorgeous playful adult woman" : desc;
+  return `photorealistic RAW photo of ${head}, a ${subject}, ${body}, ${clothing}. ` +
     `${framing}, background: ${background}, ` +
     `captured on a high-end smartphone camera, ` +
     `skin must look completely natural and authentic: visible individual pores, subtle skin irregularities, micro-texture, slight tone variations, tiny natural blemishes, very fine facial hair and small natural shine from skin oils, absolutely no plastic, airbrushed or doll-like skin, ` +
@@ -278,8 +281,8 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
       try {
         const blob = await generateGirlImage({ prompt, width: 1024, height: 1024, image: refImage || undefined });
         imageUrl = await compressImage(blob);
-      } catch {
-        setGenError("No se pudo generar la imagen. Comprueba tu conexión y pulsa Reintentar.");
+      } catch (err) {
+        setGenError(String((err as Error)?.message || "No se pudo generar la imagen. Comprueba tu conexión y pulsa Reintentar."));
         return;
       }
     }
