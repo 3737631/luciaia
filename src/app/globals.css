@@ -47,6 +47,32 @@ body {
 
 * { -webkit-tap-highlight-color: transparent; }
 
+html { scroll-behavior: smooth; }
+
+/* Micro-interacciones suaves estilo Apple */
+button, a, [role="button"], input, textarea, select, summary, label[for] {
+  transition: color 0.22s cubic-bezier(0.25, 0.1, 0.25, 1),
+              background-color 0.22s cubic-bezier(0.25, 0.1, 0.25, 1),
+              border-color 0.22s cubic-bezier(0.25, 0.1, 0.25, 1),
+              box-shadow 0.22s cubic-bezier(0.25, 0.1, 0.25, 1),
+              opacity 0.22s cubic-bezier(0.25, 0.1, 0.25, 1),
+              transform 0.22s cubic-bezier(0.25, 0.1, 0.25, 1),
+              filter 0.22s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+@media (prefers-color-scheme: dark) {
+  ::selection { background: var(--pink-glow); }
+}
+::selection { background: rgba(255,87,152,0.25); }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; -webkit-user-drag: none; pointer-events: none; }
 
 .container-nuvia {
