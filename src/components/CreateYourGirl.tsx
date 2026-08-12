@@ -431,8 +431,8 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                         <div className="mb-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs text-red-300">{error}</div>
                       )}
                       <div className="mb-3 grid grid-cols-2 gap-2">
-                        <button onClick={() => setMode("ai")} className={`flex h-10 items-center justify-center gap-1.5 rounded-xl border text-xs font-bold transition active:scale-95 ${mode === "ai" ? "border-[#FF3C88]/50 bg-[#FF3C88]/10 text-[#FF3C88]" : "border-white/[0.10] bg-white/[0.04] text-white/60 hover:border-white/25"}`}>✨ Crear con IA</button>
-                        <button onClick={() => setMode("own")} className={`flex h-10 items-center justify-center gap-1.5 rounded-xl border text-xs font-bold transition active:scale-95 ${mode === "own" ? "border-[#FF3C88]/50 bg-[#FF3C88]/10 text-[#FF3C88]" : "border-white/[0.10] bg-white/[0.04] text-white/60 hover:border-white/25"}`}>🖼️ Usar mi imagen</button>
+                        <button onClick={() => setMode("ai")} className={`h-10 rounded-xl border text-xs font-bold transition active:scale-95 ${mode === "ai" ? "border-[#FF3C88]/50 bg-[#FF3C88]/10 text-[#FF3C88]" : "border-white/[0.10] bg-white/[0.04] text-white/60 hover:border-white/25"}`}>Crear con IA</button>
+                        <button onClick={() => setMode("own")} className={`h-10 rounded-xl border text-xs font-bold transition active:scale-95 ${mode === "own" ? "border-[#FF3C88]/50 bg-[#FF3C88]/10 text-[#FF3C88]" : "border-white/[0.10] bg-white/[0.04] text-white/60 hover:border-white/25"}`}>Mi imagen</button>
                       </div>
                       <label className="mb-1.5 block text-[0.55rem] font-semibold text-white/50 uppercase tracking-widest">Apariencia</label>
                       <textarea value={girlDesc} onChange={(e) => { setError(""); setGirlDesc(e.target.value); }}
@@ -468,10 +468,10 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                     <motion.div key="personality" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
                       <div className="grid grid-cols-2 gap-2.5">
                         {[
-                          { value: "carinosa", label: "Cariñosa", icon: "🥰", desc: "Dulce, cercana, siempre pendiente" },
-                          { value: "atrevida", label: "Atrevida", icon: "🔥", desc: "Directa, juguetona, te engancha" },
-                          { value: "timida", label: "Tímida", icon: "💕", desc: "Vergonzosa pero intensa" },
-                          { value: "dominante", label: "Dominante", icon: "👑", desc: "Sabe lo que quiere, lidera" },
+                          { value: "carinosa", label: "Cariñosa", desc: "Dulce, cercana, siempre pendiente" },
+                          { value: "atrevida", label: "Atrevida", desc: "Directa, juguetona, te engancha" },
+                          { value: "timida", label: "Tímida", desc: "Vergonzosa pero intensa" },
+                          { value: "dominante", label: "Dominante", desc: "Sabe lo que quiere, lidera" },
                         ].map((p) => (
                           <button key={p.value} onClick={() => setSelectedPersonality(p.value)}
                             className={`rounded-xl border p-3.5 text-left transition-all active:scale-95 ${
@@ -479,8 +479,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                                 ? "border-[#FF3C88]/40 bg-[#FF3C88]/10 text-white shadow-[0_0_20px_rgba(255,60,136,0.15)]"
                                 : "border-white/[0.10] bg-white/[0.04] text-white/70 hover:border-white/25"
                             }`}>
-                            <span className="text-xl">{p.icon}</span>
-                            <p className="mt-1 text-sm font-bold">{p.label}</p>
+                            <p className="text-sm font-bold">{p.label}</p>
                             <p className="mt-0.5 text-[0.5rem] text-white/50">{p.desc}</p>
                           </button>
                         ))}
