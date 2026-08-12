@@ -246,7 +246,7 @@ function buildPrompt(desc: string, maxSafe = false): string {
   const head = explicit ? (safeDesc || "a gorgeous playful adult woman") : desc;
   return `photorealistic RAW photo of ${head}, a ${subject}, ${hair}, ${body}, ${clothing}. ` +
     `${scene}${framing}, background: ${background}, ` +
-    `captured on a high-end smartphone camera, detailed skin texture with realistic pores and natural skin tone variations, soft cinematic light, natural facial features, realistic shallow depth of field, candid natural expression`;
+    `captured on a full-frame mirrorless camera with an 85mm f/1.4 lens, detailed realistic skin texture with visible pores and natural skin tone variations, soft cinematic light, natural facial features, realistic shallow depth of field, subtle film grain, candid natural expression`;
 }
 
 type WizardStep = "describe" | "personality" | "generating" | "done";
