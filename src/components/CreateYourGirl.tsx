@@ -274,6 +274,14 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
     }
   }, [open]);
 
+  useEffect(() => {
+    if (open) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => { document.body.style.overflow = prev; };
+    }
+  }, [open]);
+
   function handleDescribeNext() {
     setError("");
     if (!girlDesc.trim() && !roleplayDesc.trim()) return;
@@ -381,13 +389,13 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
             onClick={onClose}
           />
           <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 pb-6 sm:items-center sm:py-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="nuvia-modal-scroll flex flex-col w-full max-w-[520px] rounded-2xl border border-white/[0.06] bg-[#101018] shadow-[0_24px_80px_rgba(0,0,0,0.55)]"
+              className="nuvia-modal-scroll my-auto flex w-full max-w-[520px] flex-col rounded-2xl border border-white/[0.06] bg-[#101018] shadow-[0_24px_80px_rgba(0,0,0,0.55)]"
               style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.03), transparent 40%), #101018" }}
               initial={{ opacity: 0, scale: 0.94, y: 24 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -578,7 +586,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                 </AnimatePresence>
 
                 {/* Custom creations */}
-                {customGirls.length > 0 && (
+                {step === "done" && customGirls.length > 0 && (
                   <div className="mt-5 border-t border-white/[0.06] pt-4">
                     <h4 className="mb-3 text-xs font-bold text-white/60 uppercase tracking-widest">Tus creaciones</h4>
                     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
