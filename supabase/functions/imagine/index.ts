@@ -133,7 +133,7 @@ async function hordeGenerate(prompt: string, width: number, height: number, seed
       steps: 20,
       sampler_name: "k_euler",
       cfg_scale: 6,
-      seed,
+      seed: String(seed),
     },
     nsfw: false,
     censor_nsfw: true,
