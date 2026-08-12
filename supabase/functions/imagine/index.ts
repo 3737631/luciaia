@@ -157,7 +157,69 @@ async function hordeGenerate(prompt: string, width: number, height: number, seed
   return await hordePoll(json.id);
 }
 
+async function siliconflowGenerate(prompt: string, apiKey: string, model: string): Promise<Uint8Array> {
+  const body: Record<string, unknown> = { model, prompt };
+  if (model === "Qwen/Qwen-Image") {
+    body.image_size = "1328x1328";
+    body.num_inference_steps = 50;
+  } else {
+    body.image_size = "1024x1024";
+    body.num_inference_steps = 25;
+  }
+  const res = await fetch("https://api.siliconflow.com/v1/images/generations", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify(body),
+  });
+  const j = await res.json() as { code?: number; message?: string; images?: { url?: string }[] };
+  if (j.code && j.message) {
+    if (j.code === 40001 || j.code === 401) throw new Error("siliconflow: key no válida");
+    throw new Error(`siliconflow ${j.code}: ${j.message}`);
+  }
+  const url = j.images?.[0]?.url;
+  if (!url) throw new Error("siliconflow: sin URL de imagen");
+  const img = await fetch(url);
+  if (!img.ok) throw new Error(`siliconflow img ${img.status}`);
+  return new Uint8Array(await img.arrayBuffer());
+}
+
+async function siliconflowRef(prompt: string, imageDataUrl: string, apiKey: string): Promise<Uint8Array> {
+  const b64 = imageDataUrl.includes(",") ? imageDataUrl : `data:image/jpeg;base64,${imageDataUrl}`;
+  const identityPrompt = "Use the reference image as the exact identity: the woman in the result has exactly the same face as the reference image, same facial features, same identity, keep her face identical. " + prompt;
+  const body = {
+    model: "black-forest-labs/FLUX.1-Kontext-dev",
+    prompt: identityPrompt,
+    images: [b64],
+    image_size: "1024x1024",
+  };
+  const res = await fetch("https://api.siliconflow.com/v1/images/generations", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify(body),
+  });
+  const j = await res.json() as { code?: number; message?: string; images?: { url?: string }[] };
+  if (j.code && j.message) throw new Error(`siliconflow-ref ${j.code}: ${j.message}`);
+  const url = j.images?.[0]?.url;
+  if (!url) throw new Error("siliconflow-ref: sin URL de imagen");
+  const img = await fetch(url);
+  if (!img.ok) throw new Error(`siliconflow-ref img ${img.status}`);
+  return new Uint8Array(await img.arrayBuffer());
+}
+
 async function realismWithFallback(prompt: string, width: number, height: number, seed: number): Promise<Uint8Array> {
+  const sfKey = Deno.env.get("SILICONFLOW_API_KEY") ?? "";
+  if (sfKey) {
+    try {
+      return await siliconflowGenerate(prompt, sfKey, "black-forest-labs/FLUX.1-dev");
+    } catch (errS) {
+      console.error("siliconflow flux-dev falla:", errS);
+      try {
+        return await siliconflowGenerate(prompt, sfKey, "Qwen/Qwen-Image");
+      } catch (errQ) {
+        console.error("siliconflow qwen-image falla:", errQ);
+      }
+    }
+  }
   const hordeEnabled = Deno.env.get("HORDE_ENABLED") === "true";
   if (hordeEnabled) {
     const hordeKey = Deno.env.get("HORDE_API_KEY") ?? "";
@@ -276,13 +338,23 @@ Deno.serve(async (req) => {
         } catch (errC2) {
           if (isModerationError(errC2)) return notAllowedResponse();
           console.error("cf-ref falla dos veces:", errC2);
-          const hordeEnabled = Deno.env.get("HORDE_ENABLED") === "true";
-          const hordeKey = Deno.env.get("HORDE_API_KEY") ?? "";
-          if (hordeEnabled && hordeKey) {
+          const sfKey = Deno.env.get("SILICONFLOW_API_KEY") ?? "";
+          if (sfKey) {
             try {
-              img = await hordeGenerate(prompt, width, height, seed, hordeKey, refImage);
-            } catch (errH) {
-              console.error("horde ref falla:", errH);
+              img = await siliconflowRef(prompt, refImage, sfKey);
+            } catch (errSF) {
+              console.error("siliconflow ref falla:", errSF);
+            }
+          }
+          if (!img) {
+            const hordeEnabled = Deno.env.get("HORDE_ENABLED") === "true";
+            const hordeKey = Deno.env.get("HORDE_API_KEY") ?? "";
+            if (hordeEnabled && hordeKey) {
+              try {
+                img = await hordeGenerate(prompt, width, height, seed, hordeKey, refImage);
+              } catch (errH) {
+                console.error("horde ref falla:", errH);
+              }
             }
           }
           if (!img) {
