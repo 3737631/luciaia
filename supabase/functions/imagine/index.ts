@@ -186,27 +186,6 @@ async function hfGenerate(prompt: string, width: number, height: number, token: 
   return new Uint8Array(await res.arrayBuffer());
 }
 
-async function geminiGenerate(prompt: string, key: string): Promise<Uint8Array> {
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { responseModalities: ["IMAGE"] },
-    }),
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`gemini ${res.status}: ${text.slice(0, 200)}`);
-  }
-  const json = await res.json();
-  const parts = json?.candidates?.[0]?.content?.parts || [];
-  const part = parts.find((p: { inlineData?: { data?: string } }) => p.inlineData?.data);
-  const b64 = part?.inlineData?.data;
-  if (!b64) throw new Error("gemini: no se obtuvo imagen");
-  return Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-}
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -255,7 +234,6 @@ Deno.serve(async (req) => {
     }
 
     const falKey = Deno.env.get("FAL_KEY");
-    const geminiKey = Deno.env.get("GEMINI_API_KEY");
     if (refImage && cfAccount && cfToken) {
       try {
         img = await cloudflareRefGenerate(prompt, refImage, cfAccount, cfToken);
@@ -271,27 +249,6 @@ Deno.serve(async (req) => {
             status: 500,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
-        }
-      }
-    } else if (geminiKey) {
-      try {
-        img = await geminiGenerate(prompt, geminiKey);
-      } catch (errG) {
-        console.error("gemini falla, cf:", errG);
-        try {
-          if (cfAccount && cfToken) {
-            img = await cloudflareWithRetry(prompt, cfAccount, cfToken);
-          } else {
-            await tryPollinationsThenRest();
-          }
-        } catch (errC) {
-          console.error("cf falla, pollinations:", errC);
-          try {
-            await tryPollinationsThenRest();
-          } catch (errP) {
-            if (isModerationError(errC)) return notAllowedResponse();
-            throw errP;
-          }
         }
       }
     } else if (falKey) {
