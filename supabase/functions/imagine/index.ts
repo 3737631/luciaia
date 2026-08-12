@@ -108,6 +108,33 @@ async function pollinationsGenerate(prompt: string, width: number, height: numbe
   }
 }
 
+async function pollinationsRealismGenerate(prompt: string, width: number, height: number, seed: number): Promise<Uint8Array> {
+  let lastErr: unknown;
+  for (let i = 0; i < 2; i++) {
+    if (i > 0) await new Promise((r) => setTimeout(r, 1500));
+    try {
+      return await fetchPollinations(prompt, width, height, seed, "flux-realism", 90000);
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  throw lastErr;
+}
+
+async function realismWithFallback(prompt: string, width: number, height: number, seed: number, accountId: string, token: string): Promise<Uint8Array> {
+  try {
+    return await pollinationsRealismGenerate(prompt, width, height, seed);
+  } catch (errR) {
+    console.error("flux-realism falla, usa cf:", errR);
+    try {
+      return await cloudflareWithRetry(prompt, accountId, token);
+    } catch (errC) {
+      console.error("cf falla, pollinations:", errC);
+      return await pollinationsGenerate(prompt, width, height, seed);
+    }
+  }
+}
+
 async function cloudflareGenerate(prompt: string, accountId: string, token: string): Promise<Uint8Array> {
   const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/black-forest-labs/flux-1-schnell`, {
     method: "POST",
@@ -258,7 +285,7 @@ Deno.serve(async (req) => {
         console.error("fal falla:", err);
         try {
           if (cfAccount && cfToken) {
-            img = await cloudflareWithRetry(prompt, cfAccount, cfToken);
+            img = await realismWithFallback(prompt, width, height, seed, cfAccount, cfToken);
           } else {
             await tryPollinationsThenRest();
           }
@@ -274,7 +301,7 @@ Deno.serve(async (req) => {
       }
     } else if (cfAccount && cfToken) {
       try {
-        img = await cloudflareWithRetry(prompt, cfAccount, cfToken);
+        img = await realismWithFallback(prompt, width, height, seed, cfAccount, cfToken);
       } catch (errC) {
         console.error("cf falla, pollinations:", errC);
         try {
