@@ -106,11 +106,19 @@ function pollinationsModelList(): string[] {
   return DEFAULT_POLLINATIONS_MODELS;
 }
 
-function fetchPollinations(prompt: string, width: number, height: number, seed: number, model: string, timeoutMs: number): Promise<Uint8Array> {
-  const url = `https://gen.pollinations.ai/image/${encodeURIComponent(prompt)}?model=${encodeURIComponent(model)}&width=${width}&height=${height}&seed=${seed}&safe=false&nologo=true`;
+async function fetchPollinations(prompt: string, width: number, height: number, seed: number, model: string, timeoutMs: number): Promise<Uint8Array> {
+  // Si hay API key, se usa el endpoint gestionado; si no, el público gratuito.
+  const apiKey = Deno.env.get("POLLINATIONS_API_KEY");
+  const base = apiKey ? "https://gen.pollinations.ai" : "https://image.pollinations.ai/prompt";
+  const params = encodeURIComponent(prompt);
+  const url = apiKey
+    ? `${base}/image/${params}?model=${encodeURIComponent(model)}&width=${width}&height=${height}&seed=${seed}&safe=false&nologo=true`
+    : `${base}/${params}?model=${encodeURIComponent(model)}&width=${width}&height=${height}&seed=${seed}&nologo=true`;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
-  return fetch(url, { redirect: "follow", signal: controller.signal })
+  const headers: Record<string, string> = {};
+  if (apiKey) headers["Authorization"] = `Bearer ${apiKey}`;
+  return fetch(url, { redirect: "follow", signal: controller.signal, headers })
     .then(async (res) => {
       if (!res.ok) {
         const text = await res.text().catch(() => "");
@@ -126,7 +134,7 @@ async function pollinationsGenerate(prompt: string, width: number, height: numbe
   const models = pollinationsModelList();
   let lastError: string | null = null;
   // nanobanana/seedream pueden tardar más que "sana".
-  const perModelTimeout = 120000;
+  const perModelTimeout = 90000;
   for (const model of models) {
     try {
       const out = await fetchPollinations(prompt, width, height, seed, model, perModelTimeout);
