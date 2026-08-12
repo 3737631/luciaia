@@ -358,7 +358,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
     for (let attempt = 0; attempt < 3; attempt++) {
       const p = attempt === 0 ? prompt : attempt === 1 ? buildPrompt(girlDesc || roleplayDesc, true) : buildPrompt("", true);
       try {
-        const blob = await generateGirlImage({ prompt: p, width: 1024, height: 1024, image: refImage || undefined });
+        const blob = await generateGirlImage({ prompt: p, width: 1024, height: 1536, image: refImage || undefined });
         imageUrl = await compressImage(blob);
         break;
       } catch (err) {

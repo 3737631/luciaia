@@ -83,24 +83,61 @@ async function nscaleGenerate(prompt: string, width: number, height: number, see
   throw new Error(lastError || "nscale falló");
 }
 
-async function fetchPollinations(prompt: string, width: number, height: number, seed: number, model: string, timeoutMs: number): Promise<Uint8Array> {
-  const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${Math.min(width, 1024)}&height=${Math.min(height, 1024)}&model=${model}&seed=${seed}&nologo=true`;
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const res = await fetch(url, { redirect: "follow", signal: controller.signal });
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`pollinations ${model} ${res.status}: ${text.slice(0, 200)}`);
-    }
-    return new Uint8Array(await res.arrayBuffer());
-  } finally {
-    clearTimeout(timer);
+// Modelos de Pollinations priorizados por calidad.
+// Configurable por variables de entorno:
+//  - POLLINATIONS_MODEL: fuerza un único modelo (p.ej. "nanobanana-2").
+//  - POLLINATIONS_MODELS: lista ordenada separada por comas (p.ej. "nanobanana-2,nanobanana-pro,seedream5").
+const DEFAULT_POLLINATIONS_MODELS = [
+  "nanobanana-2",
+  "nanobanana-pro",
+  "seedream5",
+  "gpt-image-2",
+  "flux",
+];
+
+function pollinationsModelList(): string[] {
+  const single = Deno.env.get("POLLINATIONS_MODEL");
+  if (single) return [single];
+  const csv = Deno.env.get("POLLINATIONS_MODELS");
+  if (csv) {
+    const list = csv.split(",").map((m) => m.trim()).filter(Boolean);
+    if (list.length) return list;
   }
+  return DEFAULT_POLLINATIONS_MODELS;
 }
 
+function fetchPollinations(prompt: string, width: number, height: number, seed: number, model: string, timeoutMs: number): Promise<Uint8Array> {
+  const url = `https://gen.pollinations.ai/image/${encodeURIComponent(prompt)}?model=${encodeURIComponent(model)}&width=${width}&height=${height}&seed=${seed}&safe=false&nologo=true`;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { redirect: "follow", signal: controller.signal })
+    .then(async (res) => {
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(`pollinations ${model} ${res.status}: ${text.slice(0, 200)}`);
+      }
+      return new Uint8Array(await res.arrayBuffer());
+    })
+    .finally(() => clearTimeout(timer));
+}
+
+// Prueba cada modelo de la lista hasta que uno responda.
 async function pollinationsGenerate(prompt: string, width: number, height: number, seed: number): Promise<Uint8Array> {
-  return await fetchPollinations(prompt, width, height, seed, "sana", 90000);
+  const models = pollinationsModelList();
+  let lastError: string | null = null;
+  // nanobanana/seedream pueden tardar más que "sana".
+  const perModelTimeout = 120000;
+  for (const model of models) {
+    try {
+      const out = await fetchPollinations(prompt, width, height, seed, model, perModelTimeout);
+      if (out.length > 0) return out;
+      throw new Error(`pollinations ${model}: imagen vacía`);
+    } catch (err) {
+      lastError = String((err as Error)?.message || err);
+      console.error(`pollinations modelo ${model} falla:`, lastError);
+    }
+  }
+  throw new Error(lastError || "pollinations: todos los modelos fallaron");
 }
 
 async function hordePoll(id: string): Promise<Uint8Array> {
@@ -274,6 +311,72 @@ async function hfGenerate(prompt: string, width: number, height: number, token: 
   return new Uint8Array(await res.arrayBuffer());
 }
 
+function promptHash(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+function baseHair(p: string): string {
+  const w = p.toLowerCase();
+  if (/(rubia|rubio|blond|golden)/.test(w)) return "long blonde hair with natural dimension and subtle root variation";
+  if (/(pelirroja|pelirrojo|redhead)/.test(w)) return "long auburn hair with natural copper tones, softly layered";
+  if (/(negra|negro|pelo negro|black hair)/.test(w)) return "long dark black hair with natural sheen and fine flyaways";
+  if (/(morena|moreno|brunet|casta[nÑ]a)/.test(w)) return "natural dark brown hair, softly textured with visible strands";
+  return "natural hair with visible individual strands and a few fine baby hairs around the hairline";
+}
+
+function sceneLighting(p: string): string {
+  const w = p.toLowerCase();
+  if (/(ducha|ba[nÑ]era|bath|shower)/.test(w))
+    return "diffuse warm bathroom light with soft reflections on slightly wet skin and natural shadow gradients";
+  if (/(playa|arena|mar|piscina|tropical|verano)/.test(w))
+    return "golden-hour sunlight, warm natural tones, gentle sky reflections, believable soft shadows";
+  if (/(nike|sudadera|street|calle|urbano|neon)/.test(w))
+    return "city street lighting at dusk, mixed tungsten and soft neon glow, physically plausible highlights";
+  if (/(cama|acostada|hotel|habitaci[oÓ]n|boudoir|dormitorio)/.test(w))
+    return "soft warm ambient light with gentle window falloff, natural shadow variation across the face and body";
+  if (/(gimnasio|gym|yoga|deporte)/.test(w))
+    return "overhead gym lighting, clean directional key light, believable fill and natural shadow contrast";
+  return "natural soft daylight from a window, gentle directional light, believable soft shadows and physical highlight response";
+}
+
+function cameraRig(p: string): string {
+  const w = p.toLowerCase();
+  if (/(espejo|selfi|mirror)/.test(w))
+    return "natural smartphone-style selfie framing, slightly imperfect, realistic wide-angle near a mirror, natural perspective";
+  if (/(ducha|ba[nÑ]era|bath|shower)/.test(w))
+    return "realistic full-frame photography, natural 35mm lens, medium close-up, believable shallow depth of field";
+  if (/(caminando|paseando|bailando|baile)/.test(w))
+    return "realistic full-frame photography, natural motion capture, 85mm lens, believable depth of field and natural perspective";
+  const shots = [
+    "realistic full-frame photography, natural 50mm lens at f/2.8, shallow depth of field, subtle background separation, natural perspective",
+    "realistic full-frame photography, natural 85mm lens at f/2, soft background compression, believable depth of field",
+  ];
+  return shots[promptHash(w) % shots.length];
+}
+
+// Convierte la descripción en un prompt fotográfico estructurado y adaptado a cada personaje.
+// El texto del usuario se conserva literalmente; se añade realismo en capas separadas.
+function buildPhotoPrompt(userPrompt: string): string {
+  const base = userPrompt.trim();
+  const lighting = sceneLighting(base);
+  const camera = cameraRig(base);
+  const hair = baseHair(base);
+
+  return `${base}.
+
+Características físicas: ${hair}, natural facial asymmetry, anatomically correct proportions, natural hands with correctly formed fingers, aligned natural eyes, realistic teeth and ears.
+
+Textura de piel realista: visible pores, fine natural skin microtexture, subtle natural imperfections, slight natural tone variation across the face, fine texture around the eyes, nose and lips, natural subsurface scattering, physically plausible skin reflections, subtle expression lines, individual eyelashes and brows, natural lip texture, moist eyes and lips, organic non-uniform skin.
+
+Iluminación fotográfica: ${lighting}, natural exposure without burnt highlights, believable contrast, physically plausible light with natural shadow variation on the skin.
+
+Cámara y composición: ${camera}, natural framing, believable proportions, natural color response.
+
+Realismo: authentic candid photography look, true-to-life color, no excessive HDR, no oversharpening, no heavy retouching. Avoid plastic skin, wax skin, doll-like face, mannequin appearance, CGI look, 3D render, videogame character, overly smooth skin, artificial symmetry, porcelain skin, airbrushed skin, synthetic hair, cartoon or illustration appearance.`;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -281,11 +384,11 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json();
-    const prompt = String(body.prompt || "").trim();
-    const width = Math.min(2048, Math.max(256, Number(body.width) || 896));
-    const height = Math.min(2048, Math.max(256, Number(body.height) || 1152));
+    const rawPrompt = String(body.prompt || "").trim();
+    const width = Math.min(2048, Math.max(256, Number(body.width) || 1024));
+    const height = Math.min(2048, Math.max(256, Number(body.height) || 1536));
 
-    if (!prompt) {
+    if (!rawPrompt) {
       return new Response(JSON.stringify({ error: "Prompt vacío" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -302,6 +405,9 @@ Deno.serve(async (req) => {
 
     const seed = Number(body.seed) || Math.floor(Math.random() * 1e9);
     const refImage = typeof body.image === "string" ? body.image : "";
+
+    // Prompt fotográfico profesional, conservando la intención del usuario.
+    const prompt = buildPhotoPrompt(String(body.prompt || "").trim());
 
     let img: Uint8Array;
     const cfAccount = Deno.env.get("CF_ACCOUNT_ID");
