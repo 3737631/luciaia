@@ -108,56 +108,69 @@ async function pollinationsGenerate(prompt: string, width: number, height: numbe
   }
 }
 
-async function cloudflareFlux2Dev(prompt: string, accountId: string, token: string): Promise<Uint8Array> {
-  const form = new FormData();
-  form.append("prompt", prompt);
-  form.append("num_steps", "25");
-  form.append("width", "1024");
-  form.append("height", "1024");
-  const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/black-forest-labs/flux-2-dev`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
-    body: form,
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`cf-dev ${res.status}: ${text.slice(0, 200)}`);
-  }
-  const json = await res.json() as { success: boolean; errors?: { message?: string }[]; result?: { image?: string } };
-  if (json.success !== true) {
-    throw new Error(`cf-dev ${json.errors?.[0]?.message || "error de Cloudflare"}`);
-  }
-  const b64 = json.result?.image;
-  if (!b64) throw new Error("cf-dev: no se obtuvo imagen");
-  return Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-}
-
-async function cloudflareFlux2DevWithRetry(prompt: string, accountId: string, token: string): Promise<Uint8Array> {
-  let lastErr: unknown;
-  for (let i = 0; i < 4; i++) {
-    if (i > 0) await new Promise((r) => setTimeout(r, 1200));
-    try {
-      return await cloudflareFlux2Dev(prompt, accountId, token);
-    } catch (err) {
-      lastErr = err;
-      if (isModerationError(err)) continue;
-      throw err;
+async function hordePoll(id: string): Promise<Uint8Array> {
+  const deadline = Date.now() + 120000;
+  while (Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, 5000));
+    const st = await fetch(`https://stablehorde.net/api/v2/generate/status/${id}`, { headers: { "Accept": "application/json" } });
+    const j = await st.json() as { done?: boolean; generations?: { img?: string; faulted?: boolean }[] };
+    if (j.done) {
+      const gen = j.generations?.[0];
+      if (!gen) throw new Error("horde: sin resultado");
+      if (gen.faulted) throw new Error("horde: imagen con fallo");
+      return Uint8Array.from(atob(gen.img!), (c) => c.charCodeAt(0));
     }
   }
-  throw lastErr;
+  throw new Error("horde: timeout 120s");
+}
+
+async function hordeGenerate(prompt: string, width: number, height: number, seed: number, apikey: string, sourceImage?: string): Promise<Uint8Array> {
+  const body: Record<string, unknown> = {
+    prompt,
+    params: {
+      width: Math.min(width, 1024),
+      height: Math.min(height, 1024),
+      steps: 20,
+      sampler_name: "k_euler",
+      cfg_scale: 6,
+      seed,
+    },
+    nsfw: false,
+    censor_nsfw: true,
+    models: ["Juggernaut XL"],
+  };
+  if (sourceImage) {
+    const b64 = sourceImage.includes(",") ? sourceImage.split(",")[1] : sourceImage;
+    body.source_image = b64;
+    (body.params as Record<string, unknown>).denoising_strength = 0.85;
+  }
+  const res = await fetch("https://stablehorde.net/api/v2/generate/async", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", apikey },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    throw new Error(`horde ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  }
+  const json = await res.json() as { id?: string };
+  if (!json.id) throw new Error("horde: sin id de tarea");
+  return await hordePoll(json.id);
 }
 
 async function realismWithFallback(prompt: string, width: number, height: number, seed: number, accountId: string, token: string): Promise<Uint8Array> {
-  try {
-    return await cloudflareFlux2DevWithRetry(prompt, accountId, token);
-  } catch (err2) {
-    console.error("flux-2-dev falla, usa schnell:", err2);
+  const hordeKey = Deno.env.get("HORDE_API_KEY") ?? "";
+  if (hordeKey) {
     try {
-      return await cloudflareWithRetry(prompt, accountId, token);
-    } catch (errC) {
-      console.error("schnell falla, pollinations:", errC);
-      return await pollinationsGenerate(prompt, width, height, seed);
+      return await hordeGenerate(prompt, width, height, seed, hordeKey);
+    } catch (errH) {
+      console.error("horde falla, usa schnell:", errH);
     }
+  }
+  try {
+    return await cloudflareWithRetry(prompt, accountId, token);
+  } catch (errC) {
+    console.error("schnell falla, pollinations:", errC);
+    return await pollinationsGenerate(prompt, width, height, seed);
   }
 }
 
@@ -299,10 +312,23 @@ Deno.serve(async (req) => {
         } catch (errC2) {
           if (isModerationError(errC2)) return notAllowedResponse();
           console.error("cf-ref falla dos veces:", errC2);
-          return new Response(JSON.stringify({ error: "No se pudo crear con tu foto de referencia. Inténtalo de nuevo en unos segundos." }), {
-            status: 500,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
+          const hordeKey = Deno.env.get("HORDE_API_KEY") ?? "";
+          if (hordeKey) {
+            try {
+              img = await hordeGenerate(prompt, width, height, seed, hordeKey, refImage);
+            } catch (errH) {
+              console.error("horde ref falla:", errH);
+              return new Response(JSON.stringify({ error: "No se pudo crear con tu foto de referencia. Inténtalo de nuevo en unos segundos." }), {
+                status: 500,
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+              });
+            }
+          } else {
+            return new Response(JSON.stringify({ error: "No se pudo crear con tu foto de referencia. Inténtalo de nuevo en unos segundos." }), {
+              status: 500,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
         }
       }
     } else if (falKey) {
