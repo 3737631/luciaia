@@ -83,15 +83,16 @@ async function nscaleGenerate(prompt: string, width: number, height: number, see
   throw new Error(lastError || "nscale falló");
 }
 
-// Modelos de Pollinations priorizados por calidad.
+// Modelos de Pollinations priorizados por calidad y fotorrealismo para personas.
 // Configurable por variables de entorno:
-//  - POLLINATIONS_MODEL: fuerza un único modelo (p.ej. "nanobanana-2").
-//  - POLLINATIONS_MODELS: lista ordenada separada por comas (p.ej. "nanobanana-2,nanobanana-pro,seedream5").
+//  - POLLINATIONS_MODEL: fuerza un único modelo (p.ej. "seedream5").
+//  - POLLINATIONS_MODELS: lista ordenada separada por comas.
 const DEFAULT_POLLINATIONS_MODELS = [
-  "nanobanana-2",
-  "nanobanana-pro",
   "seedream5",
+  "seedream5-pro",
   "gpt-image-2",
+  "nanobanana-pro",
+  "nanobanana-2",
   "flux",
 ];
 
