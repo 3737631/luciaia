@@ -289,13 +289,13 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
     reader.onload = () => {
       const img = new Image();
       img.onload = () => {
-        const maxW = 768;
+        const maxW = 1024;
         const scale = Math.min(1, maxW / img.width);
         const canvas = document.createElement("canvas");
         canvas.width = Math.round(img.width * scale);
         canvas.height = Math.round(img.height * scale);
         canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
-        setRefImage(canvas.toDataURL("image/jpeg", 0.7));
+        setRefImage(canvas.toDataURL("image/jpeg", 0.9));
       };
       img.src = String(reader.result);
     };

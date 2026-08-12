@@ -151,7 +151,7 @@ async function cloudflareRefGenerate(prompt: string, imageDataUrl: string, accou
   const refBlob = new Blob([bytes], { type: "image/jpeg" });
   form.append("image", refBlob, "ref.jpg");
   form.append("image", refBlob, "ref2.jpg");
-  form.append("image_strength", "0.6");
+  form.append("image_strength", "0.9");
   const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/black-forest-labs/flux-2-klein-4b`, {
     method: "POST",
     headers: { "Authorization": `Bearer ${token}` },
