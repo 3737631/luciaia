@@ -108,14 +108,40 @@ async function pollinationsGenerate(prompt: string, width: number, height: numbe
   }
 }
 
-async function pollinationsRealismGenerate(prompt: string, width: number, height: number, seed: number): Promise<Uint8Array> {
+async function cloudflareFlux2Dev(prompt: string, accountId: string, token: string): Promise<Uint8Array> {
+  const form = new FormData();
+  form.append("prompt", prompt);
+  form.append("num_steps", "25");
+  form.append("width", "1024");
+  form.append("height", "1024");
+  const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/black-forest-labs/flux-2-dev`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: form,
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`cf-dev ${res.status}: ${text.slice(0, 200)}`);
+  }
+  const json = await res.json() as { success: boolean; errors?: { message?: string }[]; result?: { image?: string } };
+  if (json.success !== true) {
+    throw new Error(`cf-dev ${json.errors?.[0]?.message || "error de Cloudflare"}`);
+  }
+  const b64 = json.result?.image;
+  if (!b64) throw new Error("cf-dev: no se obtuvo imagen");
+  return Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+}
+
+async function cloudflareFlux2DevWithRetry(prompt: string, accountId: string, token: string): Promise<Uint8Array> {
   let lastErr: unknown;
-  for (let i = 0; i < 2; i++) {
-    if (i > 0) await new Promise((r) => setTimeout(r, 1500));
+  for (let i = 0; i < 4; i++) {
+    if (i > 0) await new Promise((r) => setTimeout(r, 1200));
     try {
-      return await fetchPollinations(prompt, width, height, seed, "flux-realism", 90000);
+      return await cloudflareFlux2Dev(prompt, accountId, token);
     } catch (err) {
       lastErr = err;
+      if (isModerationError(err)) continue;
+      throw err;
     }
   }
   throw lastErr;
@@ -123,13 +149,13 @@ async function pollinationsRealismGenerate(prompt: string, width: number, height
 
 async function realismWithFallback(prompt: string, width: number, height: number, seed: number, accountId: string, token: string): Promise<Uint8Array> {
   try {
-    return await pollinationsRealismGenerate(prompt, width, height, seed);
-  } catch (errR) {
-    console.error("flux-realism falla, usa cf:", errR);
+    return await cloudflareFlux2DevWithRetry(prompt, accountId, token);
+  } catch (err2) {
+    console.error("flux-2-dev falla, usa schnell:", err2);
     try {
       return await cloudflareWithRetry(prompt, accountId, token);
     } catch (errC) {
-      console.error("cf falla, pollinations:", errC);
+      console.error("schnell falla, pollinations:", errC);
       return await pollinationsGenerate(prompt, width, height, seed);
     }
   }
@@ -179,7 +205,8 @@ async function cloudflareRefGenerate(prompt: string, imageDataUrl: string, accou
   form.append("image", refBlob, "ref.jpg");
   form.append("image", refBlob, "ref2.jpg");
   form.append("image_strength", "0.9");
-  const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/black-forest-labs/flux-2-klein-4b`, {
+  form.append("num_steps", "25");
+  const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/black-forest-labs/flux-2-klein-9b`, {
     method: "POST",
     headers: { "Authorization": `Bearer ${token}` },
     body: form,
