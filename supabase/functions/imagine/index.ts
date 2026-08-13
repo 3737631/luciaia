@@ -225,6 +225,23 @@ async function siliconflowGenerate(prompt: string, apiKey: string, model: string
   return new Uint8Array(await img.arrayBuffer());
 }
 
+async function novitaGenerate(prompt: string, width: number, height: number, seed: number, apiKey: string): Promise<Uint8Array> {
+  const model = Deno.env.get("NOVITA_MODEL") ?? "bytedance/seedream-4-0";
+  const res = await fetch("https://api.novita.ai/v3/images/generations", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({ model, prompt, image_size: `${width}x${height}`, seed, num_images: 1 }),
+  });
+  const j = await res.json() as { data?: { b64_json?: string; url?: string }[]; message?: string };
+  if (!res.ok) throw new Error(`novita ${res.status}: ${String(j.message ?? "").slice(0, 200)}`);
+  const out = j.data?.[0];
+  if (!out) throw new Error("novita: sin imagen");
+  if (out.b64_json) return Uint8Array.from(atob(out.b64_json), (c) => c.charCodeAt(0));
+  const img = await fetch(out.url!);
+  if (!img.ok) throw new Error(`novita img ${img.status}`);
+  return new Uint8Array(await img.arrayBuffer());
+}
+
 async function siliconflowRef(prompt: string, imageDataUrl: string, apiKey: string): Promise<Uint8Array> {
   const b64 = imageDataUrl.includes(",") ? imageDataUrl : `data:image/jpeg;base64,${imageDataUrl}`;
   const identityPrompt = "Use the reference image as the exact identity: the woman in the result has exactly the same face as the reference image, same facial features, same identity, keep her face identical. " + prompt;
@@ -433,6 +450,16 @@ Deno.serve(async (req) => {
           return;
         } catch (errSf) {
           console.error("siliconflow flux-dev falla:", errSf);
+        }
+      }
+      const novKey = Deno.env.get("NOVITA_API_KEY") ?? "";
+      if (novKey) {
+        try {
+          img = await novitaGenerate(prompt, width, height, seed, novKey);
+          source = "novita-seedream";
+          return;
+        } catch (errNov) {
+          console.error("novita falla:", errNov);
         }
       }
       await tryPollinationsThenRest();
