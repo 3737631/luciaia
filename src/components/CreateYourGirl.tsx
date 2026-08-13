@@ -175,6 +175,8 @@ function buildPrompt(desc: string, maxSafe = false): string {
     clothing = "elegant sheer silk robe loosely tied";
   } else if (words.includes("abrigo")) {
     clothing = "long open trench coat over a black lace bikini";
+  } else if (words.includes("chaleco")) {
+    clothing = "wearing a tight fitted vest (chaleco) over bare skin, unbuttoned showing a hint of cleavage, sexy elegant look";
   } else if (words.includes("bikini") || words.includes("bañador") || words.includes("traje de baño")) {
     clothing = "tiny string bikini";
   } else if (words.includes("pijama") || words.includes("camisón")) {
@@ -356,7 +358,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
     for (let attempt = 0; attempt < 3; attempt++) {
       const p = attempt === 0 ? prompt : attempt === 1 ? buildPrompt(girlDesc || roleplayDesc, true) : buildPrompt("", true);
       try {
-        const blob = await generateGirlImage({ prompt: p, width: 1024, height: 1536, image: refImage || undefined });
+        const blob = await generateGirlImage({ prompt: p, width: 900, height: 1200, image: refImage || undefined });
         imageUrl = await compressImage(blob);
         break;
       } catch (err) {
@@ -581,7 +583,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                         </motion.svg>
                       </div>
                       <h4 className="mt-10 text-xl font-semibold tracking-tight text-white">Creando a {currentName}</h4>
-                      <p className="mt-2 text-xs text-white/40">Estamos dando vida a tu nueva compañía...</p>
+                      <p className="mt-2 text-xs text-white/40">Generando con IA de alta calidad... puede tardar 1-3 minutos.</p>
                       <div className="mt-8 flex gap-1.5">
                         {[0, 1, 2].map((i) => (
                           <motion.span key={i} className="h-1 w-1 rounded-full bg-white/30" animate={{ opacity: [0.2, 0.9, 0.2] }} transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.2 }} />

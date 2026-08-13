@@ -1,4 +1,4 @@
-﻿const corsHeaders = {
+const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, cache-control",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -149,8 +149,8 @@ async function pollinationsGenerate(prompt: string, width: number, height: numbe
   throw new Error(lastError || "pollinations: todos los modelos fallaron");
 }
 
-async function hordePoll(id: string): Promise<Uint8Array> {
-  const deadline = Date.now() + 240000;
+async function hordePoll(id: string, timeoutMs = 120000): Promise<Uint8Array> {
+  const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     await new Promise((r) => setTimeout(r, 5000));
     const st = await fetch(`https://stablehorde.net/api/v2/generate/status/${id}`, { headers: { "Accept": "application/json" } });
@@ -159,26 +159,35 @@ async function hordePoll(id: string): Promise<Uint8Array> {
       const gen = j.generations?.[0];
       if (!gen) throw new Error("horde: sin resultado");
       if (gen.faulted) throw new Error("horde: imagen con fallo");
-      return Uint8Array.from(atob(gen.img!), (c) => c.charCodeAt(0));
+      const raw = gen.img ?? "";
+      // El resultado puede venir como base64 o como URL firmada (Cloudflare R2).
+      if (raw.startsWith("http")) {
+        const img = await fetch(raw);
+        if (!img.ok) throw new Error(`horde: descarga de imagen ${img.status}`);
+        return new Uint8Array(await img.arrayBuffer());
+      }
+      return Uint8Array.from(atob(raw), (c) => c.charCodeAt(0));
     }
   }
-  throw new Error("horde: timeout 240s");
+  throw new Error(`horde: timeout ${Math.round(timeoutMs / 1000)}s`);
 }
 
-async function hordeGenerate(prompt: string, width: number, height: number, seed: number, apikey: string, sourceImage?: string): Promise<Uint8Array> {
+async function hordeSubmit(prompt: string, width: number, height: number, seed: number, apikey: string, sourceImage?: string): Promise<string> {
   const body: Record<string, unknown> = {
     prompt,
     params: {
       width: Math.min(width, 768),
       height: Math.min(height, 1024),
-      steps: 20,
+      steps: 18,
       sampler_name: "k_euler",
       cfg_scale: 6,
       seed: String(seed),
     },
     nsfw: false,
     censor_nsfw: true,
-    models: ["Juggernaut XL"],
+    // Varios modelos fotorrealistas: el Horde elige el que tenga worker libre
+    // (evita la cola enorme de Juggernaut XL aislado).
+    models: ["Deliberate", "DreamShaper", "Photon", "CyberRealistic", "Pony Realism", "Juggernaut XL"],
   };
   if (sourceImage) {
     const b64 = sourceImage.includes(",") ? sourceImage.split(",")[1] : sourceImage;
@@ -195,7 +204,33 @@ async function hordeGenerate(prompt: string, width: number, height: number, seed
   }
   const json = await res.json() as { id?: string };
   if (!json.id) throw new Error("horde: sin id de tarea");
-  return await hordePoll(json.id);
+  return json.id;
+}
+
+async function hordeGenerate(prompt: string, width: number, height: number, seed: number, apikey: string, sourceImage?: string): Promise<Uint8Array> {
+  const id = await hordeSubmit(prompt, width, height, seed, apikey, sourceImage);
+  return await hordePoll(id);
+}
+
+// Consulta el estado de un job del Horde y devuelve la imagen si ya estÃ¡ lista.
+async function hordeFetch(jobId: string): Promise<{ done: boolean; bytes?: Uint8Array; error?: string }> {
+  try {
+    const st = await fetch(`https://stablehorde.net/api/v2/generate/status/${jobId}`, { headers: { "Accept": "application/json" } });
+    const j = await st.json() as { done?: boolean; generations?: { img?: string; faulted?: boolean }[] };
+    if (!j.done) return { done: false };
+    const gen = j.generations?.[0];
+    if (!gen) return { done: true, error: "horde: sin resultado" };
+    if (gen.faulted) return { done: true, error: "horde: imagen con fallo" };
+    const raw = gen.img ?? "";
+    if (raw.startsWith("http")) {
+      const img = await fetch(raw);
+      if (!img.ok) return { done: true, error: `horde: descarga ${img.status}` };
+      return { done: true, bytes: new Uint8Array(await img.arrayBuffer()) };
+    }
+    return { done: true, bytes: Uint8Array.from(atob(raw), (c) => c.charCodeAt(0)) };
+  } catch (e) {
+    return { done: true, error: String((e as Error)?.message || e) };
+  }
 }
 
 async function siliconflowGenerate(prompt: string, apiKey: string, model: string): Promise<Uint8Array> {
@@ -396,40 +431,68 @@ function sceneLighting(p: string): string {
   return "natural soft daylight from a window, gentle directional light, believable soft shadows and physical highlight response";
 }
 
-function cameraRig(p: string): string {
+function cameraRig(p: string, seed: number): string {
   const w = p.toLowerCase();
   if (/(espejo|selfi|mirror)/.test(w))
-    return "natural smartphone-style selfie framing, slightly imperfect, realistic wide-angle near a mirror, natural perspective";
+    return "natural smartphone-style selfie framing, slightly imperfect, realistic wide-angle near a mirror, natural perspective, full upper body visible";
   if (/(ducha|ba[nÃ‘]era|bath|shower)/.test(w))
-    return "realistic full-frame photography, natural 35mm lens, medium close-up, believable shallow depth of field";
+    return "realistic full-frame photography, natural 35mm lens, three-quarter shot showing most of the body, believable shallow depth of field";
   if (/(caminando|paseando|bailando|baile)/.test(w))
-    return "realistic full-frame photography, natural motion capture, 85mm lens, believable depth of field and natural perspective";
+    return "realistic full-frame photography, natural motion capture, 85mm lens, full-body to three-quarter framing, believable depth of field and natural perspective";
+  if (/(cama|acostada|hotel|habitaci[oÃ“]n|boudoir|dormitorio)/.test(w))
+    return "realistic full-frame photography, natural 50mm lens at f/2.2, three-quarter shot revealing the body naturally, soft intimate depth of field, gentle background compression, natural perspective";
+  if (/(gimnasio|gym|yoga|deporte)/.test(w))
+    return "realistic full-frame photography, natural 35mm lens at f/2.8, dynamic three-quarter framing, believable depth of field and natural perspective";
   const shots = [
-    "realistic full-frame photography, natural 50mm lens at f/2.8, shallow depth of field, subtle background separation, natural perspective",
-    "realistic full-frame photography, natural 85mm lens at f/2, soft background compression, believable depth of field",
+    "realistic full-frame photography, natural 50mm lens at f/2.8, three-quarter shot showing the figure naturally, shallow depth of field, subtle background separation, natural perspective",
+    "realistic full-frame photography, natural 85mm lens at f/2.5, three-quarter framing with natural body proportions, soft background compression, believable depth of field",
+    "realistic full-frame photography, natural 35mm lens at f/2.8, natural near-field perspective showing most of the body, subtle depth of field",
+    "realistic full-frame photography, natural 50mm lens at f/2.5, three-quarter shot with believable body proportions, creamy natural bokeh, realistic background blur, natural perspective",
   ];
-  return shots[promptHash(w) % shots.length];
+  return shots[Math.abs(promptHash(w) + seed) % shots.length];
+}
+
+// VariaciÃ³n de redacciÃ³n segÃºn el personaje: evita que todos los prompts sean idÃ©nticos.
+function pick<T>(seed: number, variants: T[]): T {
+  return variants[Math.abs(seed) % variants.length];
 }
 
 // Convierte la descripciÃ³n en un prompt fotogrÃ¡fico estructurado y adaptado a cada personaje.
-// El texto del usuario se conserva literalmente; se aÃ±ade realismo en capas separadas.
-function buildPhotoPrompt(userPrompt: string): string {
+// El texto del usuario se conserva en cuanto a intenciÃ³n y rasgos; se aÃ±ade realismo en capas
+// que varÃ­an con la seed para que cada creaciÃ³n tenga una redacciÃ³n propia.
+function buildPhotoPrompt(userPrompt: string, seed: number): string {
   const base = userPrompt.trim();
   const lighting = sceneLighting(base);
-  const camera = cameraRig(base);
+  const camera = cameraRig(base, seed);
   const hair = baseHair(base);
+  const hash = promptHash(base);
+
+  const phys = pick(hash + seed, [
+    `CaracterÃ­sticas fÃ­sicas: natural pretty adult woman, ${hair}, real ordinary facial proportions with subtle asymmetry, natural-sized eyes with realistic iris detail, naturally shaped lips of average fullness, normal soft cheekbones, natural jawline, healthy normal feminine body with believable proportions, anatomically correct hands with correctly formed fingers, aligned natural eyes, natural teeth with slight variation, natural ears, correct neck and shoulders.`,
+    `CaracterÃ­sticas fÃ­sicas: attractive adult woman, ${hair}, authentic natural facial features without exaggeration, regular eyes with realistic iris detail, normal lips with natural texture, gentle natural cheekbones, natural jawline, believable feminine body proportions, natural hands with correctly formed fingers, aligned natural eyes, natural healthy teeth, natural ears, correct neck anatomy.`,
+  ]);
+
+  const skin = pick(hash + seed, [
+    `Textura de piel realista: natural human skin with visible pores and fine realistic microtexture, subtle natural imperfections and faint beauty marks, small natural freckles or blemishes, natural subsurface scattering, physically plausible light response on skin, individual eyelashes and softly shaped brows with visible individual brow hairs, fine baby hairs around the hairline, moist natural eyes with detailed iris and natural surface highlights, lips with natural texture and fine creases, subtle expression lines around the eyes and mouth, slightly varied natural skin tone, healthy organic glow, real photographic skin without any plastic or wax appearance.`,
+    `Textura de piel realista: authentic human skin with visible pores, fine realistic microtexture and slight natural tone variation, small natural imperfections and faint beauty marks, believable subsurface scattering, realistic skin highlights, individual eyelashes and naturally textured brows, fine baby hairs at the hairline, moist realistic eyes with detailed iris and natural highlights, naturally textured lips with fine vertical creases, faint natural expression lines, subtle facial vellus hairs, organic believable skin, no airbrushing, no plastic or doll-like smoothness.`,
+  ]);
+
+  const realism = pick(hash + seed, [
+    `Realismo: photorealistic real photograph taken with a real camera, authentic photography, natural human appearance, believable anatomy, natural facial asymmetry, physically plausible materials. The image must look like an actual photo, not a CGI render: avoid plastic skin, wax skin, doll-like mannequin face, porcelain airbrushed skin, overly smooth synthetic skin, 3D render appearance, videogame character, anime, cartoon, illustration, dead doll eyes, unnatural symmetry, uncanny face.`,
+    `Realismo: genuine photorealistic photograph, real-world photographic quality, natural human skin with organic texture, believable anatomy and subtle asymmetry, physically plausible lighting and shadows. Must not look like CGI, a 3D model, a videogame character, an anime or cartoon illustration: no plastic skin, no wax skin, no airbrushed porcelain skin, no doll-like mannequin face, no dead doll eyes, no unnatural symmetry.`,
+  ]);
 
   return `${base}.
 
-CaracterÃ­sticas fÃ­sicas: beautiful attractive woman, elegant harmonious facial features, gently symmetrical attractive face, large expressive eyes, naturally full lips, defined cheekbones, softly contoured jawline, ${hair}, slim natural feminine body proportions, natural hands with correctly formed fingers, aligned natural eyes, natural teeth.
+${phys}
 
-Textura de piel realista: natural human skin with visible pores and fine realistic skin microtexture, subtle natural imperfections and faint beauty marks, natural subsurface scattering, realistic light response on skin, individual eyelashes and softly shaped brows, moist natural eyes and lips, healthy natural glow, real photographic skin.
+${skin}
 
-IluminaciÃ³n fotogrÃ¡fica: ${lighting}, natural exposure without burnt highlights, believable contrast, physically plausible light with natural shadow variation on the skin.
+IluminaciÃ³n fotogrÃ¡fica: ${lighting}, natural exposure without burnt highlights, believable contrast, physically plausible light with natural shadow variation across the skin, no artificial glow.
 
-CÃ¡mara y composiciÃ³n: ${camera}, shot on a full-frame camera, shallow depth of field, natural color response, RAW photo look, natural film grain, believable proportions.
+CÃ¡mara y composiciÃ³n: ${camera}, shot on a full-frame camera, natural lens rendering, realistic shallow depth of field, subtle background separation, natural perspective, realistic color response, natural film grain, natural believable body proportions without stretching or elongation, natural framing.
 
-Realismo: photorealistic real photograph, authentic photography, natural human appearance, believable anatomy. Avoid plastic skin, wax skin, doll-like mannequin face, airbrushed porcelain skin, overly smooth synthetic skin, CGI render, 3D model, videogame character, anime, cartoon, illustration, dead doll eyes, uncanny face.`;
+${realism}`;
 }
 
 Deno.serve(async (req) => {
@@ -442,6 +505,34 @@ Deno.serve(async (req) => {
     const rawPrompt = String(body.prompt || "").trim();
     const width = Math.min(2048, Math.max(256, Number(body.width) || 1024));
     const height = Math.min(2048, Math.max(256, Number(body.height) || 1536));
+    const jobId = typeof body.jobId === "string" && body.jobId ? body.jobId.trim() : "";
+
+    // Consulta de estado de un job asÃ­ncrono del Horde.
+    if (jobId) {
+      const st = await hordeFetch(jobId);
+      if (st.done) {
+        if (st.bytes) {
+          return new Response(st.bytes, {
+            status: 200,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "image/webp",
+              "Cache-Control": "no-store",
+              "X-Gen-Source": "horde-juggernaut",
+              "X-Gen-Rev": "v3",
+            },
+          });
+        }
+        return new Response(JSON.stringify({ status: "failed", error: st.error || "horde: sin imagen" }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      return new Response(JSON.stringify({ status: "processing", jobId }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     if (!rawPrompt) {
       return new Response(JSON.stringify({ error: "Prompt vacÃ­o" }), {
@@ -462,14 +553,41 @@ Deno.serve(async (req) => {
     const refImage = typeof body.image === "string" ? body.image : "";
 
     // Prompt fotogrÃ¡fico profesional, conservando la intenciÃ³n del usuario.
-    const prompt = buildPhotoPrompt(String(body.prompt || "").trim());
+    const prompt = buildPhotoPrompt(String(body.prompt || "").trim(), seed);
 
+    // Si el Horde estÃ¡ activo y no hay foto de referencia, creamos el job de forma asÃ­ncrona:
+    // respondemos con { jobId } al instante y el frontend consulta el estado despuÃ©s.
+    const hordeEnabled = Deno.env.get("HORDE_ENABLED") === "true";
+    const hordeKey = Deno.env.get("HORDE_API_KEY") ?? "";
     let img: Uint8Array;
     let source = "unknown";
+    let debugNote = "";
     const cfAccount = Deno.env.get("CF_ACCOUNT_ID");
     const cfToken = Deno.env.get("CF_API_TOKEN");
-
+    if (hordeEnabled && hordeKey && !refImage) {
+      try {
+        const jid = await hordeSubmit(prompt, width, height, seed, hordeKey);
+        return new Response(JSON.stringify({ status: "queued", jobId: jid, source: "horde-juggernaut" }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      } catch (errHorde) {
+        console.error("horde async falla, cae a sÃ­ncrono:", errHorde);
+      }
+    }
     async function trySiliconThenRest() {
+      // Solo generaciÃ³n con IA: sin fotos de stock (dan mal rollo).
+      // AI Horde (gratis) da fotorrealismo real (Juggernaut XL). Va primero si estÃ¡ activo.
+      const hordeKey = Deno.env.get("HORDE_API_KEY") ?? "";
+      if (hordeKey) {
+        try {
+          img = await hordeGenerate(prompt, width, height, seed, hordeKey);
+          source = "horde-juggernaut";
+          return;
+        } catch (errHorde) {
+          console.error("horde principal falla:", errHorde);
+        }
+      }
       const sfKey = Deno.env.get("SILICONFLOW_API_KEY") ?? "";
       if (sfKey) {
         try {
@@ -515,18 +633,18 @@ Deno.serve(async (req) => {
         img = await hfGenerate(prompt, width, height, token);
         source = "hf-realvisxl";
       } catch (errHf) {
-        console.error("hf serverless falla, usa pollinations:", errHf);
+        console.error("hf serverless falla, usa nscale:", errHf);
         try {
-          img = await pollinationsGenerate(prompt, width, height, seed);
-          source = "pollinations";
-        } catch (errP) {
-          console.error("pollinations falla, usa nscale:", errP);
+          img = await nscaleGenerate(prompt, width, height, seed, token);
+          source = "nscale";
+        } catch (errN) {
+          console.error("nscale falla, usa pollinations:", errN);
           try {
-            img = await nscaleGenerate(prompt, width, height, seed, token);
-            source = "nscale";
-          } catch (err2) {
-            console.error("nscale falla:", err2);
-            throw err2;
+            img = await pollinationsGenerate(prompt, width, height, seed);
+            source = "pollinations";
+          } catch (errP) {
+            console.error("pollinations falla:", errP);
+            throw errP;
           }
         }
       }
@@ -593,6 +711,7 @@ Deno.serve(async (req) => {
         "Content-Type": "image/jpeg",
         "Cache-Control": "no-store",
         "X-Gen-Source": source,
+        "X-Gen-Debug": debugNote,
         "X-Gen-Rev": "v3",
       },
     });
