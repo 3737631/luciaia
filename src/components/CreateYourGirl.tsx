@@ -259,7 +259,7 @@ export default function CreateYourGirl({ open, onClose }: { open: boolean; onClo
   const [currentName, setCurrentName] = useState("");
   const [genError, setGenError] = useState("");
   const [refImage, setRefImage] = useState<string | null>(null);
-  const [mode, setMode] = useState<"ai" | "own">("ai");
+  const [mode, setMode] = useState<"ai" | "own">("own");
   const [openSection, setOpenSection] = useState<"roleplay" | "photo" | null>(null);
 
   useEffect(() => {
@@ -268,7 +268,7 @@ export default function CreateYourGirl({ open, onClose }: { open: boolean; onClo
 
   useEffect(() => {
     if (!open) {
-setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSelectedPersonality(""); setCurrentName(""); setGenError(""); setRefImage(null); setMode("ai"); setOpenSection(null);
+setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSelectedPersonality(""); setCurrentName(""); setGenError(""); setRefImage(null); setMode("own"); setOpenSection(null);
     }
   }, [open]);
 

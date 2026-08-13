@@ -89,9 +89,9 @@ async function nscaleGenerate(prompt: string, width: number, height: number, see
 //  - POLLINATIONS_MODEL: fuerza un Ãºnico modelo (p.ej. "seedream5").
 //  - POLLINATIONS_MODELS: lista ordenada separada por comas.
 const DEFAULT_POLLINATIONS_MODELS = [
-  "gpt-image-2",
-  "nanobanana-2",
   "seedream5",
+  "nanobanana-2",
+  "gpt-image-2",
   "seedream5-pro",
   "flux",
 ];
@@ -421,15 +421,15 @@ function buildPhotoPrompt(userPrompt: string): string {
 
   return `${base}.
 
-CaracterÃ­sticas fÃ­sicas: beautiful stunning attractive face, elegant harmonious features, gentle attractive symmetry, large expressive eyes, naturally full lips, defined cheekbones, softly contoured jawline, ${hair}, slim toned body with natural feminine proportions, natural hands with correctly formed fingers, aligned natural eyes, perfect white teeth.
+CaracterÃ­sticas fÃ­sicas: beautiful attractive woman, elegant harmonious facial features, gently symmetrical attractive face, large expressive eyes, naturally full lips, defined cheekbones, softly contoured jawline, ${hair}, slim natural feminine body proportions, natural hands with correctly formed fingers, aligned natural eyes, natural teeth.
 
-Textura de piel realista: flawless radiant skin with a healthy natural glow, fine realistic skin microtexture, natural subsurface scattering, physically plausible soft reflections, individual eyelashes and softly shaped brows, moist luminous eyes and full natural lips, even luminous skin tone, natural hair texture, lifelike and vibrant, not airbrushed and not plastic.
+Textura de piel realista: natural human skin with visible pores and fine realistic skin microtexture, subtle natural imperfections and faint beauty marks, natural subsurface scattering, realistic light response on skin, individual eyelashes and softly shaped brows, moist natural eyes and lips, healthy natural glow, real photographic skin.
 
 IluminaciÃ³n fotogrÃ¡fica: ${lighting}, natural exposure without burnt highlights, believable contrast, physically plausible light with natural shadow variation on the skin.
 
-CÃ¡mara y composiciÃ³n: ${camera}, natural framing, believable proportions, natural color response.
+CÃ¡mara y composiciÃ³n: ${camera}, shot on a full-frame camera, shallow depth of field, natural color response, RAW photo look, natural film grain, believable proportions.
 
-Realismo: authentic high-end fashion photography look, true-to-life color, natural skin that looks alive and healthy, no excessive HDR, no oversharpening. Avoid plastic skin, wax skin, doll-like mannequin face, CGI look, 3D render, videogame character, overly smooth airbrushed skin, rubbery artificial appearance, dead doll eyes, cartoon or illustration appearance.`;
+Realismo: photorealistic real photograph, authentic photography, natural human appearance, believable anatomy. Avoid plastic skin, wax skin, doll-like mannequin face, airbrushed porcelain skin, overly smooth synthetic skin, CGI render, 3D model, videogame character, anime, cartoon, illustration, dead doll eyes, uncanny face.`;
 }
 
 Deno.serve(async (req) => {
