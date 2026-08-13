@@ -491,10 +491,16 @@ Deno.serve(async (req) => {
           console.error("novita falla:", errNov);
         }
       }
-      const apKey = Deno.env.get("APIFRAME_API_KEY") ?? "";
-      if (apKey) {
+      const apKeys = [
+        Deno.env.get("APIFRAME_API_KEY") ?? "",
+        Deno.env.get("APIFRAME_API_KEY_2") ?? "",
+        Deno.env.get("APIFRAME_API_KEY_3") ?? "",
+        Deno.env.get("APIFRAME_API_KEY_4") ?? "",
+        Deno.env.get("APIFRAME_API_KEY_5") ?? "",
+      ].filter(Boolean);
+      for (const ak of apKeys) {
         try {
-          img = await apiframeGenerate(prompt, width, height, seed, apKey);
+          img = await apiframeGenerate(prompt, width, height, seed, ak);
           source = "apiframe";
           return;
         } catch (errAp) {
