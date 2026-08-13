@@ -424,6 +424,20 @@ Deno.serve(async (req) => {
     const cfAccount = Deno.env.get("CF_ACCOUNT_ID");
     const cfToken = Deno.env.get("CF_API_TOKEN");
 
+    async function trySiliconThenRest() {
+      const sfKey = Deno.env.get("SILICONFLOW_API_KEY") ?? "";
+      if (sfKey) {
+        try {
+          img = await siliconflowGenerate(prompt, sfKey, "black-forest-labs/FLUX.1-dev");
+          source = "sf-flux-dev";
+          return;
+        } catch (errSf) {
+          console.error("siliconflow flux-dev falla:", errSf);
+        }
+      }
+      await tryPollinationsThenRest();
+    }
+
     async function tryPollinationsThenRest() {
       try {
         // RealVisXL (HF serverless gratuito) suele dar mÃ¡s fotorrealismo que pollinations pÃºblico.
@@ -495,10 +509,10 @@ Deno.serve(async (req) => {
         source = "fal-flux-dev";
       } catch (err) {
         console.error("fal falla:", err);
-        await tryPollinationsThenRest();
+        await trySiliconThenRest();
       }
     } else {
-      await tryPollinationsThenRest();
+      await trySiliconThenRest();
     }
 
     return new Response(img, {
