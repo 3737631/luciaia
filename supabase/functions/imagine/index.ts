@@ -422,15 +422,15 @@ function buildPhotoPrompt(userPrompt: string): string {
 
   return `${base}.
 
-CaracterÃ­sticas fÃ­sicas: ${hair}, natural facial asymmetry, anatomically correct proportions, natural hands with correctly formed fingers, aligned natural eyes, realistic teeth and ears.
+CaracterÃ­sticas fÃ­sicas: beautiful stunning attractive face, elegant harmonious features, gentle attractive symmetry, large expressive eyes, naturally full lips, defined cheekbones, softly contoured jawline, ${hair}, slim toned body with natural feminine proportions, natural hands with correctly formed fingers, aligned natural eyes, perfect white teeth.
 
-Textura de piel realista: visible pores, fine natural skin microtexture, subtle natural imperfections, slight natural tone variation across the face, fine texture around the eyes, nose and lips, natural subsurface scattering, physically plausible skin reflections, subtle expression lines, individual eyelashes and brows, natural lip texture, moist eyes and lips, organic non-uniform skin.
+Textura de piel realista: flawless radiant skin with a healthy natural glow, fine realistic skin microtexture, natural subsurface scattering, physically plausible soft reflections, individual eyelashes and softly shaped brows, moist luminous eyes and full natural lips, even luminous skin tone, natural hair texture, lifelike and vibrant, not airbrushed and not plastic.
 
 IluminaciÃ³n fotogrÃ¡fica: ${lighting}, natural exposure without burnt highlights, believable contrast, physically plausible light with natural shadow variation on the skin.
 
 CÃ¡mara y composiciÃ³n: ${camera}, natural framing, believable proportions, natural color response.
 
-Realismo: authentic candid photography look, true-to-life color, no excessive HDR, no oversharpening, no heavy retouching. Avoid plastic skin, wax skin, doll-like face, mannequin appearance, CGI look, 3D render, videogame character, overly smooth skin, artificial symmetry, porcelain skin, airbrushed skin, synthetic hair, cartoon or illustration appearance.`;
+Realismo: authentic high-end fashion photography look, true-to-life color, natural skin that looks alive and healthy, no excessive HDR, no oversharpening. Avoid plastic skin, wax skin, doll-like mannequin face, CGI look, 3D render, videogame character, overly smooth airbrushed skin, rubbery artificial appearance, dead doll eyes, cartoon or illustration appearance.`;
 }
 
 Deno.serve(async (req) => {
