@@ -247,7 +247,7 @@ async function apiframeGenerate(prompt: string, width: number, height: number, s
   const res = await fetch("https://api.apiframe.ai/v2/images/generate", {
     method: "POST",
     headers: { "X-API-Key": apiKey, "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt, model, size: `${width}x${height}`, seed }),
+    body: JSON.stringify({ prompt, model, seedreamParams: { output_format: "jpg", seed } }),
   });
   if (!res.ok) throw new Error(`apiframe ${res.status}: ${(await res.text()).slice(0, 200)}`);
   const j = await res.json() as { jobId?: string };
@@ -258,10 +258,9 @@ async function apiframeGenerate(prompt: string, width: number, height: number, s
     await new Promise((r) => setTimeout(r, 2000));
     const st = await fetch(`https://api.apiframe.ai/v2/jobs/${jobId}`, { headers: { "X-API-Key": apiKey } });
     if (!st.ok) continue;
-    const sj = await st.json() as { status?: string; result?: { image_urls?: string[]; url?: string } | string; error?: unknown };
+    const sj = await st.json() as { status?: string; result?: { images?: string[] }; error?: unknown };
     if (sj.status === "COMPLETED") {
-      const rj = sj.result as { image_urls?: string[]; url?: string } | string;
-      const url = typeof rj === "string" ? rj : rj?.image_urls?.[0] || rj?.url;
+      const url = sj.result?.images?.[0];
       if (!url) throw new Error("apiframe: sin URL de resultado");
       const img = await fetch(url);
       if (!img.ok) throw new Error(`apiframe img ${img.status}`);
