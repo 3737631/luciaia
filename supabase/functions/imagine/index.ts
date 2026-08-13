@@ -242,6 +242,36 @@ async function novitaGenerate(prompt: string, width: number, height: number, see
   return new Uint8Array(await img.arrayBuffer());
 }
 
+async function apiframeGenerate(prompt: string, width: number, height: number, seed: number, apiKey: string): Promise<Uint8Array> {
+  const model = Deno.env.get("APIFRAME_MODEL") ?? "seedream-4.5";
+  const res = await fetch("https://api.apiframe.ai/v2/images/generate", {
+    method: "POST",
+    headers: { "X-API-Key": apiKey, "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt, model, size: `${width}x${height}`, seed }),
+  });
+  if (!res.ok) throw new Error(`apiframe ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  const j = await res.json() as { jobId?: string };
+  const jobId = j.jobId;
+  if (!jobId) throw new Error("apiframe: sin jobId");
+  const deadline = Date.now() + 110000;
+  while (Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, 2000));
+    const st = await fetch(`https://api.apiframe.ai/v2/jobs/${jobId}`, { headers: { "X-API-Key": apiKey } });
+    if (!st.ok) continue;
+    const sj = await st.json() as { status?: string; result?: { image_urls?: string[]; url?: string } | string; error?: unknown };
+    if (sj.status === "COMPLETED") {
+      const rj = sj.result as { image_urls?: string[]; url?: string } | string;
+      const url = typeof rj === "string" ? rj : rj?.image_urls?.[0] || rj?.url;
+      if (!url) throw new Error("apiframe: sin URL de resultado");
+      const img = await fetch(url);
+      if (!img.ok) throw new Error(`apiframe img ${img.status}`);
+      return new Uint8Array(await img.arrayBuffer());
+    }
+    if (sj.status === "FAILED") throw new Error(`apiframe job fallo: ${JSON.stringify(sj.error ?? sj)}`);
+  }
+  throw new Error("apiframe: timeout");
+}
+
 async function siliconflowRef(prompt: string, imageDataUrl: string, apiKey: string): Promise<Uint8Array> {
   const b64 = imageDataUrl.includes(",") ? imageDataUrl : `data:image/jpeg;base64,${imageDataUrl}`;
   const identityPrompt = "Use the reference image as the exact identity: the woman in the result has exactly the same face as the reference image, same facial features, same identity, keep her face identical. " + prompt;
@@ -460,6 +490,16 @@ Deno.serve(async (req) => {
           return;
         } catch (errNov) {
           console.error("novita falla:", errNov);
+        }
+      }
+      const apKey = Deno.env.get("APIFRAME_API_KEY") ?? "";
+      if (apKey) {
+        try {
+          img = await apiframeGenerate(prompt, width, height, seed, apKey);
+          source = "apiframe";
+          return;
+        } catch (errAp) {
+          console.error("apiframe falla:", errAp);
         }
       }
       await tryPollinationsThenRest();
