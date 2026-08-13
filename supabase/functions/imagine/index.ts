@@ -551,9 +551,18 @@ Deno.serve(async (req) => {
 
     const seed = Number(body.seed) || Math.floor(Math.random() * 1e9);
     const refImage = typeof body.image === "string" ? body.image : "";
+    const isAvatar = body.avatar === true;
 
     // Prompt fotogrÃ¡fico profesional, conservando la intenciÃ³n del usuario.
-    const prompt = buildPhotoPrompt(String(body.prompt || "").trim(), seed);
+    // Para el avatar (foto de perfil circular) usamos un retrato de primer plano.
+    const rawDesc = String(body.prompt || "").trim();
+    const prompt = isAvatar
+      ? `close-up portrait photo of ${rawDesc || "a beautiful young woman"}, face and shoulders centered, looking at the camera, natural skin texture, soft even studio lighting, neutral background, photorealistic, high detail face, square crop`
+      : buildPhotoPrompt(rawDesc, seed);
+
+    // El avatar se genera en cuadrado pequeÃ±o (512x512) para el cÃ­rculo de perfil.
+    const genWidth = isAvatar ? Math.min(width, 512) : Math.min(width, 768);
+    const genHeight = isAvatar ? Math.min(height, 512) : Math.min(height, 1024);
 
     // Si el Horde estÃ¡ activo y no hay foto de referencia, creamos el job de forma asÃ­ncrona:
     // respondemos con { jobId } al instante y el frontend consulta el estado despuÃ©s.
@@ -566,7 +575,7 @@ Deno.serve(async (req) => {
     const cfToken = Deno.env.get("CF_API_TOKEN");
     if (hordeEnabled && hordeKey && !refImage) {
       try {
-        const jid = await hordeSubmit(prompt, width, height, seed, hordeKey);
+        const jid = await hordeSubmit(prompt, genWidth, genHeight, seed, hordeKey);
         return new Response(JSON.stringify({ status: "queued", jobId: jid, source: "horde-juggernaut" }), {
           status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -581,7 +590,7 @@ Deno.serve(async (req) => {
       const hordeKey = Deno.env.get("HORDE_API_KEY") ?? "";
       if (hordeKey) {
         try {
-          img = await hordeGenerate(prompt, width, height, seed, hordeKey);
+          img = await hordeGenerate(prompt, genWidth, genHeight, seed, hordeKey);
           source = "horde-juggernaut";
           return;
         } catch (errHorde) {
@@ -601,7 +610,7 @@ Deno.serve(async (req) => {
       const novKey = Deno.env.get("NOVITA_API_KEY") ?? "";
       if (novKey) {
         try {
-          img = await novitaGenerate(prompt, width, height, seed, novKey);
+          img = await novitaGenerate(prompt, genWidth, genHeight, seed, novKey);
           source = "novita-seedream";
           return;
         } catch (errNov) {
@@ -617,7 +626,7 @@ Deno.serve(async (req) => {
       ].filter(Boolean);
       for (const ak of apKeys) {
         try {
-          img = await apiframeGenerate(prompt, width, height, seed, ak);
+          img = await apiframeGenerate(prompt, genWidth, genHeight, seed, ak);
           source = "apiframe";
           return;
         } catch (errAp) {
@@ -630,17 +639,17 @@ Deno.serve(async (req) => {
     async function tryPollinationsThenRest() {
       try {
         // RealVisXL (HF serverless gratuito) suele dar mÃ¡s fotorrealismo que pollinations pÃºblico.
-        img = await hfGenerate(prompt, width, height, token);
+        img = await hfGenerate(prompt, genWidth, genHeight, token);
         source = "hf-realvisxl";
       } catch (errHf) {
         console.error("hf serverless falla, usa nscale:", errHf);
         try {
-          img = await nscaleGenerate(prompt, width, height, seed, token);
+          img = await nscaleGenerate(prompt, genWidth, genHeight, seed, token);
           source = "nscale";
         } catch (errN) {
           console.error("nscale falla, usa pollinations:", errN);
           try {
-            img = await pollinationsGenerate(prompt, width, height, seed);
+            img = await pollinationsGenerate(prompt, genWidth, genHeight, seed);
             source = "pollinations";
           } catch (errP) {
             console.error("pollinations falla:", errP);
@@ -694,7 +703,7 @@ Deno.serve(async (req) => {
       }
     } else if (falKey) {
       try {
-        img = await falDirectGenerate(prompt, width, height, seed, falKey);
+        img = await falDirectGenerate(prompt, genWidth, genHeight, seed, falKey);
         source = "fal-flux-dev";
       } catch (err) {
         console.error("fal falla:", err);

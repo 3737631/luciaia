@@ -20,6 +20,7 @@ export default function CustomGirlCard({ data, onDelete }: { data: CustomGirlDat
       "custom_scenario",
       JSON.stringify({ girl: data.girlDesc, roleplay: data.roleplayDesc }),
     );
+    localStorage.setItem("lunacall_active_girl_id", data.id);
   }
 
   function handleDelete(e: React.MouseEvent) {

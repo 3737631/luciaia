@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { saveCustomGirl, getCustomGirls, deleteCustomGirl, CustomGirlData } from "@/lib/storage";
 import { generateGirlImage } from "@/lib/chatClient";
@@ -249,7 +250,7 @@ function buildPrompt(desc: string, maxSafe = false): string {
   return `Realistic photo of ${head}, ${subject}, ${hair}, ${body}, ${clothing}. ${scene}${framing}. The scene is set in ${background}.`;
 }
 
-type WizardStep = "describe" | "personality" | "generating" | "done";
+type WizardStep = "describe" | "personality" | "done";
 
 export default function CreateYourGirl({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [girlDesc, setGirlDesc] = useState("");
@@ -261,8 +262,8 @@ export default function CreateYourGirl({ open, onClose }: { open: boolean; onClo
   const [currentName, setCurrentName] = useState("");
   const [genError, setGenError] = useState("");
   const [refImage, setRefImage] = useState<string | null>(null);
-  const [mode, setMode] = useState<"ai" | "own">("own");
   const [openSection, setOpenSection] = useState<"roleplay" | "photo" | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     setCustomGirls(getCustomGirls());
@@ -270,7 +271,7 @@ export default function CreateYourGirl({ open, onClose }: { open: boolean; onClo
 
   useEffect(() => {
     if (!open) {
-setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSelectedPersonality(""); setCurrentName(""); setGenError(""); setRefImage(null); setMode("own"); setOpenSection(null);
+setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSelectedPersonality(""); setCurrentName(""); setGenError(""); setRefImage(null); setOpenSection(null);
     }
   }, [open]);
 
@@ -336,53 +337,40 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
     const story = roleplayDesc.trim() || `Tu nueva creación, ${name}, te espera para pasar una noche inolvidable.`;
     const customScenario = JSON.stringify({ girl: girlDesc.trim(), roleplay: roleplayDesc.trim() });
     localStorage.setItem("custom_scenario", customScenario);
-    if (mode === "own" && refImage) {
-      const newGirl: CustomGirlData = {
-        id, name, age: generateAge(), story,
-        description: girlDesc.trim() || name,
-        girlDesc: girlDesc.trim(), roleplayDesc: roleplayDesc.trim(),
-        hair: "moreno", background: "neon-room", pose: "toalla",
-        personality: selectedPersonality || "atrevida",
-        baseId: "luna", imageUrl: refImage,
-      };
-      saveCustomGirl(newGirl);
-      setCustomGirls(getCustomGirls());
-      setGenError("");
-      setStep("done");
-      return;
-    }
-    setStep("generating");
-    const prompt = buildPrompt(girlDesc || roleplayDesc);
-    let imageUrl = "";
-    let lastErr = "";
-    for (let attempt = 0; attempt < 3; attempt++) {
-      const p = attempt === 0 ? prompt : attempt === 1 ? buildPrompt(girlDesc || roleplayDesc, true) : buildPrompt("", true);
-      try {
-        const blob = await generateGirlImage({ prompt: p, width: 900, height: 1200, image: refImage || undefined });
-        imageUrl = await compressImage(blob);
-        break;
-      } catch (err) {
-        lastErr = String((err as Error)?.message || "");
-        await new Promise((r) => setTimeout(r, 1500));
-      }
-    }
-    if (!imageUrl) {
-      const moderation = /[Pp]etici[oó]n no permitida|moder|safety|blocked|policy|forbidden|nsfw/i.test(lastErr);
-      setGenError(moderation ? "Vuelve a intentarlo en unos segundos." : (lastErr || "No se pudo generar la imagen. Comprueba tu conexión y pulsa Reintentar."));
-      return;
-    }
+    localStorage.setItem("lunacall_active_girl_id", id);
+
     const newGirl: CustomGirlData = {
       id, name, age: generateAge(), story,
       description: girlDesc.trim() || name,
       girlDesc: girlDesc.trim(), roleplayDesc: roleplayDesc.trim(),
       hair: "moreno", background: "neon-room", pose: "toalla",
       personality: selectedPersonality || "atrevida",
-      baseId: "luna", imageUrl,
+      baseId: "luna",
+      imageUrl: refImage || undefined,
     };
     saveCustomGirl(newGirl);
     setCustomGirls(getCustomGirls());
     setGenError("");
     setStep("done");
+
+    // La foto de perfil (el cÃ­rculo del chat) la genera la IA en segundo plano
+    // y se guarda cuando estÃ© lista. Sin imagen de referencia: avatar de retrato IA.
+    if (!refImage) {
+      const prompt = buildPrompt(girlDesc || roleplayDesc);
+      try {
+        const blob = await generateGirlImage({ prompt, width: 512, height: 512, avatar: true });
+        const avatarUrl = await compressImage(blob);
+        const updated: CustomGirlData = { ...newGirl, imageUrl: avatarUrl };
+        saveCustomGirl(updated);
+        setCustomGirls(getCustomGirls());
+      } catch (err) {
+        console.error("avatar IA falla, se usa el marcador:", err);
+      }
+    }
+
+    // Ir directamente al chat con la chica creada.
+    router.push(`/chat/luna`);
+    onClose();
   }
 
   function handleReset() {
@@ -422,8 +410,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
               <div>
                 <h3 className="text-[1.4rem] font-bold leading-tight tracking-tight text-white">
                   {step === "describe" ? "Crea tu fantasía" :
-                   step === "personality" ? "Elige personalidad" :
-                   step === "generating" ? "Creando..." : "¡Creada!"}
+                   step === "personality" ? "Elige personalidad" : "¡Creada!"}
                 </h3>
                 <p className="mt-1 text-xs text-white/40">
                   {step === "describe" ? "Describe cómo quieres que sea" :
@@ -450,16 +437,6 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                       {error && (
                         <div className="mb-5 rounded-xl bg-red-500/10 px-4 py-3 text-xs text-red-300">{error}</div>
                       )}
-
-                      {/* Modo */}
-                      <div className="mb-6 flex items-center gap-1">
-                        <button onClick={() => setMode("ai")} className={`rounded-full px-4 py-2 text-sm transition active:scale-95 ${mode === "ai" ? "bg-white font-bold text-neutral-950" : "text-white/50 hover:text-white"}`}>
-                          Crear con IA
-                        </button>
-                        <button onClick={() => { setMode("own"); setOpenSection("photo"); }} className={`rounded-full px-4 py-2 text-sm transition active:scale-95 ${mode === "own" ? "bg-white font-bold text-neutral-950" : "text-white/50 hover:text-white"}`}>
-                          Mi imagen
-                        </button>
-                      </div>
 
                       {/* Campo principal */}
                       <label className="mb-2 block text-sm font-semibold text-white/85">Describe tu fantasía</label>
@@ -488,19 +465,17 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                         )}
                       </AnimatePresence>
 
-                      {/* Foto plegable (en "Mi imagen" siempre visible) */}
-                      {mode !== "own" && (
-                        <button type="button" onClick={() => setOpenSection(openSection === "photo" ? null : "photo")}
-                          className="mt-2 flex w-full items-center justify-between rounded-xl py-2 text-[0.95rem] font-semibold text-white/90 transition hover:text-white">
-                          <span>
-                            Foto de referencia
-                            {!refImage && <span className="ml-2 align-middle text-[0.6rem] font-normal text-white/40">opcional</span>}
-                          </span>
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-200 ${openSection === "photo" ? "rotate-180" : ""}`}><path d="m6 9 6 6 6-6"/></svg>
-                        </button>
-                      )}
+                      {/* Foto opcional */}
+                      <button type="button" onClick={() => setOpenSection(openSection === "photo" ? null : "photo")}
+                        className="mt-6 flex w-full items-center justify-between rounded-xl py-2 text-[0.95rem] font-semibold text-white/90 transition hover:text-white">
+                        <span>
+                          Foto de perfil (opcional)
+                          {!refImage && <span className="ml-2 align-middle text-[0.6rem] font-normal text-white/40">si no subes, la IA la crea</span>}
+                        </span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-200 ${openSection === "photo" ? "rotate-180" : ""}`}><path d="m6 9 6 6 6-6"/></svg>
+                      </button>
                       <AnimatePresence initial={false}>
-                        {(mode === "own" || openSection === "photo") && (
+                        {openSection === "photo" && (
                           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
                             {refImage ? (
                               <div className="relative mt-2">
@@ -510,7 +485,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                             ) : (
                               <label className="mt-2 flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-white/[0.05] text-xs font-semibold text-white/80 transition hover:bg-white/[0.09] hover:text-white active:scale-[0.99]">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
-                                {mode === "own" ? "Elegir imagen" : "Subir foto de referencia"}
+                                Subir una foto (opcional)
                                 <input type="file" accept="image/*" className="hidden" onChange={handleRefUpload} />
                               </label>
                             )}
@@ -518,7 +493,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                         )}
                       </AnimatePresence>
 
-                      <button onClick={handleDescribeNext} disabled={(!girlDesc.trim() && !roleplayDesc.trim()) || (mode === "own" && !refImage)}
+                      <button onClick={handleDescribeNext} disabled={(!girlDesc.trim() && !roleplayDesc.trim())}
                         className="mt-7 h-[52px] w-full rounded-2xl bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-[0.95rem] font-bold text-white transition hover:brightness-110 active:scale-[0.99] disabled:opacity-40">
                         Siguiente →
                       </button>
@@ -569,37 +544,6 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                     </motion.div>
                   )}
 
-                  {step === "generating" && (
-                    <motion.div key="generating" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="flex flex-col items-center py-20">
-                      <div className="relative flex h-24 w-24 items-center justify-center">
-                        <motion.div className="absolute inset-0 rounded-full bg-[#FF5798]/15 blur-2xl" animate={{ opacity: [0.35, 0.75, 0.35], scale: [0.85, 1.15, 0.85] }} transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }} />
-                        <motion.svg
-                          width="38" height="38" viewBox="0 0 24 24" fill="#FF5798"
-                          animate={{ scale: [1, 1.22, 1] }}
-                          transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
-                          style={{ originX: "50%", originY: "50%" }}
-                        >
-                          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                        </motion.svg>
-                      </div>
-                      <h4 className="mt-10 text-xl font-semibold tracking-tight text-white">Creando a {currentName}</h4>
-                      <p className="mt-2 text-xs text-white/40">Generando con IA de alta calidad... puede tardar 1-3 minutos.</p>
-                      <div className="mt-8 flex gap-1.5">
-                        {[0, 1, 2].map((i) => (
-                          <motion.span key={i} className="h-1 w-1 rounded-full bg-white/30" animate={{ opacity: [0.2, 0.9, 0.2] }} transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.2 }} />
-                        ))}
-                      </div>
-                      {genError && (
-                        <div className="mt-6 w-full rounded-2xl bg-red-500/10 px-4 py-3 text-center">
-                          <p className="text-xs text-red-300">{genError}</p>
-                          <button onClick={handlePersonalityNext} className="mt-3 h-11 w-full rounded-full bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-sm font-bold text-white transition hover:brightness-110 active:scale-[0.99]">
-                            Reintentar
-                          </button>
-                        </div>
-                      )}
-                    </motion.div>
-                  )}
-
                   {step === "done" && (
                     <motion.div key="done" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4 }}>
                       <div className="flex flex-col items-center py-10">
@@ -623,7 +567,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
                       {customGirls.map((g) => (
                         <div key={g.id} className="group relative shrink-0 overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.04]" style={{ flex: "0 0 130px" }}>
-                          <Link href="/chat/luna" onClick={() => { localStorage.setItem("custom_scenario", JSON.stringify({ girl: g.girlDesc, roleplay: g.roleplayDesc })); onClose(); }} className="block">
+                          <Link href="/chat/luna" onClick={() => { localStorage.setItem("custom_scenario", JSON.stringify({ girl: g.girlDesc, roleplay: g.roleplayDesc })); localStorage.setItem("lunacall_active_girl_id", g.id); onClose(); }} className="block">
                             <div className="relative aspect-[3/4] overflow-hidden">
                               <img src={g.imageUrl} alt={g.name} className="h-full w-full object-cover object-top" />
                               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Girl, minorBlockMessage } from "@/data/girls";
 import { getCustomization } from "@/lib/storage";
+import { getCustomGirls, CustomGirlData } from "@/lib/storage";
 import { getFallbackResponse } from "@/lib/ai";
 import { sendChatMessage } from "@/lib/chatClient";
 import {
@@ -38,6 +39,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   const [showModePicker, setShowModePicker] = useState(true);
   const router = useRouter();
   const [customScenario, setCustomScenario] = useState("");
+  const [activeCustom, setActiveCustom] = useState<CustomGirlData | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef(true);
   const messagesRef = useRef(messages);
@@ -54,6 +56,24 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         setCustomScenario(parts.join("\n"));
       } catch {}
     }
+    const activeId = localStorage.getItem("lunacall_active_girl_id");
+    const loadCustom = () => {
+      if (!activeId) return;
+      const g = getCustomGirls().find((x) => x.id === activeId);
+      if (g) setActiveCustom(g);
+    };
+    loadCustom();
+    // Si el avatar se estÃ¡ generando con IA, lo recogemos cuando se guarde.
+    const timer = window.setInterval(() => {
+      const g = getCustomGirls().find((x) => x.id === activeId);
+      if (g) setActiveCustom(g);
+    }, 3000);
+    const onStorage = () => loadCustom();
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("storage", onStorage);
+    };
   }, []);
 
   useEffect(() => {
@@ -215,6 +235,8 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
 
   if (showModePicker) {
     const p = bp();
+    const heroImg = activeCustom?.imageUrl || girl.cloudinaryImage;
+    const heroName = activeCustom?.name || girl.name;
     return (
       <div className={styles.container}>
         <div className={styles.topBar}>
@@ -227,11 +249,11 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         </div>
         <div className={styles.heroCard}>
           <div style={{ position: "relative" }}>
-            <img src={girl.cloudinaryImage} alt={girl.name} className={styles.heroImage} />
+            <img src={heroImg} alt={heroName} className={styles.heroImage} />
             <div className={styles.heroGradient} />
             <div className={styles.heroInfo}>
               <div className={styles.heroNameRow}>
-                <span className={styles.heroName}>{girl.name}</span>
+                <span className={styles.heroName}>{heroName}</span>
                 <span className={styles.verifiedBadge}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
               </div>
               <div className={styles.statusRow}>
@@ -318,6 +340,8 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   }
 
   const p = bp();
+  const avatarSrc = activeCustom?.imageUrl || girl.cloudinaryImage;
+  const displayName = activeCustom?.name || girl.name;
   return (
     <div className={styles.chatRoot}>
       <div className={styles.chatBgPattern} />
@@ -327,13 +351,13 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
           <button className={styles.chatBackBtn} onClick={() => { window.location.href = `${p}/girls`; }} aria-label="Volver">
             <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           </button>
-          {girl.cloudinaryImage ? (
-            <img src={girl.cloudinaryImage} alt={girl.name} className={styles.chatAvatar} />
+          {avatarSrc ? (
+            <img src={avatarSrc} alt={displayName} className={styles.chatAvatar} />
           ) : (
-            <div className={styles.chatAvatarFallback}>{girl.name[0]}</div>
+            <div className={styles.chatAvatarFallback}>{displayName[0]}</div>
           )}
           <div className={styles.chatNameBlock}>
-            <div className={styles.chatName}>{girl.name}</div>
+            <div className={styles.chatName}>{displayName}</div>
             <div className={styles.chatStatus}>
               <span className={styles.chatStatusDot} />
               <span className={styles.chatStatusText}>En línea</span>
