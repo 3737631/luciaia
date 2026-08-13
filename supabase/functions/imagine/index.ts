@@ -151,7 +151,7 @@ async function pollinationsGenerate(prompt: string, width: number, height: numbe
 }
 
 async function hordePoll(id: string): Promise<Uint8Array> {
-  const deadline = Date.now() + 120000;
+  const deadline = Date.now() + 240000;
   while (Date.now() < deadline) {
     await new Promise((r) => setTimeout(r, 5000));
     const st = await fetch(`https://stablehorde.net/api/v2/generate/status/${id}`, { headers: { "Accept": "application/json" } });
@@ -163,7 +163,7 @@ async function hordePoll(id: string): Promise<Uint8Array> {
       return Uint8Array.from(atob(gen.img!), (c) => c.charCodeAt(0));
     }
   }
-  throw new Error("horde: timeout 120s");
+  throw new Error("horde: timeout 240s");
 }
 
 async function hordeGenerate(prompt: string, width: number, height: number, seed: number, apikey: string, sourceImage?: string): Promise<Uint8Array> {

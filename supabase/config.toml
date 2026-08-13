@@ -1,3 +1,6 @@
 [functions]
 [functions.chat]
 verify_jwt = false
+[functions.imagine]
+verify_jwt = false
+timeout_seconds = 300
