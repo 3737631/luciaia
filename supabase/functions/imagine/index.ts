@@ -1,4 +1,4 @@
-const corsHeaders = {
+﻿const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, cache-control",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -9,14 +9,15 @@ function isModerationError(err: unknown): boolean {
 }
 
 function notAllowedResponse() {
-  return new Response(JSON.stringify({ error: "Petición no permitida: solo se genera contenido cubierto y elegante. Describe la ropa en lugar del desnudo explícito." }), {
+  return new Response(JSON.stringify({ error: "PeticiÃ³n no permitida: solo se genera contenido cubierto y elegante. Describe la ropa en lugar del desnudo explÃ­cito." }), {
     status: 400,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 }
 
 const NSCALE_MODEL = "black-forest-labs/FLUX.1-schnell";
-const HF_MODEL = "stabilityai/stable-diffusion-3-medium-diffusers";
+// Modelo serverless gratuito de Hugging Face con gran fotorrealismo de personas (sin tarjeta).
+const HF_MODEL = "SG161222/RealVisXL_V4.0";
 
 function falSize(width: number, height: number): string {
   const ratio = width / height;
@@ -54,7 +55,7 @@ async function falDirectGenerate(prompt: string, width: number, height: number, 
     const text = await res.text();
     lastError = `fal ${res.status}: ${text.slice(0, 200)}`;
   }
-  throw new Error(lastError || "fal falló");
+  throw new Error(lastError || "fal fallÃ³");
 }
 
 async function nscaleGenerate(prompt: string, width: number, height: number, seed: number, token: string): Promise<Uint8Array> {
@@ -80,12 +81,12 @@ async function nscaleGenerate(prompt: string, width: number, height: number, see
     }
     lastError = `nscale ${res.status}: ${(await res.text()).slice(0, 200)}`;
   }
-  throw new Error(lastError || "nscale falló");
+  throw new Error(lastError || "nscale fallÃ³");
 }
 
 // Modelos de Pollinations priorizados por calidad y fotorrealismo para personas.
 // Configurable por variables de entorno:
-//  - POLLINATIONS_MODEL: fuerza un único modelo (p.ej. "seedream5").
+//  - POLLINATIONS_MODEL: fuerza un Ãºnico modelo (p.ej. "seedream5").
 //  - POLLINATIONS_MODELS: lista ordenada separada por comas.
 const DEFAULT_POLLINATIONS_MODELS = [
   "seedream5",
@@ -108,7 +109,7 @@ function pollinationsModelList(): string[] {
 }
 
 async function fetchPollinations(prompt: string, width: number, height: number, seed: number, model: string, timeoutMs: number): Promise<Uint8Array> {
-  // Si hay API key, se usa el endpoint gestionado; si no, el público gratuito.
+  // Si hay API key, se usa el endpoint gestionado; si no, el pÃºblico gratuito.
   const apiKey = Deno.env.get("POLLINATIONS_API_KEY");
   const base = apiKey ? "https://gen.pollinations.ai" : "https://image.pollinations.ai/prompt";
   const params = encodeURIComponent(prompt);
@@ -134,13 +135,13 @@ async function fetchPollinations(prompt: string, width: number, height: number, 
 async function pollinationsGenerate(prompt: string, width: number, height: number, seed: number): Promise<Uint8Array> {
   const models = pollinationsModelList();
   let lastError: string | null = null;
-  // nanobanana/seedream pueden tardar más que "sana".
+  // nanobanana/seedream pueden tardar mÃ¡s que "sana".
   const perModelTimeout = 90000;
   for (const model of models) {
     try {
       const out = await fetchPollinations(prompt, width, height, seed, model, perModelTimeout);
       if (out.length > 0) return out;
-      throw new Error(`pollinations ${model}: imagen vacía`);
+      throw new Error(`pollinations ${model}: imagen vacÃ­a`);
     } catch (err) {
       lastError = String((err as Error)?.message || err);
       console.error(`pollinations modelo ${model} falla:`, lastError);
@@ -214,7 +215,7 @@ async function siliconflowGenerate(prompt: string, apiKey: string, model: string
   });
   const j = await res.json() as { code?: number; message?: string; images?: { url?: string }[] };
   if (j.code && j.message) {
-    if (j.code === 40001 || j.code === 401) throw new Error("siliconflow: key no válida");
+    if (j.code === 40001 || j.code === 401) throw new Error("siliconflow: key no vÃ¡lida");
     throw new Error(`siliconflow ${j.code}: ${j.message}`);
   }
   const url = j.images?.[0]?.url;
@@ -247,15 +248,15 @@ async function siliconflowRef(prompt: string, imageDataUrl: string, apiKey: stri
   return new Uint8Array(await img.arrayBuffer());
 }
 
-async function realismWithFallback(prompt: string, width: number, height: number, seed: number): Promise<Uint8Array> {
+async function realismWithFallback(prompt: string, width: number, height: number, seed: number): Promise<{ bytes: Uint8Array; name: string }> {
   const sfKey = Deno.env.get("SILICONFLOW_API_KEY") ?? "";
   if (sfKey) {
     try {
-      return await siliconflowGenerate(prompt, sfKey, "black-forest-labs/FLUX.1-dev");
+      return { bytes: await siliconflowGenerate(prompt, sfKey, "black-forest-labs/FLUX.1-dev"), name: "sf-flux-dev" };
     } catch (errS) {
       console.error("siliconflow flux-dev falla:", errS);
       try {
-        return await siliconflowGenerate(prompt, sfKey, "Qwen/Qwen-Image");
+        return { bytes: await siliconflowGenerate(prompt, sfKey, "Qwen/Qwen-Image"), name: "sf-qwen" };
       } catch (errQ) {
         console.error("siliconflow qwen-image falla:", errQ);
       }
@@ -266,13 +267,13 @@ async function realismWithFallback(prompt: string, width: number, height: number
     const hordeKey = Deno.env.get("HORDE_API_KEY") ?? "";
     if (hordeKey) {
       try {
-        return await hordeGenerate(prompt, width, height, seed, hordeKey);
+        return { bytes: await hordeGenerate(prompt, width, height, seed, hordeKey), name: "horde-juggernaut" };
       } catch (errH) {
         console.error("horde falla, usa pollinations:", errH);
       }
     }
   }
-  return await pollinationsGenerate(prompt, width, height, seed);
+  return { bytes: await pollinationsGenerate(prompt, width, height, seed), name: "pollinations" };
 }
 
 async function cloudflareRefGenerate(prompt: string, imageDataUrl: string, accountId: string, token: string): Promise<Uint8Array> {
@@ -331,19 +332,19 @@ function baseHair(p: string): string {
   if (/(rubia|rubio|blond|golden)/.test(w)) return "long blonde hair with natural dimension and subtle root variation";
   if (/(pelirroja|pelirrojo|redhead)/.test(w)) return "long auburn hair with natural copper tones, softly layered";
   if (/(negra|negro|pelo negro|black hair)/.test(w)) return "long dark black hair with natural sheen and fine flyaways";
-  if (/(morena|moreno|brunet|casta[nÑ]a)/.test(w)) return "natural dark brown hair, softly textured with visible strands";
+  if (/(morena|moreno|brunet|casta[nÃ‘]a)/.test(w)) return "natural dark brown hair, softly textured with visible strands";
   return "natural hair with visible individual strands and a few fine baby hairs around the hairline";
 }
 
 function sceneLighting(p: string): string {
   const w = p.toLowerCase();
-  if (/(ducha|ba[nÑ]era|bath|shower)/.test(w))
+  if (/(ducha|ba[nÃ‘]era|bath|shower)/.test(w))
     return "diffuse warm bathroom light with soft reflections on slightly wet skin and natural shadow gradients";
   if (/(playa|arena|mar|piscina|tropical|verano)/.test(w))
     return "golden-hour sunlight, warm natural tones, gentle sky reflections, believable soft shadows";
   if (/(nike|sudadera|street|calle|urbano|neon)/.test(w))
     return "city street lighting at dusk, mixed tungsten and soft neon glow, physically plausible highlights";
-  if (/(cama|acostada|hotel|habitaci[oÓ]n|boudoir|dormitorio)/.test(w))
+  if (/(cama|acostada|hotel|habitaci[oÃ“]n|boudoir|dormitorio)/.test(w))
     return "soft warm ambient light with gentle window falloff, natural shadow variation across the face and body";
   if (/(gimnasio|gym|yoga|deporte)/.test(w))
     return "overhead gym lighting, clean directional key light, believable fill and natural shadow contrast";
@@ -354,7 +355,7 @@ function cameraRig(p: string): string {
   const w = p.toLowerCase();
   if (/(espejo|selfi|mirror)/.test(w))
     return "natural smartphone-style selfie framing, slightly imperfect, realistic wide-angle near a mirror, natural perspective";
-  if (/(ducha|ba[nÑ]era|bath|shower)/.test(w))
+  if (/(ducha|ba[nÃ‘]era|bath|shower)/.test(w))
     return "realistic full-frame photography, natural 35mm lens, medium close-up, believable shallow depth of field";
   if (/(caminando|paseando|bailando|baile)/.test(w))
     return "realistic full-frame photography, natural motion capture, 85mm lens, believable depth of field and natural perspective";
@@ -365,8 +366,8 @@ function cameraRig(p: string): string {
   return shots[promptHash(w) % shots.length];
 }
 
-// Convierte la descripción en un prompt fotográfico estructurado y adaptado a cada personaje.
-// El texto del usuario se conserva literalmente; se añade realismo en capas separadas.
+// Convierte la descripciÃ³n en un prompt fotogrÃ¡fico estructurado y adaptado a cada personaje.
+// El texto del usuario se conserva literalmente; se aÃ±ade realismo en capas separadas.
 function buildPhotoPrompt(userPrompt: string): string {
   const base = userPrompt.trim();
   const lighting = sceneLighting(base);
@@ -375,13 +376,13 @@ function buildPhotoPrompt(userPrompt: string): string {
 
   return `${base}.
 
-Características físicas: ${hair}, natural facial asymmetry, anatomically correct proportions, natural hands with correctly formed fingers, aligned natural eyes, realistic teeth and ears.
+CaracterÃ­sticas fÃ­sicas: ${hair}, natural facial asymmetry, anatomically correct proportions, natural hands with correctly formed fingers, aligned natural eyes, realistic teeth and ears.
 
 Textura de piel realista: visible pores, fine natural skin microtexture, subtle natural imperfections, slight natural tone variation across the face, fine texture around the eyes, nose and lips, natural subsurface scattering, physically plausible skin reflections, subtle expression lines, individual eyelashes and brows, natural lip texture, moist eyes and lips, organic non-uniform skin.
 
-Iluminación fotográfica: ${lighting}, natural exposure without burnt highlights, believable contrast, physically plausible light with natural shadow variation on the skin.
+IluminaciÃ³n fotogrÃ¡fica: ${lighting}, natural exposure without burnt highlights, believable contrast, physically plausible light with natural shadow variation on the skin.
 
-Cámara y composición: ${camera}, natural framing, believable proportions, natural color response.
+CÃ¡mara y composiciÃ³n: ${camera}, natural framing, believable proportions, natural color response.
 
 Realismo: authentic candid photography look, true-to-life color, no excessive HDR, no oversharpening, no heavy retouching. Avoid plastic skin, wax skin, doll-like face, mannequin appearance, CGI look, 3D render, videogame character, overly smooth skin, artificial symmetry, porcelain skin, airbrushed skin, synthetic hair, cartoon or illustration appearance.`;
 }
@@ -398,7 +399,7 @@ Deno.serve(async (req) => {
     const height = Math.min(2048, Math.max(256, Number(body.height) || 1536));
 
     if (!rawPrompt) {
-      return new Response(JSON.stringify({ error: "Prompt vacío" }), {
+      return new Response(JSON.stringify({ error: "Prompt vacÃ­o" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -415,23 +416,33 @@ Deno.serve(async (req) => {
     const seed = Number(body.seed) || Math.floor(Math.random() * 1e9);
     const refImage = typeof body.image === "string" ? body.image : "";
 
-    // Prompt fotográfico profesional, conservando la intención del usuario.
+    // Prompt fotogrÃ¡fico profesional, conservando la intenciÃ³n del usuario.
     const prompt = buildPhotoPrompt(String(body.prompt || "").trim());
 
     let img: Uint8Array;
+    let source = "unknown";
     const cfAccount = Deno.env.get("CF_ACCOUNT_ID");
     const cfToken = Deno.env.get("CF_API_TOKEN");
 
     async function tryPollinationsThenRest() {
       try {
-        img = await pollinationsGenerate(prompt, width, height, seed);
-      } catch (errP) {
-        console.error("pollinations falla, usa nscale:", errP);
+        // RealVisXL (HF serverless gratuito) suele dar mÃ¡s fotorrealismo que pollinations pÃºblico.
+        img = await hfGenerate(prompt, width, height, token);
+        source = "hf-realvisxl";
+      } catch (errHf) {
+        console.error("hf serverless falla, usa pollinations:", errHf);
         try {
-          img = await nscaleGenerate(prompt, width, height, seed, token);
-        } catch (err2) {
-          console.error("nscale falla, prueba hf:", err2);
-          img = await hfGenerate(prompt, width, height, token);
+          img = await pollinationsGenerate(prompt, width, height, seed);
+          source = "pollinations";
+        } catch (errP) {
+          console.error("pollinations falla, usa nscale:", errP);
+          try {
+            img = await nscaleGenerate(prompt, width, height, seed, token);
+            source = "nscale";
+          } catch (err2) {
+            console.error("nscale falla:", err2);
+            throw err2;
+          }
         }
       }
     }
@@ -440,6 +451,7 @@ Deno.serve(async (req) => {
     if (refImage && cfAccount && cfToken) {
       try {
         img = await cloudflareRefGenerate(prompt, refImage, cfAccount, cfToken);
+        source = "cf-flux-klein";
       } catch (errC) {
         if (isModerationError(errC)) return notAllowedResponse();
         console.error("cf-ref falla, reintento:", errC);
@@ -452,6 +464,7 @@ Deno.serve(async (req) => {
           if (sfKey) {
             try {
               img = await siliconflowRef(prompt, refImage, sfKey);
+              source = "sf-flux-kontext";
             } catch (errSF) {
               console.error("siliconflow ref falla:", errSF);
             }
@@ -462,13 +475,14 @@ Deno.serve(async (req) => {
             if (hordeEnabled && hordeKey) {
               try {
                 img = await hordeGenerate(prompt, width, height, seed, hordeKey, refImage);
+                source = "horde-juggernaut";
               } catch (errH) {
                 console.error("horde ref falla:", errH);
               }
             }
           }
           if (!img) {
-            return new Response(JSON.stringify({ error: "No se pudo crear con tu foto de referencia. Inténtalo de nuevo en unos segundos." }), {
+            return new Response(JSON.stringify({ error: "No se pudo crear con tu foto de referencia. IntÃ©ntalo de nuevo en unos segundos." }), {
               status: 500,
               headers: { ...corsHeaders, "Content-Type": "application/json" },
             });
@@ -478,35 +492,10 @@ Deno.serve(async (req) => {
     } else if (falKey) {
       try {
         img = await falDirectGenerate(prompt, width, height, seed, falKey);
+        source = "fal-flux-dev";
       } catch (err) {
         console.error("fal falla:", err);
-        try {
-          if (cfAccount && cfToken) {
-            img = await realismWithFallback(prompt, width, height, seed);
-          } else {
-            await tryPollinationsThenRest();
-          }
-        } catch (errC) {
-          console.error("cf falla, pollinations:", errC);
-          try {
-            await tryPollinationsThenRest();
-          } catch (errP) {
-            if (isModerationError(errC)) return notAllowedResponse();
-            throw errP;
-          }
-        }
-      }
-    } else if (cfAccount && cfToken) {
-      try {
-        img = await realismWithFallback(prompt, width, height, seed);
-      } catch (errC) {
-        console.error("cf falla, pollinations:", errC);
-        try {
-          await tryPollinationsThenRest();
-        } catch (errP) {
-          if (isModerationError(errC)) return notAllowedResponse();
-          throw errP;
-        }
+        await tryPollinationsThenRest();
       }
     } else {
       await tryPollinationsThenRest();
@@ -517,7 +506,9 @@ Deno.serve(async (req) => {
       headers: {
         ...corsHeaders,
         "Content-Type": "image/jpeg",
-        "Cache-Control": "public, max-age=3600",
+        "Cache-Control": "no-store",
+        "X-Gen-Source": source,
+        "X-Gen-Rev": "v3",
       },
     });
   } catch (err) {
