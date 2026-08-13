@@ -462,17 +462,6 @@ Deno.serve(async (req) => {
           console.error("novita falla:", errNov);
         }
       }
-      const hordeEnabled = Deno.env.get("HORDE_ENABLED") === "true";
-      const hordeKey = Deno.env.get("HORDE_API_KEY") ?? "";
-      if (hordeEnabled && hordeKey) {
-        try {
-          img = await hordeGenerate(prompt, width, height, seed, hordeKey);
-          source = "horde-juggernaut";
-          return;
-        } catch (errH) {
-          console.error("horde falla:", errH);
-        }
-      }
       await tryPollinationsThenRest();
     }
 
