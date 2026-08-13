@@ -170,7 +170,7 @@ async function hordeGenerate(prompt: string, width: number, height: number, seed
   const body: Record<string, unknown> = {
     prompt,
     params: {
-      width: Math.min(width, 1024),
+      width: Math.min(width, 768),
       height: Math.min(height, 1024),
       steps: 20,
       sampler_name: "k_euler",
@@ -460,6 +460,17 @@ Deno.serve(async (req) => {
           return;
         } catch (errNov) {
           console.error("novita falla:", errNov);
+        }
+      }
+      const hordeEnabled = Deno.env.get("HORDE_ENABLED") === "true";
+      const hordeKey = Deno.env.get("HORDE_API_KEY") ?? "";
+      if (hordeEnabled && hordeKey) {
+        try {
+          img = await hordeGenerate(prompt, width, height, seed, hordeKey);
+          source = "horde-juggernaut";
+          return;
+        } catch (errH) {
+          console.error("horde falla:", errH);
         }
       }
       await tryPollinationsThenRest();
