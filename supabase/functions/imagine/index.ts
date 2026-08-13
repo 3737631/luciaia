@@ -89,11 +89,10 @@ async function nscaleGenerate(prompt: string, width: number, height: number, see
 //  - POLLINATIONS_MODEL: fuerza un Ãºnico modelo (p.ej. "seedream5").
 //  - POLLINATIONS_MODELS: lista ordenada separada por comas.
 const DEFAULT_POLLINATIONS_MODELS = [
+  "gpt-image-2",
+  "nanobanana-2",
   "seedream5",
   "seedream5-pro",
-  "gpt-image-2",
-  "nanobanana-pro",
-  "nanobanana-2",
   "flux",
 ];
 
