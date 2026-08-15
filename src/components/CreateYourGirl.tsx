@@ -284,7 +284,21 @@ function buildPrompt(desc: string, maxSafe = false): string {
   return `Realistic photo of ${head}, ${subject}, ${hair}, ${body}, ${clothing}. ${scene}${framing}. The scene is set in ${background}.`;
 }
 
-type WizardStep = "describe" | "personality" | "done";
+type WizardStep = "describe" | "personality" | "generating" | "done";
+
+// Prompt SEGURO para el avatar (foto de perfil). El Horde censura si detecta
+// contenido explícito en el prompt, así que usamos un retrato limpio sin
+// descripciones de ropa o connotaciones explícitas.
+function buildAvatarPrompt(desc: string): string {
+  const w = desc.toLowerCase();
+  let hair = "long dark brown hair";
+  if (/(rubia|rubio|blond|golden)/.test(w)) hair = "long blonde hair";
+  else if (/(pelirroja|pelirrojo|redhead)/.test(w)) hair = "long red hair";
+  else if (/(negra|negro|pelo negro|black hair)/.test(w)) hair = "long black hair";
+  else if (/(rosa|pink hair)/.test(w)) hair = "long pink hair";
+  const body = /(gorda|gordita|curvy|curvas|voluptuosa)/.test(w) ? "curvy figure" : "slim figure";
+  return `a beautiful adult woman with ${hair} and a ${body}, wearing a simple white t-shirt, natural friendly smile, looking at the camera, close-up portrait, bright soft studio lighting, neutral clean background, photorealistic, high detail, square crop, safe for work`;
+}
 
 export default function CreateYourGirl({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [girlDesc, setGirlDesc] = useState("");
@@ -295,7 +309,6 @@ export default function CreateYourGirl({ open, onClose }: { open: boolean; onClo
   const [selectedPersonality, setSelectedPersonality] = useState("");
   const [currentName, setCurrentName] = useState("");
   const [genError, setGenError] = useState("");
-  const [generating, setGenerating] = useState(false);
   const [diceSpin, setDiceSpin] = useState(false);
   const [refImage, setRefImage] = useState<string | null>(null);
   const [openSection, setOpenSection] = useState<"roleplay" | "photo" | null>(null);
@@ -307,7 +320,7 @@ export default function CreateYourGirl({ open, onClose }: { open: boolean; onClo
 
   useEffect(() => {
     if (!open) {
-setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSelectedPersonality(""); setCurrentName(""); setGenError(""); setRefImage(null); setOpenSection(null); setGenerating(false);
+setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSelectedPersonality(""); setCurrentName(""); setGenError(""); setRefImage(null); setOpenSection(null);
     }
   }, [open]);
 
@@ -370,7 +383,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
 
   async function handlePersonalityNext() {
     setGenError("");
-    setGenerating(true);
+    setStep("generating");
     const id = generateId();
     const name = currentName.trim();
     const story = roleplayDesc.trim() || `Tu nueva creación, ${name}, te espera para pasar una noche inolvidable.`;
@@ -391,7 +404,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
     // para que el chat siempre muestre una foto.
     if (!refImage) {
       try {
-        const prompt = buildPrompt(girlDesc || roleplayDesc);
+        const prompt = buildAvatarPrompt(girlDesc || roleplayDesc);
         const blob = await generateGirlImage({ prompt, width: 512, height: 512, avatar: true });
         const avatarUrl = await compressImage(blob);
         newGirl.imageUrl = avatarUrl;
@@ -403,7 +416,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
     saveCustomGirl(newGirl);
     setCustomGirls(getCustomGirls());
     setGenError("");
-    setGenerating(false);
+    setStep("done");
 
     // Ir directamente al chat con la chica creada.
     router.push(`/chat/luna?custom=${id}`);
@@ -411,7 +424,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
   }
 
   function handleReset() {
-    setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSelectedPersonality(""); setCurrentName(""); setGenerating(false);
+    setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSelectedPersonality(""); setCurrentName("");
   }
 
   function handleDelete(g: CustomGirlData) {
@@ -447,11 +460,13 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
               <div>
                 <h3 className="text-[1.4rem] font-bold leading-tight tracking-tight text-white">
                   {step === "describe" ? "Crea tu fantasía" :
-                   step === "personality" ? "Elige personalidad" : "¡Creada!"}
+                   step === "personality" ? "Elige personalidad" :
+                   step === "generating" ? "Creando..." : "¡Creada!"}
                 </h3>
                 <p className="mt-1 text-xs text-white/40">
                   {step === "describe" ? "Describe cómo quieres que sea" :
-                   step === "personality" ? "¿Cómo te gustaría que sea contigo?" : ""}
+                   step === "personality" ? "¿Cómo te gustaría que sea contigo?" :
+                   step === "generating" ? "La IA está dando vida a tu chica" : ""}
                 </p>
               </div>
 
@@ -460,8 +475,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                 <div
                   className="h-full transition-all duration-500"
                   style={{
-                    width: step === "describe" ? "33%" : step === "personality" ? "66%" : "100%",
-                    background: "linear-gradient(135deg, #FF5798, #FF6AA5)",
+                    width: step === "describe" ? "33%" : step === "personality" ? "66%" : "100%",                    background: "linear-gradient(135deg, #FF5798, #FF6AA5)",
                   }}
                 />
               </div>
@@ -502,7 +516,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
 
                       {/* Campo principal */}
                       <label className="mb-2 mt-6 block text-sm font-semibold text-white/85">Describe tu fantasía</label>
-                      <textarea value={girlDesc} onChange={(e) => { setError(""); setGirlDesc(e.target.value); }}
+                      <textarea value={girlDesc} onFocus={() => setOpenSection(null)} onChange={(e) => { setError(""); setGirlDesc(e.target.value); }}
                         placeholder="Ej: chica de pelo negro, uniforme blanco ajustado, mirada intensa..."
                         rows={3}
                         className="w-full resize-none rounded-xl border border-white/[0.06] bg-white/[0.08] px-4 py-4 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-white/[0.12] focus:bg-white/[0.11]" />
@@ -595,18 +609,31 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                       </div>
 
                       <div className="mt-8 flex flex-col items-center gap-4">
-                        <button onClick={handlePersonalityNext} disabled={generating} className="h-12 w-full max-w-[320px] rounded-full bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-[0.95rem] font-bold text-white transition hover:brightness-110 active:scale-[0.99] disabled:opacity-60">
-                          {generating ? "Generando tu chica con IA..." : "Continuar →"}
+                        <button onClick={handlePersonalityNext} className="h-12 w-full max-w-[320px] rounded-full bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-[0.95rem] font-bold text-white transition hover:brightness-110 active:scale-[0.99]">
+                          Continuar →
                         </button>
-                        {generating && (
-                          <p className="text-xs text-white/40">La IA está creando su foto. Puede tardar hasta 1 minuto.</p>
-                        )}
-                        {!generating && (
-                          <button onClick={handlePersonalityNext} className="text-xs font-medium text-white/40 transition hover:text-white/70 active:scale-95">
-                            Sin personalidad
-                          </button>
-                        )}
+                        <button onClick={handlePersonalityNext} className="text-xs font-medium text-white/40 transition hover:text-white/70 active:scale-95">
+                          Sin personalidad
+                        </button>
                       </div>
+                    </motion.div>
+                  )}
+
+                  {step === "generating" && (
+                    <motion.div key="generating" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }} className="flex flex-col items-center py-16">
+                      <div className="relative flex h-24 w-24 items-center justify-center">
+                        <motion.div className="absolute inset-0 rounded-full bg-[#FF5798]/15 blur-2xl" animate={{ opacity: [0.35, 0.75, 0.35], scale: [0.85, 1.15, 0.85] }} transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }} />
+                        <motion.svg
+                          width="40" height="40" viewBox="0 0 24 24" fill="#FF5798"
+                          animate={{ scale: [1, 1.22, 1] }}
+                          transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
+                          style={{ originX: "50%", originY: "50%" }}
+                        >
+                          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                        </motion.svg>
+                      </div>
+                      <h4 className="mt-10 text-xl font-semibold tracking-tight text-white">Creando a {currentName}</h4>
+                      <p className="mt-2 text-xs text-white/40">Estamos dando vida a tu nueva compañía... puede tardar hasta 1 minuto.</p>
                     </motion.div>
                   )}
 

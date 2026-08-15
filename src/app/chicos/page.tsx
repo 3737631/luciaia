@@ -69,19 +69,22 @@ export default function ChicosPage() {
   useEffect(() => {
     if (preloadedRef.current) return;
     preloadedRef.current = true;
-    const uniqueAvatars = new Set(maleChars.slice(0, 8).map(g => getGirlImage(g.id, null, null, null, g.cloudinaryImage)).filter(Boolean));
-    const allCritical = [
-      ...HERO_IMAGES.map(h => `${basePath}/${h}`),
-      ...uniqueAvatars,
-    ];
-    // Background preload other categories
-    [...femaleGirls.slice(0, 4), ...animeChars.slice(0, 4)].forEach(g => {
-      const url = getGirlImage(g.id, null, null, null, g.cloudinaryImage);
-      const img = new Image(); img.src = url;
-    });
+    try {
+      const uniqueAvatars = new Set(maleChars.slice(0, 8).map(g => getGirlImage(g.id, null, null, null, g.cloudinaryImage)).filter(Boolean));
+      const allCritical = [
+        ...HERO_IMAGES.map(h => `${basePath}/${h}`),
+        ...uniqueAvatars,
+      ];
+      // Background preload other categories
+      [...femaleGirls.slice(0, 4), ...animeChars.slice(0, 4)].forEach(g => {
+        const url = getGirlImage(g.id, null, null, null, g.cloudinaryImage);
+        const img = new Image(); img.src = url;
+      });
 
-    allCritical.forEach(preloadImage);
-    setAppReady(true);
+      allCritical.forEach(preloadImage);
+    } finally {
+      setAppReady(true);
+    }
   }, []);
 
   const POSITIONS = ["15% center", "8% center", "50% center", "30% center"];
