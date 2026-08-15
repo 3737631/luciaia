@@ -56,24 +56,35 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         setCustomScenario(parts.join("\n"));
       } catch {}
     }
-    const activeId = localStorage.getItem("lunacall_active_girl_id");
-    const loadCustom = () => {
-      if (!activeId) return;
-      const g = getCustomGirls().find((x) => x.id === activeId);
-      if (g) setActiveCustom(g);
-    };
-    loadCustom();
-    // Si el avatar se estÃ¡ generando con IA, lo recogemos cuando se guarde.
+    // La custom girl se identifica por la URL (?custom=id): solo se aplica a su chat.
+    const customId = new URLSearchParams(window.location.search).get("custom");
+    if (customId) {
+      const g = getCustomGirls().find((x) => x.id === customId);
+      if (g) {
+        setActiveCustom(g);
+        setShowModePicker(false);
+        // Si definiÃ³ roleplay, entra directamente en modo historia.
+        if (g.roleplayDesc?.trim()) {
+          setMode("actions");
+          const scenario = `Chica: ${g.girlDesc}\nRoleplay: ${g.roleplayDesc}`;
+          setCustomScenario(scenario);
+          setMessages([{ id: "welcome", from: "girl", text: g.roleplayDesc }]);
+        } else {
+          setMode("text");
+        }
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    // Si la custom girl aÃºn no tiene avatar (IA generÃ¡ndolo), lo recogemos cuando se guarde.
+    const customId = new URLSearchParams(window.location.search).get("custom");
+    if (!customId) return;
     const timer = window.setInterval(() => {
-      const g = getCustomGirls().find((x) => x.id === activeId);
+      const g = getCustomGirls().find((x) => x.id === customId);
       if (g) setActiveCustom(g);
     }, 3000);
-    const onStorage = () => loadCustom();
-    window.addEventListener("storage", onStorage);
-    return () => {
-      window.clearInterval(timer);
-      window.removeEventListener("storage", onStorage);
-    };
+    return () => window.clearInterval(timer);
   }, []);
 
   useEffect(() => {

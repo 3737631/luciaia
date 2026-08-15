@@ -337,7 +337,6 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
     const story = roleplayDesc.trim() || `Tu nueva creación, ${name}, te espera para pasar una noche inolvidable.`;
     const customScenario = JSON.stringify({ girl: girlDesc.trim(), roleplay: roleplayDesc.trim() });
     localStorage.setItem("custom_scenario", customScenario);
-    localStorage.setItem("lunacall_active_girl_id", id);
 
     const newGirl: CustomGirlData = {
       id, name, age: generateAge(), story,
@@ -367,7 +366,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
     }
 
     // Ir directamente al chat con la chica creada.
-    router.push(`/chat/luna`);
+    router.push(`/chat/luna?custom=${id}`);
     onClose();
   }
 
@@ -565,7 +564,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
                       {customGirls.map((g) => (
                         <div key={g.id} className="group relative shrink-0 overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.04]" style={{ flex: "0 0 130px" }}>
-                          <Link href="/chat/luna" onClick={() => { localStorage.setItem("custom_scenario", JSON.stringify({ girl: g.girlDesc, roleplay: g.roleplayDesc })); localStorage.setItem("lunacall_active_girl_id", g.id); onClose(); }} className="block">
+                          <Link href={`/chat/luna?custom=${g.id}`} onClick={() => { localStorage.setItem("custom_scenario", JSON.stringify({ girl: g.girlDesc, roleplay: g.roleplayDesc })); onClose(); }} className="block">
                             <div className="relative aspect-[3/4] overflow-hidden">
                               <img src={g.imageUrl} alt={g.name} className="h-full w-full object-cover object-top" />
                               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
