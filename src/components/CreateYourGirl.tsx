@@ -317,13 +317,13 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
     reader.onload = () => {
       const img = new Image();
       img.onload = () => {
-        const maxW = 1024;
+        const maxW = 256;
         const scale = Math.min(1, maxW / img.width);
         const canvas = document.createElement("canvas");
         canvas.width = Math.round(img.width * scale);
         canvas.height = Math.round(img.height * scale);
         canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
-        setRefImage(canvas.toDataURL("image/jpeg", 0.9));
+        setRefImage(canvas.toDataURL("image/jpeg", 0.85));
       };
       img.src = String(reader.result);
     };
@@ -351,21 +351,19 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
     saveCustomGirl(newGirl);
     setCustomGirls(getCustomGirls());
     setGenError("");
-    setStep("done");
 
-    // La foto de perfil (el cÃ­rculo del chat) la genera la IA en segundo plano
-    // y se guarda cuando estÃ© lista. Sin imagen de referencia: avatar de retrato IA.
+    // Si subiÃ³ foto, el chat ya la muestra. Si no, la IA crea el avatar en
+    // segundo plano y el chat lo recoge cuando estÃ© listo.
     if (!refImage) {
       const prompt = buildPrompt(girlDesc || roleplayDesc);
-      try {
-        const blob = await generateGirlImage({ prompt, width: 512, height: 512, avatar: true });
-        const avatarUrl = await compressImage(blob);
-        const updated: CustomGirlData = { ...newGirl, imageUrl: avatarUrl };
-        saveCustomGirl(updated);
-        setCustomGirls(getCustomGirls());
-      } catch (err) {
-        console.error("avatar IA falla, se usa el marcador:", err);
-      }
+      generateGirlImage({ prompt, width: 512, height: 512, avatar: true })
+        .then(compressImage)
+        .then((avatarUrl) => {
+          const updated: CustomGirlData = { ...newGirl, imageUrl: avatarUrl };
+          saveCustomGirl(updated);
+          setCustomGirls(getCustomGirls());
+        })
+        .catch((err) => console.error("avatar IA falla, se usa el marcador:", err));
     }
 
     // Ir directamente al chat con la chica creada.
