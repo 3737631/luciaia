@@ -503,14 +503,14 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                             setCurrentName(generateName(girlDesc || roleplayDesc));
                           }}
                           title="Nombre al azar"
-                          className="absolute left-1.5 top-1/2 flex -translate-y-1/2 items-center justify-center p-0.5 transition hover:scale-110 active:scale-95"
+                          className="absolute left-1.5 top-1/2 z-10 flex -translate-y-1/2 items-center justify-center p-0.5 transition hover:scale-110 active:scale-95"
                         >
                           <Dice3D spinning={diceSpin} />
                         </button>
                         <input value={currentName} onChange={(e) => { setError(""); setCurrentName(e.target.value); }}
                           placeholder="Ej: Luna"
                           maxLength={20}
-                          className="h-14 w-full rounded-2xl border border-white/[0.06] bg-white/[0.06] pl-12 pr-4 text-[0.95rem] text-white outline-none backdrop-blur-md transition-colors placeholder:text-white/25 focus:border-[#FF5798]/40 focus:bg-white/[0.09]" />
+                          className="h-12 w-full rounded-2xl border border-white/[0.06] bg-white/[0.06] pl-12 pr-4 text-[0.95rem] text-white outline-none backdrop-blur-md transition-colors placeholder:text-white/25 focus:border-[#FF5798]/40 focus:bg-white/[0.09]" />
                       </div>
 
                       {/* Campo principal */}
