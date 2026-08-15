@@ -44,6 +44,8 @@ function generateName(desc: string): string {
   return names[Math.floor(Math.random() * names.length)];
 }
 
+const RANDOM_NAMES = ["Luna", "Nia", "Vera", "Alma", "Kira", "Maya", "Sasha", "Yuki", "Eva", "Iris", "Nova", "Aria", "Zara", "Lia", "Roxy", "Mila", "Sofia", "Valentina", "Camila", "Renata", "Aisha", "Nora", "Ivy", "Skye", "Raven"];
+
 function generateAge(): number {
   return 18 + Math.floor(Math.random() * 7);
 }
@@ -261,6 +263,7 @@ export default function CreateYourGirl({ open, onClose }: { open: boolean; onClo
   const [selectedPersonality, setSelectedPersonality] = useState("");
   const [currentName, setCurrentName] = useState("");
   const [genError, setGenError] = useState("");
+  const [generating, setGenerating] = useState(false);
   const [refImage, setRefImage] = useState<string | null>(null);
   const [openSection, setOpenSection] = useState<"roleplay" | "photo" | null>(null);
   const router = useRouter();
@@ -271,7 +274,7 @@ export default function CreateYourGirl({ open, onClose }: { open: boolean; onClo
 
   useEffect(() => {
     if (!open) {
-setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSelectedPersonality(""); setCurrentName(""); setGenError(""); setRefImage(null); setOpenSection(null);
+setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSelectedPersonality(""); setCurrentName(""); setGenError(""); setRefImage(null); setOpenSection(null); setGenerating(false);
     }
   }, [open]);
 
@@ -302,11 +305,11 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
 
   function handleDescribeNext() {
     setError("");
+    if (!currentName.trim()) { setError("Ponle un nombre a tu chica antes de continuar."); return; }
     if (!girlDesc.trim() && !roleplayDesc.trim()) return;
     const combined = (girlDesc + " " + roleplayDesc).trim();
     const blockReason = containsMinorReferences(combined);
     if (blockReason) { setError(blockReason); return; }
-    setCurrentName(generateName(girlDesc || roleplayDesc));
     setStep("personality");
   }
 
@@ -332,8 +335,9 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
 
   async function handlePersonalityNext() {
     setGenError("");
+    setGenerating(true);
     const id = generateId();
-    const name = currentName;
+    const name = currentName.trim();
     const story = roleplayDesc.trim() || `Tu nueva creación, ${name}, te espera para pasar una noche inolvidable.`;
     const customScenario = JSON.stringify({ girl: girlDesc.trim(), roleplay: roleplayDesc.trim() });
     localStorage.setItem("custom_scenario", customScenario);
@@ -347,23 +351,24 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
       baseId: "luna",
       imageUrl: refImage || undefined,
     };
+
+    // Sin foto: la IA crea el avatar (cuadrado 512x512) antes de navegar,
+    // para que el chat siempre muestre una foto.
+    if (!refImage) {
+      try {
+        const prompt = buildPrompt(girlDesc || roleplayDesc);
+        const blob = await generateGirlImage({ prompt, width: 512, height: 512, avatar: true });
+        const avatarUrl = await compressImage(blob);
+        newGirl.imageUrl = avatarUrl;
+      } catch (err) {
+        console.error("avatar IA falla:", err);
+      }
+    }
+
     saveCustomGirl(newGirl);
     setCustomGirls(getCustomGirls());
     setGenError("");
-
-    // Si subiÃ³ foto, el chat ya la muestra. Si no, la IA crea el avatar en
-    // segundo plano y el chat lo recoge cuando estÃ© listo.
-    if (!refImage) {
-      const prompt = buildPrompt(girlDesc || roleplayDesc);
-      generateGirlImage({ prompt, width: 512, height: 512, avatar: true })
-        .then(compressImage)
-        .then((avatarUrl) => {
-          const updated: CustomGirlData = { ...newGirl, imageUrl: avatarUrl };
-          saveCustomGirl(updated);
-          setCustomGirls(getCustomGirls());
-        })
-        .catch((err) => console.error("avatar IA falla, se usa el marcador:", err));
-    }
+    setGenerating(false);
 
     // Ir directamente al chat con la chica creada.
     router.push(`/chat/luna?custom=${id}`);
@@ -371,7 +376,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
   }
 
   function handleReset() {
-    setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSelectedPersonality(""); setCurrentName("");
+    setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSelectedPersonality(""); setCurrentName(""); setGenerating(false);
   }
 
   function handleDelete(g: CustomGirlData) {
@@ -435,8 +440,22 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                         <div className="mb-5 rounded-xl bg-red-500/10 px-4 py-3 text-xs text-red-300">{error}</div>
                       )}
 
+                      {/* Campo nombre */}
+                      <label className="mb-2 block text-sm font-semibold text-white/85">Nombre de tu chica</label>
+                      <div className="flex gap-2">
+                        <input value={currentName} onChange={(e) => { setError(""); setCurrentName(e.target.value); }}
+                          placeholder="Ej: Luna"
+                          maxLength={20}
+                          className="h-12 w-full rounded-xl border border-white/[0.06] bg-white/[0.08] px-4 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-white/[0.12] focus:bg-white/[0.11]" />
+                        <button type="button" onClick={() => setCurrentName(RANDOM_NAMES[Math.floor(Math.random() * RANDOM_NAMES.length)])}
+                          className="flex h-12 shrink-0 items-center gap-1.5 rounded-xl bg-white/[0.08] px-3 text-xs font-bold text-white/80 transition hover:bg-white/[0.12] hover:text-white active:scale-[0.97]">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/></svg>
+                          Al azar
+                        </button>
+                      </div>
+
                       {/* Campo principal */}
-                      <label className="mb-2 block text-sm font-semibold text-white/85">Describe tu fantasía</label>
+                      <label className="mb-2 mt-6 block text-sm font-semibold text-white/85">Describe tu fantasía</label>
                       <textarea value={girlDesc} onChange={(e) => { setError(""); setGirlDesc(e.target.value); }}
                         placeholder="Ej: chica de pelo negro, uniforme blanco ajustado, mirada intensa..."
                         rows={3}
@@ -490,7 +509,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                         )}
                       </AnimatePresence>
 
-                      <button onClick={handleDescribeNext} disabled={(!girlDesc.trim() && !roleplayDesc.trim())}
+                      <button onClick={handleDescribeNext} disabled={(!currentName.trim() || (!girlDesc.trim() && !roleplayDesc.trim()))}
                         className="mt-7 h-[52px] w-full rounded-2xl bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-[0.95rem] font-bold text-white transition hover:brightness-110 active:scale-[0.99] disabled:opacity-40">
                         Siguiente →
                       </button>
@@ -515,10 +534,9 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                           return (
                             <button key={p.value} onClick={() => setSelectedPersonality(p.value)}
                               className="group flex w-full items-center gap-4 py-4 text-left transition active:scale-[0.99]">
-                              <span className="relative flex h-3.5 w-3.5 items-center justify-center">
-                                <motion.span
-                                  layoutId="personality-dot"
-                                  className={`absolute h-3.5 w-3.5 rounded-full ${active ? "bg-[#FF5798] shadow-[0_0_12px_rgba(255,87,152,0.45)]" : "bg-white/[0.12] transition-colors group-hover:bg-white/25"}`}
+                              <span className="relative flex h-4 w-4 items-center justify-center">
+                                <span
+                                  className={`block h-4 w-4 rounded-full transition-all duration-200 ${active ? "bg-[#FF5798] shadow-[0_0_12px_rgba(255,87,152,0.45)]" : "border-2 border-white/20 bg-transparent group-hover:border-white/40"}`}
                                 />
                               </span>
                               <span className="flex-1">
@@ -531,12 +549,17 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                       </div>
 
                       <div className="mt-8 flex flex-col items-center gap-4">
-                        <button onClick={handlePersonalityNext} className="h-12 w-full max-w-[320px] rounded-full bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-[0.95rem] font-bold text-white transition hover:brightness-110 active:scale-[0.99]">
-                          Continuar →
+                        <button onClick={handlePersonalityNext} disabled={generating} className="h-12 w-full max-w-[320px] rounded-full bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-[0.95rem] font-bold text-white transition hover:brightness-110 active:scale-[0.99] disabled:opacity-60">
+                          {generating ? "Generando tu chica con IA..." : "Continuar →"}
                         </button>
-                        <button onClick={handlePersonalityNext} className="text-xs font-medium text-white/40 transition hover:text-white/70 active:scale-95">
-                          Sin personalidad
-                        </button>
+                        {generating && (
+                          <p className="text-xs text-white/40">La IA está creando su foto. Puede tardar hasta 1 minuto.</p>
+                        )}
+                        {!generating && (
+                          <button onClick={handlePersonalityNext} className="text-xs font-medium text-white/40 transition hover:text-white/70 active:scale-95">
+                            Sin personalidad
+                          </button>
+                        )}
                       </div>
                     </motion.div>
                   )}
