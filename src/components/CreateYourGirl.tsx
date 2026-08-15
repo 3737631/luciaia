@@ -296,8 +296,12 @@ function buildAvatarPrompt(desc: string): string {
   else if (/(pelirroja|pelirrojo|redhead)/.test(w)) hair = "long red hair";
   else if (/(negra|negro|pelo negro|black hair)/.test(w)) hair = "long black hair";
   else if (/(rosa|pink hair)/.test(w)) hair = "long pink hair";
+  let eyes = "brown eyes";
+  if (/(ojos azules|blue eyes)/.test(w)) eyes = "blue eyes";
+  else if (/(ojos verdes|green eyes)/.test(w)) eyes = "green eyes";
+  else if (/(ojos grises|ojos claros|ojos de hielo|hielo)/.test(w)) eyes = "ice blue eyes";
   const body = /(gorda|gordita|curvy|curvas|voluptuosa)/.test(w) ? "curvy figure" : "slim figure";
-  return `a beautiful adult woman with ${hair} and a ${body}, wearing a simple white t-shirt, natural friendly smile, looking at the camera, close-up portrait, bright soft studio lighting, neutral clean background, photorealistic, high detail, square crop, safe for work`;
+  return `a beautiful adult woman in her mid 20s with ${hair} and ${eyes}, natural realistic skin with visible pores, gentle natural makeup, soft natural smile, wearing a simple elegant black top, close-up portrait head and shoulders, perfectly centered, sharp focus, soft diffused studio lighting, shallow depth of field, blurred neutral background, photorealistic photography, high detail, square profile crop`;
 }
 
 export default function CreateYourGirl({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -407,7 +411,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
     if (!refImage) {
       try {
         const prompt = buildAvatarPrompt(girlDesc || roleplayDesc);
-        const blob = await generateGirlImage({ prompt, width: 512, height: 512, avatar: true });
+        const blob = await generateGirlImage({ prompt, width: 768, height: 768, avatar: true });
         const avatarUrl = await compressImage(blob);
         newGirl.imageUrl = avatarUrl;
       } catch (err) {

@@ -178,16 +178,16 @@ async function hordeSubmit(prompt: string, width: number, height: number, seed: 
     params: {
       width: Math.min(width, 768),
       height: Math.min(height, 1024),
-      steps: 18,
-      sampler_name: "k_euler",
-      cfg_scale: 6,
+      steps: 30,
+      sampler_name: "k_dpmpp_2m",
+      cfg_scale: 7,
       seed: String(seed),
     },
     nsfw: false,
     censor_nsfw: true,
-    // Varios modelos fotorrealistas: el Horde elige el que tenga worker libre
-    // (evita la cola enorme de Juggernaut XL aislado).
-    models: ["Deliberate", "DreamShaper", "Photon", "CyberRealistic", "Pony Realism", "Juggernaut XL"],
+    // Solo modelos fotorrealistas: Juggernaut XL da fotos reales; Photon/CyberRealistic
+    // también. Evitamos Pony/Deliberate (tienen tendencia anime/cartoon).
+    models: ["Juggernaut XL", "Photon", "CyberRealistic", "DreamShaper", "Realistic Vision"],
   };
   if (sourceImage) {
     const b64 = sourceImage.includes(",") ? sourceImage.split(",")[1] : sourceImage;
@@ -554,15 +554,16 @@ Deno.serve(async (req) => {
     const isAvatar = body.avatar === true;
 
     // Prompt fotogrÃ¡fico profesional, conservando la intenciÃ³n del usuario.
-    // Para el avatar (foto de perfil circular) usamos un retrato de primer plano.
+    // Para el avatar (foto de perfil circular) usamos un retrato de primer plano
+    // fotorrealista con textura de piel real.
     const rawDesc = String(body.prompt || "").trim();
     const prompt = isAvatar
-      ? `close-up portrait photo of ${rawDesc || "a beautiful young woman"}, face and shoulders centered, looking at the camera, natural skin texture, soft even studio lighting, neutral background, photorealistic, high detail face, square crop`
+      ? `professional portrait photograph of ${rawDesc || "a beautiful young woman"}, close-up on face and shoulders, perfectly centered, facing the camera, natural realistic skin with visible pores and texture, detailed iris and lashes, soft studio lighting, shallow depth of field, blurred neutral background, photorealistic, sharp focus on eyes, high resolution face detail, square profile picture crop`
       : buildPhotoPrompt(rawDesc, seed);
 
-    // El avatar se genera en cuadrado pequeÃ±o (512x512) para el cÃ­rculo de perfil.
-    const genWidth = isAvatar ? Math.min(width, 512) : Math.min(width, 768);
-    const genHeight = isAvatar ? Math.min(height, 512) : Math.min(height, 1024);
+    // El avatar se genera en cuadrado pequeÃ±o (768x768) para el cÃ­rculo de perfil.
+    const genWidth = isAvatar ? Math.min(width, 768) : Math.min(width, 768);
+    const genHeight = isAvatar ? Math.min(height, 768) : Math.min(height, 1024);
 
     // Si el Horde estÃ¡ activo y no hay foto de referencia, creamos el job de forma asÃ­ncrona:
     // respondemos con { jobId } al instante y el frontend consulta el estado despuÃ©s.
