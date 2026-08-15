@@ -494,12 +494,14 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                         <span>Nombre de tu chica</span>
                         <span className="text-[0.6rem] font-normal text-white/40">si lo dejas vacío lo ponemos nosotros</span>
                       </label>
-                      <div className="relative">
-                        <svg className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="hsla(240,7%,97%,.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                        <input value={currentName} onChange={(e) => { setError(""); setCurrentName(e.target.value); }}
-                          placeholder="Ej: Luna"
-                          maxLength={20}
-                          className="h-14 w-full rounded-2xl border border-white/[0.06] bg-white/[0.08] pl-11 pr-14 text-[0.95rem] text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#FF5798]/40 focus:bg-white/[0.11]" />
+                      <div className="flex items-stretch gap-2">
+                        <div className="relative flex-1">
+                          <svg className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="hsla(240,7%,97%,.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                          <input value={currentName} onChange={(e) => { setError(""); setCurrentName(e.target.value); }}
+                            placeholder="Ej: Luna"
+                            maxLength={20}
+                            className="h-14 w-full rounded-2xl border border-white/[0.06] bg-white/[0.08] pl-11 pr-4 text-[0.95rem] text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#FF5798]/40 focus:bg-white/[0.11]" />
+                        </div>
                         <button
                           type="button"
                           onClick={() => {
@@ -508,7 +510,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                             setCurrentName(generateName(girlDesc || roleplayDesc));
                           }}
                           title="Nombre al azar"
-                          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl p-1.5 transition hover:scale-110 active:scale-95"
+                          className="flex h-14 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#FF5798]/20 bg-[#FF5798]/10 transition hover:bg-[#FF5798]/20 hover:border-[#FF5798]/35 active:scale-[0.97]"
                         >
                           <Dice3D spinning={diceSpin} />
                         </button>
