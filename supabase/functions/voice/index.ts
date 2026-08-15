@@ -85,6 +85,11 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { action } = body;
 
+    // Ping de keep-alive (bot "Keep Supabase active"): solo genera actividad sin coste.
+    if (action === "ping") {
+      return new Response(JSON.stringify({ ok: true, pong: Date.now() }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     if (action === "stt") {
       const { audio, mimeType } = body;
       if (!audio) {
