@@ -857,17 +857,17 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
 
 /* Dado 3D para el nombre al azar */
 .dice3d {
-  width: 30px;
-  height: 30px;
-  perspective: 300px;
+  width: 24px;
+  height: 24px;
+  perspective: 240px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 .dice3d__cube {
-  width: 22px;
-  height: 22px;
+  width: 17px;
+  height: 17px;
   position: relative;
   transform-style: preserve-3d;
   transform: rotateX(-18deg) rotateY(35deg);
@@ -876,26 +876,26 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
 .dice3d__face {
   position: absolute;
   inset: 0;
-  border-radius: 5px;
+  border-radius: 4px;
   background: linear-gradient(145deg, #ff3d8c, #b3135e);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.25), inset 0 -2px 4px rgba(0,0,0,.3), 0 3px 10px rgba(214,34,110,.35);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.2), inset 0 -1px 2px rgba(0,0,0,.3), 0 2px 6px rgba(214,34,110,.3);
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
-  padding: 4px;
+  padding: 3px;
   gap: 1px;
 }
 .dice3d__face::before {
   content: "";
   position: absolute;
   inset: 0;
-  border-radius: 5px;
-  background: linear-gradient(200deg, rgba(255,255,255,.3), transparent 45%);
+  border-radius: 4px;
+  background: linear-gradient(200deg, rgba(255,255,255,.25), transparent 45%);
   pointer-events: none;
 }
 .dice3d__dot {
-  width: 3px;
-  height: 3px;
+  width: 2.5px;
+  height: 2.5px;
   border-radius: 999px;
   background: #fff;
   box-shadow: 0 1px 1px rgba(0,0,0,.4);

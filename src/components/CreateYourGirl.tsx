@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -312,6 +312,7 @@ export default function CreateYourGirl({ open, onClose }: { open: boolean; onClo
   const [diceSpin, setDiceSpin] = useState(false);
   const [refImage, setRefImage] = useState<string | null>(null);
   const [openSection, setOpenSection] = useState<"roleplay" | "photo" | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -326,6 +327,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
 
   useEffect(() => {
     if (open) {
+      scrollRef.current?.scrollTo(0, 0);
       const b = document.body;
       const h = document.documentElement;
       const origB = { position: b.style.position, top: b.style.top, left: b.style.left, right: b.style.right, overflow: b.style.overflow };
@@ -444,6 +446,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
             onClick={onClose}
           />
           <motion.div
+            ref={scrollRef}
             className="fixed inset-0 z-50 overflow-y-auto"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -491,14 +494,12 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
 
                       {/* Campo nombre */}
                       <label className="mb-2 block text-sm font-semibold text-white/85">Nombre de tu chica</label>
-                      <div className="flex items-stretch gap-2">
-                        <div className="relative flex-1">
-                          <svg className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="hsla(240,7%,97%,.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                          <input value={currentName} onChange={(e) => { setError(""); setCurrentName(e.target.value); }}
-                            placeholder="Ej: Luna"
-                            maxLength={20}
-                            className="h-14 w-full rounded-2xl border border-white/[0.06] bg-white/[0.08] pl-11 pr-4 text-[0.95rem] text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#FF5798]/40 focus:bg-white/[0.11]" />
-                        </div>
+                      <div className="relative">
+                        <svg className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="hsla(240,7%,97%,.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <input value={currentName} onChange={(e) => { setError(""); setCurrentName(e.target.value); }}
+                          placeholder="Ej: Luna"
+                          maxLength={20}
+                          className="h-14 w-full rounded-2xl border border-white/[0.06] bg-white/[0.06] pl-11 pr-12 text-[0.95rem] text-white outline-none backdrop-blur-md transition-colors placeholder:text-white/25 focus:border-[#FF5798]/40 focus:bg-white/[0.09]" />
                         <button
                           type="button"
                           onClick={() => {
@@ -507,7 +508,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                             setCurrentName(generateName(girlDesc || roleplayDesc));
                           }}
                           title="Nombre al azar"
-                          className="flex items-center justify-center px-1 transition hover:scale-110 active:scale-95"
+                          className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center justify-center p-1 transition hover:scale-110 active:scale-95"
                         >
                           <Dice3D spinning={diceSpin} />
                         </button>
