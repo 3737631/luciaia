@@ -507,7 +507,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                             setCurrentName(generateName(girlDesc || roleplayDesc));
                           }}
                           title="Nombre al azar"
-                          className="absolute right-1.5 top-1/2 z-10 flex -translate-y-1/2 items-center justify-center p-0.5 transition hover:scale-110 active:scale-95"
+                          className="absolute right-5 top-1/2 z-10 flex -translate-y-1/2 items-center justify-center p-0.5 transition hover:scale-110 active:scale-95"
                         >
                           <Dice3D spinning={diceSpin} />
                         </button>
