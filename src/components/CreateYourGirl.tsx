@@ -31,6 +31,40 @@ function generateId(): string {
   return "custom_" + Math.random().toString(36).slice(2, 8);
 }
 
+function Dice3D({ spinning }: { spinning: boolean }) {
+  const dots = [
+    [0, 0, 0, 0, 1, 0, 0, 0, 0], // 1
+    [1, 0, 0, 0, 0, 0, 0, 0, 1], // 2
+    [1, 0, 0, 0, 1, 0, 0, 0, 1], // 3
+    [1, 0, 1, 0, 0, 0, 1, 0, 1], // 4
+    [1, 0, 1, 0, 1, 0, 1, 0, 1], // 5
+    [1, 0, 1, 1, 0, 1, 1, 0, 1], // 6
+  ];
+  return (
+    <div className={`dice3d ${spinning ? "dice3d--spin" : ""}`}>
+      <div className="dice3d__cube">
+        {dots.map((face, i) => (
+          <div key={i} className="dice3d__face" style={{ transform: faceTransform(i) }}>
+            {face.map((hasDot, j) => hasDot ? <span key={j} className="dice3d__dot" /> : <span key={j} />)}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function faceTransform(i: number): string {
+  const t = 28 / 2;
+  switch (i) {
+    case 0: return `translateZ(${t}px)`;
+    case 1: return `rotateX(90deg) translateZ(${t}px)`;
+    case 2: return `rotateX(180deg) translateZ(${t}px)`;
+    case 3: return `rotateX(-90deg) translateZ(${t}px)`;
+    case 4: return `rotateY(90deg) translateZ(${t}px)`;
+    default: return `rotateY(-90deg) translateZ(${t}px)`;
+  }
+}
+
 function generateName(desc: string): string {
   const names = ["Luna", "Nia", "Vera", "Alma", "Kira", "Maya", "Sasha", "Yuki", "Eva", "Iris", "Nova", "Aria", "Zara", "Lia", "Roxy"];
   const words = desc.toLowerCase();
@@ -262,6 +296,7 @@ export default function CreateYourGirl({ open, onClose }: { open: boolean; onClo
   const [currentName, setCurrentName] = useState("");
   const [genError, setGenError] = useState("");
   const [generating, setGenerating] = useState(false);
+  const [diceSpin, setDiceSpin] = useState(false);
   const [refImage, setRefImage] = useState<string | null>(null);
   const [openSection, setOpenSection] = useState<"roleplay" | "photo" | null>(null);
   const router = useRouter();
@@ -450,7 +485,19 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                         <input value={currentName} onChange={(e) => { setError(""); setCurrentName(e.target.value); }}
                           placeholder="Ej: Luna"
                           maxLength={20}
-                          className="h-14 w-full rounded-2xl border border-white/[0.06] bg-white/[0.08] pl-11 pr-4 text-[0.95rem] text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#FF5798]/40 focus:bg-white/[0.11]" />
+                          className="h-14 w-full rounded-2xl border border-white/[0.06] bg-white/[0.08] pl-11 pr-14 text-[0.95rem] text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#FF5798]/40 focus:bg-white/[0.11]" />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDiceSpin(true);
+                            window.setTimeout(() => setDiceSpin(false), 750);
+                            setCurrentName(generateName(girlDesc || roleplayDesc));
+                          }}
+                          title="Nombre al azar"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl p-1.5 transition hover:scale-110 active:scale-95"
+                        >
+                          <Dice3D spinning={diceSpin} />
+                        </button>
                       </div>
 
                       {/* Campo principal */}
