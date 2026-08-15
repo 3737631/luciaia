@@ -44,8 +44,6 @@ function generateName(desc: string): string {
   return names[Math.floor(Math.random() * names.length)];
 }
 
-const RANDOM_NAMES = ["Luna", "Nia", "Vera", "Alma", "Kira", "Maya", "Sasha", "Yuki", "Eva", "Iris", "Nova", "Aria", "Zara", "Lia", "Roxy", "Mila", "Sofia", "Valentina", "Camila", "Renata", "Aisha", "Nora", "Ivy", "Skye", "Raven"];
-
 function generateAge(): number {
   return 18 + Math.floor(Math.random() * 7);
 }
@@ -305,7 +303,10 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
 
   function handleDescribeNext() {
     setError("");
-    if (!currentName.trim()) { setError("Ponle un nombre a tu chica antes de continuar."); return; }
+    let name = currentName.trim();
+    // El nombre es obligatorio: si está vacío, la app lo asigna automáticamente.
+    if (!name) name = generateName(girlDesc || roleplayDesc);
+    setCurrentName(name);
     const combined = (girlDesc + " " + roleplayDesc).trim();
     const blockReason = containsMinorReferences(combined);
     if (blockReason) { setError(blockReason); return; }
@@ -442,21 +443,14 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                       {/* Campo nombre */}
                       <label className="mb-2 flex items-center justify-between text-sm font-semibold text-white/85">
                         <span>Nombre de tu chica</span>
-                        <span className="text-[0.6rem] font-normal text-white/40">obligatorio</span>
+                        <span className="text-[0.6rem] font-normal text-white/40">si lo dejas vacío lo ponemos nosotros</span>
                       </label>
-                      <div className="flex gap-2">
-                        <div className="relative flex-1">
-                          <svg className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="hsla(240,7%,97%,.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                          <input value={currentName} onChange={(e) => { setError(""); setCurrentName(e.target.value); }}
-                            placeholder="Ej: Luna"
-                            maxLength={20}
-                            className="h-14 w-full rounded-2xl border border-white/[0.06] bg-white/[0.08] pl-11 pr-4 text-[0.95rem] text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#FF5798]/40 focus:bg-white/[0.11]" />
-                        </div>
-                        <button type="button" onClick={() => setCurrentName(RANDOM_NAMES[Math.floor(Math.random() * RANDOM_NAMES.length)])}
-                          className="group flex h-14 w-14 shrink-0 flex-col items-center justify-center gap-0.5 rounded-2xl bg-gradient-to-br from-[#FF5798]/20 to-[#FF6AA5]/5 text-[#FF6AA5] transition hover:from-[#FF5798]/30 hover:to-[#FF6AA5]/15 active:scale-[0.96]">
-                          <svg className="transition-transform duration-300 group-hover:rotate-180" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 8h.01M16 8h.01M8 16h.01M16 16h.01"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>
-                          <span className="text-[0.5rem] font-bold leading-none tracking-wide uppercase">Al azar</span>
-                        </button>
+                      <div className="relative">
+                        <svg className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="hsla(240,7%,97%,.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <input value={currentName} onChange={(e) => { setError(""); setCurrentName(e.target.value); }}
+                          placeholder="Ej: Luna"
+                          maxLength={20}
+                          className="h-14 w-full rounded-2xl border border-white/[0.06] bg-white/[0.08] pl-11 pr-4 text-[0.95rem] text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#FF5798]/40 focus:bg-white/[0.11]" />
                       </div>
 
                       {/* Campo principal */}
@@ -514,8 +508,8 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                         )}
                       </AnimatePresence>
 
-                      <button onClick={handleDescribeNext} disabled={!currentName.trim()}
-                        className="mt-7 h-[52px] w-full rounded-2xl bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-[0.95rem] font-bold text-white transition hover:brightness-110 active:scale-[0.99] disabled:opacity-40">
+                      <button onClick={handleDescribeNext}
+                        className="mt-7 h-[52px] w-full rounded-2xl bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-[0.95rem] font-bold text-white transition hover:brightness-110 active:scale-[0.99]">
                         Siguiente →
                       </button>
                     </motion.div>
