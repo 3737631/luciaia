@@ -857,8 +857,8 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
 
 /* Dado 3D para el nombre al azar */
 .dice3d {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   perspective: 220px;
   display: inline-flex;
   align-items: center;
@@ -866,8 +866,8 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   flex-shrink: 0;
 }
 .dice3d__cube {
-  width: 15px;
-  height: 15px;
+  width: 18px;
+  height: 18px;
   position: relative;
   transform-style: preserve-3d;
   transform: rotateX(-18deg) rotateY(35deg);
@@ -877,8 +877,7 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   position: absolute;
   inset: 0;
   border-radius: 3px;
-  background: linear-gradient(145deg, #ff3d8c, #b3135e);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 1px 4px rgba(214,34,110,.3);
+  background: #c2186a;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
@@ -886,8 +885,8 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   gap: 1px;
 }
 .dice3d__dot {
-  width: 2px;
-  height: 2px;
+  width: 2.5px;
+  height: 2.5px;
   border-radius: 999px;
   background: #fff;
   align-self: center;
