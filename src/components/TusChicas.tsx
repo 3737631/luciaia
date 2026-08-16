@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { getCustomGirls, deleteCustomGirl, saveCustomGirl, CustomGirlData } from "@/lib/storage";
 import { getGirlImage } from "@/lib/images";
+import { getConversationHistory } from "@/lib/memory";
 
 export default function TusChicas({
   open,
@@ -115,7 +116,8 @@ export default function TusChicas({
                   <div>
                     {customGirls.map((g) => {
                       const imgSrc = g.imageUrl || getGirlImage(g.baseId || "luna", g.hair, g.pose, g.background);
-                      const lastMsg = g.girlDesc || "Hola 😊";
+                      const hist = getConversationHistory(g.id);
+                      const lastMsg = [...hist].reverse().find((m) => m.role === "assistant")?.content ?? "Empieza a hablar con ella";
                       return (
                         <div key={g.id} className="group relative">
                           <Link
@@ -137,29 +139,28 @@ export default function TusChicas({
                             </div>
                           </Link>
 
-                          {/* Botón editar (despliega opciones) */}
+                          {/* Botón opciones (3 puntos, estilo Apple) */}
                           <button
                             onClick={() => setMenuId(menuId === g.id ? null : g.id)}
-                            className="absolute right-2.5 top-1/2 z-10 flex h-7 -translate-y-1/2 items-center gap-1 rounded-full bg-white/[0.08] px-2.5 text-[12px] font-medium text-white/75 backdrop-blur transition hover:bg-white/[0.16] hover:text-white active:scale-95"
-                            title="Editar"
+                            className="absolute right-2.5 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-white/[0.14] bg-[#2a2a31]/90 text-white/80 shadow-[0_2px_10px_rgba(0,0,0,0.4)] backdrop-blur transition hover:bg-[#3a3a42] active:scale-95"
+                            title="Opciones"
                           >
-                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
-                            Editar
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="12" cy="19" r="1.9"/></svg>
                           </button>
 
                           {menuId === g.id && (
                             <>
                               <div className="fixed inset-0 z-10" onClick={() => setMenuId(null)} />
-                              <div className="absolute right-2.5 top-1/2 z-20 flex -translate-y-1/2 items-center gap-1.5 rounded-full border border-white/[0.1] bg-[#1c1c22]/95 p-1.5 shadow-2xl backdrop-blur-xl">
+                              <div className="absolute right-2.5 top-1/2 z-20 flex -translate-y-1/2 items-center gap-2 rounded-2xl border border-white/[0.12] bg-[#2a2a31]/95 p-2 shadow-[0_12px_30px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
                                 <button
                                   onClick={() => {
                                     setMenuId(null);
                                     onEdit?.(g);
                                   }}
-                                  className="flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.08] text-white/80 transition hover:bg-white/[0.16] hover:text-white active:scale-90"
-                                  title="Editar en crear"
+                                  className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.10] text-white/90 transition hover:bg-white/[0.18] active:scale-95"
+                                  title="Editar"
                                 >
-                                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
                                 </button>
                                 <button
                                   onClick={() => {
@@ -167,10 +168,10 @@ export default function TusChicas({
                                     setMenuId(null);
                                     refresh();
                                   }}
-                                  className="flex h-8 w-8 items-center justify-center rounded-full bg-red-500/[0.14] text-red-300 transition hover:bg-red-500/[0.24] hover:text-red-200 active:scale-90"
+                                  className="flex h-9 w-9 items-center justify-center rounded-full bg-[#3a1515]/90 text-red-300 transition hover:bg-[#4a1d1d] active:scale-95"
                                   title="Eliminar"
                                 >
-                                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                                 </button>
                               </div>
                             </>

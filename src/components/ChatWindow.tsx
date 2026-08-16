@@ -45,6 +45,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   const mountedRef = useRef(true);
   const messagesRef = useRef(messages);
   messagesRef.current = messages;
+  const welcomeNameRef = useRef("");
 
   useEffect(() => {
     const raw = localStorage.getItem("custom_scenario");
@@ -62,6 +63,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     if (customId) {
       const g = getCustomGirls().find((x) => x.id === customId);
       if (g) {
+        welcomeNameRef.current = g.name;
         setActiveCustom(g);
         setShowModePicker(false);
         // Si definiÃ³ roleplay, entra directamente en modo historia.
@@ -89,7 +91,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   }, []);
 
   useEffect(() => {
-    const name = activeCustom?.name ?? girl.name;
+    const name = welcomeNameRef.current || girl.name;
     const welcomes = [
       `Hola, soy ${name}. Qué bien que hayas entrado`,
       `¡Hey! Soy ${name}, me alegra verte por aquí`,
@@ -99,7 +101,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     ];
     setMessages([{ id: "welcome", from: "girl", text: welcomes[Math.floor(Math.random() * welcomes.length)] }]);
     return () => { mountedRef.current = false; };
-  }, [girl.id, girl.name, activeCustom]);
+  }, [girl.id, girl.name]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
