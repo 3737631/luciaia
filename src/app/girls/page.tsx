@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import GirlCard from "@/components/GirlCard";
 import StoriesRow from "@/components/StoriesRow";
 import CreateYourGirl from "@/components/CreateYourGirl";
+import TusChicas from "@/components/TusChicas";
 import { FantasyCTA } from "@/components/FantasyCTA";
 import { girls } from "@/data/girls";
 import { getGirlImage } from "@/lib/images";
@@ -36,6 +37,7 @@ export default function GirlsPage() {
   const [heroIndex, setHeroIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
   const [createOpen, setCreateOpen] = useState(false);
+  const [viewOpen, setViewOpen] = useState(false);
   const preloadedRef = useRef(false);
 
   // Preload link hrefs for first story of each visible character
@@ -140,8 +142,9 @@ export default function GirlsPage() {
       <main style={{ minHeight: "100vh", maxWidth: 1200, margin: "0 auto", padding: "0 var(--container-padding)" }}>
         <StoriesRow girls={femaleGirls} />
 
-        <FantasyCTA mode="girls" onCreate={() => setCreateOpen(true)} />
+        <FantasyCTA mode="girls" onCreate={() => setCreateOpen(true)} onView={() => setViewOpen(true)} />
         <CreateYourGirl open={createOpen} onClose={() => setCreateOpen(false)} />
+        <TusChicas open={viewOpen} onClose={() => setViewOpen(false)} />
 
         <section id="characters">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
