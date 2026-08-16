@@ -457,14 +457,14 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="mx-auto flex w-full max-w-[480px] flex-1 flex-col"
+              className="mx-auto flex w-full max-w-[480px] flex-1 flex-col px-5"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
             >
-              {/* Header fijo: nunca se corta */}
-              <div className="shrink-0 border-b border-white/[0.05] bg-[#0a0a0e]/90 px-5 pb-4 pt-[calc(2.5rem+env(safe-area-inset-top))] backdrop-blur-xl sm:pt-[calc(4rem+env(safe-area-inset-top))]">
+              {/* Header fijo: barra blur de ancho completo, nunca se corta */}
+              <div className="-mx-5 shrink-0 border-b border-white/[0.05] bg-[#0a0a0e]/85 px-5 pb-4 pt-[calc(2.5rem+env(safe-area-inset-top))] backdrop-blur-xl sm:pt-[calc(4rem+env(safe-area-inset-top))]">
                 <h3 className="text-[1.4rem] font-bold leading-tight tracking-tight text-white">
                   {step === "describe" ? "Diseña tu chica ideal" :
                    step === "personality" ? "Elige personalidad" :
@@ -491,7 +491,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
               {/* Body scrollable */}
               <div
                 ref={scrollRef}
-                className="flex-1 overflow-y-auto overscroll-contain px-5 pb-32"
+                className="flex-1 overflow-y-auto overscroll-contain pb-32"
                 style={{ WebkitOverflowScrolling: "touch" }}
               >
 
