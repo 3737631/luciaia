@@ -77,18 +77,20 @@ export default function TusChicas({
               {/* Contenido */}
               <div className="p-2.5">
                 {customGirls.length === 0 ? (
-                  <div className="flex flex-col items-center gap-3 px-4 py-12 text-center">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/[0.05] text-white/50">
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+                  <div className="flex min-h-[300px] flex-col items-center justify-center gap-3 px-6 py-10 text-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/[0.05] text-white/45">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
                     </div>
-                    <p className="text-sm font-semibold text-white/80">Aún no tienes chicas creadas</p>
-                    <p className="max-w-[220px] text-xs leading-relaxed text-white/40">
-                      Diseña tu chica ideal y aparecerá aquí.
-                    </p>
+                    <div>
+                      <p className="text-sm font-semibold text-white/80">Aún no tienes chicas creadas</p>
+                      <p className="mx-auto mt-1 max-w-[210px] text-xs leading-relaxed text-white/40">
+                        Diseña tu chica ideal y aparecerá aquí.
+                      </p>
+                    </div>
                     <button
                       type="button"
                       onClick={onClose}
-                      className="mt-1 flex h-[44px] w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-sm font-bold text-white transition hover:brightness-110 active:scale-[0.99]"
+                      className="mt-1 flex h-[44px] w-full max-w-[240px] items-center justify-center rounded-xl bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-sm font-bold text-white transition hover:brightness-110 active:scale-[0.99]"
                     >
                       Crear mi chica
                     </button>

@@ -459,14 +459,14 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="mx-auto w-full max-w-[480px] px-5 pb-32 pt-10 sm:pt-16"
+              className="mx-auto w-full max-w-[480px] px-5 pb-32 pt-0"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
             >
-              {/* Header */}
-              <div>
+              {/* Header sticky: nunca se corta al hacer scroll */}
+              <div className="sticky top-0 z-20 -mx-5 mb-5 border-b border-white/[0.05] bg-[#0a0a0e]/85 px-5 pb-4 pt-[calc(2.5rem+env(safe-area-inset-top))] backdrop-blur-xl sm:pt-[calc(4rem+env(safe-area-inset-top))]">
                 <h3 className="text-[1.4rem] font-bold leading-tight tracking-tight text-white">
                   {step === "describe" ? "Diseña tu chica ideal" :
                    step === "personality" ? "Elige personalidad" :
@@ -477,16 +477,17 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                    step === "personality" ? "¿Cómo te gustaría que sea contigo?" :
                    step === "generating" ? "La IA está dando vida a tu chica" : ""}
                 </p>
-              </div>
 
-              {/* Progress line */}
-              <div className="mt-5 h-0.5 w-full overflow-hidden rounded-full bg-white/[0.07]">
-                <div
-                  className="h-full transition-all duration-500"
-                  style={{
-                    width: step === "describe" ? "33%" : step === "personality" ? "66%" : "100%",                    background: "linear-gradient(135deg, #FF5798, #FF6AA5)",
-                  }}
-                />
+                {/* Progress line */}
+                <div className="mt-5 h-0.5 w-full overflow-hidden rounded-full bg-white/[0.07]">
+                  <div
+                    className="h-full transition-all duration-500"
+                    style={{
+                      width: step === "describe" ? "33%" : step === "personality" ? "66%" : "100%",
+                      background: "linear-gradient(135deg, #FF5798, #FF6AA5)",
+                    }}
+                  />
+                </div>
               </div>
 
               {/* Body */}
