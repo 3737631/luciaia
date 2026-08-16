@@ -695,8 +695,8 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
 }
 
 .nuvia-fantasy-cta__inline {
-  display: inline;
-  margin: 0;
+  display: inline-block;
+  margin-left: 6px;
   padding: 0;
 
   border: 0;
@@ -711,16 +711,12 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   line-height: inherit;
 
   cursor: pointer;
-  text-decoration: underline;
-  text-decoration-color: rgba(255, 87, 152, 0.45);
-  text-underline-offset: 3px;
 
-  transition: color 0.2s ease, text-decoration-color 0.2s ease;
+  transition: color 0.2s ease;
 }
 
 .nuvia-fantasy-cta__inline:hover {
   color: #ffb0cc;
-  text-decoration-color: #ffb0cc;
 }
 
 .nuvia-fantasy-cta__arrow {

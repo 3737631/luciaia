@@ -37,16 +37,23 @@ export function FantasyCTA({ mode, onCreate }: FantasyCTAProps) {
         </h2>
 
         <p className="nuvia-fantasy-cta__description">
-          {description}
-          <button
-            type="button"
+          {description}{" "}
+          <span
+            role="button"
+            tabIndex={0}
             className="nuvia-fantasy-cta__inline"
             onClick={() =>
               document.getElementById("tus-chicas")?.scrollIntoView({ behavior: "smooth", block: "start" })
             }
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                document.getElementById("tus-chicas")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }
+            }}
           >
             {creationsLabel}
-          </button>
+          </span>
         </p>
       </div>
 
