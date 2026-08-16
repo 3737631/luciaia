@@ -10,6 +10,7 @@ import { FantasyCTA } from "@/components/FantasyCTA";
 import { girls } from "@/data/girls";
 import { getGirlImage } from "@/lib/images";
 import { getDailyStorySelection } from "@/lib/getDailyStoryIndex";
+import { CustomGirlData } from "@/lib/storage";
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 const femaleIds = new Set([
@@ -38,6 +39,7 @@ export default function GirlsPage() {
   const [touchStart, setTouchStart] = useState(0);
   const [createOpen, setCreateOpen] = useState(false);
   const [viewOpen, setViewOpen] = useState(false);
+  const [editGirl, setEditGirl] = useState<CustomGirlData | null>(null);
   const preloadedRef = useRef(false);
 
   // Preload link hrefs for first story of each visible character
@@ -143,8 +145,8 @@ export default function GirlsPage() {
         <StoriesRow girls={femaleGirls} />
 
         <FantasyCTA mode="girls" onCreate={() => setCreateOpen(true)} onView={() => setViewOpen(true)} />
-        <CreateYourGirl open={createOpen} onClose={() => setCreateOpen(false)} />
-        <TusChicas open={viewOpen} onClose={() => setViewOpen(false)} />
+        <CreateYourGirl open={createOpen} onClose={() => setCreateOpen(false)} editGirl={editGirl} />
+        <TusChicas open={viewOpen} onClose={() => setViewOpen(false)} onEdit={(g) => { setViewOpen(false); setEditGirl(g); setCreateOpen(true); }} />
 
         <section id="characters">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>

@@ -300,10 +300,10 @@ function buildAvatarPrompt(desc: string): string {
   if (/(ojos azules|blue eyes)/.test(w)) eyes = "blue eyes";
   else if (/(ojos verdes|green eyes)/.test(w)) eyes = "green eyes";
   else if (/(ojos grises|ojos claros|ojos de hielo|hielo)/.test(w)) eyes = "ice blue eyes";
-  return `photorealistic casual selfie photo of a beautiful adult woman in her mid 20s with ${hair} and ${eyes}, natural smartphone photo taken with a front camera, head and shoulders perfectly centered filling the frame, camera directly facing her, realistic human skin with visible pores and natural texture, tiny natural imperfections, detailed iris with natural highlights, individual eyelashes, softly shaped natural brows, light natural makeup, natural smile, wearing a simple elegant black top, sharp focus on the eyes, soft natural window light with gentle catchlights, shallow depth of field, blurred neutral background, square profile picture crop, no full body, no chest, no cleavage, candid real photography, must look like a real photo of a real person, not CGI, no plastic skin, no airbrushed face, no anime, no illustration`;
+  return `photorealistic casual selfie photo of a beautiful adult woman in her mid 20s with ${hair} and ${eyes}, natural smartphone photo taken with a front camera, head and shoulders perfectly centered filling the frame, camera directly facing her, realistic human skin with visible pores and natural texture, visible skin grain, tiny natural imperfections and subtle asymmetry, detailed iris with natural highlights, individual eyelashes, softly shaped natural brows, light natural makeup, natural smile, wearing a simple elegant black top, sharp focus on the eyes, soft natural window light with gentle catchlights, shallow depth of field, blurred neutral background, square profile picture crop, no full body, no chest, no cleavage, candid real photography, must look like a real photo of a real person, not CGI, no plastic skin, no wax skin, no airbrushed face, no beauty filter, no 3D render look, no anime, no illustration`;
 }
 
-export default function CreateYourGirl({ open, onClose, onCreated }: { open: boolean; onClose: () => void; onCreated?: () => void }) {
+export default function CreateYourGirl({ open, onClose, onCreated, editGirl }: { open: boolean; onClose: () => void; onCreated?: () => void; editGirl?: CustomGirlData | null }) {
   const [girlDesc, setGirlDesc] = useState("");
   const [roleplayDesc, setRoleplayDesc] = useState("");
   const [error, setError] = useState("");
@@ -320,8 +320,17 @@ export default function CreateYourGirl({ open, onClose, onCreated }: { open: boo
   useEffect(() => {
     if (!open) {
 setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSelectedPersonality(""); setCurrentName(""); setGenError(""); setRefImage(null); setOpenSection(null);
+    } else if (editGirl) {
+      setGirlDesc(editGirl.girlDesc || "");
+      setRoleplayDesc(editGirl.roleplayDesc || "");
+      setSelectedPersonality(editGirl.personality || "");
+      setCurrentName(editGirl.name || "");
+      setRefImage(null);
+      setStep("describe");
+      setGenError("");
+      setError("");
     }
-  }, [open]);
+  }, [open, editGirl]);
 
   useEffect(() => {
     if (open) {
@@ -381,28 +390,28 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
     reader.readAsDataURL(file);
   }
 
-  async function handlePersonalityNext() {
+async function handlePersonalityNext() {
     setGenError("");
     setStep("generating");
-    const id = generateId();
+    const id = editGirl?.id || generateId();
     const name = currentName.trim();
     const story = roleplayDesc.trim() || `Tu nueva creación, ${name}, te espera para pasar una noche inolvidable.`;
     const customScenario = JSON.stringify({ girl: girlDesc.trim(), roleplay: roleplayDesc.trim() });
     localStorage.setItem("custom_scenario", customScenario);
 
     const newGirl: CustomGirlData = {
-      id, name, age: generateAge(), story,
+      id, name, age: editGirl?.age ?? generateAge(), story,
       description: girlDesc.trim() || name,
       girlDesc: girlDesc.trim(), roleplayDesc: roleplayDesc.trim(),
-      hair: "moreno", background: "neon-room", pose: "toalla",
+      hair: editGirl?.hair || "moreno", background: editGirl?.background || "neon-room", pose: editGirl?.pose || "toalla",
       personality: selectedPersonality || "atrevida",
-      baseId: "luna",
-      imageUrl: refImage || undefined,
+      baseId: editGirl?.baseId || "luna",
+      imageUrl: refImage || editGirl?.imageUrl || undefined,
     };
 
     // Sin foto: la IA crea el avatar (cuadrado 512x512) antes de navegar,
     // para que el chat siempre muestre una foto.
-    if (!refImage) {
+    if (!refImage && !editGirl?.imageUrl) {
       try {
         const prompt = buildAvatarPrompt(girlDesc || roleplayDesc);
         const blob = await generateGirlImage({ prompt, width: 1024, height: 1024, avatar: true });
@@ -414,6 +423,13 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
     }
     saveCustomGirl(newGirl);
     setStep("done");
+
+    if (editGirl) {
+      // Edición: cerrar sin navegar.
+      onCreated?.();
+      onClose();
+      return;
+    }
 
     // Ir directamente al chat con la chica creada.
     router.push(`/chat/luna?custom=${id}`);

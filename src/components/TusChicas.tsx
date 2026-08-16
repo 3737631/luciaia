@@ -9,12 +9,15 @@ import { getGirlImage } from "@/lib/images";
 export default function TusChicas({
   open,
   onClose,
+  onEdit,
 }: {
   open: boolean;
   onClose: () => void;
+  onEdit?: (g: CustomGirlData) => void;
 }) {
   const [customGirls, setCustomGirls] = useState<CustomGirlData[]>([]);
   const [editing, setEditing] = useState<CustomGirlData | null>(null);
+  const [menuId, setMenuId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -134,26 +137,43 @@ export default function TusChicas({
                             </div>
                           </Link>
 
-                          {/* Editar (lápiz) */}
+                          {/* Botón menú (editar/eliminar) */}
                           <button
-                            onClick={() => setEditing(g)}
-                            className="absolute right-12 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-white/[0.08] text-white/70 transition hover:bg-white/[0.16] hover:text-white active:scale-90"
-                            title="Editar"
+                            onClick={() => setMenuId(menuId === g.id ? null : g.id)}
+                            className="absolute right-3 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-white/[0.08] text-white/70 transition hover:bg-white/[0.16] hover:text-white active:scale-90"
+                            title="Opciones"
                           >
-                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
                           </button>
 
-                          {/* Eliminar */}
-                          <button
-                            onClick={() => {
-                              deleteCustomGirl(g.id);
-                              refresh();
-                            }}
-                            className="absolute right-3 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-red-600/90 text-white shadow-lg transition hover:bg-red-500 active:scale-90"
-                            title="Eliminar"
-                          >
-                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                          </button>
+                          {menuId === g.id && (
+                            <>
+                              <div className="fixed inset-0 z-10" onClick={() => setMenuId(null)} />
+                              <div className="absolute right-2 top-1/2 z-20 flex -translate-y-1/2 items-center gap-1 rounded-full border border-white/[0.08] bg-[#1c1c22] p-1 shadow-2xl">
+                                <button
+                                  onClick={() => {
+                                    setMenuId(null);
+                                    onEdit?.(g);
+                                  }}
+                                  className="flex h-7 w-7 items-center justify-center rounded-full bg-white/[0.08] text-white/70 transition hover:bg-white/[0.16] hover:text-white active:scale-90"
+                                  title="Editar"
+                                >
+                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    deleteCustomGirl(g.id);
+                                    setMenuId(null);
+                                    refresh();
+                                  }}
+                                  className="flex h-7 w-7 items-center justify-center rounded-full bg-red-600/90 text-white shadow-lg transition hover:bg-red-500 active:scale-90"
+                                  title="Eliminar"
+                                >
+                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                </button>
+                              </div>
+                            </>
+                          )}
                         </div>
                       );
                     })}

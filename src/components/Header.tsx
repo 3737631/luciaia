@@ -152,6 +152,7 @@ export default function Header() {
             padding: "7px 16px", color: "#fff",
             fontSize: 13, fontWeight: 700,
             cursor: "pointer", whiteSpace: "nowrap",
+            marginRight: 5,
           }}
         >
           Únete ahora
@@ -163,10 +164,10 @@ export default function Header() {
           aria-label="Premium"
           title="Premium"
           style={{
-            background: "rgba(255,255,255,0.08)",
+            background: "linear-gradient(135deg, #ff5f8f, #ff2b86)",
             border: 0, borderRadius: 20,
-            padding: "6px 12px",
-            color: "#ffd166",
+            padding: "7px 12px",
+            color: "#fff",
             display: "flex", alignItems: "center",
             cursor: "pointer", whiteSpace: "nowrap",
             textDecoration: "none",

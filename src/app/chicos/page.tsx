@@ -11,6 +11,7 @@ import { FantasyCTA } from "@/components/FantasyCTA";
 import { girls } from "@/data/girls";
 import { getGirlImage } from "@/lib/images";
 import { getDailyStorySelection } from "@/lib/getDailyStoryIndex";
+import { CustomGirlData } from "@/lib/storage";
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 const maleIds = new Set(["axel", "liam"]);
@@ -39,6 +40,7 @@ export default function ChicosPage() {
   const [touchStart, setTouchStart] = useState(0);
   const [createOpen, setCreateOpen] = useState(false);
   const [viewOpen, setViewOpen] = useState(false);
+  const [editGirl, setEditGirl] = useState<CustomGirlData | null>(null);
   const preloadedRef = useRef(false);
 
   const firstStoryPreloads = useMemo(
@@ -137,8 +139,8 @@ export default function ChicosPage() {
         <StoriesRow girls={maleChars} />
 
         <FantasyCTA mode="boys" onCreate={() => setCreateOpen(true)} onView={() => setViewOpen(true)} />
-        <CreateYourGirl open={createOpen} onClose={() => setCreateOpen(false)} />
-        <TusChicas open={viewOpen} onClose={() => setViewOpen(false)} />
+        <CreateYourGirl open={createOpen} onClose={() => setCreateOpen(false)} editGirl={editGirl} />
+        <TusChicas open={viewOpen} onClose={() => setViewOpen(false)} onEdit={(g) => { setViewOpen(false); setEditGirl(g); setCreateOpen(true); }} />
 
         <section id="characters">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
