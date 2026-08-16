@@ -463,8 +463,8 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
             >
-              {/* Header fijo: barra blur de ancho completo, nunca se corta */}
-              <div className="-mx-5 shrink-0 border-b border-white/[0.05] bg-[#111111]/90 px-5 pb-4 pt-[calc(2.5rem+env(safe-area-inset-top))] backdrop-blur-xl sm:pt-[calc(4rem+env(safe-area-inset-top))]">
+              {/* Header fijo: sin fondo, igual que el resto del modal */}
+              <div className="-mx-5 shrink-0 px-5 pb-4 pt-[calc(2.5rem+env(safe-area-inset-top))] sm:pt-[calc(4rem+env(safe-area-inset-top))]">
                 <h3 className="text-[1.4rem] font-bold leading-tight tracking-tight text-white">
                   {step === "describe" ? "Diseña tu chica ideal" :
                    step === "personality" ? "Elige personalidad" :
