@@ -95,8 +95,9 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
   const [ringScale, setRingScale] = useState(1);
   const [ringOpacity, setRingOpacity] = useState(0.3);
   const [processingLock, setProcessingLock] = useState(false);
-  const [subtitlesOn, setSubtitlesOn] = useState(false);
+  const [subtitlesOn, setSubtitlesOn] = useState(true);
   const [subtitleText, setSubtitleText] = useState("");
+  const subtitleTimerRef = useRef<any>(null);
   const [videoOn, setVideoOn] = useState(false);
   const [audioOn, setAudioOn] = useState(true);
   const [showTextPanel, setShowTextPanel] = useState(false);
@@ -419,6 +420,21 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
     });
   }
 
+  function setSubtitleWords(text: string) {
+    if (subtitleTimerRef.current) { clearInterval(subtitleTimerRef.current); subtitleTimerRef.current = null; }
+    const words = text.split(/\s+/).filter(Boolean);
+    let i = 0;
+    setSubtitleText("");
+    subtitleTimerRef.current = setInterval(() => {
+      i++;
+      setSubtitleText(words.slice(0, i).join(" "));
+      if (i >= words.length && subtitleTimerRef.current) {
+        clearInterval(subtitleTimerRef.current);
+        subtitleTimerRef.current = null;
+      }
+    }, 160);
+  }
+
   function unlockAudioForGesture() {
     if (audioUnlockedRef.current) return;
     audioUnlockedRef.current = true;
@@ -480,6 +496,7 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
             stopFreqAnimation();
             setFreqData(Array(12).fill(2));
             setSubtitleText("");
+            if (subtitleTimerRef.current) { clearInterval(subtitleTimerRef.current); subtitleTimerRef.current = null; }
             resolve();
           };
           el.onerror = () => {
@@ -889,7 +906,7 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
         { role: "assistant", content: reply },
       ];
       saveConversationHistory(girl.id, msgs);
-      if (subtitlesOn) setSubtitleText(reply);
+      setSubtitleWords(reply);
       setTimeout(() => {
         const extracted = extractMemoryFromMessages(msgs);
         if (extracted.length > 0) {
@@ -916,7 +933,7 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
         { role: "assistant", content: fallback },
       ];
       saveConversationHistory(girl.id, msgs);
-      if (subtitlesOn) setSubtitleText(fallback);
+      setSubtitleWords(fallback);
       await speakTTS(fallback, false);
       if (!mountedRef.current) return;
       processingRef.current = false;
@@ -1366,6 +1383,11 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
       const el = audioElRef.current;
       if (el) { el.pause(); el.src = ""; el.load(); }
       if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
+      stopRingback();
+      turnIdRef.current++;
+      if (el) {
+        try { el.dispatchEvent(new Event("ended")); } catch {}
+      }
     }
   }
 
@@ -1573,6 +1595,19 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
               .padStart(2, "0")}
             :{(callDuration % 60).toString().padStart(2, "0")}
           </div>
+          {isConnected && subtitleText && (
+            <div
+              style={{
+                marginTop: 8, fontSize: 13, fontWeight: 400,
+                color: "rgba(255,255,255,0.82)",
+                textAlign: "center", lineHeight: 1.35,
+                maxWidth: "min(320px, calc(100vw - 60px))",
+                marginInline: "auto",
+              }}
+            >
+              {subtitleText}
+            </div>
+          )}
         </div>
 
         <div
@@ -1883,32 +1918,6 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
                   <polygon points="22 2 15 22 11 13 2 9 22 2" />
                 </svg>
               </button>
-            </div>
-          </div>
-        )}
-
-        {/* Subtitles overlay */}
-        {subtitlesOn && subtitleText && isConnected && (
-          <div
-            style={{
-              position: "fixed", left: 0, right: 0, bottom: 0,
-              display: "flex", justifyContent: "center",
-              paddingBottom: "calc(env(safe-area-inset-bottom) + 260px)",
-              zIndex: 5, pointerEvents: "none",
-            }}
-          >
-            <div
-              style={{
-                maxWidth: "min(330px, calc(100vw - 38px))",
-                padding: "11px 15px", borderRadius: 15,
-                background: "rgba(12,9,14,0.74)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
-                fontSize: 15, lineHeight: 1.4, color: "rgba(255,255,255,0.92)",
-                textAlign: "center", maxHeight: 66, overflow: "hidden",
-              }}
-            >
-              {subtitleText}
             </div>
           </div>
         )}

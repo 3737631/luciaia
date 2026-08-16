@@ -89,16 +89,17 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   }, []);
 
   useEffect(() => {
+    const name = activeCustom?.name ?? girl.name;
     const welcomes = [
-      `Hola, soy ${girl.name}. Qué bien que hayas entrado`,
-      `¡Hey! Soy ${girl.name}, me alegra verte por aquí`,
-      `${girl.name} al habla... justo estaba pensando en ti`,
-      `Hola, ¿recuerdas a ${girl.name}? Pasa, siéntete como en casa`,
-      `Soy ${girl.name}. Estaba esperando a que entrases...`,
+      `Hola, soy ${name}. Qué bien que hayas entrado`,
+      `¡Hey! Soy ${name}, me alegra verte por aquí`,
+      `${name} al habla... justo estaba pensando en ti`,
+      `Hola, ¿recuerdas a ${name}? Pasa, siéntete como en casa`,
+      `Soy ${name}. Estaba esperando a que entrases...`,
     ];
     setMessages([{ id: "welcome", from: "girl", text: welcomes[Math.floor(Math.random() * welcomes.length)] }]);
     return () => { mountedRef.current = false; };
-  }, [girl.id, girl.name]);
+  }, [girl.id, girl.name, activeCustom]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });

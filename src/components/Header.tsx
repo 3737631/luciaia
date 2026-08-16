@@ -152,32 +152,10 @@ export default function Header() {
             padding: "7px 16px", color: "#fff",
             fontSize: 13, fontWeight: 700,
             cursor: "pointer", whiteSpace: "nowrap",
-            marginRight: 5,
           }}
         >
           Únete ahora
         </button>
-
-        {/* Corona / Premium */}
-        <Link
-          href="/chat/luna"
-          aria-label="Premium"
-          title="Premium"
-          style={{
-            background: "#ffffff",
-            border: 0, borderRadius: 20,
-            padding: "6px 10px",
-            color: "#ff2b86",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", whiteSpace: "nowrap",
-            textDecoration: "none", lineHeight: 1,
-            flexShrink: 0,
-          }}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{ display: "block" }}>
-            <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-1h14v1z" />
-          </svg>
-        </Link>
       </div>
 
       {/* Side menu overlay - full navigation */}
