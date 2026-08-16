@@ -696,7 +696,7 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
 
 .nuvia-fantasy-cta__inline {
   display: inline-block;
-  margin-left: 6px;
+  margin-left: 2px;
   padding: 0;
 
   border: 0;
