@@ -135,43 +135,44 @@ export default function TusChicas({
                                 </p>
                                 <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-green-400" />
                               </div>
-                              <p className="mt-0.5 truncate text-xs text-white/40">{lastMsg}</p>
+                              <p className="mt-0.5 max-w-full truncate text-xs text-white/40">{lastMsg}</p>
                             </div>
                           </Link>
 
-                          {/* Botón opciones (3 puntos, estilo Apple) */}
+                          {/* Botón opciones (estilo iOS) */}
                           <button
                             onClick={() => setMenuId(menuId === g.id ? null : g.id)}
-                            className="absolute right-2.5 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-white/[0.14] bg-[#2a2a31]/90 text-white/80 shadow-[0_2px_10px_rgba(0,0,0,0.4)] backdrop-blur transition hover:bg-[#3a3a42] active:scale-95"
+                            className="absolute right-2.5 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg bg-white/[0.08] text-white/70 backdrop-blur transition hover:bg-white/[0.16] hover:text-white active:scale-95"
                             title="Opciones"
                           >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="12" cy="19" r="1.9"/></svg>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
                           </button>
 
                           {menuId === g.id && (
                             <>
                               <div className="fixed inset-0 z-10" onClick={() => setMenuId(null)} />
-                              <div className="absolute right-2.5 top-1/2 z-20 flex -translate-y-1/2 items-center gap-2 rounded-2xl border border-white/[0.12] bg-[#2a2a31]/95 p-2 shadow-[0_12px_30px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
+                              <div className="absolute right-2.5 top-1/2 z-20 w-[168px] -translate-y-1/2 overflow-hidden rounded-2xl border border-white/[0.1] bg-[#232329]/95 shadow-[0_16px_40px_rgba(0,0,0,0.55)] backdrop-blur-2xl">
                                 <button
                                   onClick={() => {
                                     setMenuId(null);
                                     onEdit?.(g);
                                   }}
-                                  className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.10] text-white/90 transition hover:bg-white/[0.18] active:scale-95"
-                                  title="Editar"
+                                  className="flex w-full items-center gap-2.5 px-4 py-3 text-left text-[13px] font-medium text-white/90 transition hover:bg-white/[0.08] active:bg-white/[0.12]"
                                 >
                                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                                  Editar
                                 </button>
+                                <div className="h-px bg-white/[0.08]" />
                                 <button
                                   onClick={() => {
                                     deleteCustomGirl(g.id);
                                     setMenuId(null);
                                     refresh();
                                   }}
-                                  className="flex h-9 w-9 items-center justify-center rounded-full bg-[#3a1515]/90 text-red-300 transition hover:bg-[#4a1d1d] active:scale-95"
-                                  title="Eliminar"
+                                  className="flex w-full items-center gap-2.5 px-4 py-3 text-left text-[13px] font-medium text-red-400 transition hover:bg-red-500/[0.12] active:bg-red-500/[0.2]"
                                 >
                                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                  Eliminar
                                 </button>
                               </div>
                             </>

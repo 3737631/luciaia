@@ -95,7 +95,7 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
   const [ringScale, setRingScale] = useState(1);
   const [ringOpacity, setRingOpacity] = useState(0.3);
   const [processingLock, setProcessingLock] = useState(false);
-  const [subtitlesOn, setSubtitlesOn] = useState(true);
+  const [subtitlesOn, setSubtitlesOn] = useState(false);
   const [subtitleText, setSubtitleText] = useState("");
   const subtitleTimerRef = useRef<any>(null);
   const [videoOn, setVideoOn] = useState(false);
@@ -1588,26 +1588,28 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
               fontVariantNumeric: "tabular-nums",
               textAlign: "center", lineHeight: 1.2, height: 18,
               visibility: isConnected ? "visible" : "hidden",
+              position: "relative",
             }}
           >
             {Math.floor(callDuration / 60)
               .toString()
               .padStart(2, "0")}
             :{(callDuration % 60).toString().padStart(2, "0")}
+            {subtitlesOn && isConnected && subtitleText && (
+              <div
+                style={{
+                  position: "absolute", top: "calc(100% + 10px)",
+                  left: "50%", transform: "translateX(-50%)",
+                  width: "max-content", maxWidth: "min(330px, calc(100vw - 60px))",
+                  fontSize: 13, fontWeight: 400,
+                  color: "rgba(255,255,255,0.82)",
+                  textAlign: "center", lineHeight: 1.35,
+                }}
+              >
+                {subtitleText}
+              </div>
+            )}
           </div>
-          {isConnected && subtitleText && (
-            <div
-              style={{
-                marginTop: 8, fontSize: 13, fontWeight: 400,
-                color: "rgba(255,255,255,0.82)",
-                textAlign: "center", lineHeight: 1.35,
-                maxWidth: "min(320px, calc(100vw - 60px))",
-                marginInline: "auto",
-              }}
-            >
-              {subtitleText}
-            </div>
-          )}
         </div>
 
         <div
@@ -1660,11 +1662,11 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
                   aria-pressed={!audioOn}
                   style={{
                     width: 68, height: 68, borderRadius: "50%",
-                    background: audioOn ? "rgba(255,255,255,0.86)" : "rgba(255,255,255,0.09)",
+                    background: audioOn ? "rgba(255,255,255,0.09)" : "rgba(255,255,255,0.86)",
                     border: "1px solid rgba(255,255,255,0.10)",
                     cursor: "pointer",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    color: audioOn ? "rgba(20,16,22,0.96)" : "rgba(255,255,255,0.92)",
+                    color: audioOn ? "rgba(255,255,255,0.92)" : "rgba(20,16,22,0.96)",
                     backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
                     transition: "transform 140ms ease, background-color 160ms ease, color 160ms ease",
                     WebkitTapHighlightColor: "transparent",
@@ -1677,13 +1679,13 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
                     {audioOn ? (
                       <>
                         <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                        <line x1="23" y1="9" x2="17" y2="15" />
-                        <line x1="17" y1="9" x2="23" y2="15" />
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
                       </>
                     ) : (
                       <>
                         <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
+                        <line x1="23" y1="9" x2="17" y2="15" />
+                        <line x1="17" y1="9" x2="23" y2="15" />
                       </>
                     )}
                   </svg>
@@ -1787,11 +1789,11 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
                   aria-pressed={subtitlesOn}
                   style={{
                     width: 68, height: 68, borderRadius: "50%",
-                    background: subtitlesOn ? "rgba(255,255,255,0.86)" : "rgba(255,255,255,0.09)",
+                    background: subtitlesOn ? "rgba(255,255,255,0.09)" : "rgba(255,255,255,0.86)",
                     border: "1px solid rgba(255,255,255,0.10)",
                     cursor: "pointer",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    color: subtitlesOn ? "rgba(20,16,22,0.96)" : "rgba(255,255,255,0.92)",
+                    color: subtitlesOn ? "rgba(255,255,255,0.92)" : "rgba(20,16,22,0.96)",
                     backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
                     transition: "transform 140ms ease, background-color 160ms ease, color 160ms ease",
                     WebkitTapHighlightColor: "transparent",

@@ -91,6 +91,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   }, []);
 
   useEffect(() => {
+    if (messagesRef.current.length > 0) return;
     const name = welcomeNameRef.current || girl.name;
     const welcomes = [
       `Hola, soy ${name}. Qué bien que hayas entrado`,
