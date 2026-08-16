@@ -58,53 +58,57 @@ export default function TusChicas({
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="mx-auto w-full max-w-[480px] px-5 pb-32 pt-10 sm:pt-16"
+              className="mx-auto w-full max-w-[480px] px-5 pb-32 pt-10 sm:pt-14"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
             >
-              {/* Header idéntico al modal */}
-              <div>
-                <h3 className="text-[1.4rem] font-bold leading-tight tracking-tight text-white">
-                  Tus chicas
-                </h3>
-                <p className="mt-1 text-xs text-white/40">
-                  {customGirls.length > 0
-                    ? `${customGirls.length} ${customGirls.length === 1 ? "conversación" : "conversaciones"}`
-                    : "Conversaciones con tus creaciones"}
-                </p>
-              </div>
-
-              {/* Línea de progreso del modal */}
-              <div className="mt-5 h-0.5 w-full overflow-hidden rounded-full bg-white/[0.07]">
-                <div
-                  className="h-full"
-                  style={{ width: "100%", background: "linear-gradient(135deg, #FF5798, #FF6AA5)" }}
-                />
+              {/* Cabecera con botón cerrar */}
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="text-[1.6rem] font-bold leading-tight tracking-tight text-white">
+                    Tus chicas
+                  </h3>
+                  <p className="mt-1.5 text-xs text-white/40">
+                    {customGirls.length > 0
+                      ? `${customGirls.length} ${customGirls.length === 1 ? "conversación" : "conversaciones"}`
+                      : "Conversaciones con tus creaciones"}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  aria-label="Cerrar"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.05] text-white/60 transition hover:bg-white/[0.1] hover:text-white active:scale-95"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+                </button>
               </div>
 
               {/* Lista de conversaciones */}
-              <div className="mt-6">
+              <div className="mt-7">
                 {customGirls.length === 0 ? (
-                  <div className="flex flex-col items-center gap-4 rounded-2xl border border-white/[0.06] bg-white/[0.04] px-6 py-14 text-center">
+                  <div className="flex flex-col items-center gap-4 rounded-3xl border border-white/[0.06] bg-white/[0.04] px-6 py-16 text-center">
                     <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/[0.06] text-white/60">
                       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
                     </div>
-                    <p className="text-sm font-semibold text-white/80">Aún no tienes chicas creadas</p>
-                    <p className="text-xs text-white/40">
-                      Diseña tu chica ideal y aparecerá aquí en tu bandeja de mensajes.
-                    </p>
+                    <div>
+                      <p className="text-sm font-semibold text-white/80">Aún no tienes chicas creadas</p>
+                      <p className="mx-auto mt-1.5 max-w-[230px] text-xs leading-relaxed text-white/40">
+                        Diseña tu chica ideal y aparecerá aquí en tu bandeja de mensajes.
+                      </p>
+                    </div>
                     <button
                       type="button"
                       onClick={onClose}
-                      className="mt-2 flex h-[48px] w-full items-center justify-center rounded-2xl bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-sm font-bold text-white transition hover:brightness-110 active:scale-[0.99]"
+                      className="mt-1 flex h-[50px] w-full items-center justify-center rounded-2xl bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-sm font-bold text-white transition hover:brightness-110 active:scale-[0.99]"
                     >
                       Crear mi chica →
                     </button>
                   </div>
                 ) : (
-                  <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-2">
                     {customGirls.map((g) => {
                       const imgSrc = g.imageUrl || getGirlImage(g.baseId || "luna", g.hair, g.pose, g.background);
                       const lastMsg = g.story || g.girlDesc || "Hola 😊";
@@ -113,36 +117,36 @@ export default function TusChicas({
                           <Link
                             href={`/chat/luna?custom=${g.id}`}
                             onClick={() => openChat(g)}
-                            className="flex items-center gap-3.5 rounded-2xl border border-white/[0.06] bg-white/[0.04] p-3 transition hover:bg-white/[0.07] active:scale-[0.99]"
+                            className="flex items-center gap-3.5 rounded-2xl px-3 py-3 transition hover:bg-white/[0.06] active:scale-[0.99]"
                           >
                             {/* Avatar circular */}
-                            <div className="relative shrink-0 rounded-full p-[2px]"
-                              style={{ background: "linear-gradient(135deg, #ff2f78, #ff6aa5, #ffd166)" }}>
-                              <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border-2 border-black/50 bg-white/[0.06]">
-                                <img
-                                  src={imgSrc}
-                                  alt={g.name}
-                                  className="h-full w-full object-cover object-top"
-                                />
+                            <div className="relative shrink-0">
+                              <div
+                                className="rounded-full p-[2px]"
+                                style={{ background: "conic-gradient(from 160deg, #ff2f78, #ffd166, #ff6aa5, #ff2f78)" }}
+                              >
+                                <div className="flex h-[52px] w-[52px] items-center justify-center overflow-hidden rounded-full border-[3px] border-black/60 bg-white/[0.06]">
+                                  <img
+                                    src={imgSrc}
+                                    alt={g.name}
+                                    className="h-full w-full object-cover object-top"
+                                  />
+                                </div>
                               </div>
-                              <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-black/50 bg-green-400" />
+                              <span className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full border-2 border-black/60 bg-green-400" />
                             </div>
 
                             {/* Texto DM */}
                             <div className="min-w-0 flex-1">
-                              <div className="flex items-baseline justify-between gap-2">
+                              <div className="flex items-center justify-between gap-2">
                                 <p className="truncate text-[0.95rem] font-bold text-white">
-                                  {g.name} <span className="font-semibold text-white/60">{g.age}</span>
+                                  {g.name}
                                 </p>
-                                <span className="shrink-0 rounded-full bg-[#ff2f78] px-1.5 py-0.5 text-[0.55rem] font-bold text-white">1</span>
+                                <span className="shrink-0 rounded-full bg-[#ff2f78] px-2 py-0.5 text-[0.6rem] font-extrabold leading-none text-white">1</span>
                               </div>
-                              <p className="mt-0.5 truncate text-xs text-white/45">{lastMsg}</p>
-                              <p className="mt-0.5 text-[0.6rem] uppercase tracking-wide text-white/25">Online • Nuvia IA</p>
+                              <p className="mt-1 truncate text-[0.8rem] text-white/50">{lastMsg}</p>
+                              <p className="mt-0.5 text-[0.6rem] uppercase tracking-wide text-white/25">En línea ahora</p>
                             </div>
-
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
-                              <path d="m9 18 6-6-6-6" />
-                            </svg>
                           </Link>
 
                           <button
