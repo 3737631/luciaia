@@ -451,13 +451,14 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
           />
           <motion.div
             ref={scrollRef}
-            className="fixed inset-0 z-50 overflow-y-auto"
+            className="fixed left-0 right-0 top-0 z-50 h-[100dvh] overflow-y-auto overscroll-contain"
+            style={{ WebkitOverflowScrolling: "touch" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="mx-auto w-full max-w-[480px] px-5 pb-24 pt-10 sm:pt-16"
+              className="mx-auto w-full max-w-[480px] px-5 pb-32 pt-10 sm:pt-16"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
