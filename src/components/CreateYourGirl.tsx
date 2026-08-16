@@ -304,7 +304,7 @@ function buildAvatarPrompt(desc: string): string {
   return `a beautiful adult woman in her mid 20s with ${hair} and ${eyes}, natural realistic skin with visible pores, gentle natural makeup, soft natural smile, wearing a simple elegant black top, close-up portrait head and shoulders, perfectly centered, sharp focus, soft diffused studio lighting, shallow depth of field, blurred neutral background, photorealistic photography, high detail, square profile crop`;
 }
 
-export default function CreateYourGirl({ open, onClose }: { open: boolean; onClose: () => void }) {
+export default function CreateYourGirl({ open, onClose, onCreated }: { open: boolean; onClose: () => void; onCreated?: () => void }) {
   const [girlDesc, setGirlDesc] = useState("");
   const [roleplayDesc, setRoleplayDesc] = useState("");
   const [customGirls, setCustomGirls] = useState<CustomGirlData[]>([]);
@@ -421,6 +421,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
 
     saveCustomGirl(newGirl);
     setCustomGirls(getCustomGirls());
+    onCreated?.();
     setGenError("");
     setStep("done");
 

@@ -5,10 +5,12 @@ import Header from "@/components/Header";
 import GirlCard from "@/components/GirlCard";
 import StoriesRow from "@/components/StoriesRow";
 import CreateYourGirl from "@/components/CreateYourGirl";
+import CustomGirlCard from "@/components/CustomGirlCard";
 import { FantasyCTA } from "@/components/FantasyCTA";
 import { girls } from "@/data/girls";
 import { getGirlImage } from "@/lib/images";
 import { getDailyStorySelection } from "@/lib/getDailyStoryIndex";
+import { getCustomGirls, CustomGirlData } from "@/lib/storage";
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 const femaleIds = new Set([
@@ -36,7 +38,16 @@ export default function GirlsPage() {
   const [heroIndex, setHeroIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
   const [createOpen, setCreateOpen] = useState(false);
+  const [customGirls, setCustomGirls] = useState<CustomGirlData[]>([]);
   const preloadedRef = useRef(false);
+
+  useEffect(() => {
+    setCustomGirls(getCustomGirls());
+  }, []);
+
+  function refreshCustom() {
+    setCustomGirls(getCustomGirls());
+  }
 
   // Preload link hrefs for first story of each visible character
   const firstStoryPreloads = useMemo(
@@ -141,7 +152,25 @@ export default function GirlsPage() {
         <StoriesRow girls={femaleGirls} />
 
         <FantasyCTA mode="girls" onCreate={() => setCreateOpen(true)} />
-        <CreateYourGirl open={createOpen} onClose={() => setCreateOpen(false)} />
+        <CreateYourGirl open={createOpen} onClose={() => setCreateOpen(false)} onCreated={refreshCustom} />
+
+        {customGirls.length > 0 && (
+          <section id="tus-creaciones" style={{ marginTop: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+              <h2 style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.03em", margin: 0, color: "#fff" }}>
+                Tus creaciones
+              </h2>
+              <span style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.35)" }}>
+                {customGirls.length} {customGirls.length === 1 ? "chica" : "chicas"}
+              </span>
+            </div>
+            <div className="person-grid">
+              {customGirls.map((g, i) => (
+                <CustomGirlCard key={g.id} data={g} onDelete={refreshCustom} />
+              ))}
+            </div>
+          </section>
+        )}
 
         <section id="characters">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
