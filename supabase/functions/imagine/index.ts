@@ -90,10 +90,10 @@ async function nscaleGenerate(prompt: string, width: number, height: number, see
 //  - POLLINATIONS_MODELS: lista ordenada separada por comas.
 const DEFAULT_POLLINATIONS_MODELS = [
   "seedream5",
-  "nanobanana-2",
   "gpt-image-2",
   "seedream5-pro",
   "flux",
+  "nanobanana-2",
 ];
 
 function pollinationsModelList(): string[] {
@@ -558,7 +558,7 @@ Deno.serve(async (req) => {
     // fotorrealista con textura de piel real.
     const rawDesc = String(body.prompt || "").trim();
     const prompt = isAvatar
-      ? `professional high-resolution portrait photograph of ${rawDesc || "a beautiful young woman"}, close-up on face and shoulders, perfectly centered, facing the camera, natural realistic skin with visible pores and fine texture, detailed iris with natural highlights, individual eyelashes and softly shaped brows, natural soft makeup, subtle natural beauty marks, soft diffused studio lighting with gentle catchlights in the eyes, shallow depth of field, softly blurred neutral background, photorealistic, tack sharp focus on the eyes, high resolution face detail, crisp and clear, square profile picture crop, professional photography, 8k face detail`
+      ? `professional high-resolution Instagram profile picture photograph of ${rawDesc || "a beautiful young woman"}, head and shoulders only perfectly centered filling the frame, camera directly facing her, natural realistic skin with visible pores and fine texture, detailed iris with natural highlights, individual eyelashes and softly shaped brows, natural soft makeup, subtle natural beauty marks, soft diffused studio lighting with gentle catchlights in the eyes, shallow depth of field, softly blurred neutral background, photorealistic, tack sharp focus on the eyes, high resolution face detail, crisp and clear, square profile picture crop, no full body, no chest, no cleavage, professional photography`
       : buildPhotoPrompt(rawDesc, seed);
 
     // El avatar se genera en cuadrado para el cÃ­rculo de perfil.

@@ -301,8 +301,7 @@ function buildAvatarPrompt(desc: string): string {
   if (/(ojos azules|blue eyes)/.test(w)) eyes = "blue eyes";
   else if (/(ojos verdes|green eyes)/.test(w)) eyes = "green eyes";
   else if (/(ojos grises|ojos claros|ojos de hielo|hielo)/.test(w)) eyes = "ice blue eyes";
-  const body = /(gorda|gordita|curvy|curvas|voluptuosa)/.test(w) ? "curvy figure" : "slim figure";
-  return `a beautiful adult woman in her mid 20s with ${hair} and ${eyes}, ${body}, natural realistic skin with visible pores and fine texture, detailed iris with natural highlights, individual eyelashes and softly shaped brows, natural soft makeup, subtle natural beauty marks, gentle natural smile, wearing a simple elegant black top, close-up portrait of head and shoulders, perfectly centered, sharp focus on the eyes, soft diffused studio lighting with gentle catchlights, shallow depth of field, blurred neutral background, photorealistic photography, high resolution face detail, crisp and clear, square profile crop`;
+  return `a photorealistic Instagram profile picture portrait of a beautiful adult woman in her mid 20s with ${hair} and ${eyes}, head and shoulders only perfectly centered filling the frame, camera directly facing her, natural realistic skin with visible pores and fine texture, detailed iris with natural highlights, individual eyelashes and softly shaped brows, soft natural makeup, subtle natural beauty marks, gentle natural smile, wearing a simple elegant black top, sharp focus on the eyes, soft diffused studio lighting with gentle catchlights, shallow depth of field, blurred neutral background, photorealistic photography, high resolution face detail, crisp and clear, square profile crop, no full body, no chest, no cleavage`;
 }
 
 export default function CreateYourGirl({ open, onClose, onCreated }: { open: boolean; onClose: () => void; onCreated?: () => void }) {

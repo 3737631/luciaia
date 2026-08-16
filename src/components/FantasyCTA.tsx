@@ -8,6 +8,9 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 export function FantasyCTA({ mode, onCreate }: FantasyCTAProps) {
   const isBoys = mode === "boys";
   const creationsLabel = isBoys ? "ver tus chicos" : mode === "anime" ? "ver tus creaciones" : "ver tus chicas";
+  const creationsHref =
+    mode === "anime" ? `${basePath}/tus-chicas`
+    : `${basePath}/tus-chicas`;
 
   const description = isBoys
     ? "Diseña tu chico ideal y pásalo bien con él."
@@ -42,13 +45,11 @@ export function FantasyCTA({ mode, onCreate }: FantasyCTAProps) {
             role="button"
             tabIndex={0}
             className="nuvia-fantasy-cta__inline"
-            onClick={() =>
-              document.getElementById("tus-chicas")?.scrollIntoView({ behavior: "smooth", block: "start" })
-            }
+            onClick={() => window.open(creationsHref, "_blank", "noopener")}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
-                document.getElementById("tus-chicas")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                window.open(creationsHref, "_blank", "noopener");
               }
             }}
           >
