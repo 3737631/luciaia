@@ -5,12 +5,10 @@ import Header from "@/components/Header";
 import GirlCard from "@/components/GirlCard";
 import StoriesRow from "@/components/StoriesRow";
 import CreateYourGirl from "@/components/CreateYourGirl";
-import CustomGirlCard from "@/components/CustomGirlCard";
 import { FantasyCTA } from "@/components/FantasyCTA";
 import { girls } from "@/data/girls";
 import { getGirlImage } from "@/lib/images";
 import { getDailyStorySelection } from "@/lib/getDailyStoryIndex";
-import { getCustomGirls, CustomGirlData } from "@/lib/storage";
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 const femaleIds = new Set([
@@ -38,16 +36,7 @@ export default function GirlsPage() {
   const [heroIndex, setHeroIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
   const [createOpen, setCreateOpen] = useState(false);
-  const [customGirls, setCustomGirls] = useState<CustomGirlData[]>([]);
   const preloadedRef = useRef(false);
-
-  useEffect(() => {
-    setCustomGirls(getCustomGirls());
-  }, []);
-
-  function refreshCustom() {
-    setCustomGirls(getCustomGirls());
-  }
 
   // Preload link hrefs for first story of each visible character
   const firstStoryPreloads = useMemo(
@@ -152,17 +141,7 @@ export default function GirlsPage() {
         <StoriesRow girls={femaleGirls} />
 
         <FantasyCTA mode="girls" onCreate={() => setCreateOpen(true)} />
-        <CreateYourGirl open={createOpen} onClose={() => setCreateOpen(false)} onCreated={refreshCustom} />
-
-        <section id="tus-chicas" style={{ marginTop: 8 }}>
-          {customGirls.length > 0 && (
-            <div className="person-grid">
-              {customGirls.map((g, i) => (
-                <CustomGirlCard key={g.id} data={g} onDelete={refreshCustom} />
-              ))}
-            </div>
-          )}
-        </section>
+        <CreateYourGirl open={createOpen} onClose={() => setCreateOpen(false)} />
 
         <section id="characters">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
