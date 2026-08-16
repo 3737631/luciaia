@@ -451,22 +451,20 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
             onClick={onClose}
           />
           <motion.div
-            ref={scrollRef}
-            className="fixed left-0 right-0 top-0 z-50 h-[100dvh] overflow-y-auto overscroll-contain"
-            style={{ WebkitOverflowScrolling: "touch" }}
+            className="fixed inset-0 z-50 flex flex-col"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="mx-auto w-full max-w-[480px] px-5 pb-32 pt-0"
+              className="mx-auto flex w-full max-w-[480px] flex-1 flex-col"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
             >
-              {/* Header sticky: nunca se corta al hacer scroll */}
-              <div className="sticky top-0 z-20 -mx-5 mb-5 border-b border-white/[0.05] bg-[#0a0a0e]/85 px-5 pb-4 pt-[calc(2.5rem+env(safe-area-inset-top))] backdrop-blur-xl sm:pt-[calc(4rem+env(safe-area-inset-top))]">
+              {/* Header fijo: nunca se corta */}
+              <div className="shrink-0 border-b border-white/[0.05] bg-[#0a0a0e]/90 px-5 pb-4 pt-[calc(2.5rem+env(safe-area-inset-top))] backdrop-blur-xl sm:pt-[calc(4rem+env(safe-area-inset-top))]">
                 <h3 className="text-[1.4rem] font-bold leading-tight tracking-tight text-white">
                   {step === "describe" ? "Diseña tu chica ideal" :
                    step === "personality" ? "Elige personalidad" :
@@ -489,6 +487,13 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                   />
                 </div>
               </div>
+
+              {/* Body scrollable */}
+              <div
+                ref={scrollRef}
+                className="flex-1 overflow-y-auto overscroll-contain px-5 pb-32"
+                style={{ WebkitOverflowScrolling: "touch" }}
+              >
 
               {/* Body */}
               <div className="mt-6">
@@ -690,6 +695,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
               <button onClick={onClose} className="mx-auto mt-10 flex w-full items-center justify-center py-3 text-sm font-medium text-white/40 transition hover:text-white active:scale-95">
                 Salir
               </button>
+              </div>
             </motion.div>
           </motion.div>
         </>
