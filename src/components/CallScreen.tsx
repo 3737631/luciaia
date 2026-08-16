@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { getCustomization } from "@/lib/storage";
+import { getCustomization, getCustomGirls, CustomGirlData } from "@/lib/storage";
 import { getFallbackResponse } from "@/lib/ai";
 import { sendChatMessage } from "@/lib/chatClient";
 import { splitForTTS, sttAudio, ttsText } from "@/lib/voiceClient";
@@ -20,6 +20,7 @@ import {
   ChatMessage,
 } from "@/lib/memory";
 import { getGirlImage } from "@/lib/images";
+import { detectGender } from "@/lib/gender";
 import { Girl } from "@/data/girls";
 
 const voiceIdMap: Record<string, string> = {
@@ -59,7 +60,16 @@ const supportedMimeTypes = [
 export default function CallScreen({ girl }: { girl: Girl }) {
   const router = useRouter();
   const custom = getCustomization(girl.id);
-  const girlImage = girl.cloudinaryImage || getGirlImage(
+  const [activeCustom, setActiveCustom] = useState<CustomGirlData | null>(null);
+  useEffect(() => {
+    const customId = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("custom") : null;
+    if (customId) {
+      const g = getCustomGirls().find((x) => x.id === customId);
+      if (g) setActiveCustom(g);
+    }
+  }, []);
+  const callName = activeCustom?.name || girl.name;
+const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlImage(
     girl.id,
     custom?.hair || girl.defaultHair,
     custom?.pose || girl.defaultPose,
@@ -445,7 +455,10 @@ export default function CallScreen({ girl }: { girl: Girl }) {
         await new Promise<void>((resolve, reject) => {
           const playedRef = { started: false };
           const timeout = setTimeout(() => reject(new Error("timeout")), 30000);
-          const guardTimer = setTimeout(() => resolve(), 2500);
+          const guardTimer = setTimeout(() => {
+            // Solo corta si el audio nunca llegó a sonar; si ya suena, esperamos al onended real.
+            if (!playedRef.started) resolve();
+          }, 2500);
           const cleanup = () => { clearTimeout(timeout); clearTimeout(guardTimer); };
           el.onplaying = () => {
             clearTimeout(timeout);
@@ -850,18 +863,24 @@ export default function CallScreen({ girl }: { girl: Girl }) {
     const history = getConversationHistory(girl.id);
     const memory = getUserMemory(girl.id);
     const summary = getConversationSummary(girl.id);
+    const customScenario = activeCustom
+      ? `Chica: ${activeCustom.girlDesc}\nRoleplay: ${activeCustom.roleplayDesc}`
+      : "";
     try {
       const reply = await sendChatMessage({
         message: text,
-        girlId: girl.id,
-        girlName: girl.name,
-        girlStyle: girl.style,
-        girlPersonality: custom?.personality ?? girl.personality,
+        girlId: activeCustom?.id ?? girl.id,
+        girlName: activeCustom?.name ?? girl.name,
+        girlStyle: activeCustom?.girlDesc ?? girl.style,
+        girlPersonality: activeCustom?.personality ?? custom?.personality ?? girl.personality,
         customization: (custom || {}) as Record<string, unknown>,
         history,
         memory,
         summary,
+        mode: activeCustom?.roleplayDesc ? "actions" : "text",
         userGender: (localStorage.getItem("lunacall_gender") || "hombre") as "hombre" | "mujer",
+        characterGender: detectGender(activeCustom?.name ?? girl.name),
+        customScenario: customScenario || undefined,
       });
       if (!mountedRef.current) return;
       const msgs: ChatMessage[] = [
@@ -903,7 +922,7 @@ export default function CallScreen({ girl }: { girl: Girl }) {
       processingRef.current = false;
       startListening();
     }
-  }, [girl, custom, subtitlesOn]);
+  }, [girl, custom, subtitlesOn, activeCustom]);
 
   doAIRef.current = doAI;
 
@@ -994,21 +1013,47 @@ export default function CallScreen({ girl }: { girl: Girl }) {
       setSpeakerDevices(devices.filter(d => d.kind === "audiooutput" && d.deviceId && d.label && d.deviceId !== "default" && d.deviceId !== "communications"));
     }).catch(() => {});
 
-    const greeting = `Hola, soy ${girl.name}. ¿Cómo estás?`;
-    try {
-      const sanitized = sanitizeForTTS(greeting);
-      if (!sanitized) throw new Error("empty after sanitize");
-      const result = await ttsText(sanitized, voiceIdMap[girl.id] || `female-${girl.id}`);
-      if (abort.signal.aborted || !mountedRef.current) return;
-      audioEl.volume = 1;
-      audioEl.src = `data:${result.contentType};base64,${result.audio}`;
-      await new Promise<void>((resolve, reject) => {
-        const t = setTimeout(() => reject(new Error("timeout")), 15000);
-        audioEl.oncanplay = () => { clearTimeout(t); resolve(); };
-        audioEl.onerror = () => { clearTimeout(t); reject(new Error("error")); };
-      });
-      if (abort.signal.aborted || !mountedRef.current) return;
+const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
+      // El saludo no debe tardar: si el TTS tarda más de 12s, cambiamos a voz del navegador.
+      const greetingRace = await Promise.race([
+        (async () => {
+          const sanitized = sanitizeForTTS(greeting);
+          if (!sanitized) throw new Error("empty after sanitize");
+          const result = await ttsText(sanitized, voiceIdMap[girl.id] || `female-${girl.id}`);
+          if (abort.signal.aborted || !mountedRef.current) return null;
+          audioEl.volume = 1;
+          audioEl.src = `data:${result.contentType};base64,${result.audio}`;
+          await new Promise<void>((resolve, reject) => {
+            const t = setTimeout(() => reject(new Error("timeout")), 12000);
+            audioEl.oncanplay = () => { clearTimeout(t); resolve(); };
+            audioEl.onerror = () => { clearTimeout(t); reject(new Error("error")); };
+          });
+          return true;
+        })(),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 14000)),
+      ]);
 
+      if (abort.signal.aborted || !mountedRef.current) return;
+      if (greetingRace === null) {
+        // TTS lento: voz del navegador al instante para no dejar "Llamando..." para siempre.
+        if (dotTimerRef.current) { clearInterval(dotTimerRef.current); dotTimerRef.current = null; }
+        setCS("greeting");
+        stopRingback();
+        startFreqAnimation();
+        if (!durTimerRef.current) {
+          durTimerRef.current = setInterval(() => setCallDuration(d => d + 1), 1000);
+        }
+        clearAllMemory(girl.id);
+        silentPingsRef.current = 0;
+        await speakWithBrowserVoice(sanitizeForTTS(greeting) || greeting);
+        if (abort.signal.aborted || !mountedRef.current) return;
+        if (callStateRef.current !== "ended" && callStateRef.current !== "error") {
+          startListening();
+        }
+        return;
+      }
+
+      try {
       audioEl.onplaying = () => {
         if (dotTimerRef.current) { clearInterval(dotTimerRef.current); dotTimerRef.current = null; }
         setCS("greeting");
@@ -1417,9 +1462,9 @@ export default function CallScreen({ girl }: { girl: Girl }) {
           transition: "opacity 0.2s ease",
         }}
       >
-        {girlImage && (
+        {callGirlImage && (
           <img
-            src={girlImage}
+            src={callGirlImage}
             alt=""
             style={{
               position: "absolute", inset: -60,
@@ -1471,10 +1516,10 @@ export default function CallScreen({ girl }: { girl: Girl }) {
                 transition: "transform 0.3s ease, opacity 0.3s ease",
               }}
             />
-            {girlImage ? (
+            {callGirlImage ? (
               <img
-                src={girlImage}
-                alt={girl.name}
+                src={callGirlImage}
+                alt={callName}
                 style={{
                   width: "100%", height: "100%", borderRadius: "50%",
                   objectFit: "cover", objectPosition: "center",
@@ -1490,7 +1535,7 @@ export default function CallScreen({ girl }: { girl: Girl }) {
                   fontSize: 48, fontWeight: 700, color: "#f7f7f8",
                 }}
               >
-                {girl.name[0]}
+                {callName[0]}
               </div>
             )}
           </div>
@@ -1502,7 +1547,7 @@ export default function CallScreen({ girl }: { girl: Girl }) {
               textAlign: "center",
             }}
           >
-            {girl.name}
+            {callName}
           </div>
           <div
             style={{

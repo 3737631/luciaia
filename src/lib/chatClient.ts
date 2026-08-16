@@ -21,11 +21,22 @@ export async function sendChatMessage(payload: ChatPayload): Promise<string> {
     process.env.NEXT_PUBLIC_SUPABASE_FUNCTION_URL?.replace(/\/+$/, "") ||
     "http://localhost:54321/functions/v1";
 
-  const res = await fetch(`${endpoint}/chat`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 30000);
+  let res: Response;
+  try {
+    res = await fetch(`${endpoint}/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+  } catch (e: any) {
+    if (e?.name === "AbortError") throw new Error("El servidor tarda demasiado");
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
 
   if (!res.ok) {
     const errData = await res.json().catch(() => ({}));

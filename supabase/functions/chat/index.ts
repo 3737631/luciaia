@@ -44,8 +44,6 @@ Deno.serve(async (req) => {
       ? "Información sobre el usuario:\n" + memory.map((m) => "- " + m).join("\n")
       : "";
 
-    const customScenarioContext = customScenario ? `\n\nEscenario personalizado del usuario:\n${customScenario}` : "";
-
     const summaryContext = summary ? "\nResumen:\n" + summary : "";
 
     const actionsLine = mode === "actions"
@@ -65,10 +63,16 @@ Deno.serve(async (req) => {
       ? "Hablas como un chico real. Cuando te digo \"hola\" respondes con naturalidad, sin monólogos. Si te pongo caliente te pones caliente conmigo, me sigues el ritmo. No te hagas el duro ni juegues a \"convenceme\" todo el rato — si yo estoy directo, tu estas directo conmigo. Nada de frases hechas ni respuestas de manual."
       : "Hablas como una chica real. Cuando te digo \"hola\" respondes con naturalidad, sin monólogos. Si te pongo caliente te pones caliente conmigo, me sigues el ritmo. No te hagas la dura ni juegues a \"convenceme\" todo el rato — si yo estoy directo, tu estas directa conmigo. Nada de frases hechas ni respuestas de manual.";
 
+    const scenarioLine = customScenario
+      ? `VIVES AHORA MISMO este escenario, es tu realidad presente y la describes en primera persona mientras lo vives:\n${customScenario}`
+      : "";
+
     const systemPrompt =
 `${charIntro}
 
-${memoryContext}${summaryContext}${customScenarioContext}
+${memoryContext}${summaryContext}
+
+${scenarioLine}
 
 ${genderLine}
 

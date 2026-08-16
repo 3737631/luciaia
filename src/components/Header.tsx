@@ -156,6 +156,26 @@ export default function Header() {
         >
           Únete ahora
         </button>
+
+        {/* Corona / Premium */}
+        <Link
+          href="/chat/luna"
+          aria-label="Premium"
+          title="Premium"
+          style={{
+            background: "rgba(255,255,255,0.08)",
+            border: 0, borderRadius: 20,
+            padding: "6px 12px",
+            color: "#ffd166",
+            display: "flex", alignItems: "center",
+            cursor: "pointer", whiteSpace: "nowrap",
+            textDecoration: "none",
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style={{ display: "block" }}>
+            <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-1h14v1z" />
+          </svg>
+        </Link>
       </div>
 
       {/* Side menu overlay - full navigation */}

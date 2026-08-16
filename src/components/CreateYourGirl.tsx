@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { saveCustomGirl, getCustomGirls, deleteCustomGirl, CustomGirlData } from "@/lib/storage";
+import { saveCustomGirl, CustomGirlData } from "@/lib/storage";
 import { generateGirlImage } from "@/lib/chatClient";
 
 const MINOR_WORDS = [
@@ -301,13 +300,12 @@ function buildAvatarPrompt(desc: string): string {
   if (/(ojos azules|blue eyes)/.test(w)) eyes = "blue eyes";
   else if (/(ojos verdes|green eyes)/.test(w)) eyes = "green eyes";
   else if (/(ojos grises|ojos claros|ojos de hielo|hielo)/.test(w)) eyes = "ice blue eyes";
-  return `a photorealistic Instagram profile picture portrait of a beautiful adult woman in her mid 20s with ${hair} and ${eyes}, head and shoulders only perfectly centered filling the frame, camera directly facing her, natural realistic skin with visible pores and fine texture, detailed iris with natural highlights, individual eyelashes and softly shaped brows, soft natural makeup, subtle natural beauty marks, gentle natural smile, wearing a simple elegant black top, sharp focus on the eyes, soft diffused studio lighting with gentle catchlights, shallow depth of field, blurred neutral background, photorealistic photography, high resolution face detail, crisp and clear, square profile crop, no full body, no chest, no cleavage`;
+  return `photorealistic casual selfie photo of a beautiful adult woman in her mid 20s with ${hair} and ${eyes}, natural smartphone photo taken with a front camera, head and shoulders perfectly centered filling the frame, camera directly facing her, realistic human skin with visible pores and natural texture, tiny natural imperfections, detailed iris with natural highlights, individual eyelashes, softly shaped natural brows, light natural makeup, natural smile, wearing a simple elegant black top, sharp focus on the eyes, soft natural window light with gentle catchlights, shallow depth of field, blurred neutral background, square profile picture crop, no full body, no chest, no cleavage, candid real photography, must look like a real photo of a real person, not CGI, no plastic skin, no airbrushed face, no anime, no illustration`;
 }
 
 export default function CreateYourGirl({ open, onClose, onCreated }: { open: boolean; onClose: () => void; onCreated?: () => void }) {
   const [girlDesc, setGirlDesc] = useState("");
   const [roleplayDesc, setRoleplayDesc] = useState("");
-  const [customGirls, setCustomGirls] = useState<CustomGirlData[]>([]);
   const [error, setError] = useState("");
   const [step, setStep] = useState<WizardStep>("describe");
   const [selectedPersonality, setSelectedPersonality] = useState("");
@@ -318,10 +316,6 @@ export default function CreateYourGirl({ open, onClose, onCreated }: { open: boo
   const [openSection, setOpenSection] = useState<"roleplay" | "photo" | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-
-  useEffect(() => {
-    setCustomGirls(getCustomGirls());
-  }, []);
 
   useEffect(() => {
     if (!open) {
@@ -418,11 +412,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
         console.error("avatar IA falla:", err);
       }
     }
-
     saveCustomGirl(newGirl);
-    setCustomGirls(getCustomGirls());
-    onCreated?.();
-    setGenError("");
     setStep("done");
 
     // Ir directamente al chat con la chica creada.
@@ -432,11 +422,6 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
 
   function handleReset() {
     setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSelectedPersonality(""); setCurrentName("");
-  }
-
-  function handleDelete(g: CustomGirlData) {
-    deleteCustomGirl(g.id);
-    setCustomGirls(getCustomGirls());
   }
 
   return (
@@ -655,7 +640,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#30D158" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
                         </motion.div>
                         <p className="mt-3 text-lg font-bold text-white">{currentName} ha sido creada</p>
-                        <p className="mt-1 text-xs text-white/50">Aparecerá abajo en Tus creaciones</p>
+                        <p className="mt-1 text-xs text-white/50">Ya puedes chatear con ella</p>
                         <button onClick={handleReset} className="mt-6 h-[52px] w-full rounded-2xl bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-[0.95rem] font-bold text-white transition hover:brightness-110 active:scale-[0.99]">
                           Crear otra chica
                         </button>
@@ -663,32 +648,6 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
                     </motion.div>
                   )}
                 </AnimatePresence>
-
-                {/* Custom creations */}
-                {step === "done" && customGirls.length > 0 && (
-                  <div className="mt-5 border-t border-white/[0.06] pt-4">
-                    <h4 className="mb-3 text-xs font-bold text-white/60 uppercase tracking-widest">Tus creaciones</h4>
-                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
-                      {customGirls.map((g) => (
-                        <div key={g.id} className="group relative shrink-0 overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.04]" style={{ flex: "0 0 130px" }}>
-                          <Link href={`/chat/luna?custom=${g.id}`} onClick={() => { localStorage.setItem("custom_scenario", JSON.stringify({ girl: g.girlDesc, roleplay: g.roleplayDesc })); onClose(); }} className="block">
-                            <div className="relative aspect-[3/4] overflow-hidden">
-                              <img src={g.imageUrl} alt={g.name} className="h-full w-full object-cover object-top" />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                              <div className="absolute bottom-0 left-0 right-0 p-2">
-                                <p className="text-xs font-bold text-white">{g.name}</p>
-                                <p className="text-[0.45rem] text-white/50">{g.age} años</p>
-                              </div>
-                            </div>
-                          </Link>
-                          <button onClick={() => handleDelete(g)} className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/50 text-white/40 opacity-0 transition hover:bg-red-500/70 hover:text-white group-hover:opacity-100 active:scale-90">
-                            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* Salir */}

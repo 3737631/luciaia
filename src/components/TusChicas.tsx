@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { getCustomGirls, deleteCustomGirl, CustomGirlData } from "@/lib/storage";
+import { getCustomGirls, deleteCustomGirl, saveCustomGirl, CustomGirlData } from "@/lib/storage";
 import { getGirlImage } from "@/lib/images";
 
 export default function TusChicas({
@@ -14,6 +14,7 @@ export default function TusChicas({
   onClose: () => void;
 }) {
   const [customGirls, setCustomGirls] = useState<CustomGirlData[]>([]);
+  const [editing, setEditing] = useState<CustomGirlData | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -37,6 +38,18 @@ export default function TusChicas({
       scrollRef.current?.scrollTo(0, 0);
     }
   }, [open]);
+
+  function handleSave() {
+    if (!editing) return;
+    const updated = {
+      ...editing,
+      name: editing.name.trim() || editing.name,
+      description: editing.girlDesc.trim() || editing.description,
+    };
+    saveCustomGirl(updated);
+    refresh();
+    setEditing(null);
+  }
 
   return (
     <AnimatePresence>
@@ -105,7 +118,7 @@ export default function TusChicas({
                           <Link
                             href={`/chat/luna?custom=${g.id}`}
                             onClick={() => openChat(g)}
-                            className="flex items-center gap-3 rounded-2xl px-2.5 py-2.5 transition hover:bg-white/[0.05] active:scale-[0.99]"
+                            className="flex items-center gap-3 rounded-2xl px-2.5 py-2.5 pr-24 transition hover:bg-white/[0.05] active:scale-[0.99]"
                           >
                             <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full border border-white/[0.08] bg-white/[0.05]">
                               <img src={imgSrc} alt={g.name} className="h-full w-full object-cover object-top" />
@@ -121,12 +134,22 @@ export default function TusChicas({
                             </div>
                           </Link>
 
+                          {/* Editar (lápiz) */}
+                          <button
+                            onClick={() => setEditing(g)}
+                            className="absolute right-12 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-white/[0.08] text-white/70 transition hover:bg-white/[0.16] hover:text-white active:scale-90"
+                            title="Editar"
+                          >
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                          </button>
+
+                          {/* Eliminar */}
                           <button
                             onClick={() => {
                               deleteCustomGirl(g.id);
                               refresh();
                             }}
-                            className="absolute right-3 top-1/2 z-10 hidden h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-red-600/90 text-white shadow-lg transition hover:bg-red-500 group-hover:flex active:scale-90"
+                            className="absolute right-3 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-red-600/90 text-white shadow-lg transition hover:bg-red-500 active:scale-90"
                             title="Eliminar"
                           >
                             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
@@ -139,6 +162,117 @@ export default function TusChicas({
               </div>
             </motion.div>
           </div>
+
+          {/* Modal de edición */}
+          {editing && (
+            <>
+              <motion.div
+                className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-md"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setEditing(null)}
+              />
+              <div className="fixed inset-0 z-[60] flex items-center justify-center px-6">
+                <motion.div
+                  className="max-h-[85dvh] w-full max-w-[400px] overflow-y-auto overscroll-contain rounded-3xl border border-white/[0.08] bg-[#121216]/95 p-5 shadow-2xl backdrop-blur-xl"
+                  style={{ WebkitOverflowScrolling: "touch" }}
+                  initial={{ opacity: 0, scale: 0.96, y: 12 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.96, y: 12 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                >
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-[0.95rem] font-bold tracking-tight text-white">Editar chica</h3>
+                    <button
+                      type="button"
+                      onClick={() => setEditing(null)}
+                      aria-label="Cerrar"
+                      className="flex h-7 w-7 items-center justify-center rounded-full bg-white/[0.06] text-white/60 transition hover:bg-white/[0.1] hover:text-white active:scale-95"
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+                    </button>
+                  </div>
+
+                  <div className="mt-5 space-y-4">
+                    <div>
+                      <label className="mb-1.5 block text-xs font-semibold text-white/70">Nombre</label>
+                      <input
+                        value={editing.name}
+                        maxLength={20}
+                        onChange={(e) => setEditing({ ...editing, name: e.target.value })}
+                        className="h-11 w-full rounded-xl border border-white/[0.06] bg-white/[0.06] px-3.5 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#FF5798]/40 focus:bg-white/[0.09]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-1.5 block text-xs font-semibold text-white/70">Describe a tu chica</label>
+                      <textarea
+                        value={editing.girlDesc}
+                        rows={2}
+                        onChange={(e) => setEditing({ ...editing, girlDesc: e.target.value })}
+                        placeholder="Ej: chica de pelo negro, uniforme blanco ajustado..."
+                        className="w-full resize-none rounded-xl border border-white/[0.06] bg-white/[0.08] px-3.5 py-3 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-white/[0.12] focus:bg-white/[0.11]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-1.5 block text-xs font-semibold text-white/70">Roleplay</label>
+                      <textarea
+                        value={editing.roleplayDesc}
+                        rows={2}
+                        onChange={(e) => setEditing({ ...editing, roleplayDesc: e.target.value })}
+                        placeholder="Ej: te duchas conmigo..."
+                        className="w-full resize-none rounded-xl border border-white/[0.06] bg-white/[0.08] px-3.5 py-3 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-white/[0.12] focus:bg-white/[0.11]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-1.5 block text-xs font-semibold text-white/70">Personalidad</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          { value: "carinosa", label: "Cariñosa" },
+                          { value: "atrevida", label: "Atrevida" },
+                          { value: "timida", label: "Tímida" },
+                          { value: "dominante", label: "Dominante" },
+                        ].map((p) => (
+                          <button
+                            key={p.value}
+                            type="button"
+                            onClick={() => setEditing({ ...editing, personality: p.value })}
+                            className={`h-10 rounded-xl text-xs font-semibold transition active:scale-[0.98] ${editing.personality === p.value ? "bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-white" : "bg-white/[0.05] text-white/60 hover:bg-white/[0.09] hover:text-white"}`}
+                          >
+                            {p.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleSave}
+                      className="h-12 w-full rounded-xl bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-sm font-bold text-white transition hover:brightness-110 active:scale-[0.99]"
+                    >
+                      Guardar cambios
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        deleteCustomGirl(editing.id);
+                        refresh();
+                        setEditing(null);
+                      }}
+                      className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-red-500/10 text-sm font-semibold text-red-300 transition hover:bg-red-500/20 active:scale-[0.99]"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                      Eliminar a {editing.name}
+                    </button>
+                  </div>
+                </motion.div>
+              </div>
+            </>
+          )}
         </>
       )}
     </AnimatePresence>
