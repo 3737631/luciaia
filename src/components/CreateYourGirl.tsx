@@ -468,12 +468,12 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
               {/* Header */}
               <div>
                 <h3 className="text-[1.4rem] font-bold leading-tight tracking-tight text-white">
-                  {step === "describe" ? "Crea tu fantasía" :
+                  {step === "describe" ? "Diseña tu chica ideal" :
                    step === "personality" ? "Elige personalidad" :
                    step === "generating" ? "Creando..." : "¡Creada!"}
                 </h3>
                 <p className="mt-1 text-xs text-white/40">
-                  {step === "describe" ? "Describe cómo quieres que sea" :
+                  {step === "describe" ? "Pásalo bien con ella" :
                    step === "personality" ? "¿Cómo te gustaría que sea contigo?" :
                    step === "generating" ? "La IA está dando vida a tu chica" : ""}
                 </p>

@@ -12,6 +12,7 @@ interface ChatPayload {
   summary: string;
   mode?: "text" | "actions";
   userGender?: "hombre" | "mujer";
+  characterGender?: "hombre" | "mujer";
   customScenario?: string;
 }
 

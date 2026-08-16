@@ -151,7 +151,7 @@ export default function GirlsPage() {
       <main style={{ minHeight: "100vh", maxWidth: 1200, margin: "0 auto", padding: "0 var(--container-padding)" }}>
         <StoriesRow girls={femaleGirls} />
 
-        <FantasyCTA mode="girls" onCreate={() => setCreateOpen(true)} />
+        <FantasyCTA mode="girls" onCreate={() => setCreateOpen(true)} creationsCount={customGirls.length} />
         <CreateYourGirl open={createOpen} onClose={() => setCreateOpen(false)} onCreated={refreshCustom} />
 
         {customGirls.length > 0 && (

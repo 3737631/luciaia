@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Girl, minorBlockMessage } from "@/data/girls";
+import { detectGender } from "@/lib/gender";
 import { getCustomization } from "@/lib/storage";
 import { getCustomGirls, CustomGirlData } from "@/lib/storage";
 import { getFallbackResponse } from "@/lib/ai";
@@ -141,6 +142,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       summary,
       mode,
       userGender: (typeof window !== "undefined" ? (localStorage.getItem("lunacall_gender") || "hombre") : "hombre") as "hombre" | "mujer",
+      characterGender: detectGender(girl.name),
       customScenario: customScenario || undefined,
     };
 

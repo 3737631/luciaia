@@ -1,6 +1,7 @@
 type FantasyCTAProps = {
-  mode: "girls" | "boys";
+  mode: "girls" | "boys" | "anime";
   onCreate: () => void;
+  creationsCount?: number;
 };
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
@@ -8,11 +9,16 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 export function FantasyCTA({
   mode,
   onCreate,
+  creationsCount = 0,
 }: FantasyCTAProps) {
-  const description =
-    mode === "boys"
-      ? "Diseña tu chico ideal con IA y pásalo bien con él."
-      : "Describe cómo quieres que sea y Nuvia la convertirá en un personaje único con IA.";
+  const isBoys = mode === "boys";
+  const creationsLabel = isBoys ? "Ver tus chicos" : mode === "anime" ? "Ver tus creaciones" : "Ver tus chicas";
+
+  const description = isBoys
+    ? "Diseña tu chico ideal y pásalo bien con él."
+    : mode === "anime"
+      ? "Diseña tu personaje anime ideal y pásalo bien con él."
+      : "Diseña tu chica ideal y pásalo bien con ella.";
 
   return (
     <section
@@ -40,19 +46,36 @@ export function FantasyCTA({
         </p>
       </div>
 
-      <button
-        type="button"
-        className="nuvia-fantasy-cta__button"
-        onClick={onCreate}
-      >
-        <span>Crear</span>
-        <span
-          className="nuvia-fantasy-cta__arrow"
-          aria-hidden="true"
+      <div className="nuvia-fantasy-cta__actions">
+        <button
+          type="button"
+          className="nuvia-fantasy-cta__button"
+          onClick={onCreate}
         >
-          →
-        </span>
-      </button>
+          <span>Crear</span>
+          <span
+            className="nuvia-fantasy-cta__arrow"
+            aria-hidden="true"
+          >
+            →
+          </span>
+        </button>
+
+        {creationsCount > 0 && (
+          <button
+            type="button"
+            className="nuvia-fantasy-cta__view"
+            onClick={() =>
+              document.getElementById("tus-creaciones")?.scrollIntoView({ behavior: "smooth", block: "start" })
+            }
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="8" r="3" /><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            </svg>
+            {creationsLabel} {creationsCount > 0 ? `(${creationsCount})` : ""}
+          </button>
+        )}
+      </div>
     </section>
   );
 }

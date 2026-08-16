@@ -581,10 +581,20 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
 }
 
 .nuvia-fantasy-cta__button,
+.nuvia-fantasy-cta__view,
+.nuvia-fantasy-cta__actions,
 .nuvia-fantasy-cta__copy,
 .nuvia-fantasy-cta__icon {
   position: relative;
   z-index: 1;
+}
+
+.nuvia-fantasy-cta__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  justify-self: end;
 }
 
 .nuvia-fantasy-cta__icon {
@@ -665,7 +675,6 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  justify-self: end;
 
   width: 138px;
   height: 54px;
@@ -694,6 +703,41 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
     0 9px 20px rgba(255, 47, 120, 0.18);
 }
 
+.nuvia-fantasy-cta__view {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 34px;
+  gap: 6px;
+
+  margin: 0;
+  padding: 0 14px;
+
+  border: 1px solid rgba(255, 87, 152, 0.45);
+  border-radius: 999px;
+
+  background: rgba(255, 47, 120, 0.12);
+
+  color: #ff7ba9;
+
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1;
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.nuvia-fantasy-cta__view:hover {
+  background: rgba(255, 47, 120, 0.22);
+  border-color: rgba(255, 87, 152, 0.7);
+  color: #ffb0cc;
+}
+
 .nuvia-fantasy-cta__arrow {
   display: inline-block;
   font-size: 21px;
@@ -707,11 +751,15 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
     grid-template-columns: 58px minmax(0, 1fr) 104px;
     column-gap: 10px;
 
-    height: 94px;
-    min-height: 94px;
-    max-height: 94px;
+    height: auto;
+    min-height: 104px;
+    max-height: none;
 
     border-radius: 24px;
+  }
+
+  .nuvia-fantasy-cta__actions {
+    gap: 5px;
   }
 
   .nuvia-fantasy-cta__icon {
@@ -761,6 +809,12 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
     transform: none;
   }
 
+  .nuvia-fantasy-cta__view {
+    padding: 0 10px;
+    font-size: 10px;
+    height: 28px;
+  }
+
   .nuvia-fantasy-cta__arrow {
     margin-left: 0;
     transform: none;
@@ -773,12 +827,16 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
     column-gap: 8px;
 
     width: calc(100vw - 24px);
-    height: 90px;
-    min-height: 90px;
-    max-height: 90px;
+    height: auto;
+    min-height: 96px;
+    max-height: none;
 
     padding: 11px 10px;
     border-radius: 22px;
+  }
+
+  .nuvia-fantasy-cta__actions {
+    gap: 4px;
   }
 
   .nuvia-fantasy-cta__icon {
@@ -842,6 +900,12 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
     margin: 0;
     font-size: 14px;
     transform: none;
+  }
+
+  .nuvia-fantasy-cta__view {
+    padding: 0 8px;
+    font-size: 9px;
+    height: 26px;
   }
 
   .nuvia-fantasy-cta__arrow {
