@@ -296,12 +296,13 @@ function buildAvatarPrompt(desc: string): string {
   else if (/(pelirroja|pelirrojo|redhead)/.test(w)) hair = "long red hair";
   else if (/(negra|negro|pelo negro|black hair)/.test(w)) hair = "long black hair";
   else if (/(rosa|pink hair)/.test(w)) hair = "long pink hair";
+  else if (/(casta[nñ]a|morena|moreno|brunet)/.test(w)) hair = "long dark brown hair";
   let eyes = "brown eyes";
   if (/(ojos azules|blue eyes)/.test(w)) eyes = "blue eyes";
   else if (/(ojos verdes|green eyes)/.test(w)) eyes = "green eyes";
   else if (/(ojos grises|ojos claros|ojos de hielo|hielo)/.test(w)) eyes = "ice blue eyes";
   const body = /(gorda|gordita|curvy|curvas|voluptuosa)/.test(w) ? "curvy figure" : "slim figure";
-  return `a beautiful adult woman in her mid 20s with ${hair} and ${eyes}, natural realistic skin with visible pores, gentle natural makeup, soft natural smile, wearing a simple elegant black top, close-up portrait head and shoulders, perfectly centered, sharp focus, soft diffused studio lighting, shallow depth of field, blurred neutral background, photorealistic photography, high detail, square profile crop`;
+  return `a beautiful adult woman in her mid 20s with ${hair} and ${eyes}, ${body}, natural realistic skin with visible pores and fine texture, detailed iris with natural highlights, individual eyelashes and softly shaped brows, natural soft makeup, subtle natural beauty marks, gentle natural smile, wearing a simple elegant black top, close-up portrait of head and shoulders, perfectly centered, sharp focus on the eyes, soft diffused studio lighting with gentle catchlights, shallow depth of field, blurred neutral background, photorealistic photography, high resolution face detail, crisp and clear, square profile crop`;
 }
 
 export default function CreateYourGirl({ open, onClose, onCreated }: { open: boolean; onClose: () => void; onCreated?: () => void }) {
@@ -411,7 +412,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
     if (!refImage) {
       try {
         const prompt = buildAvatarPrompt(girlDesc || roleplayDesc);
-        const blob = await generateGirlImage({ prompt, width: 768, height: 768, avatar: true });
+        const blob = await generateGirlImage({ prompt, width: 1024, height: 1024, avatar: true });
         const avatarUrl = await compressImage(blob);
         newGirl.imageUrl = avatarUrl;
       } catch (err) {

@@ -558,12 +558,12 @@ Deno.serve(async (req) => {
     // fotorrealista con textura de piel real.
     const rawDesc = String(body.prompt || "").trim();
     const prompt = isAvatar
-      ? `professional portrait photograph of ${rawDesc || "a beautiful young woman"}, close-up on face and shoulders, perfectly centered, facing the camera, natural realistic skin with visible pores and texture, detailed iris and lashes, soft studio lighting, shallow depth of field, blurred neutral background, photorealistic, sharp focus on eyes, high resolution face detail, square profile picture crop`
+      ? `professional high-resolution portrait photograph of ${rawDesc || "a beautiful young woman"}, close-up on face and shoulders, perfectly centered, facing the camera, natural realistic skin with visible pores and fine texture, detailed iris with natural highlights, individual eyelashes and softly shaped brows, natural soft makeup, subtle natural beauty marks, soft diffused studio lighting with gentle catchlights in the eyes, shallow depth of field, softly blurred neutral background, photorealistic, tack sharp focus on the eyes, high resolution face detail, crisp and clear, square profile picture crop, professional photography, 8k face detail`
       : buildPhotoPrompt(rawDesc, seed);
 
-    // El avatar se genera en cuadrado pequeÃ±o (768x768) para el cÃ­rculo de perfil.
-    const genWidth = isAvatar ? Math.min(width, 768) : Math.min(width, 768);
-    const genHeight = isAvatar ? Math.min(height, 768) : Math.min(height, 1024);
+    // El avatar se genera en cuadrado para el cÃ­rculo de perfil.
+    const genWidth = Math.min(width, 1024);
+    const genHeight = Math.min(height, 1024);
 
     // Si el Horde estÃ¡ activo y no hay foto de referencia, creamos el job de forma asÃ­ncrona:
     // respondemos con { jobId } al instante y el frontend consulta el estado despuÃ©s.

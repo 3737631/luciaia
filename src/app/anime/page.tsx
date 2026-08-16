@@ -152,15 +152,15 @@ export default function AnimePage() {
         <FantasyCTA mode="anime" onCreate={() => setCreateOpen(true)} />
         <CreateYourGirl open={createOpen} onClose={() => setCreateOpen(false)} onCreated={refreshCustom} />
 
-        {customGirls.length > 0 && (
-          <section id="tus-chicas" style={{ marginTop: 8 }}>
+        <section id="tus-chicas" style={{ marginTop: 8 }}>
+          {customGirls.length > 0 && (
             <div className="person-grid">
               {customGirls.map((g, i) => (
                 <CustomGirlCard key={g.id} data={g} onDelete={refreshCustom} />
               ))}
             </div>
-          </section>
-        )}
+          )}
+        </section>
 
         <section id="characters">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
