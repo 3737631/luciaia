@@ -152,23 +152,27 @@ export default function AnimePage() {
         <FantasyCTA mode="boys" onCreate={() => setCreateOpen(true)} creationsCount={customGirls.length} />
         <CreateYourGirl open={createOpen} onClose={() => setCreateOpen(false)} onCreated={refreshCustom} />
 
-        {customGirls.length > 0 && (
-          <section id="tus-creaciones" style={{ marginTop: 8 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-              <h2 style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.03em", margin: 0, color: "#fff" }}>
-                Tus creaciones
-              </h2>
-              <span style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.35)" }}>
-                {customGirls.length} {customGirls.length === 1 ? "personaje" : "personajes"}
-              </span>
-            </div>
+        <section id="tus-creaciones" style={{ marginTop: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+            <h2 style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.03em", margin: 0, color: "#fff" }}>
+              Tus creaciones
+            </h2>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.35)" }}>
+              {customGirls.length} {customGirls.length === 1 ? "personaje" : "personajes"}
+            </span>
+          </div>
+          {customGirls.length === 0 ? (
+            <p style={{ margin: 0, padding: "18px 0", fontSize: 13, color: "rgba(255,255,255,0.4)", textAlign: "center", border: "1px dashed rgba(255,255,255,0.12)", borderRadius: 14 }}>
+              Aún no has creado ninguno. Pulsa <span style={{ color: "#FF5798" }}>Crear</span> y diseña tu personaje anime ideal.
+            </p>
+          ) : (
             <div className="person-grid">
               {customGirls.map((g, i) => (
                 <CustomGirlCard key={g.id} data={g} onDelete={refreshCustom} />
               ))}
             </div>
-          </section>
-        )}
+          )}
+        </section>
 
         <section id="characters">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
