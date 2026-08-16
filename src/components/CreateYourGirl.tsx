@@ -471,11 +471,6 @@ async function handlePersonalityNext() {
                    step === "personality" ? "Elige personalidad" :
                    step === "generating" ? "Creando..." : "¡Creada!"}
                 </h3>
-                <p className="mt-1 text-xs text-white/40">
-                  {step === "describe" ? "Pásalo bien con ella" :
-                   step === "personality" ? "¿Cómo te gustaría que sea contigo?" :
-                   step === "generating" ? "La IA está dando vida a tu chica" : ""}
-                </p>
 
                 {/* Progress line */}
                 <div className="mt-5 h-0.5 w-full overflow-hidden rounded-full bg-white/[0.07]">
