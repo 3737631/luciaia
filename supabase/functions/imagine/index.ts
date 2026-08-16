@@ -574,7 +574,28 @@ Deno.serve(async (req) => {
     let debugNote = "";
     const cfAccount = Deno.env.get("CF_ACCOUNT_ID");
     const cfToken = Deno.env.get("CF_API_TOKEN");
-    if (hordeEnabled && hordeKey && !refImage) {
+    // Para el AVATAR (creaciÃ³n de chica) preferimos una vÃ­a rÃ¡pida sÃ­ncrona:
+    // el Horde async puede tardar >15 min por falta de kudos y el frontend solo espera ~6.
+    // Pollinations responde en segundos, asÃ­ que va primero en el caso avatar.
+    if (isAvatar && !refImage) {
+      try {
+        img = await pollinationsGenerate(prompt, genWidth, genHeight, seed);
+        source = "pollinations";
+      } catch (errPoll) {
+        console.error("avatar pollinations falla, intenta horde async:", errPoll);
+        if (hordeEnabled && hordeKey) {
+          try {
+            const jid = await hordeSubmit(prompt, genWidth, genHeight, seed, hordeKey);
+            return new Response(JSON.stringify({ status: "queued", jobId: jid, source: "horde-juggernaut" }), {
+              status: 200,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          } catch (errHorde) {
+            console.error("avatar horde async falla:", errHorde);
+          }
+        }
+      }
+    } else if (hordeEnabled && hordeKey && !refImage) {
       try {
         const jid = await hordeSubmit(prompt, genWidth, genHeight, seed, hordeKey);
         return new Response(JSON.stringify({ status: "queued", jobId: jid, source: "horde-juggernaut" }), {
@@ -661,7 +682,9 @@ Deno.serve(async (req) => {
     }
 
     const falKey = Deno.env.get("FAL_KEY");
-    if (refImage && cfAccount && cfToken) {
+    if (!img) {
+      // Ya se generÃ³ el avatar (pollinations), no volver a generar.
+      if (refImage && cfAccount && cfToken) {
       try {
         img = await cloudflareRefGenerate(prompt, refImage, cfAccount, cfToken);
         source = "cf-flux-klein";
@@ -712,6 +735,14 @@ Deno.serve(async (req) => {
       }
     } else {
       await trySiliconThenRest();
+    }
+    } // fin: no regenerar si el avatar ya se genero
+
+    if (!img) {
+      return new Response(JSON.stringify({ error: "No se pudo generar la imagen. IntÃ©ntalo de nuevo." }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     return new Response(img, {
