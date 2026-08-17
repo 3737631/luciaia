@@ -26,17 +26,23 @@ export default function Header() {
   const currentCat = categoryLinks.find((c) => pathname.startsWith(c.href)) ?? categoryLinks[0];
 
   return (
-    <header
-      style={{
-        position: "sticky",
-        top: 0,
-        zIndex: 100,
-        height: 88,
-        background: "#171717",
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
-        flexShrink: 0,
-      }}
-    >
+    <>
+      <div style={{ height: "calc(88px + env(safe-area-inset-top, 0px))", flexShrink: 0 }} />
+      <header
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 100,
+          height: "calc(88px + env(safe-area-inset-top, 0px))",
+          paddingTop: "env(safe-area-inset-top, 0px)",
+          boxSizing: "border-box",
+          background: "#171717",
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          flexShrink: 0,
+        }}
+      >
       <div
         style={{
           display: "flex",
@@ -208,6 +214,7 @@ export default function Header() {
           </div>
         </div>
       )}
-    </header>
+      </header>
+    </>
   );
 }
