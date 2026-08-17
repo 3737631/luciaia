@@ -50,15 +50,10 @@ export default function TusChicas({
       scrollRef.current?.scrollTo(0, 0);
       const b = document.body;
       const h = document.documentElement;
-      const origB = { position: b.style.position, top: b.style.top, left: b.style.left, right: b.style.right, overflow: b.style.overflow };
       const origH = { overflow: h.style.overflow, overscrollBehavior: h.style.overscrollBehavior };
-      const y = window.scrollY;
+      const origB = { overflow: b.style.overflow };
       h.style.overflow = "hidden";
       h.style.overscrollBehavior = "none";
-      b.style.position = "fixed";
-      b.style.top = `-${y}px`;
-      b.style.left = "0";
-      b.style.right = "0";
       b.style.overflow = "hidden";
       let startY = 0;
       const onStart = (e: TouchEvent) => { startY = e.touches[0].clientY; };
@@ -76,14 +71,9 @@ export default function TusChicas({
       return () => {
         document.removeEventListener("touchstart", onStart);
         document.removeEventListener("touchmove", prevent);
-        b.style.position = origB.position;
-        b.style.top = origB.top;
-        b.style.left = origB.left;
-        b.style.right = origB.right;
         b.style.overflow = origB.overflow;
         h.style.overflow = origH.overflow;
         h.style.overscrollBehavior = origH.overscrollBehavior;
-        window.scrollTo(0, y);
       };
     }
   }, [open]);
