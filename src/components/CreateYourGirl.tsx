@@ -283,7 +283,7 @@ function buildPrompt(desc: string, maxSafe = false): string {
   return `Realistic photo of ${head}, ${subject}, ${hair}, ${body}, ${clothing}. ${scene}${framing}. The scene is set in ${background}.`;
 }
 
-type WizardStep = "describe" | "generating" | "done";
+type WizardStep = "describe" | "personality" | "generating" | "done";
 
 // Prompt SEGURO para el avatar (foto de perfil). El Horde censura si detecta
 // contenido explícito en el prompt, así que usamos un retrato limpio sin
@@ -384,7 +384,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
     const combined = (girlDesc + " " + roleplayDesc).trim();
     const blockReason = containsMinorReferences(combined);
     if (blockReason) { setError(blockReason); return; }
-    handlePersonalityNext();
+    setStep("personality");
   }
 
   function handleRefUpload(e: { target: { files: FileList | null } }) {
@@ -482,32 +482,19 @@ async function handlePersonalityNext() {
               transition={{ duration: 0.25, ease: "easeOut" }}
             >
               {/* Header fijo: sin fondo, igual que el resto del modal */}
-              <div className="-mx-5 shrink-0 px-5 pb-5 pt-[calc(3rem+env(safe-area-inset-top))] sm:pt-[calc(4rem+env(safe-area-inset-top))]">
-                <div className="flex items-start justify-between">
-                  <h3 className="text-[1.75rem] font-bold leading-tight tracking-tight text-white">
-                    {step === "describe" ? "Diseña tu chica ideal" :
-                     step === "generating" ? "Creando..." : "¡Creada!"}
-                  </h3>
-                  {step === "describe" && (
-                    <button
-                      onClick={onClose}
-                      aria-label="Cerrar"
-                      className="-mr-1 flex h-9 w-9 items-center justify-center rounded-full text-white/45 transition hover:bg-white/[0.07] hover:text-white active:scale-95"
-                    >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
-                    </button>
-                  )}
-                </div>
-                {step === "describe" && (
-                  <p className="mt-1.5 text-sm text-white/40">Dale forma, personalidad y estilo. Sin prisas.</p>
-                )}
+              <div className="-mx-5 shrink-0 px-5 pb-4 pt-[calc(3.25rem+env(safe-area-inset-top))] sm:pt-[calc(4.5rem+env(safe-area-inset-top))]">
+                <h3 className="text-[1.4rem] font-bold leading-tight tracking-tight text-white">
+                  {step === "describe" ? "Diseña tu chica ideal" :
+                   step === "personality" ? "Elige personalidad" :
+                   step === "generating" ? "Creando..." : "¡Creada!"}
+                </h3>
 
                 {/* Progress line */}
                 <div className="mt-5 h-0.5 w-full overflow-hidden rounded-full bg-white/[0.07]">
                   <div
-                    className="h-full transition-all duration-700"
+                    className="h-full transition-all duration-500"
                     style={{
-                      width: step === "describe" ? "45%" : step === "generating" ? "85%" : "100%",
+                      width: step === "describe" ? "33%" : step === "personality" ? "66%" : "100%",
                       background: "linear-gradient(135deg, #FF5798, #FF6AA5)",
                     }}
                   />
@@ -531,12 +518,12 @@ async function handlePersonalityNext() {
                       )}
 
                       {/* Campo nombre */}
-                      <label className="mb-2.5 block text-[0.85rem] font-semibold tracking-wide text-white/80">Nombre de tu chica</label>
+                      <label className="mb-2 block text-sm font-semibold text-white/85">Nombre de tu chica</label>
                       <div className="relative">
                         <input value={currentName} onChange={(e) => { setError(""); setCurrentName(e.target.value); }}
                           placeholder="Ej: Luna"
                           maxLength={20}
-                          className="h-14 w-full rounded-2xl border border-white/[0.06] bg-white/[0.05] pl-5 pr-14 text-[1.05rem] font-medium text-white outline-none backdrop-blur-md transition-all placeholder:text-white/25 focus:border-[#FF5798]/40 focus:bg-white/[0.08] focus:shadow-[0_0_0_4px_rgba(255,87,152,0.08)]" />
+                          className="h-12 w-full rounded-2xl border border-white/[0.06] bg-white/[0.06] pl-4 pr-12 text-[0.95rem] text-white outline-none backdrop-blur-md transition-colors placeholder:text-white/25 focus:border-[#FF5798]/40 focus:bg-white/[0.09]" />
                         <button
                           type="button"
                           onClick={() => {
@@ -545,124 +532,114 @@ async function handlePersonalityNext() {
                             setCurrentName(generateName(girlDesc || roleplayDesc));
                           }}
                           title="Nombre al azar"
-                          className="absolute right-4 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full transition hover:bg-white/[0.07] active:scale-90"
+                          className="absolute right-5 top-1/2 z-10 flex -translate-y-1/2 items-center justify-center p-0.5 transition hover:scale-110 active:scale-95"
                         >
                           <Dice3D spinning={diceSpin} />
                         </button>
                       </div>
 
                       {/* Campo principal */}
-                      <label className="mb-2.5 mt-7 block text-[0.85rem] font-semibold tracking-wide text-white/80">Describe cómo la imaginas</label>
+                      <label className="mb-2 mt-6 block text-sm font-semibold text-white/85">Describe tu fantasía</label>
                       <textarea value={girlDesc} onFocus={() => setOpenSection(null)} onChange={(e) => { setError(""); setGirlDesc(e.target.value); }}
-                        placeholder="Cuéntame cómo quieres que sea..."
+                        placeholder="Ej: chica de pelo negro, uniforme blanco ajustado, mirada intensa..."
                         rows={3}
-                        className="w-full resize-none rounded-2xl border border-white/[0.06] bg-white/[0.05] px-5 py-4 text-[0.95rem] leading-relaxed text-white outline-none transition-all placeholder:text-white/25 focus:border-[#FF5798]/30 focus:bg-white/[0.08] focus:shadow-[0_0_0_4px_rgba(255,87,152,0.06)]" />
+                        className="w-full resize-none rounded-xl border border-white/[0.06] bg-white/[0.08] px-4 py-4 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-white/[0.12] focus:bg-white/[0.11]" />
 
-                      {/* Sugerencias rápidas cuando está vacío */}
-                      {!girlDesc.trim() && (
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {[
-                            { label: "✨ Apariencia", hint: "de pelo largo y oscuro, ojos verdes" },
-                            { label: "👗 Estilo", hint: "elegante, con un vestido negro ajustado" },
-                            { label: "💫 Personalidad", hint: "dulce, coqueta y con mucha actitud" },
-                          ].map((s) => (
-                            <button key={s.label} type="button" onClick={() => setGirlDesc(s.hint)}
-                              className="rounded-full bg-white/[0.05] px-3.5 py-2 text-[0.8rem] font-medium text-white/55 transition hover:bg-white/[0.09] hover:text-white active:scale-95">
-                              {s.label}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Roleplay desplegable */}
+                      {/* Roleplay */}
                       <button type="button" onClick={() => setOpenSection(openSection === "roleplay" ? null : "roleplay")}
-                        className="mt-6 flex w-full items-center justify-between rounded-2xl px-1 py-2 text-[0.95rem] font-semibold text-white/90 transition hover:text-white">
-                        <span className="flex items-center gap-2">
+                        className="mt-6 flex w-full items-center justify-between rounded-xl py-2 text-[0.95rem] font-semibold text-white/90 transition hover:text-white">
+                        <span className="relative">
                           Roleplay
-                          <span className="rounded-full bg-white/[0.06] px-2.5 py-0.5 text-[0.65rem] font-medium tracking-wide text-white/45">Opcional</span>
+                          {!roleplayDesc.trim() && <span className="ml-2 align-middle text-[0.6rem] font-normal text-white/40">opcional</span>}
                         </span>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-200 ${openSection === "roleplay" ? "rotate-180" : ""}`}><path d="m6 9 6 6 6-6"/></svg>
                       </button>
                       <AnimatePresence initial={false}>
                         {openSection === "roleplay" && (
-                          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22 }} className="overflow-hidden">
-                            <div className="mt-1">
-                              <p className="text-[0.8rem] text-white/40">Personalidad</p>
-                              <div className="mt-2.5 flex flex-wrap gap-2">
-                                {[
-                                  { value: "carinosa", label: "Cariñosa" },
-                                  { value: "atrevida", label: "Atrevida" },
-                                  { value: "timida", label: "Tímida" },
-                                  { value: "dominante", label: "Dominante" },
-                                ].map((p) => {
-                                  const active = selectedPersonality === p.value;
-                                  return (
-                                    <button key={p.value} type="button" onClick={() => setSelectedPersonality(active ? "" : p.value)}
-                                      className={`rounded-full px-4 py-2 text-[0.82rem] font-semibold transition-all active:scale-95 ${
-                                        active
-                                          ? "bg-[#FF5798] text-white shadow-[0_4px_16px_rgba(255,87,152,0.35)]"
-                                          : "bg-white/[0.05] text-white/60 hover:bg-white/[0.09] hover:text-white"
-                                      }`}>
-                                      {p.label}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </div>
+                          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
                             <textarea value={roleplayDesc} onChange={(e) => { setError(""); setRoleplayDesc(e.target.value); }}
                               placeholder="Ej: me tiene atado a la cama del hospital..."
                               rows={2}
-                              className="mt-3 w-full resize-none rounded-2xl border border-white/[0.06] bg-white/[0.05] px-5 py-3.5 text-[0.9rem] text-white outline-none transition-all placeholder:text-white/25 focus:border-[#FF5798]/30 focus:bg-white/[0.08]" />
+                              className="mt-2 w-full resize-none rounded-xl border border-white/[0.06] bg-white/[0.08] px-4 py-3.5 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-white/[0.12] focus:bg-white/[0.11]" />
                           </motion.div>
                         )}
                       </AnimatePresence>
 
-                      {/* Foto de perfil desplegable */}
+                      {/* Foto opcional */}
                       <button type="button" onClick={() => setOpenSection(openSection === "photo" ? null : "photo")}
-                        className="mt-6 flex w-full items-center justify-between rounded-2xl px-1 py-2 text-[0.95rem] font-semibold text-white/90 transition hover:text-white">
-                        <span className="flex items-center gap-2">
-                          Foto de perfil
-                          <span className="rounded-full bg-white/[0.06] px-2.5 py-0.5 text-[0.65rem] font-medium tracking-wide text-white/45">Opcional</span>
+                        className="mt-6 flex w-full items-center justify-between rounded-xl py-2 text-[0.95rem] font-semibold text-white/90 transition hover:text-white">
+                        <span>
+                          Foto de perfil (opcional)
+                          {!refImage && <span className="ml-2 align-middle text-[0.6rem] font-normal text-white/40">si no subes, la IA la crea</span>}
                         </span>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-200 ${openSection === "photo" ? "rotate-180" : ""}`}><path d="m6 9 6 6 6-6"/></svg>
                       </button>
                       <AnimatePresence initial={false}>
                         {openSection === "photo" && (
-                          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22 }} className="overflow-hidden">
-                            <div className="mt-1.5 space-y-2.5">
-                              {refImage ? (
-                                <div className="relative">
-                                  <img src={refImage} alt="Referencia" className="h-28 w-full rounded-2xl object-cover object-top" />
-                                  <button onClick={() => setRefImage(null)} className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-xs text-white backdrop-blur-md">✕</button>
-                                </div>
-                              ) : (
-                                <>
-                                  <p className="text-[0.8rem] text-white/40">La IA puede crearla por ti</p>
-                                  <label className="flex h-12 w-full cursor-pointer items-center justify-center gap-2.5 rounded-2xl bg-white/[0.05] text-[0.85rem] font-semibold text-white/80 transition hover:bg-white/[0.09] hover:text-white active:scale-[0.99]">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
-                                    Subir foto
-                                    <input type="file" accept="image/*" className="hidden" onChange={handleRefUpload} />
-                                  </label>
-                                  <div className="flex items-center gap-3 py-0.5">
-                                    <div className="h-px flex-1 bg-white/[0.07]" />
-                                    <span className="text-[0.7rem] text-white/30">o</span>
-                                    <div className="h-px flex-1 bg-white/[0.07]" />
-                                  </div>
-                                  <div className="rounded-2xl bg-white/[0.04] px-4 py-3.5">
-                                    <p className="text-[0.85rem] font-semibold text-white/85">✨ Crear con IA</p>
-                                    <p className="mt-1 text-[0.75rem] leading-relaxed text-white/45">La IA creará su primera foto usando la descripción de tu chica.</p>
-                                  </div>
-                                </>
-                              )}
-                            </div>
+                          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
+                            {refImage ? (
+                              <div className="relative mt-2">
+                                <img src={refImage} alt="Referencia" className="h-28 w-full rounded-xl object-cover object-top" />
+                                <button onClick={() => setRefImage(null)} className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-xs text-white">✕</button>
+                              </div>
+                            ) : (
+                              <label className="mt-2 flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-white/[0.05] text-xs font-semibold text-white/80 transition hover:bg-white/[0.09] hover:text-white active:scale-[0.99]">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
+                                Subir una foto (opcional)
+                                <input type="file" accept="image/*" className="hidden" onChange={handleRefUpload} />
+                              </label>
+                            )}
                           </motion.div>
                         )}
                       </AnimatePresence>
 
                       <button onClick={handleDescribeNext}
-                        className="mt-8 h-[50px] w-full rounded-2xl bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-[0.95rem] font-bold tracking-wide text-white shadow-[0_10px_30px_rgba(255,47,120,0.25)] transition hover:brightness-110 active:scale-[0.99]">
+                        className="mt-7 h-[52px] w-full rounded-2xl bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-[0.95rem] font-bold text-white transition hover:brightness-110 active:scale-[0.99]">
                         Siguiente →
                       </button>
+                    </motion.div>
+                  )}
+
+                  {step === "personality" && (
+                    <motion.div key="personality" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
+                      <button onClick={() => setStep("describe")} className="flex items-center gap-1.5 py-1 text-xs font-medium text-white/40 transition hover:text-white active:scale-95">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                        Atrás
+                      </button>
+
+                      <div className="mt-2">
+                        {[
+                          { value: "carinosa", label: "Cariñosa", desc: "Dulce, cercana, siempre pendiente" },
+                          { value: "atrevida", label: "Atrevida", desc: "Directa, juguetona, te engancha" },
+                          { value: "timida", label: "Tímida", desc: "Vergonzosa pero intensa" },
+                          { value: "dominante", label: "Dominante", desc: "Sabe lo que quiere, lidera" },
+                        ].map((p) => {
+                          const active = selectedPersonality === p.value;
+                          return (
+                            <button key={p.value} onClick={() => setSelectedPersonality(p.value)}
+                              className="group flex w-full items-center gap-4 py-4 text-left transition active:scale-[0.99]">
+                              <span className="relative flex h-4 w-4 items-center justify-center">
+                                <span
+                                  className={`block h-4 w-4 rounded-full transition-all duration-200 ${active ? "bg-[#FF5798] shadow-[0_0_12px_rgba(255,87,152,0.45)]" : "border-2 border-white/20 bg-transparent group-hover:border-white/40"}`}
+                                />
+                              </span>
+                              <span className="flex-1">
+                                <span className={`block text-lg font-semibold leading-tight tracking-tight transition-colors ${active ? "text-white" : "text-white/55 group-hover:text-white/85"}`}>{p.label}</span>
+                                <span className={`block text-[0.7rem] transition-colors ${active ? "text-white/45" : "text-white/30 group-hover:text-white/45"}`}>{p.desc}</span>
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div className="mt-8 flex flex-col items-center gap-4">
+                        <button onClick={handlePersonalityNext} className="h-12 w-full max-w-[320px] rounded-full bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-[0.95rem] font-bold text-white transition hover:brightness-110 active:scale-[0.99]">
+                          Continuar →
+                        </button>
+                        <button onClick={handlePersonalityNext} className="text-xs font-medium text-white/40 transition hover:text-white/70 active:scale-95">
+                          Sin personalidad
+                        </button>
+                      </div>
                     </motion.div>
                   )}
 
@@ -700,6 +677,11 @@ async function handlePersonalityNext() {
                   )}
                 </AnimatePresence>
               </div>
+
+              {/* Salir */}
+              <button onClick={onClose} className="mx-auto mt-10 flex w-full items-center justify-center py-3 text-sm font-medium text-white/40 transition hover:text-white active:scale-95">
+                Salir
+              </button>
               </div>
             </motion.div>
           </motion.div>
