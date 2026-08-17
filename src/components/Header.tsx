@@ -31,10 +31,10 @@ export default function Header() {
         position: "sticky",
         top: 0,
         zIndex: 100,
-        height: "calc(88px + env(safe-area-inset-top))",
-        paddingTop: "env(safe-area-inset-top)",
+        height: 88,
         background: "#171717",
         borderBottom: "1px solid rgba(255,255,255,0.06)",
+        flexShrink: 0,
       }}
     >
       <div

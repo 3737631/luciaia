@@ -283,7 +283,7 @@ function buildPrompt(desc: string, maxSafe = false): string {
   return `Realistic photo of ${head}, ${subject}, ${hair}, ${body}, ${clothing}. ${scene}${framing}. The scene is set in ${background}.`;
 }
 
-type WizardStep = "describe" | "personality" | "generating" | "done";
+type WizardStep = "describe" | "generating" | "done";
 
 // Prompt SEGURO para el avatar (foto de perfil). El Horde censura si detecta
 // contenido explícito en el prompt, así que usamos un retrato limpio sin
@@ -384,7 +384,7 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
     const combined = (girlDesc + " " + roleplayDesc).trim();
     const blockReason = containsMinorReferences(combined);
     if (blockReason) { setError(blockReason); return; }
-    setStep("personality");
+    handlePersonalityNext();
   }
 
   function handleRefUpload(e: { target: { files: FileList | null } }) {
@@ -483,9 +483,8 @@ async function handlePersonalityNext() {
             >
               {/* Header fijo: sin fondo, igual que el resto del modal */}
               <div className="-mx-5 shrink-0 px-5 pb-4 pt-[calc(3.25rem+env(safe-area-inset-top))] sm:pt-[calc(4.5rem+env(safe-area-inset-top))]">
-                <h3 className="text-[1.4rem] font-bold leading-tight tracking-tight text-white">
+                <h3 className="text-[1.6rem] font-bold leading-tight tracking-tight text-white">
                   {step === "describe" ? "Diseña tu chica ideal" :
-                   step === "personality" ? "Elige personalidad" :
                    step === "generating" ? "Creando..." : "¡Creada!"}
                 </h3>
 
@@ -494,7 +493,7 @@ async function handlePersonalityNext() {
                   <div
                     className="h-full transition-all duration-500"
                     style={{
-                      width: step === "describe" ? "33%" : step === "personality" ? "66%" : "100%",
+                      width: step === "describe" ? "33%" : step === "generating" ? "66%" : "100%",
                       background: "linear-gradient(135deg, #FF5798, #FF6AA5)",
                     }}
                   />
@@ -532,7 +531,7 @@ async function handlePersonalityNext() {
                             setCurrentName(generateName(girlDesc || roleplayDesc));
                           }}
                           title="Nombre al azar"
-                          className="absolute right-5 top-1/2 z-10 flex -translate-y-1/2 items-center justify-center p-0.5 transition hover:scale-110 active:scale-95"
+                          className="absolute right-3.5 top-1/2 z-10 flex -translate-y-1/2 items-center justify-center transition hover:scale-110 active:scale-90"
                         >
                           <Dice3D spinning={diceSpin} />
                         </button>
@@ -550,13 +549,34 @@ async function handlePersonalityNext() {
                         className="mt-6 flex w-full items-center justify-between rounded-xl py-2 text-[0.95rem] font-semibold text-white/90 transition hover:text-white">
                         <span className="relative">
                           Roleplay
-                          {!roleplayDesc.trim() && <span className="ml-2 align-middle text-[0.6rem] font-normal text-white/40">opcional</span>}
+                          {!roleplayDesc.trim() && !selectedPersonality && <span className="ml-2 align-middle text-[0.6rem] font-normal text-white/40">opcional</span>}
+                          {selectedPersonality && <span className="ml-2 align-middle rounded-full bg-[#FF5798]/15 px-2 py-0.5 text-[0.6rem] font-semibold normal-case text-[#FF5798]">{selectedPersonality}</span>}
                         </span>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-200 ${openSection === "roleplay" ? "rotate-180" : ""}`}><path d="m6 9 6 6 6-6"/></svg>
                       </button>
                       <AnimatePresence initial={false}>
                         {openSection === "roleplay" && (
                           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {[
+                                { value: "carinosa", label: "Cariñosa" },
+                                { value: "atrevida", label: "Atrevida" },
+                                { value: "timida", label: "Tímida" },
+                                { value: "dominante", label: "Dominante" },
+                              ].map((p) => {
+                                const active = selectedPersonality === p.value;
+                                return (
+                                  <button key={p.value} type="button" onClick={() => setSelectedPersonality(active ? "" : p.value)}
+                                    className={`h-11 rounded-full px-4 text-[0.85rem] font-semibold transition-all active:scale-95 ${
+                                      active
+                                        ? "bg-[#FF5798] text-white shadow-[0_4px_14px_rgba(255,87,152,0.35)]"
+                                        : "bg-white/[0.06] text-white/60 hover:bg-white/[0.1] hover:text-white"
+                                    }`}>
+                                    {p.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
                             <textarea value={roleplayDesc} onChange={(e) => { setError(""); setRoleplayDesc(e.target.value); }}
                               placeholder="Ej: me tiene atado a la cama del hospital..."
                               rows={2}
@@ -583,63 +603,26 @@ async function handlePersonalityNext() {
                                 <button onClick={() => setRefImage(null)} className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-xs text-white">✕</button>
                               </div>
                             ) : (
-                              <label className="mt-2 flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-white/[0.05] text-xs font-semibold text-white/80 transition hover:bg-white/[0.09] hover:text-white active:scale-[0.99]">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
-                                Subir una foto (opcional)
-                                <input type="file" accept="image/*" className="hidden" onChange={handleRefUpload} />
-                              </label>
+                              <div className="mt-2 space-y-2">
+                                <label className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-white/[0.05] text-xs font-semibold text-white/80 transition hover:bg-white/[0.09] hover:text-white active:scale-[0.99]">
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
+                                  Subir foto
+                                  <input type="file" accept="image/*" className="hidden" onChange={handleRefUpload} />
+                                </label>
+                                <div className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-white/[0.03] text-xs font-semibold text-white/70">
+                                  <span className="text-[0.85rem]">✨</span>
+                                  Crear con IA
+                                </div>
+                              </div>
                             )}
                           </motion.div>
                         )}
                       </AnimatePresence>
 
                       <button onClick={handleDescribeNext}
-                        className="mt-7 h-[52px] w-full rounded-2xl bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-[0.95rem] font-bold text-white transition hover:brightness-110 active:scale-[0.99]">
+                        className="mt-7 h-[50px] w-full rounded-2xl bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-[0.95rem] font-bold text-white transition hover:brightness-110 active:scale-[0.99]">
                         Siguiente →
                       </button>
-                    </motion.div>
-                  )}
-
-                  {step === "personality" && (
-                    <motion.div key="personality" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
-                      <button onClick={() => setStep("describe")} className="flex items-center gap-1.5 py-1 text-xs font-medium text-white/40 transition hover:text-white active:scale-95">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-                        Atrás
-                      </button>
-
-                      <div className="mt-2">
-                        {[
-                          { value: "carinosa", label: "Cariñosa", desc: "Dulce, cercana, siempre pendiente" },
-                          { value: "atrevida", label: "Atrevida", desc: "Directa, juguetona, te engancha" },
-                          { value: "timida", label: "Tímida", desc: "Vergonzosa pero intensa" },
-                          { value: "dominante", label: "Dominante", desc: "Sabe lo que quiere, lidera" },
-                        ].map((p) => {
-                          const active = selectedPersonality === p.value;
-                          return (
-                            <button key={p.value} onClick={() => setSelectedPersonality(p.value)}
-                              className="group flex w-full items-center gap-4 py-4 text-left transition active:scale-[0.99]">
-                              <span className="relative flex h-4 w-4 items-center justify-center">
-                                <span
-                                  className={`block h-4 w-4 rounded-full transition-all duration-200 ${active ? "bg-[#FF5798] shadow-[0_0_12px_rgba(255,87,152,0.45)]" : "border-2 border-white/20 bg-transparent group-hover:border-white/40"}`}
-                                />
-                              </span>
-                              <span className="flex-1">
-                                <span className={`block text-lg font-semibold leading-tight tracking-tight transition-colors ${active ? "text-white" : "text-white/55 group-hover:text-white/85"}`}>{p.label}</span>
-                                <span className={`block text-[0.7rem] transition-colors ${active ? "text-white/45" : "text-white/30 group-hover:text-white/45"}`}>{p.desc}</span>
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
-
-                      <div className="mt-8 flex flex-col items-center gap-4">
-                        <button onClick={handlePersonalityNext} className="h-12 w-full max-w-[320px] rounded-full bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-[0.95rem] font-bold text-white transition hover:brightness-110 active:scale-[0.99]">
-                          Continuar →
-                        </button>
-                        <button onClick={handlePersonalityNext} className="text-xs font-medium text-white/40 transition hover:text-white/70 active:scale-95">
-                          Sin personalidad
-                        </button>
-                      </div>
                     </motion.div>
                   )}
 
