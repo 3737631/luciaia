@@ -46,6 +46,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   const messagesRef = useRef(messages);
   messagesRef.current = messages;
   const welcomeNameRef = useRef("");
+  const skipWelcomeRef = useRef(false);
 
   useEffect(() => {
     const raw = localStorage.getItem("custom_scenario");
@@ -66,12 +67,18 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         welcomeNameRef.current = g.name;
         setActiveCustom(g);
         setShowModePicker(false);
-        // Si definiÃ³ roleplay, entra directamente en modo historia.
+        // Cargar historial guardado para que la conversación continúe
+        const saved = getConversationHistory(customId);
+        if (saved.length > 0) {
+          skipWelcomeRef.current = true;
+          setMessages(saved.map((m, i) => ({ id: `hist-${i}`, from: m.role === "user" ? "user" : "girl", text: m.content })));
+        }
+        // Si definió roleplay, entra directamente en modo historia.
         if (g.roleplayDesc?.trim()) {
           setMode("actions");
           const scenario = `Chica: ${g.girlDesc}\nRoleplay: ${g.roleplayDesc}`;
           setCustomScenario(scenario);
-          setMessages([{ id: "welcome", from: "girl", text: g.roleplayDesc }]);
+          if (saved.length === 0) setMessages([{ id: "welcome", from: "girl", text: g.roleplayDesc }]);
         } else {
           setMode("text");
         }
@@ -91,7 +98,13 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   }, []);
 
   useEffect(() => {
-    if (messagesRef.current.length > 0) return;
+    if (messagesRef.current.length > 0 || skipWelcomeRef.current) return;
+    const saved = getConversationHistory(girl.id);
+    if (saved.length > 0) {
+      skipWelcomeRef.current = true;
+      setMessages(saved.map((m, i) => ({ id: `hist-${i}`, from: m.role === "user" ? "user" : "girl", text: m.content })));
+      return;
+    }
     const name = welcomeNameRef.current || girl.name;
     const welcomes = [
       `Hola, soy ${name}. Qué bien que hayas entrado`,

@@ -300,7 +300,7 @@ function buildAvatarPrompt(desc: string): string {
   if (/(ojos azules|blue eyes)/.test(w)) eyes = "blue eyes";
   else if (/(ojos verdes|green eyes)/.test(w)) eyes = "green eyes";
   else if (/(ojos grises|ojos claros|ojos de hielo|hielo)/.test(w)) eyes = "ice blue eyes";
-  return `photorealistic casual selfie photo of a beautiful adult woman in her mid 20s with ${hair} and ${eyes}, natural smartphone photo taken with a front camera, perfectly centered square composition, the face is dead center of the image filling the frame with even margins on all sides, head and shoulders tightly centered, camera directly facing her, realistic human skin with visible pores and natural texture, matte natural skin, visible skin grain, tiny natural imperfections and subtle asymmetry, detailed iris with natural highlights, individual eyelashes, softly shaped natural brows, light natural makeup, natural smile, wearing a simple elegant black top, perfectly symmetrical clothing with both sleeves identical, proportionate normal shoulders and neck, natural human proportions, sharp focus on the eyes, soft natural window light with gentle catchlights, shallow depth of field, blurred neutral background, square profile picture crop for a circular avatar, the circle will cut the edges so the face must stay perfectly centered, no full body, no chest, no cleavage, candid real photography, must look like a real photo of a real person, not CGI, no plastic skin, no wax skin, no airbrushed face, no beauty filter, no 3D render look, no anime, no illustration, no distorted anatomy, no extra limbs, no missing sleeve, no oversized body parts, no giant hands, no deformed face`;
+  return `photorealistic casual selfie photo of a beautiful adult woman in her mid 20s with ${hair} and ${eyes}, natural smartphone photo taken with a front camera, perfectly centered square composition, the face is dead center of the image filling the frame with even margins on all sides, head and shoulders tightly centered, camera directly facing her, extremely realistic human skin rendered pixel by pixel with visible pores, fine vellus hairs, natural skin grain and micro texture, subtle skin blemishes and faint redness in cheeks, believable subsurface scattering, matte natural skin, slight natural shine on the skin, detailed iris with natural highlights, individual eyelashes, softly shaped natural brows, light natural makeup, natural smile, wearing a simple elegant black top, perfectly symmetrical clothing with both sleeves identical, proportionate normal shoulders and neck, natural human proportions, sharp focus on the eyes, soft natural window light with gentle catchlights, shallow depth of field, blurred neutral background, square profile picture crop for a circular avatar, the circle will cut the edges so the face must stay perfectly centered, no full body, no chest, no cleavage, candid real photography, must look like a real photo of a real person, raw camera photo with sensor noise and natural color grading, not CGI, no plastic skin, no wax skin, no airbrushed face, no beauty filter, no 3D render look, no anime, no illustration, no glossy skin, no skin blur, no distorted anatomy, no extra limbs, no missing sleeve, no oversized body parts, no giant hands, no deformed face`;
 }
 
 export default function CreateYourGirl({ open, onClose, onCreated, editGirl }: { open: boolean; onClose: () => void; onCreated?: () => void; editGirl?: CustomGirlData | null }) {
@@ -338,21 +338,28 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
       const b = document.body;
       const h = document.documentElement;
       const origB = { position: b.style.position, top: b.style.top, left: b.style.left, right: b.style.right, overflow: b.style.overflow };
-      const origH = { overflow: h.style.overflow };
+      const origH = { overflow: h.style.overflow, overscrollBehavior: h.style.overscrollBehavior };
       const y = window.scrollY;
       h.style.overflow = "hidden";
+      h.style.overscrollBehavior = "none";
       b.style.position = "fixed";
       b.style.top = `-${y}px`;
       b.style.left = "0";
       b.style.right = "0";
       b.style.overflow = "hidden";
+      const prevent = (e: TouchEvent) => {
+        if (!scrollRef.current?.contains(e.target as Node)) e.preventDefault();
+      };
+      document.addEventListener("touchmove", prevent, { passive: false });
       return () => {
+        document.removeEventListener("touchmove", prevent);
         b.style.position = origB.position;
         b.style.top = origB.top;
         b.style.left = origB.left;
         b.style.right = origB.right;
         b.style.overflow = origB.overflow;
         h.style.overflow = origH.overflow;
+        h.style.overscrollBehavior = origH.overscrollBehavior;
         window.scrollTo(0, y);
       };
     }
