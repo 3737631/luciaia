@@ -146,7 +146,7 @@ export default function TusChicas({
                               style={isActive ? { background: "linear-gradient(135deg,#ff2f78,#ff5f9e)" } : undefined}
                             >
                               <div className="h-full w-full overflow-hidden rounded-full border border-white/[0.09] bg-white/[0.05]">
-                                <img src={imgSrc} alt={g.name} className="h-full w-full object-cover object-top" />
+                                <img src={imgSrc} alt={g.name} className="h-full w-full object-cover object-center" />
                               </div>
                               {isActive && (
                                 <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-[#131318] bg-[#ff2f78]" />
