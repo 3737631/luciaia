@@ -67,10 +67,10 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         welcomeNameRef.current = g.name;
         setActiveCustom(g);
         setShowModePicker(false);
+        skipWelcomeRef.current = true;
         // Cargar historial guardado para que la conversación continúe
         const saved = getConversationHistory(customId);
         if (saved.length > 0) {
-          skipWelcomeRef.current = true;
           setMessages(saved.map((m, i) => ({ id: `hist-${i}`, from: m.role === "user" ? "user" : "girl", text: m.content })));
         }
         // Si definió roleplay, entra directamente en modo historia.
@@ -81,6 +81,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
           if (saved.length === 0) setMessages([{ id: "welcome", from: "girl", text: g.roleplayDesc }]);
         } else {
           setMode("text");
+          if (saved.length === 0) setMessages([{ id: "welcome", from: "girl", text: `Hola, soy ${g.name}. Qué bien que hayas entrado` }]);
         }
       }
     }
@@ -126,9 +127,9 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       const chatMsgs = messagesRef.current
         .filter((m) => m.id !== "welcome")
         .map((m) => ({ role: m.from === "user" ? "user" as const : "assistant" as const, content: m.text }));
-      if (chatMsgs.length > 1) saveToHistory(girl.id, girl.name, chatMsgs);
+      if (chatMsgs.length > 1) saveToHistory(activeCustom?.id ?? girl.id, activeCustom?.name ?? girl.name, chatMsgs);
     };
-  }, [girl.id, girl.name]);
+  }, [girl.id, girl.name, activeCustom]);
 
   async function startRoleplay() {
     setMode("actions");
@@ -143,9 +144,10 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     .map((m) => ({ role: m.from === "user" ? "user" : "assistant", content: m.text }));
 
   const doAI = useCallback(async (text: string) => {
+    const storageId = activeCustom?.id ?? girl.id;
     const custom = getCustomization(girl.id);
-    const memory = getUserMemory(girl.id);
-    const summary = getConversationSummary(girl.id);
+    const memory = getUserMemory(storageId);
+    const summary = getConversationSummary(storageId);
 
     const payload = {
       message: text,
@@ -178,18 +180,18 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         .filter((m) => m.id !== "welcome")
         .map((m) => ({ role: m.from === "user" ? "user" : "assistant", content: m.text }));
 
-      saveConversationHistory(girl.id, chatHistory);
+      saveConversationHistory(storageId, chatHistory);
 
       const extracted = extractMemoryFromMessages(chatHistory);
       if (extracted.length > 0) {
-        const existing = getUserMemory(girl.id);
+        const existing = getUserMemory(storageId);
         const merged = [...new Map([...existing, ...extracted].map((m) => [m, m])).values()];
-        saveUserMemory(girl.id, merged.slice(-30));
+        saveUserMemory(storageId, merged.slice(-30));
       }
 
       if (chatHistory.length > 20) {
         const sum = buildSummary(chatHistory);
-        if (sum) saveConversationSummary(girl.id, sum);
+        if (sum) saveConversationSummary(storageId, sum);
       }
 
       setError(null);
@@ -209,7 +211,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         { role: "user", content: text },
         { role: "assistant", content: fallback },
       ];
-      saveConversationHistory(girl.id, chatHistory);
+      saveConversationHistory(storageId, chatHistory);
       setError(err?.message || "Usando modo offline.");
     }
   }, [girl, history, messages, customScenario, activeCustom]);
@@ -395,6 +397,9 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
           </div>
           <button className={`${styles.chatHeaderIcon} ${styles.video}`} title="Videollamada" onClick={() => { router.push(`/call/${girl.id}?mode=video${activeCustom ? `&custom=${activeCustom.id}` : ""}`); }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+          </button>
+          <button className={`${styles.chatHeaderIcon} ${styles.video}`} title="Llamada de voz" onClick={() => { router.push(`/call/${girl.id}?mode=voice${activeCustom ? `&custom=${activeCustom.id}` : ""}`); }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
           </button>
           <button className={`${styles.chatHeaderIcon} ${styles.menu}`} title="Menú" onClick={() => {}}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
