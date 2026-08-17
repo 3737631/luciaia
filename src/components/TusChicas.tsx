@@ -48,6 +48,43 @@ export default function TusChicas({
   useEffect(() => {
     if (open) {
       scrollRef.current?.scrollTo(0, 0);
+      const b = document.body;
+      const h = document.documentElement;
+      const origB = { position: b.style.position, top: b.style.top, left: b.style.left, right: b.style.right, overflow: b.style.overflow };
+      const origH = { overflow: h.style.overflow, overscrollBehavior: h.style.overscrollBehavior };
+      const y = window.scrollY;
+      h.style.overflow = "hidden";
+      h.style.overscrollBehavior = "none";
+      b.style.position = "fixed";
+      b.style.top = `-${y}px`;
+      b.style.left = "0";
+      b.style.right = "0";
+      b.style.overflow = "hidden";
+      let startY = 0;
+      const onStart = (e: TouchEvent) => { startY = e.touches[0].clientY; };
+      const prevent = (e: TouchEvent) => {
+        const el = scrollRef.current;
+        if (!el) { e.preventDefault(); return; }
+        const t = e.target as Node;
+        if (!el.contains(t)) { e.preventDefault(); return; }
+        const max = el.scrollHeight - el.clientHeight;
+        const dy = startY - e.touches[0].clientY;
+        if ((dy > 0 && el.scrollTop >= max) || (dy < 0 && el.scrollTop <= 0)) e.preventDefault();
+      };
+      document.addEventListener("touchstart", onStart, { passive: true });
+      document.addEventListener("touchmove", prevent, { passive: false });
+      return () => {
+        document.removeEventListener("touchstart", onStart);
+        document.removeEventListener("touchmove", prevent);
+        b.style.position = origB.position;
+        b.style.top = origB.top;
+        b.style.left = origB.left;
+        b.style.right = origB.right;
+        b.style.overflow = origB.overflow;
+        h.style.overflow = origH.overflow;
+        h.style.overscrollBehavior = origH.overscrollBehavior;
+        window.scrollTo(0, y);
+      };
     }
   }, [open]);
 
@@ -78,7 +115,7 @@ export default function TusChicas({
             <motion.div
               ref={scrollRef}
               className="relative max-h-[78dvh] w-full max-w-[370px] overflow-y-auto overscroll-contain rounded-[1.8rem] bg-[#131318]/85 shadow-[0_24px_80px_rgba(0,0,0,0.6)] backdrop-blur-2xl"
-              style={{ WebkitOverflowScrolling: "touch" }}
+              style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain", touchAction: "pan-y" }}
               initial={{ opacity: 0, scale: 0.97, y: 14 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.97, y: 14 }}
