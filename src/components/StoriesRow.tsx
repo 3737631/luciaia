@@ -8,6 +8,7 @@ import { getSeenStories, markStorySeen } from "@/lib/storySeenService";
 import { preloadImage } from "@/lib/preloadImage";
 import type { Girl } from "@/data/girls";
 import StoryViewer from "./StoryViewer";
+import StoryVideoViewer from "./StoryVideoViewer";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
@@ -19,6 +20,7 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
     startCharIndex: number;
     ready: boolean;
   } | null>(null);
+  const [storyVideo, setStoryVideo] = useState<{ src: string; avatar: string; name: string } | null>(null);
   const [criticalStoriesReady, setCriticalStoriesReady] = useState(false);
 
   // ── Build URL lists for preload ──
@@ -100,6 +102,14 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
 
   // ── Open stories (synchronous — no async, no await) ──
   const openStories = useCallback((girl: Girl) => {
+    if (girl.storyVideo) {
+      setStoryVideo({
+        src: `${basePath}${girl.storyVideo}`,
+        avatar: girl.cloudinaryImage ?? getGirlImage(girl.id, null, null, null, girl.cloudinaryImage),
+        name: girl.name,
+      });
+      return;
+    }
     const chars = girls
       .filter((g) => g.storyImages?.length)
       .map((g) => {
@@ -121,6 +131,14 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
 
   return (
     <>
+      {storyVideo && (
+        <StoryVideoViewer
+          videoSrc={storyVideo.src}
+          avatar={storyVideo.avatar}
+          name={storyVideo.name}
+          onClose={() => setStoryVideo(null)}
+        />
+      )}
       {storyChar && storyChar.ready && (
         <StoryViewer
           characters={storyChar.characters}
@@ -133,7 +151,7 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
       <div className="stories-row">
       {girls.map((girl) => {
         const isSeen = isStorySeen(girl);
-        const hasStory = (girl.storyImages?.length ?? 0) > 0;
+        const hasStory = (girl.storyImages?.length ?? 0) > 0 || !!girl.storyVideo;
         return (
           <div
             key={girl.id}
