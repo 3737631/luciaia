@@ -27,7 +27,7 @@ const maleChars = girls.filter((g) => maleIds.has(g.id));
 const animeChars = girls.filter((g) => animeIds.has(g.id));
 const filters = ["Todas", "Nuevas", "Populares"];
 
-const HERO_IMAGES = ["hero-banner2.png", "hero-banner3.png", "hero-banner4.png", "hero-banner.png"];
+const HERO_IMAGES = ["hero-banner2.jpg", "hero-banner3.jpg", "hero-banner4.jpg", "hero-banner.jpg"];
 
 const preloadImage = (src: string): Promise<void> =>
   new Promise((r) => { const img = new Image(); img.onload = () => r(); img.onerror = () => r(); img.src = src; });
