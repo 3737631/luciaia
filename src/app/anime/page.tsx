@@ -144,7 +144,7 @@ export default function AnimePage() {
 
         <FantasyCTA mode="anime" onCreate={() => setCreateOpen(true)} onView={() => setViewOpen(true)} />
         <CreateYourGirl open={createOpen} onClose={() => setCreateOpen(false)} editGirl={editGirl} />
-        <TusChicas open={viewOpen} onClose={() => setViewOpen(false)} onEdit={(g) => { setViewOpen(false); setEditGirl(g); setCreateOpen(true); }} />
+        <TusChicas open={viewOpen} onClose={() => setViewOpen(false)} onEdit={(g) => { setViewOpen(false); setEditGirl(g); setCreateOpen(true); }} onCreate={() => { setViewOpen(false); setEditGirl(null); setCreateOpen(true); }} />
 
         <section id="characters">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>

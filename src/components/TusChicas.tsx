@@ -5,24 +5,32 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { getCustomGirls, deleteCustomGirl, saveCustomGirl, CustomGirlData } from "@/lib/storage";
 import { getGirlImage } from "@/lib/images";
-import { getConversationHistory } from "@/lib/memory";
+import { getConversationHistory, getHistory } from "@/lib/memory";
 
 export default function TusChicas({
   open,
   onClose,
   onEdit,
+  onCreate,
 }: {
   open: boolean;
   onClose: () => void;
   onEdit?: (g: CustomGirlData) => void;
+  onCreate?: () => void;
 }) {
   const [customGirls, setCustomGirls] = useState<CustomGirlData[]>([]);
   const [editing, setEditing] = useState<CustomGirlData | null>(null);
   const [menuId, setMenuId] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setCustomGirls(getCustomGirls());
+    const h = getHistory();
+    if (h.length > 0) {
+      const last = h.find((e) => getCustomGirls().some((g) => g.id === e.girlId));
+      if (last) setActiveId(last.girlId);
+    }
   }, [open]);
 
   function refresh() {
@@ -69,25 +77,33 @@ export default function TusChicas({
           <div className="fixed inset-0 z-50 flex items-center justify-center px-6">
             <motion.div
               ref={scrollRef}
-              className="max-h-[80dvh] w-full max-w-[400px] overflow-y-auto overscroll-contain rounded-3xl border border-white/[0.08] bg-[#121216]/95 shadow-2xl backdrop-blur-xl"
+              className="relative max-h-[78dvh] w-full max-w-[370px] overflow-y-auto overscroll-contain rounded-[1.8rem] bg-[#131318]/85 shadow-[0_24px_80px_rgba(0,0,0,0.6)] backdrop-blur-2xl"
               style={{ WebkitOverflowScrolling: "touch" }}
-              initial={{ opacity: 0, scale: 0.96, y: 12 }}
+              initial={{ opacity: 0, scale: 0.97, y: 14 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 12 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
+              exit={{ opacity: 0, scale: 0.97, y: 14 }}
+              transition={{ duration: 0.22, ease: "easeOut" }}
             >
-              {/* Cabecera mínima */}
-              <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
-                <h3 className="text-[0.95rem] font-bold tracking-tight text-white">
-                  Tus chicas
-                </h3>
+              {/* Cabecera */}
+              <div className="flex items-center px-4 pb-1 pt-4">
                 <button
                   type="button"
                   onClick={onClose}
                   aria-label="Cerrar"
-                  className="flex h-7 w-7 items-center justify-center rounded-full bg-white/[0.08] text-white/70 backdrop-blur transition hover:bg-white/[0.14] hover:text-white active:scale-90"
+                  className="-ml-1 flex h-8 w-8 items-center justify-center text-white/50 transition hover:text-white active:scale-90"
                 >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+                </button>
+                <h3 className="flex-1 text-center text-[0.95rem] font-bold tracking-tight text-white">
+                  Tus chicas
+                </h3>
+                <button
+                  type="button"
+                  onClick={onCreate}
+                  aria-label="Crear chica"
+                  className="-mr-1 flex h-8 w-8 items-center justify-center text-[1.35rem] font-normal leading-none text-white/50 transition hover:text-white active:scale-90"
+                >
+                  +
                 </button>
               </div>
 
@@ -106,76 +122,87 @@ export default function TusChicas({
                     </div>
                     <button
                       type="button"
-                      onClick={onClose}
+                      onClick={onCreate}
                       className="mt-1 flex h-[44px] w-full max-w-[240px] items-center justify-center rounded-xl bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-sm font-bold text-white transition hover:brightness-110 active:scale-[0.99]"
                     >
                       Crear mi chica
                     </button>
                   </div>
                 ) : (
-                  <div>
-                    {customGirls.map((g) => {
+                  <div className="px-2 pb-2 pt-1">
+                    {customGirls.map((g, i) => {
                       const imgSrc = g.imageUrl || getGirlImage(g.baseId || "luna", g.hair, g.pose, g.background);
                       const hist = getConversationHistory(g.id);
-                      const lastMsg = [...hist].reverse().find((m) => m.role === "assistant")?.content ?? "Empieza a hablar con ella";
+                      const lastMsg = [...hist].reverse().find((m) => m.role === "assistant")?.content ?? "";
+                      const isActive = activeId === g.id;
                       return (
                         <div key={g.id} className="group relative">
                           <Link
                             href={`/chat/luna?custom=${g.id}`}
                             onClick={() => openChat(g)}
-                            className="flex items-center gap-3 rounded-2xl px-2.5 py-2.5 pr-24 transition hover:bg-white/[0.05] active:scale-[0.99]"
+                            className="flex items-center gap-3.5 rounded-2xl px-2 py-2.5 transition hover:bg-white/[0.04] active:scale-[0.99]"
                           >
-                            <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full border border-white/[0.08] bg-white/[0.05]">
-                              <img src={imgSrc} alt={g.name} className="h-full w-full object-cover object-top" />
+                            <div className={`relative h-[60px] w-[60px] shrink-0 rounded-full ${isActive ? "p-[2.5px]" : ""}`}
+                              style={isActive ? { background: "linear-gradient(135deg,#ff2f78,#ff5f9e)" } : undefined}
+                            >
+                              <div className="h-full w-full overflow-hidden rounded-full border border-white/[0.09] bg-white/[0.05]">
+                                <img src={imgSrc} alt={g.name} className="h-full w-full object-cover object-top" />
+                              </div>
+                              {isActive && (
+                                <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-[#131318] bg-[#ff2f78]" />
+                              )}
                             </div>
                             <div className="min-w-0 flex-1">
-                              <div className="flex items-center justify-between gap-2">
-                                <p className="truncate text-[0.9rem] font-semibold text-white">
-                                  {g.name}
-                                </p>
-                                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-green-400" />
-                              </div>
-                              <p className="mt-0.5 max-w-full truncate text-xs text-white/40">{lastMsg}</p>
+                              <p className="truncate text-[1.02rem] font-semibold leading-tight text-white">
+                                {g.name}
+                              </p>
+                              <p className={`mt-0.5 max-w-full truncate text-[13px] ${lastMsg ? "text-white/40" : "text-white/30"}`}>
+                                {lastMsg || "Hablar con ella"}
+                              </p>
                             </div>
                           </Link>
 
-                          {/* Botón opciones (estilo iOS) */}
+                          {/* ··· discreto */}
                           <button
                             onClick={() => setMenuId(menuId === g.id ? null : g.id)}
-                            className="absolute right-2.5 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg bg-white/[0.08] text-white/70 backdrop-blur transition hover:bg-white/[0.16] hover:text-white active:scale-95"
+                            className="absolute right-1 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-xl text-[1.15rem] font-semibold leading-none tracking-widest text-white/45 transition hover:bg-white/[0.07] hover:text-white active:scale-95"
                             title="Opciones"
+                            style={{ paddingLeft: 4, paddingRight: 2 }}
                           >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+                            ···
                           </button>
 
                           {menuId === g.id && (
                             <>
                               <div className="fixed inset-0 z-10" onClick={() => setMenuId(null)} />
-                              <div className="absolute right-2.5 top-1/2 z-20 w-[168px] -translate-y-1/2 overflow-hidden rounded-2xl border border-white/[0.1] bg-[#232329]/95 shadow-[0_16px_40px_rgba(0,0,0,0.55)] backdrop-blur-2xl">
+                              <div className="absolute right-0 top-1/2 z-20 w-[158px] -translate-y-1/2 overflow-hidden rounded-xl border border-white/[0.08] bg-[#1d1d23]/95 py-0.5 shadow-[0_12px_32px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
                                 <button
                                   onClick={() => {
                                     setMenuId(null);
                                     onEdit?.(g);
                                   }}
-                                  className="flex w-full items-center gap-2.5 px-4 py-3 text-left text-[13px] font-medium text-white/90 transition hover:bg-white/[0.08] active:bg-white/[0.12]"
+                                  className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-[13px] font-medium text-white/90 transition hover:bg-white/[0.08] active:bg-white/[0.12]"
                                 >
                                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
-                                  Editar
+                                  Editar personaje
                                 </button>
-                                <div className="h-px bg-white/[0.08]" />
+                                <div className="mx-3 h-px bg-white/[0.06]" />
                                 <button
                                   onClick={() => {
                                     deleteCustomGirl(g.id);
                                     setMenuId(null);
                                     refresh();
                                   }}
-                                  className="flex w-full items-center gap-2.5 px-4 py-3 text-left text-[13px] font-medium text-red-400 transition hover:bg-red-500/[0.12] active:bg-red-500/[0.2]"
+                                  className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-[13px] font-medium text-[#ff5f8f] transition hover:bg-[#ff2f78]/[0.1] active:bg-[#ff2f78]/[0.16]"
                                 >
                                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                                  Eliminar
+                                  Eliminar personaje
                                 </button>
                               </div>
                             </>
+                          )}
+                          {i < customGirls.length - 1 && (
+                            <div className="mx-2 h-px bg-white/[0.05]" />
                           )}
                         </div>
                       );
