@@ -347,11 +347,21 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
       b.style.left = "0";
       b.style.right = "0";
       b.style.overflow = "hidden";
+      let startY = 0;
+      const onStart = (e: TouchEvent) => { startY = e.touches[0].clientY; };
       const prevent = (e: TouchEvent) => {
-        if (!scrollRef.current?.contains(e.target as Node)) e.preventDefault();
+        const el = scrollRef.current;
+        if (!el) { e.preventDefault(); return; }
+        const t = e.target as Node;
+        if (!el.contains(t)) { e.preventDefault(); return; }
+        const max = el.scrollHeight - el.clientHeight;
+        const dy = startY - e.touches[0].clientY;
+        if ((dy > 0 && el.scrollTop >= max) || (dy < 0 && el.scrollTop <= 0)) e.preventDefault();
       };
+      document.addEventListener("touchstart", onStart, { passive: true });
       document.addEventListener("touchmove", prevent, { passive: false });
       return () => {
+        document.removeEventListener("touchstart", onStart);
         document.removeEventListener("touchmove", prevent);
         b.style.position = origB.position;
         b.style.top = origB.top;
@@ -495,7 +505,7 @@ async function handlePersonalityNext() {
               <div
                 ref={scrollRef}
                 className="flex-1 overflow-y-auto overscroll-contain pb-32"
-                style={{ WebkitOverflowScrolling: "touch" }}
+                style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain", touchAction: "pan-y" }}
               >
 
               {/* Body */}
