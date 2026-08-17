@@ -142,23 +142,18 @@ export default function TusChicas({
                             onClick={() => openChat(g)}
                             className="flex items-center gap-3.5 rounded-2xl px-2 py-2.5 transition hover:bg-white/[0.04] active:scale-[0.99]"
                           >
-                            <div className={`relative h-[60px] w-[60px] shrink-0 rounded-full ${isActive ? "p-[2.5px]" : ""}`}
-                              style={isActive ? { background: "linear-gradient(135deg,#ff2f78,#ff5f9e)" } : undefined}
+                            <div className="h-[60px] w-[60px] shrink-0 overflow-hidden rounded-full border border-white/[0.09] bg-white/[0.05]"
+                              style={isActive ? { boxShadow: "0 0 0 2.5px #131318, 0 0 0 5px #ff2f78" } : undefined}
                             >
-                              <div className="h-full w-full overflow-hidden rounded-full border border-white/[0.09] bg-white/[0.05]">
-                                <img src={imgSrc} alt={g.name} className="h-full w-full object-cover object-center" />
-                              </div>
-                              {isActive && (
-                                <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-[#131318] bg-[#ff2f78]" />
-                              )}
+                              <img src={imgSrc} alt={g.name} className="h-full w-full object-cover object-center" />
                             </div>
                             <div className="min-w-0 flex-1">
                               <p className="truncate text-[1.02rem] font-semibold leading-tight text-white">
                                 {g.name}
                               </p>
-                              <p className={`mt-0.5 max-w-full truncate text-[13px] ${lastMsg ? "text-white/40" : "text-white/30"}`}>
-                                {lastMsg || "Hablar con ella"}
-                              </p>
+                              {lastMsg && (
+                                <p className="mt-0.5 max-w-full truncate text-[13px] text-white/40">{lastMsg}</p>
+                              )}
                             </div>
                           </Link>
 
