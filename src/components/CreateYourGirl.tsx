@@ -314,6 +314,7 @@ export default function CreateYourGirl({ open, onClose, onCreated, editGirl }: {
   const [diceSpin, setDiceSpin] = useState(false);
   const [refImage, setRefImage] = useState<string | null>(null);
   const [openSection, setOpenSection] = useState<"roleplay" | "photo" | null>(null);
+  const [top, setTop] = useState(88);
   const scrollRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -334,6 +335,8 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
 
   useEffect(() => {
     if (open) {
+      const el = document.querySelector("header");
+      setTop(el ? el.getBoundingClientRect().bottom : 88);
       scrollRef.current?.scrollTo(0, 0);
       const b = document.body;
       const h = document.documentElement;
@@ -462,10 +465,11 @@ async function handlePersonalityNext() {
           />
           <motion.div
             className="fixed inset-x-0 bottom-0 z-40 flex flex-col"
-            style={{ top: "calc(88px + env(safe-area-inset-top, 0px))" }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            style={{ top }}
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
+            transition={{ type: "spring", stiffness: 320, damping: 34 }}
           >
             <motion.div
               className="mx-auto flex w-full max-w-[480px] flex-1 flex-col px-5"
@@ -505,7 +509,7 @@ async function handlePersonalityNext() {
               <div className="mt-6">
                 <AnimatePresence mode="wait">
                   {step === "describe" && (
-                    <motion.div key="describe" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
+                    <motion.div key="describe" initial={{ opacity: 0, y: 18, scale: 0.985 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -14, scale: 0.99 }} transition={{ type: "spring", stiffness: 300, damping: 30 }}>
                       {error && (
                         <div className="mb-5 rounded-xl bg-red-500/10 px-4 py-3 text-xs text-red-300">{error}</div>
                       )}
@@ -594,7 +598,7 @@ async function handlePersonalityNext() {
                   )}
 
                   {step === "personality" && (
-                    <motion.div key="personality" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
+                    <motion.div key="personality" initial={{ opacity: 0, y: 18, scale: 0.985 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -14, scale: 0.99 }} transition={{ type: "spring", stiffness: 300, damping: 30 }}>
                       <button onClick={() => setStep("describe")} className="flex items-center gap-1.5 py-1 text-xs font-medium text-white/40 transition hover:text-white active:scale-95">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
                         Atrás

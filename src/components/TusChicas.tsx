@@ -22,6 +22,7 @@ export default function TusChicas({
   const [editing, setEditing] = useState<CustomGirlData | null>(null);
   const [menuId, setMenuId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [top, setTop] = useState(88);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -47,6 +48,8 @@ export default function TusChicas({
 
   useEffect(() => {
     if (open) {
+      const el = document.querySelector("header");
+      setTop(el ? el.getBoundingClientRect().bottom : 88);
       scrollRef.current?.scrollTo(0, 0);
       const b = document.body;
       const h = document.documentElement;
@@ -103,10 +106,11 @@ export default function TusChicas({
           />
           <motion.div
             className="fixed inset-x-0 bottom-0 z-40 flex flex-col"
-            style={{ top: "calc(88px + env(safe-area-inset-top, 0px))" }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            style={{ top }}
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
+            transition={{ type: "spring", stiffness: 320, damping: 34 }}
           >
             <motion.div
               className="mx-auto flex w-full max-w-[480px] flex-1 flex-col px-5"
@@ -171,7 +175,14 @@ export default function TusChicas({
                       const lastMsg = [...hist].reverse().find((m) => m.role === "assistant")?.content ?? "";
                       const isActive = activeId === g.id;
                       return (
-                        <div key={g.id} className="group relative">
+                        <motion.div
+                          key={g.id}
+                          className="group relative"
+                          initial={{ opacity: 0, y: 14, scale: 0.98 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                          transition={{ type: "spring", stiffness: 320, damping: 30, delay: Math.min(i * 0.045, 0.4) }}
+                        >
                           <Link
                             href={`/chat/luna?custom=${g.id}`}
                             onClick={() => openChat(g)}
@@ -202,39 +213,94 @@ export default function TusChicas({
                             ···
                           </button>
 
+                          <AnimatePresence>
                           {menuId === g.id && (
                             <>
-                              <div className="fixed inset-0 z-10" onClick={() => setMenuId(null)} />
-                              <div className="absolute right-0 top-1/2 z-20 w-[158px] -translate-y-1/2 overflow-hidden rounded-xl border border-white/[0.08] bg-[#1d1d23]/95 py-0.5 shadow-[0_12px_32px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
-                                <button
-                                  onClick={() => {
-                                    setMenuId(null);
-                                    onEdit?.(g);
-                                  }}
-                                  className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-[13px] font-medium text-white/90 transition hover:bg-white/[0.08] active:bg-white/[0.12]"
+                              <motion.div
+                                className="fixed inset-0 z-[70] bg-black/70 backdrop-blur-md"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setMenuId(null)}
+                              />
+                              <motion.div
+                                className="fixed inset-x-0 bottom-0 z-[70] flex justify-center px-6"
+                                initial={{ y: "100%" }}
+                                animate={{ y: 0 }}
+                                exit={{ y: "100%" }}
+                                transition={{ type: "spring", stiffness: 320, damping: 32 }}
+                              >
+                                <motion.div
+                                  className="w-full max-w-[400px] overflow-hidden rounded-[1.8rem] border border-white/[0.08] bg-[#15151a]/95 shadow-[0_-20px_60px_rgba(0,0,0,0.55)] backdrop-blur-2xl"
+                                  initial={{ scale: 0.96, opacity: 0 }}
+                                  animate={{ scale: 1, opacity: 1 }}
+                                  exit={{ scale: 0.96, opacity: 0 }}
+                                  transition={{ type: "spring", stiffness: 320, damping: 28 }}
                                 >
-                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
-                                  Editar personaje
-                                </button>
-                                <div className="mx-3 h-px bg-white/[0.06]" />
-                                <button
-                                  onClick={() => {
-                                    deleteCustomGirl(g.id);
-                                    setMenuId(null);
-                                    refresh();
-                                  }}
-                                  className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-[13px] font-medium text-[#ff5f8f] transition hover:bg-[#ff2f78]/[0.1] active:bg-[#ff2f78]/[0.16]"
-                                >
-                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                                  Eliminar personaje
-                                </button>
-                              </div>
+                                  <div className="flex items-center gap-3 px-5 pb-2 pt-5">
+                                    <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/[0.09] bg-white/[0.05]">
+                                      <img src={imgSrc} alt={g.name} className="h-full w-full object-cover object-center" />
+                                    </div>
+                                    <div className="min-w-0">
+                                      <p className="truncate text-[0.95rem] font-bold leading-tight text-white">{g.name}</p>
+                                      <p className="text-xs text-white/40">Opciones de personaje</p>
+                                    </div>
+                                  </div>
+
+                                  <div className="p-2.5">
+                                    <button
+                                      onClick={() => {
+                                        setMenuId(null);
+                                        onEdit?.(g);
+                                      }}
+                                      className="flex w-full items-center gap-3.5 rounded-2xl px-3.5 py-3.5 text-left transition hover:bg-white/[0.06] active:scale-[0.985] active:bg-white/[0.09]"
+                                    >
+                                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#ff2f78]/20 to-[#ff4c91]/10 text-[#ff5798]">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                                      </span>
+                                      <span>
+                                        <span className="block text-sm font-semibold text-white">Editar personaje</span>
+                                        <span className="block text-xs text-white/40">Cambia su nombre, descripción o roleplay</span>
+                                      </span>
+                                    </button>
+
+                                    <div className="mx-4 h-px bg-white/[0.06]" />
+
+                                    <button
+                                      onClick={() => {
+                                        deleteCustomGirl(g.id);
+                                        setMenuId(null);
+                                        refresh();
+                                      }}
+                                      className="flex w-full items-center gap-3.5 rounded-2xl px-3.5 py-3.5 text-left transition hover:bg-[#ff2f78]/[0.08] active:scale-[0.985] active:bg-[#ff2f78]/[0.14]"
+                                    >
+                                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#ff2f78]/15 text-[#ff5f8f]">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                      </span>
+                                      <span>
+                                        <span className="block text-sm font-semibold text-[#ff5f8f]">Eliminar personaje</span>
+                                        <span className="block text-xs text-white/40">Se borrará para siempre</span>
+                                      </span>
+                                    </button>
+                                  </div>
+
+                                  <div className="p-2.5 pt-0">
+                                    <button
+                                      onClick={() => setMenuId(null)}
+                                      className="flex h-12 w-full items-center justify-center rounded-2xl bg-white/[0.05] text-sm font-bold text-white/80 transition hover:bg-white/[0.09] active:scale-[0.985]"
+                                    >
+                                      Cancelar
+                                    </button>
+                                  </div>
+                                </motion.div>
+                              </motion.div>
                             </>
                           )}
+                        </AnimatePresence>
                           {i < customGirls.length - 1 && (
                             <div className="mx-2 h-px bg-white/[0.05]" />
                           )}
-                        </div>
+                        </motion.div>
                       );
                     })}
                   </div>
