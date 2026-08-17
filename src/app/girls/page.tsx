@@ -7,6 +7,7 @@ import StoriesRow from "@/components/StoriesRow";
 import CreateYourGirl from "@/components/CreateYourGirl";
 import TusChicas from "@/components/TusChicas";
 import { FantasyCTA } from "@/components/FantasyCTA";
+import HeroImage from "@/components/HeroImage";
 import { girls } from "@/data/girls";
 import { getGirlImage } from "@/lib/images";
 import { getDailyStorySelection } from "@/lib/getDailyStoryIndex";
@@ -124,12 +125,7 @@ export default function GirlsPage() {
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        <img key={heroIndex} src={`${basePath}/${HERO_IMAGES[heroIndex]}`} alt=""
-          draggable={false}
-          onContextMenu={(e) => e.preventDefault()}
-          loading="eager" fetchPriority="high"
-          style={{ width: "100%", display: "block", minHeight: "25vh", objectFit: "cover", objectPosition: POSITIONS[heroIndex], animation: "fadeIn 0.3s ease", userSelect: "none", WebkitUserSelect: "none", pointerEvents: "none" }}
-        />
+        <HeroImage key={heroIndex} src={`${basePath}/${HERO_IMAGES[heroIndex]}`} pos={POSITIONS[heroIndex]} />
       </div>
       <div style={{ display: "flex", justifyContent: "center", gap: 8, padding: "10px 0 6px" }}>
         {HERO_IMAGES.map((_, i) => (
