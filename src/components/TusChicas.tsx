@@ -95,47 +95,55 @@ export default function TusChicas({
       {open && (
         <>
           <motion.div
-            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md"
+            className="fixed inset-0 z-40 bg-black/70 backdrop-blur-md"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
           />
-          <div className="fixed inset-0 z-50 flex items-center justify-center px-6">
+          <motion.div
+            className="fixed inset-x-0 bottom-0 z-40 flex flex-col"
+            style={{ top: "calc(88px + env(safe-area-inset-top, 0px))" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
             <motion.div
-              ref={scrollRef}
-              className="relative max-h-[78dvh] w-full max-w-[370px] overflow-y-auto overscroll-contain rounded-[1.8rem] bg-[#131318]/85 shadow-[0_24px_80px_rgba(0,0,0,0.6)] backdrop-blur-2xl"
-              style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain", touchAction: "pan-y" }}
-              initial={{ opacity: 0, scale: 0.97, y: 14 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.97, y: 14 }}
-              transition={{ duration: 0.22, ease: "easeOut" }}
+              className="mx-auto flex w-full max-w-[480px] flex-1 flex-col px-5"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
             >
               {/* Cabecera */}
-              <div className="flex items-center px-4 pb-1 pt-4">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  aria-label="Cerrar"
-                  className="-ml-1 flex h-8 w-8 items-center justify-center text-white/50 transition hover:text-white active:scale-90"
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
-                </button>
-                <h3 className="flex-1 text-center text-[0.95rem] font-bold tracking-tight text-white">
-                  Tus chicas
-                </h3>
-                <button
-                  type="button"
-                  onClick={onCreate}
-                  aria-label="Crear chica"
-                  className="-mr-1 flex h-8 w-8 items-center justify-center text-[1.35rem] font-normal leading-none text-white/50 transition hover:text-white active:scale-90"
-                >
-                  +
-                </button>
+              <div className="-mx-5 shrink-0 px-5 pb-4 pt-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-[1.4rem] font-bold leading-tight tracking-tight text-white">
+                    Tus chicas
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={onCreate}
+                    aria-label="Crear chica"
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.06] text-[1.35rem] font-normal leading-none text-white/70 transition hover:bg-white/[0.12] hover:text-white active:scale-90"
+                  >
+                    +
+                  </button>
+                </div>
+                <div className="mt-5 h-0.5 w-full overflow-hidden rounded-full bg-white/[0.07]">
+                  <div
+                    className="h-full transition-all duration-500"
+                    style={{ width: customGirls.length > 0 ? "100%" : "0%", background: "linear-gradient(135deg, #FF5798, #FF6AA5)" }}
+                  />
+                </div>
               </div>
 
-              {/* Contenido */}
-              <div className="p-2.5">
+              {/* Body scrollable */}
+              <div
+                ref={scrollRef}
+                className="flex-1 overflow-y-auto overscroll-contain pb-32"
+                style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain", touchAction: "pan-y" }}
+              >
                 {customGirls.length === 0 ? (
                   <div className="flex min-h-[300px] flex-col items-center justify-center gap-3 px-6 py-10 text-center">
                     <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/[0.05] text-white/45">
@@ -232,8 +240,13 @@ export default function TusChicas({
                   </div>
                 )}
               </div>
+
+              {/* Salir */}
+              <button onClick={onClose} className="mx-auto mt-10 flex w-full items-center justify-center py-3 text-sm font-medium text-white/40 transition hover:text-white active:scale-95">
+                Salir
+              </button>
             </motion.div>
-          </div>
+          </motion.div>
 
           {/* Modal de edición */}
           {editing && (

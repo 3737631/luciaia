@@ -461,7 +461,8 @@ async function handlePersonalityNext() {
             onClick={onClose}
           />
           <motion.div
-            className="fixed inset-0 z-40 flex flex-col"
+            className="fixed inset-x-0 bottom-0 z-40 flex flex-col"
+            style={{ top: "calc(88px + env(safe-area-inset-top, 0px))" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -474,7 +475,7 @@ async function handlePersonalityNext() {
               transition={{ duration: 0.25, ease: "easeOut" }}
             >
               {/* Header fijo: sin fondo, igual que el resto del modal */}
-              <div className="-mx-5 shrink-0 px-5 pb-4 pt-[calc(88px+env(safe-area-inset-top,0px))] sm:pt-[calc(88px+env(safe-area-inset-top,0px))]">
+              <div className="-mx-5 shrink-0 px-5 pb-4 pt-6">
                 <h3 className="text-[1.4rem] font-bold leading-tight tracking-tight text-white">
                   {step === "describe" ? "Diseña tu chica ideal" :
                    step === "personality" ? "Elige personalidad" :
