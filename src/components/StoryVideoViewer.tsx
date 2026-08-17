@@ -99,6 +99,7 @@ export default function StoryVideoViewer({
 
       {/* Video */}
       <div
+        className="story-video-frame"
         style={{
           position: "relative",
           width: "min(430px, calc(100vw - 0px))",

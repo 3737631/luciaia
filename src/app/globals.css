@@ -926,3 +926,16 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   0% { transform: rotateX(-18deg) rotateY(35deg); }
   100% { transform: rotateX(-18deg) rotateY(35deg) rotateX(720deg) rotateY(720deg); }
 }
+
+/* Video de historia: en movil se ve mas pequeno, tipo modal con bordes redondeados */
+@media (max-width: 640px) {
+  .story-video-frame {
+    width: calc(100vw - 48px) !important;
+    max-width: 420px;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: 62dvh;
+    aspect-ratio: 9 / 16;
+    border-radius: 24px !important;
+  }
+}
