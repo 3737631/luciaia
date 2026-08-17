@@ -927,15 +927,15 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   100% { transform: rotateX(-18deg) rotateY(35deg) rotateX(720deg) rotateY(720deg); }
 }
 
-/* Video de historia: en movil se ve mas pequeno, tipo modal con bordes redondeados */
+/* Video de historia: en movil se ve grande (casi pantalla completa) con bordes redondeados */
 @media (max-width: 640px) {
   .story-video-frame {
-    width: calc(100vw - 48px) !important;
-    max-width: 420px;
+    width: calc(100vw - 20px) !important;
+    max-width: 460px;
     height: auto !important;
     min-height: 0 !important;
-    max-height: 62dvh;
+    max-height: 88dvh;
     aspect-ratio: 9 / 16;
-    border-radius: 24px !important;
+    border-radius: 20px !important;
   }
 }
