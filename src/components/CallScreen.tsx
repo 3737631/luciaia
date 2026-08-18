@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { getCustomization, getCustomGirls, CustomGirlData } from "@/lib/storage";
 import { getFallbackResponse } from "@/lib/ai";
 import { sendChatMessage } from "@/lib/chatClient";
-import { splitForTTS, sttAudio, ttsText } from "@/lib/voiceClient";
+import { splitForTTS, sttAudio, ttsText, voiceIdMap, getCustomGirlVoice } from "@/lib/voiceClient";
 import {
   getConversationHistory,
   saveConversationHistory,
@@ -21,16 +21,6 @@ import {
 import { getGirlImage } from "@/lib/images";
 import { detectGender } from "@/lib/gender";
 import { Girl } from "@/data/girls";
-
-const voiceIdMap: Record<string, string> = {
-  luna: "female-luna", nia: "female-nia", vera: "female-vera", alma: "female-alma",
-  kira: "female-kira", maya: "female-maya", sasha: "female-sasha", yuki: "female-yuki",
-  axel: "male-axel", liam: "male-liam", athena: "female-athena", eva: "female-eva",
-  cora: "female-cora", mira: "female-mira", yumi_lib: "female-yumi_lib", raven: "female-raven",
-  sky: "female-sky", jade: "female-jade", gemma: "female-gemma", nova: "female-nova",
-  lena: "female-lena", shadow: "female-shadow", morgana: "female-morgana", roxy: "female-roxy",
-  iris: "female-iris", zara: "female-zara",
-};
 
 const sanitizeForTTS = (text: string): string => {
   return text
@@ -452,7 +442,7 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
       const sanitized = sanitizeForTTS(text);
       if (!sanitized) throw new Error("Texto vacío después de sanitizar");
       const chunks = splitForTTS(sanitized);
-      const voiceKey = voiceIdMap[girl.id] || `female-${girl.id}`;
+      const voiceKey = (activeCustom ? getCustomGirlVoice(activeCustom.id) : voiceIdMap[girl.id] || `female-${girl.id}`);
       const results = await Promise.all(
         chunks.map(async (chunk) => {
           const r = await ttsText(chunk, voiceKey);
@@ -512,7 +502,7 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
       try {
         const sanitized = sanitizeForTTS(text);
         if (!sanitized) return;
-        const result = await ttsText(sanitized, voiceIdMap[girl.id] || `female-${girl.id}`);
+        const result = await ttsText(sanitized, (activeCustom ? getCustomGirlVoice(activeCustom.id) : voiceIdMap[girl.id] || `female-${girl.id}`));
         if (!mountedRef.current || tid !== turnIdRef.current) return;
         el.volume = (muted || !audioOn) ? 0 : 1;
         await new Promise<void>((resolve, reject) => {
@@ -1036,7 +1026,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
         (async () => {
           const sanitized = sanitizeForTTS(greeting);
           if (!sanitized) throw new Error("empty after sanitize");
-          const result = await ttsText(sanitized, voiceIdMap[girl.id] || `female-${girl.id}`);
+          const result = await ttsText(sanitized, (activeCustom ? getCustomGirlVoice(activeCustom.id) : voiceIdMap[girl.id] || `female-${girl.id}`));
           if (abort.signal.aborted || !mountedRef.current) return null;
           audioEl.volume = 1;
           audioEl.src = `data:${result.contentType};base64,${result.audio}`;
@@ -1110,7 +1100,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
       try {
         const sanitized = sanitizeForTTS(greeting);
         if (!sanitized) throw new Error("empty");
-        const result = await ttsText(sanitized, voiceIdMap[girl.id] || `female-${girl.id}`);
+        const result = await ttsText(sanitized, (activeCustom ? getCustomGirlVoice(activeCustom.id) : voiceIdMap[girl.id] || `female-${girl.id}`));
         if (abort.signal.aborted || !mountedRef.current) return;
         audioEl.volume = 1;
         audioEl.src = `data:${result.contentType};base64,${result.audio}`;
@@ -1470,7 +1460,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
       <style>{'@keyframes sp{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}'}</style>
       <script
         dangerouslySetInnerHTML={{
-          __html: `window.__voiceId="${voiceIdMap[girl.id] || `female-${girl.id}`}"`,
+          __html: `window.__voiceId="${(activeCustom ? getCustomGirlVoice(activeCustom.id) : voiceIdMap[girl.id] || `female-${girl.id}`)}"`,
         }}
       />
       <div

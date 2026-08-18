@@ -1,3 +1,31 @@
+export const voiceIdMap: Record<string, string> = {
+  luna: "female-luna", nia: "female-nia", vera: "female-vera", alma: "female-alma",
+  kira: "female-kira", maya: "female-maya", sasha: "female-sasha", yuki: "female-yuki",
+  axel: "male-axel", liam: "male-liam", athena: "female-athena", eva: "female-eva",
+  cora: "female-cora", mira: "female-mira", yumi_lib: "female-yumi_lib", raven: "female-raven",
+  sky: "female-sky", jade: "female-jade", gemma: "female-gemma", nova: "female-nova",
+  lena: "female-lena", shadow: "female-shadow", morgana: "female-morgana", roxy: "female-roxy",
+  iris: "female-iris", zara: "female-zara",
+};
+
+export function getGirlVoice(girlId: string): string {
+  return voiceIdMap[girlId] || `female-${girlId}`;
+}
+
+export function getCustomGirlVoice(customId: string): string {
+  try {
+    const key = `lunacall_custom_voice_${customId}`;
+    const existing = localStorage.getItem(key);
+    if (existing) return existing;
+    const voices = Object.values(voiceIdMap);
+    const pick = voices[Math.floor(Math.random() * voices.length)];
+    localStorage.setItem(key, pick);
+    return pick;
+  } catch {
+    return "female-luna";
+  }
+}
+
 export async function sttAudio(audioBlob: Blob): Promise<string> {
   const endpoint =
     process.env.NEXT_PUBLIC_SUPABASE_FUNCTION_URL?.replace(/\/+$/, "") ||

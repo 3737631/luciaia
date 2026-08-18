@@ -46,6 +46,14 @@ export function saveConversationSummary(girlId: string, summary: string): void {
   save(girlId, "summary", summary);
 }
 
+export function getSavedMode(girlId: string): "text" | "actions" | null {
+  return load(girlId, "mode", null);
+}
+
+export function saveMode(girlId: string, mode: "text" | "actions"): void {
+  save(girlId, "mode", mode);
+}
+
 export function getUserMemory(girlId: string): string[] {
   return load(girlId, "memory", []);
 }

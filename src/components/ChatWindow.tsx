@@ -8,7 +8,7 @@ import { getCustomization } from "@/lib/storage";
 import { getCustomGirls, CustomGirlData } from "@/lib/storage";
 import { getFallbackResponse } from "@/lib/ai";
 import { sendChatMessage } from "@/lib/chatClient";
-import { sttAudio, ttsText } from "@/lib/voiceClient";
+import { sttAudio, ttsText, getGirlVoice, getCustomGirlVoice } from "@/lib/voiceClient";
 import {
   getConversationHistory,
   saveConversationHistory,
@@ -20,6 +20,8 @@ import {
   buildSummary,
   clearAllMemory,
   saveToHistory,
+  getSavedMode,
+  saveMode,
   ChatMessage,
 } from "@/lib/memory";
 import styles from "./ChatExperience.module.css";
@@ -104,6 +106,9 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
           setMode("text");
           if (saved.length === 0) setMessages([{ id: "welcome", from: "girl", text: `Hola, soy ${g.name}. Qué bien que hayas entrado` }]);
         }
+        // Retomar el modo (texto o historia) en el que se quedó.
+        const savedMode = getSavedMode(customId);
+        if (savedMode) setMode(savedMode);
       }
     }
   }, []);
@@ -127,11 +132,13 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
 
   useEffect(() => {
     if (messagesRef.current.length > 0 || skipWelcomeRef.current) return;
-    // Retomar la conversación donde la dejaste.
+    // Retomar la conversación donde la dejaste (y su modo, sin el selector).
     const saved = getConversationHistory(girl.id);
     if (saved.length > 0) {
       skipWelcomeRef.current = true;
       setMessages(saved.map((m, i) => ({ id: `hist-${i}`, from: m.role === "user" ? "user" : "girl", text: m.content })));
+      setMode(getSavedMode(girl.id) ?? "text");
+      setShowModePicker(false);
       return;
     }
     const name = welcomeNameRef.current || girl.name;
@@ -170,6 +177,13 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     const pick = girl.roleplayGreetings[Math.floor(Math.random() * girl.roleplayGreetings.length)];
     setMessages([{ id: "welcome", from: "girl", text: pick }]);
   }
+
+  // Recuerda el modo (texto o historia) de cada conversación.
+  useEffect(() => {
+    if (mode === "text" || mode === "actions") {
+      saveMode(activeCustom?.id ?? girl.id, mode);
+    }
+  }, [mode, girl.id, activeCustom]);
 
   const history: ChatMessage[] = messages
     .filter((m) => m.id !== "welcome")
@@ -364,7 +378,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       const reply = await runReply(transcript, { silent: true });
       let replyAudio = "";
       try {
-        const tts = await ttsText(reply.replace(/\*/g, "").trim(), `female-${activeCustom?.id ?? girl.id}`);
+        const tts = await ttsText(reply.replace(/\*/g, "").trim(), activeCustom ? getCustomGirlVoice(activeCustom.id) : getGirlVoice(girl.id));
         if (tts?.audio) replyAudio = `data:${tts.contentType};base64,${tts.audio}`;
       } catch {
         replyAudio = "";
