@@ -558,7 +558,7 @@ Deno.serve(async (req) => {
     // fotorrealista con textura de piel real.
     const rawDesc = String(body.prompt || "").trim();
     const prompt = isAvatar
-      ? `photorealistic casual selfie photo of ${rawDesc || "a beautiful young woman"}, natural smartphone photo taken with a front camera, perfectly centered square composition, the face is dead center of the image filling the frame with even margins on all sides, head and shoulders tightly centered, camera directly facing her, extremely realistic human skin rendered pixel by pixel with visible pores, fine vellus hairs, natural skin grain and micro texture, subtle skin blemishes and faint redness in cheeks, believable subsurface scattering, matte natural skin, slight natural shine on the skin, detailed iris with natural highlights, individual eyelashes, softly shaped natural brows, light natural makeup, soft natural window light, gentle catchlights in the eyes, shallow depth of field, softly blurred neutral background, tack sharp focus on the eyes, high resolution face detail, perfectly symmetrical clothing with both sleeves identical, proportionate normal shoulders and neck, natural human proportions, square profile picture crop for a circular avatar, the circle will cut the edges so the face must stay perfectly centered, no full body, no chest, no cleavage, candid real photography, must look like a real photo of a real person, raw camera photo with sensor noise and natural color grading, NOT a CGI render, no plastic skin, no wax skin, no airbrushed porcelain face, no doll-like mannequin face, no 3D render look, no anime, no illustration, no beauty filter, no smooth airbrushed skin, no glossy skin, no skin blur, no distorted anatomy, no extra limbs, no missing sleeve, no oversized body parts, no giant hands, no deformed face`
+      ? `photorealistic professional headshot portrait of ${rawDesc || "a beautiful young woman"}, perfect square selfie composition, the face fills 70% of the image perfectly centered with even margins on all sides, head and shoulders tightly centered, camera directly facing her, bright clean soft studio lighting in light pastel tones, bright luminous background, no dark background, no black background, no shadows behind the subject, extremely realistic human skin rendered pixel by pixel with visible pores, fine vellus hairs, natural skin grain and micro texture, subtle skin blemishes and faint redness in cheeks, believable subsurface scattering, matte natural skin, slight natural shine on the skin, detailed iris with natural highlights, individual eyelashes, softly shaped natural brows, light natural makeup, natural friendly smile, soft natural window light, gentle catchlights in the eyes, shallow depth of field, tack sharp focus on the eyes, high resolution face detail, perfectly symmetrical clothing with both sleeves identical, proportionate normal shoulders and neck, natural human proportions, square profile picture crop for a circular avatar, the circle will cut the edges so the face must stay perfectly centered, no full body, no chest, no cleavage, candid real photography, must look like a real photo of a real person, raw camera photo with sensor noise and natural color grading, NOT a CGI render, no plastic skin, no wax skin, no airbrushed porcelain face, no doll-like mannequin face, no 3D render look, no anime, no cartoon, no illustration, no beauty filter, no smooth airbrushed skin, no glossy skin, no skin blur, no distorted anatomy, no extra limbs, no missing sleeve, no oversized body parts, no giant hands, no deformed face`
       : buildPhotoPrompt(rawDesc, seed);
 
     // El avatar se genera en cuadrado para el cÃ­rculo de perfil.
@@ -578,20 +578,29 @@ Deno.serve(async (req) => {
     // el Horde async puede tardar >15 min por falta de kudos y el frontend solo espera ~6.
     // Pollinations responde en segundos, asÃ­ que va primero en el caso avatar.
     if (isAvatar && !refImage) {
+      // Avatar: priorizar fotorrealismo real. RealVisXL (HF serverless gratis)
+      // da fotos realistas de personas; pollinations como respaldo rápido;
+      // Horde async como última opción.
       try {
-        img = await pollinationsGenerate(prompt, genWidth, genHeight, seed);
-        source = "pollinations";
-      } catch (errPoll) {
-        console.error("avatar pollinations falla, intenta horde async:", errPoll);
-        if (hordeEnabled && hordeKey) {
-          try {
-            const jid = await hordeSubmit(prompt, genWidth, genHeight, seed, hordeKey);
-            return new Response(JSON.stringify({ status: "queued", jobId: jid, source: "horde-juggernaut" }), {
-              status: 200,
-              headers: { ...corsHeaders, "Content-Type": "application/json" },
-            });
-          } catch (errHorde) {
-            console.error("avatar horde async falla:", errHorde);
+        img = await hfGenerate(prompt, genWidth, genHeight, token);
+        source = "hf-realvisxl";
+      } catch (errHf) {
+        console.error("avatar realvisxl falla, intenta pollinations:", errHf);
+        try {
+          img = await pollinationsGenerate(prompt, genWidth, genHeight, seed);
+          source = "pollinations";
+        } catch (errPoll) {
+          console.error("avatar pollinations falla, intenta horde async:", errPoll);
+          if (hordeEnabled && hordeKey) {
+            try {
+              const jid = await hordeSubmit(prompt, genWidth, genHeight, seed, hordeKey);
+              return new Response(JSON.stringify({ status: "queued", jobId: jid, source: "horde-juggernaut" }), {
+                status: 200,
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+              });
+            } catch (errHorde) {
+              console.error("avatar horde async falla:", errHorde);
+            }
           }
         }
       }
