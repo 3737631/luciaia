@@ -8,6 +8,7 @@ import { getCustomization } from "@/lib/storage";
 import { getCustomGirls, CustomGirlData } from "@/lib/storage";
 import { getFallbackResponse } from "@/lib/ai";
 import { sendChatMessage } from "@/lib/chatClient";
+import { sttAudio, ttsText } from "@/lib/voiceClient";
 import {
   getConversationHistory,
   saveConversationHistory,
@@ -30,8 +31,10 @@ const MINOR_KEYWORDS = [
 
 const bp = () => process.env.NEXT_PUBLIC_BASE_PATH || "";
 
+type ChatMsg = { id: string; from: "user" | "girl"; text: string; audio?: string; image?: string };
+
 export default function ChatWindow({ girl }: { girl: Girl }) {
-  const [messages, setMessages] = useState<{ id: string; from: "user" | "girl"; text: string }[]>([]);
+  const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
   const [blocked, setBlocked] = useState(false);
@@ -41,12 +44,18 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   const router = useRouter();
   const [customScenario, setCustomScenario] = useState("");
   const [activeCustom, setActiveCustom] = useState<CustomGirlData | null>(null);
+  const [recording, setRecording] = useState(false);
+  const [playingId, setPlayingId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef(true);
   const messagesRef = useRef(messages);
   messagesRef.current = messages;
   const welcomeNameRef = useRef("");
   const skipWelcomeRef = useRef(false);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     const raw = localStorage.getItem("custom_scenario");
@@ -143,13 +152,13 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     .filter((m) => m.id !== "welcome")
     .map((m) => ({ role: m.from === "user" ? "user" : "assistant", content: m.text }));
 
-  const doAI = useCallback(async (text: string) => {
+  const buildPayload = useCallback((text: string, image?: string) => {
     const storageId = activeCustom?.id ?? girl.id;
     const custom = getCustomization(girl.id);
     const memory = getUserMemory(storageId);
     const summary = getConversationSummary(storageId);
 
-    const payload = {
+    return {
       message: text,
       girlId: activeCustom?.id ?? girl.id,
       girlName: activeCustom?.name ?? girl.name,
@@ -163,58 +172,58 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       userGender: (typeof window !== "undefined" ? (localStorage.getItem("lunacall_gender") || "hombre") : "hombre") as "hombre" | "mujer",
       characterGender: detectGender(activeCustom?.name ?? girl.name),
       customScenario: customScenario || undefined,
+      image,
     };
+  }, [girl, history, mode, customScenario, activeCustom]);
 
+  const askAI = useCallback(async (text: string, opts?: { image?: string }): Promise<string> => {
+    const payload = buildPayload(text, opts?.image);
+    const reply = await sendChatMessage(payload);
+    if (!mountedRef.current) throw new Error("unmounted");
+    return reply;
+  }, [buildPayload]);
+
+  const persistPair = useCallback((userText: string, replyText: string) => {
+    const storageId = activeCustom?.id ?? girl.id;
+    const chatHistory: ChatMessage[] = [
+      ...history,
+      { role: "user", content: userText },
+      { role: "assistant", content: replyText },
+    ];
+    saveConversationHistory(storageId, chatHistory);
+    const extracted = extractMemoryFromMessages(chatHistory);
+    if (extracted.length > 0) {
+      const existing = getUserMemory(storageId);
+      const merged = [...new Map([...existing, ...extracted].map((m) => [m, m])).values()];
+      saveUserMemory(storageId, merged.slice(-30));
+    }
+    if (chatHistory.length > 20) {
+      const sum = buildSummary(chatHistory);
+      if (sum) saveConversationSummary(storageId, sum);
+    }
+  }, [history, activeCustom]);
+
+  async function runReply(text: string, opts?: { image?: string; fallbackText?: string }) {
+    const userText = opts?.fallbackText ?? text;
     try {
-      const reply = await sendChatMessage(payload);
-      if (!mountedRef.current) return;
-
-      const newMsgs = [
-        ...messages,
-        { id: crypto.randomUUID(), from: "user" as const, text },
-        { id: crypto.randomUUID(), from: "girl" as const, text: reply },
-      ];
-      setMessages(newMsgs);
-
-      const chatHistory: ChatMessage[] = newMsgs
-        .filter((m) => m.id !== "welcome")
-        .map((m) => ({ role: m.from === "user" ? "user" : "assistant", content: m.text }));
-
-      saveConversationHistory(storageId, chatHistory);
-
-      const extracted = extractMemoryFromMessages(chatHistory);
-      if (extracted.length > 0) {
-        const existing = getUserMemory(storageId);
-        const merged = [...new Map([...existing, ...extracted].map((m) => [m, m])).values()];
-        saveUserMemory(storageId, merged.slice(-30));
+      const reply = await askAI(text, { image: opts?.image });
+      if (mountedRef.current) {
+        setMessages((m) => [...m, { id: crypto.randomUUID(), from: "girl", text: reply }]);
+        persistPair(userText, reply);
+        setError(null);
       }
-
-      if (chatHistory.length > 20) {
-        const sum = buildSummary(chatHistory);
-        if (sum) saveConversationSummary(storageId, sum);
-      }
-
-      setError(null);
+      return reply;
     } catch (err: any) {
       console.warn("[Chat] AI error:", err);
-      if (!mountedRef.current) return;
-
-      const fallback = getFallbackResponse(text);
-      setMessages((m) => [
-        ...m,
-        { id: crypto.randomUUID(), from: "user" as const, text },
-        { id: crypto.randomUUID(), from: "girl" as const, text: fallback },
-      ]);
-
-      const chatHistory: ChatMessage[] = [
-        ...history,
-        { role: "user", content: text },
-        { role: "assistant", content: fallback },
-      ];
-      saveConversationHistory(storageId, chatHistory);
-      setError(err?.message || "Usando modo offline.");
+      const fallback = getFallbackResponse(userText);
+      if (mountedRef.current) {
+        setMessages((m) => [...m, { id: crypto.randomUUID(), from: "girl", text: fallback }]);
+        persistPair(userText, fallback);
+        setError(err?.message || "Usando modo offline.");
+      }
+      return fallback;
     }
-  }, [girl, history, messages, customScenario, activeCustom]);
+  }
 
   async function send() {
     if (blocked || typing) return;
@@ -236,16 +245,11 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     setMessages((m) => [...m, { id: crypto.randomUUID(), from: "user", text }]);
     setInput("");
     setTyping(true);
-    await doAI(text);
-    setTyping(false);
-  }
-
-  function requestImage() {
-    if (blocked || typing) return;
-    const text = "Pídeme una foto";
-    setMessages((m) => [...m, { id: crypto.randomUUID(), from: "user" as const, text }]);
-    setTyping(true);
-    doAI(text).finally(() => setTyping(false));
+    try {
+      await runReply(text);
+    } finally {
+      setTyping(false);
+    }
   }
 
   function clearMemory() {
@@ -253,6 +257,142 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     setMessages([{ id: "welcome", from: "girl", text: `Hola, soy ${girl.name}. Qué bien que hayas entrado` }]);
     setError(null);
     setBlocked(false);
+  }
+
+  function pickAudioMime() {
+    const candidates = [
+      "audio/webm;codecs=opus",
+      "audio/webm",
+      "audio/mp4",
+      "audio/ogg;codecs=opus",
+    ];
+    for (const c of candidates) {
+      if (typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported(c)) return c;
+    }
+    return "audio/webm";
+  }
+
+  function blobToDataUrl(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onload = () => resolve(String(fr.result));
+      fr.onerror = reject;
+      fr.readAsDataURL(blob);
+    });
+  }
+
+  function togglePlay(id: string, src: string) {
+    const player = audioPlayerRef.current || new Audio();
+    audioPlayerRef.current = player;
+    if (playingId === id) {
+      player.pause();
+      setPlayingId(null);
+      return;
+    }
+    player.src = src;
+    player.onended = () => setPlayingId(null);
+    player.play().catch(() => setPlayingId(null));
+    setPlayingId(id);
+  }
+
+  async function toggleRecording() {
+    if (recording) {
+      recorderRef.current?.stop();
+      return;
+    }
+    if (blocked || typing) return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mime = pickAudioMime();
+      const rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+      chunksRef.current = [];
+      rec.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+      rec.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const blob = new Blob(chunksRef.current, { type: mime });
+        setRecording(false);
+        await sendAudio(blob);
+      };
+      rec.start();
+      recorderRef.current = rec;
+      setRecording(true);
+    } catch {
+      setError("No se pudo acceder al micrófono");
+    }
+  }
+
+  async function sendAudio(blob: Blob) {
+    if (blocked || typing) return;
+    setError(null);
+    setTyping(true);
+    try {
+      const transcript = await sttAudio(blob);
+      if (!transcript.trim()) {
+        setTyping(false);
+        setError("No te he entendido, repítelo");
+        return;
+      }
+      const audioUrl = await blobToDataUrl(blob);
+      const userMsg: ChatMsg = { id: crypto.randomUUID(), from: "user", text: transcript, audio: audioUrl };
+      setMessages((m) => [...m, userMsg]);
+
+      const reply = await runReply(transcript);
+      let replyAudio = "";
+      try {
+        const tts = await ttsText(reply.replace(/\*/g, "").trim(), `female-${activeCustom?.id ?? girl.id}`);
+        if (tts?.audio) replyAudio = `data:${tts.contentType};base64,${tts.audio}`;
+      } catch {
+        replyAudio = "";
+      }
+      if (mountedRef.current && replyAudio) {
+        setMessages((m) => [...m, { id: crypto.randomUUID(), from: "girl", text: reply, audio: replyAudio }]);
+      }
+    } catch (err: any) {
+      console.warn("[Chat] audio error:", err);
+      if (mountedRef.current) setError(err?.message || "Error al procesar la nota de voz");
+    } finally {
+      setTyping(false);
+    }
+  }
+
+  function onPickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const maxW = 900;
+        const scale = Math.min(1, maxW / img.width);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(img.width * scale));
+        canvas.height = Math.max(1, Math.round(img.height * scale));
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        sendPhoto(canvas.toDataURL("image/jpeg", 0.88));
+      };
+      img.src = String(reader.result);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  }
+
+  async function sendPhoto(dataUrl: string) {
+    if (blocked || typing) return;
+    const text = "Te mando una foto 📷";
+    setMessages((m) => [...m, { id: crypto.randomUUID(), from: "user", text, image: dataUrl }]);
+    setError(null);
+    setTyping(true);
+    try {
+      await runReply(text, { image: dataUrl });
+    } finally {
+      setTyping(false);
+    }
   }
 
   function renderText(text: string) {
@@ -410,7 +550,30 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         {messages.map((m) => (
           <div key={m.id} className={`${styles.messageRow} ${m.from === "user" ? styles.messageRowRight : styles.messageRowLeft}`}>
             <div className={`${styles.bubble} ${m.from === "user" ? styles.bubbleRight : styles.bubbleLeft}`}>
-              {renderText(m.text)}
+              {m.image ? (
+                <div className={styles.photoWrap}>
+                  <img
+                    src={m.image}
+                    alt="Foto"
+                    className={styles.photoImg}
+                    onClick={() => window.open(m.image as string, "_blank")}
+                  />
+                  {m.text && <span className={styles.photoCaption}>{m.text}</span>}
+                </div>
+              ) : m.audio ? (
+                <div className={styles.audioWrap}>
+                  <button className={styles.audioPlayBtn} onClick={() => togglePlay(m.id, m.audio as string)} title={playingId === m.id ? "Pausar" : "Reproducir"}>
+                    {playingId === m.id ? (
+                      <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                    )}
+                  </button>
+                  <span className={styles.audioLabel}>{m.text || "Nota de voz"}</span>
+                </div>
+              ) : (
+                renderText(m.text)
+              )}
             </div>
           </div>
         ))}
@@ -427,20 +590,38 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       </div>
       <div className={styles.composer}>
         <div className={styles.composerRow}>
+          <button
+            className={`${styles.actionBtn} ${recording ? styles.recordingBtn : ""}`}
+            onClick={toggleRecording}
+            disabled={blocked || (typing && !recording)}
+            title={recording ? "Detener grabación" : "Nota de voz"}
+          >
+            {recording ? (
+              <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+            ) : (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+            )}
+          </button>
           <div className={styles.composerInputWrap}>
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && send()}
-              placeholder="Escribe un mensaje..."
-              disabled={blocked}
+              placeholder={recording ? "Grabando..." : "Escribe un mensaje..."}
+              disabled={blocked || recording}
               className={styles.composerInput}
             />
+            {recording && (
+              <span className={styles.recordingHint}>
+                <span className={styles.recordingDot} />
+              </span>
+            )}
           </div>
-          <button className={styles.cameraBtn} onClick={requestImage} disabled={blocked || typing} title="Pídeme una foto">
+          <button className={styles.actionBtn} onClick={() => fileRef.current?.click()} disabled={blocked || typing} title="Enviar una foto">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
           </button>
-          <button className={styles.sendBtn} onClick={send} disabled={blocked || typing || !input.trim()}>
+          <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={onPickPhoto} />
+          <button className={styles.sendBtn} onClick={send} disabled={blocked || typing || !input.trim() || recording}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           </button>
         </div>

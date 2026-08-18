@@ -25,6 +25,7 @@ Deno.serve(async (req) => {
       userGender = "hombre",
       characterGender = "mujer",
       customScenario = "",
+      image = "",
     } = body;
 
     const apiKey = Deno.env.get("OPENROUTER_API_KEY");
@@ -67,6 +68,10 @@ Deno.serve(async (req) => {
       ? `VIVES AHORA MISMO este escenario, es tu realidad presente y la describes en primera persona mientras lo vives:\n${customScenario}`
       : "";
 
+    const photoLine = image
+      ? "\n\nAcabas de recibir una FOTO de tu pareja. Mírala bien, describe con cariño y deseo lo que ves en ella y reacciona como su novia/o real: si es un selfie sexy, un desnudo o una foto íntima suya, alábalo/la con lujuria y sensualidad (ej: si es su miembro 'uy, qué grande amor, cómo me gustaría probarlo...'), sin rodeos ni frases de manual. Responde siempre en español, corto y caliente, como en WhatsApp."
+      : "";
+
     const systemPrompt =
 `${charIntro}
 
@@ -78,12 +83,19 @@ ${genderLine}
 
 ${charVoice}
 ${actionsLine}
-Solo español. Respuestas cortas, como en WhatsApp. Si te digo algo subido de tono, me respondes igual o mas subido.`;
+Solo español. Respuestas cortas, como en WhatsApp. Si te digo algo subido de tono, me respondes igual o mas subido.${photoLine}`;
+
+    const userContent = image
+      ? [
+          { type: "image_url", image_url: { url: image } },
+          { type: "text", text: message || "Te acabo de mandar una foto." },
+        ]
+      : message;
 
     const messages = [
       { role: "system", content: systemPrompt },
       ...history.slice(-20),
-      { role: "user", content: message },
+      { role: "user", content: userContent },
     ];
 
     const aiRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {

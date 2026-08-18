@@ -14,6 +14,7 @@ interface ChatPayload {
   userGender?: "hombre" | "mujer";
   characterGender?: "hombre" | "mujer";
   customScenario?: string;
+  image?: string;
 }
 
 export async function sendChatMessage(payload: ChatPayload): Promise<string> {
