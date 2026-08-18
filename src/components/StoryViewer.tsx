@@ -45,6 +45,20 @@ function buildReactionLine(name: string, type: "like" | "reaction"): string {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
+function buildReplyLine(name: string, userMessage: string): string {
+  const usted = detectGender(name) === "mujer" ? "guapo" : "guapa";
+  const pool = [
+    `Me encanta que me escribas, ${usted} 😊`,
+    `Cuéntame más... me tienes enganchada 😏`,
+    `Jajaja, me haces reír, ${usted} 😂`,
+    `Justo pensaba en ti... 😌`,
+    `Sigue así y no podré parar de escribirte 🔥`,
+    `Mmm... me gusta cómo piensas 😏`,
+    `Tienes razón, ${usted}... me gusta cómo lo ves 😉`,
+  ];
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 function triggerHaptic(p: number | number[] = 12) {
   if ("vibrate" in navigator) try { navigator.vibrate(p); } catch {}
 }
@@ -156,12 +170,12 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
   const [timeAgo, setTimeAgo] = useState("");
   const [notify, setNotify] = useState<NotificationData | null>(null);
 
-  const showReactionNotify = useCallback((char: { id: string; avatar: string; name: string; greeting?: string }, type: "like" | "reaction" = "like") => {
+  const showNotify = useCallback((char: { id: string; avatar: string; name: string }, message: string) => {
     setNotify({
-      id: `${char.id}-${Date.now()}`,
+      id: `${char.id}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       type: "reaction",
       title: char.name,
-      message: buildReactionLine(char.name, type),
+      message,
       avatar: char.avatar || undefined,
       duration: 5000,
     });
@@ -627,7 +641,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
     }
     setTimeout(() => { if (mountedRef.current) setFloatingEmojis((p) => p.filter((r) => r.id !== id)); }, 850);
     setReactionPickerOpen(false); setHighlightedReaction(null); highlightRef.current = null;
-    showReactionNotify(currentChar, "reaction");
+    showNotify(currentChar, buildReactionLine(currentChar.name, "reaction"));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentChar.name]);
 
@@ -635,11 +649,15 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
     if (!message.trim() || isSending) return;
     setIsSending(true); triggerHaptic(10);
     saveInteraction(`daily_${currentChar.name}`, currentChar.name, "message", message.trim());
+    const charAtSend = currentChar;
+    const replyText = buildReplyLine(charAtSend.name, message.trim());
     setMessage(""); hiddenInputRef.current?.blur();
     setMsgConfirm("Mensaje enviado");
     setTimeout(() => { if (mountedRef.current) setMsgConfirm(null); }, 800);
     setTimeout(() => { if (mountedRef.current) setIsSending(false); }, 300);
-  }, [message, currentChar.name, isSending]);
+    // La chica contesta un poco después y llega su notificación.
+    setTimeout(() => { if (mountedRef.current) showNotify(charAtSend, replyText); }, 2200 + Math.random() * 900);
+  }, [message, currentChar, isSending, showNotify]);
 
   const handleHeartDown = useCallback((e: React.PointerEvent) => {
     e.stopPropagation();
@@ -656,7 +674,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
       triggerHaptic(15);
       const key = `${charIndex}-${currentIndex}`;
       const isNowLiked = !likedStories[key];
-      if (isNowLiked) showReactionNotify(currentChar, "like");
+      if (isNowLiked) showNotify(currentChar, buildReactionLine(currentChar.name, "like"));
       setLikedStories((prev) => {
         if (isNowLiked) {
           const btn = heartBtnRef.current;
@@ -671,7 +689,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
     }
     heartOpenedPicker.current = false;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [charIndex, currentIndex, likedStories, showReactionNotify]);
+  }, [charIndex, currentIndex, likedStories, showNotify]);
 
   const handleHeartCancel = useCallback(() => {
     if (heartHoldTimer.current) clearTimeout(heartHoldTimer.current);
@@ -1271,7 +1289,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
         )}
         {notify && (
           <div data-story-interactive
-            onClick={(e) => { e.stopPropagation(); router.push(`/chat/${currentChar.id}`); }}
+            onClick={(e) => { e.stopPropagation(); router.push(`/chat/${currentChar.id}?picker=1`); }}
             onPointerDown={(e) => { e.stopPropagation(); }}
             onPointerUp={(e) => { e.stopPropagation(); }}
             onTouchStart={(e) => { e.stopPropagation(); }}
@@ -1292,23 +1310,28 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
             }}
           >
             <div style={{
-              width: 42, height: 42, borderRadius: 12, flexShrink: 0,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              background: "linear-gradient(135deg,#ff2f78,#a3004c)",
-              boxShadow: "0 4px 10px rgba(255,47,120,.35)",
+              width: 38, height: 38, borderRadius: "50%", flexShrink: 0, overflow: "hidden",
+              background: "rgba(255,255,255,.12)",
+              boxShadow: "0 0 0 1.5px rgba(255,255,255,.35)",
             }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff">
-                <path d="M12 21s-6.7-4.35-9.33-8.11C.9 10.26 1.65 6.6 4.9 5.1a4.9 4.9 0 0 1 5.24.53L12 7.3l1.86-1.67a4.9 4.9 0 0 1 5.24-.53c3.25 1.5 4 5.16 2.23 7.79C18.7 16.65 12 21 12 21Z"/>
-              </svg>
+              {notify.avatar ? (
+                <img src={notify.avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              ) : (
+                <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, fontWeight: 700, color: "#fff" }}>
+                  {notify.title.charAt(0)}
+                </div>
+              )}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-                <span style={{ color: "#fff", fontSize: 13, fontWeight: 700, letterSpacing: "-0.01em" }}>LunaCall</span>
-                <span style={{ color: "rgba(255,255,255,.5)", fontSize: 12, fontWeight: 500, flexShrink: 0 }}>ahora</span>
+                <span style={{ color: "rgba(255,255,255,.55)", fontSize: 12, fontWeight: 600, letterSpacing: "-0.01em" }}>LunaCall</span>
+                <span style={{ color: "rgba(255,255,255,.45)", fontSize: 12, fontWeight: 500, flexShrink: 0 }}>ahora</span>
               </div>
-              <div style={{ color: "#fff", fontSize: 13.5, fontWeight: 500, lineHeight: 1.35, marginTop: 1 }}>
-                {notify.title}: {notify.message}
+              <div style={{ color: "#fff", fontSize: 13.5, fontWeight: 600, lineHeight: 1.3, marginTop: 1 }}>
+                <span style={{ fontWeight: 800 }}>{notify.title}</span>
+                <span style={{ color: "rgba(255,255,255,.85)" }}>&nbsp;{notify.message}</span>
               </div>
+              <div style={{ color: "#ff5f8f", fontSize: 11.5, fontWeight: 700, marginTop: 2 }}>Toca para chatear</div>
             </div>
           </div>
         )}

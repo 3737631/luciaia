@@ -66,6 +66,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   messagesRef.current = messages;
   const welcomeNameRef = useRef("");
   const skipWelcomeRef = useRef(false);
+  const forcePickerRef = useRef(false);
   const activeCustomJsonRef = useRef("");
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -84,7 +85,10 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       } catch {}
     }
     // La custom girl se identifica por la URL (?custom=id): solo se aplica a su chat.
-    const customId = new URLSearchParams(window.location.search).get("custom");
+    // ?picker=1 fuerza mostrar el selector (roleplay / vivir una historia) al llegar.
+    const qs = new URLSearchParams(window.location.search);
+    if (qs.get("picker") === "1") forcePickerRef.current = true;
+    const customId = qs.get("custom");
     if (customId) {
       const g = getCustomGirls().find((x) => x.id === customId);
       if (g) {
@@ -137,6 +141,8 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     if (saved.length > 0) {
       skipWelcomeRef.current = true;
       setMessages(saved.map((m, i) => ({ id: `hist-${i}`, from: m.role === "user" ? "user" : "girl", text: m.content })));
+      // Si venimos con ?picker=1 (desde una historia) mostramos el selector igualmente.
+      if (forcePickerRef.current) return;
       setMode(getSavedMode(girl.id) ?? "text");
       setShowModePicker(false);
       return;
