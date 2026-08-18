@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { getHistory, clearHistory, getConversationHistory } from "@/lib/memory";
+import { getHistory, clearHistory, getConversationHistory, ChatMessage } from "@/lib/memory";
 import { getCustomGirls } from "@/lib/storage";
 import { getGirlImage } from "@/lib/images";
 import { girls } from "@/data/girls";
@@ -20,9 +20,46 @@ interface GirlRow {
 
 export default function HistoryPage() {
   const [rows, setRows] = useState<GirlRow[]>([]);
+  const [single, setSingle] = useState<GirlRow | null>(null);
+  const [singleMsgs, setSingleMsgs] = useState<ChatMessage[]>([]);
   const [confirmClear, setConfirmClear] = useState(false);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const customId = params.get("custom");
+    const girlId = params.get("girl");
+
+    if (customId) {
+      const g = getCustomGirls().find((x) => x.id === customId);
+      if (g) {
+        setSingle({
+          girlId: g.id,
+          name: g.name,
+          img: g.imageUrl || getGirlImage(g.baseId || "luna", g.hair, g.pose, g.background),
+          href: `/chat/luna?custom=${g.id}`,
+          lastTs: 0,
+          lastPreview: "",
+        });
+        setSingleMsgs(getConversationHistory(g.id));
+        return;
+      }
+    }
+    if (girlId) {
+      const girl = girls.find((g) => g.id === girlId);
+      if (girl) {
+        setSingle({
+          girlId: girl.id,
+          name: girl.name,
+          img: getGirlImage(girl.id, null, null, null, girl.cloudinaryImage),
+          href: `/chat/${girl.id}`,
+          lastTs: 0,
+          lastPreview: "",
+        });
+        setSingleMsgs(getConversationHistory(girl.id));
+        return;
+      }
+    }
+
     const customs = getCustomGirls();
 
     const entries = getHistory();
@@ -101,28 +138,89 @@ export default function HistoryPage() {
       <main className="mx-auto max-w-3xl overflow-x-hidden px-4 pb-24 pt-6 sm:px-5 sm:py-20">
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight gradient-text">Historial</h1>
+            <h1 className="text-3xl font-bold tracking-tight gradient-text">
+              {single ? `Historial con ${single.name}` : "Historial"}
+            </h1>
             <p className="mt-1.5 text-sm text-muted/70">
-              Tus conversaciones con cada chica. Al entrar retomas donde la dejaste.
+              {single
+                ? "Tus mensajes con esta chica. Al entrar retomas donde la dejaste."
+                : "Tus conversaciones con cada chica. Al entrar retomas donde la dejaste."}
             </p>
           </div>
-          {rows.some((r) => r.lastTs > 0) && (
+          {!single && rows.some((r) => r.lastTs > 0) && (
             <button
               onClick={() => setConfirmClear(true)}
-              className="flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-xs text-muted transition-all hover:bg-[#ff2f78]/15 hover:text-white active:scale-95"
+              className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-muted transition-all hover:bg-[#ff2f78]/15 hover:text-white active:scale-95"
               aria-label="Limpiar historial"
+              title="Limpiar historial"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
                 <path d="M3 6h18" />
                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                 <path d="M10 11v6M14 11v6" />
               </svg>
-              Limpiar
             </button>
           )}
         </div>
 
-        {rows.length === 0 ? (
+        {single ? (
+          <div className="flex min-h-[50dvh] flex-col">
+            <Link
+              href="/history"
+              className="mb-4 flex w-fit items-center gap-1.5 rounded-full bg-white/[0.05] px-4 py-2 text-xs font-semibold text-white/70 transition hover:bg-white/[0.1] hover:text-white active:scale-95"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+              Volver
+            </Link>
+
+            {singleMsgs.length === 0 ? (
+              <div className="flex flex-1 flex-col items-center justify-center py-20 text-center">
+                <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl glass">
+                  <svg viewBox="0 0 24 24" className="h-7 w-7 text-muted/50" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="M22 7l-10 7L2 7" /></svg>
+                </div>
+                <p className="text-lg font-semibold tracking-tight">Aún no hay conversación con {single.name}</p>
+                <Link href={single.href} className="mt-8 rounded-xl gradient-btn px-6 py-3 text-sm font-semibold shadow-lg shadow-pink-500/25">
+                  Empezar a chatear con {single.name}
+                </Link>
+              </div>
+            ) : (
+              <>
+                <div className="mb-4 flex items-center gap-3">
+                  <div className="h-14 w-14 shrink-0 overflow-hidden rounded-full border border-white/[0.09] bg-gradient-to-br from-[#ff5798]/30 to-[#8b5cf6]/25">
+                    {single.img ? (
+                      <img src={single.img} alt={single.name} className="h-full w-full object-cover object-center" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-lg font-bold text-white">{single.name[0]}</div>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold tracking-tight text-white">{single.name}</p>
+                    <p className="text-xs text-white/40">{singleMsgs.length} mensaje{singleMsgs.length === 1 ? "" : "s"}</p>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-3 rounded-3xl border border-white/[0.06] bg-white/[0.02] p-4">
+                  {singleMsgs.map((m, i) => (
+                    <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                      <div
+                        className={`max-w-[80%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
+                          m.role === "user"
+                            ? "rounded-br-md bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-white"
+                            : "rounded-bl-md bg-white/[0.08] text-white/85"
+                        }`}
+                      >
+                        {m.content}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <Link href={single.href} className="mx-auto mt-6 flex w-fit items-center gap-2 rounded-xl gradient-btn px-6 py-3 text-sm font-semibold shadow-lg shadow-pink-500/25">
+                  Chatear con {single.name}
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
+                </Link>
+              </>
+            )}
+          </div>
+        ) : rows.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-32 text-center">
             <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl glass">
               <svg viewBox="0 0 24 24" className="h-7 w-7 text-muted/50" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="M22 7l-10 7L2 7" /></svg>
