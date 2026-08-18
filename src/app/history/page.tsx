@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import { getHistory, clearHistory, getConversationHistory } from "@/lib/memory";
 import { getCustomGirls } from "@/lib/storage";
 import { getGirlImage } from "@/lib/images";
@@ -146,8 +144,7 @@ export default function HistoryPage() {
 
   return (
     <>
-      <Header />
-      <main className="mx-auto max-w-3xl overflow-x-hidden px-4 pb-24 pt-6 sm:px-5 sm:py-20">
+      <main className="mx-auto max-w-3xl overflow-x-hidden px-4 pb-10 pt-8 sm:px-5 sm:py-16">
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight gradient-text">
@@ -283,7 +280,6 @@ export default function HistoryPage() {
           </div>
         )}
       </main>
-      <Footer />
     </>
   );
 }
