@@ -8,7 +8,7 @@ import { getGirlImage } from "@/lib/images";
 import { getCustomization } from "@/lib/storage";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
-const chatPath = (id: string) => `/chat/${id}`;
+const chatPath = (id: string) => `/chat/${id}?picker=1`;
 
 function shouldBeOnline(): boolean {
   return Math.random() < 0.55;

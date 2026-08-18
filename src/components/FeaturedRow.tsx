@@ -14,7 +14,7 @@ export default function FeaturedRow({ girls: charList }: { girls?: Girl[] }) {
       {featured.map((girl) => (
         <Link
           key={girl.id}
-          href={`/chat/${girl.id}`}
+          href={`/chat/${girl.id}?picker=1`}
           className="featured-card"
           style={{ textDecoration: "none", display: "block" }}
         >
