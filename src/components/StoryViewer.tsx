@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { saveInteraction } from "@/lib/storyInteractionsService";
 import { preloadImage as preloadAndDecodeImage, isImageReady } from "@/lib/preloadImage";
-import InAppNotification, { type NotificationData } from "./InAppNotification";
+import type { NotificationData } from "./InAppNotification";
 
 const QUICK_REACTIONS = ["😍", "😂", "😮", "😢", "🔥"];
 const HOLD_REACTIONS = ["😂", "😍", "😮", "😢", "👏", "🔥"];
@@ -148,6 +148,13 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
       duration: 3500,
     });
   }, []);
+
+  // La notificación se muestra dentro de la historia y desaparece sola.
+  useEffect(() => {
+    if (!notify) return;
+    const t = setTimeout(() => setNotify((n) => (n && n.id === notify.id ? null : n)), notify.duration ?? 3500);
+    return () => clearTimeout(t);
+  }, [notify]);
 
   const [incomingChar, setIncomingChar] = useState<{
     charIdx: number;
@@ -1001,11 +1008,11 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
             transition: `opacity 120ms ease, bottom 200ms ${APPLE_SPRING}`,
             opacity: longPressActive ? 0 : 1,
           }}
-          onPointerDown={(e) => { e.preventDefault(); e.stopPropagation() }}
-          onPointerUp={(e) => { e.preventDefault(); e.stopPropagation() }}
-          onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
-          onTouchStart={(e) => { e.preventDefault(); e.stopPropagation() }}
-          onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation() }}
+          onPointerDown={(e) => { e.stopPropagation() }}
+          onPointerUp={(e) => { e.stopPropagation() }}
+          onClick={(e) => { e.stopPropagation() }}
+          onTouchStart={(e) => { e.stopPropagation() }}
+          onTouchEnd={(e) => { e.stopPropagation() }}
         >
           {isComposerFocused && keyboardInset > 100 && (
             <div style={{
@@ -1233,7 +1240,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
             {fe.emoji}
           </div>
         ))}
-        {msgConfirm && (
+{msgConfirm && (
           <div style={{
             position: "absolute", left: "50%", bottom: 72, transform: "translateX(-50%)",
             padding: "6px 10px", borderRadius: 999, color: "#fff", background: "rgba(24,24,24,.72)",
@@ -1243,14 +1250,37 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
             {msgConfirm}
           </div>
         )}
+        {notify && (
+          <div
+            onClick={() => router.push(`/chat/${currentChar.id}`)}
+            style={{
+              position: "absolute", zIndex: 96,
+              top: "calc(env(safe-area-inset-top, 0px) + 54px)",
+              left: 10, right: 10, margin: "0 auto", maxWidth: 280,
+              display: "flex", alignItems: "center", gap: 9,
+              padding: "8px 11px", borderRadius: 13, cursor: "pointer",
+              background: "rgba(14,14,16,.92)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              border: "1px solid rgba(255,255,255,.1)",
+              boxShadow: "0 6px 22px rgba(0,0,0,.45)",
+              animation: "slideInDown 0.3s ease",
+            }}
+          >
+            {notify.avatar && (
+              <img
+                src={notify.avatar}
+                alt=""
+                style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover", border: "1.5px solid #FF5798", flexShrink: 0 }}
+              />
+            )}
+            <div style={{ minWidth: 0 }}>
+              <div style={{ color: "#fff", fontSize: 12.5, fontWeight: 700, lineHeight: 1.25 }}>{notify.title}</div>
+              <div style={{ color: "rgba(255,255,255,.6)", fontSize: 11.5, lineHeight: 1.3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{notify.message}</div>
+            </div>
+          </div>
+        )}
       </div>
-      {notify && (
-        <InAppNotification
-          notification={notify}
-          onRemove={(id) => setNotify((n) => (n && n.id === id ? null : n))}
-          onClick={() => router.push(`/chat/${currentChar.id}`)}
-        />
-      )}
     </>
   );
 

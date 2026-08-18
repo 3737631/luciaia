@@ -23,6 +23,15 @@ function setStored(data: StoryInteraction[]) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch {}
 }
 
+function safeId(): string {
+  try {
+    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+      return crypto.randomUUID();
+    }
+  } catch {}
+  return `${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
 export function saveInteraction(
   storyId: string,
   creatorName: string,
@@ -30,7 +39,7 @@ export function saveInteraction(
   content: string,
 ): StoryInteraction {
   const entry: StoryInteraction = {
-    id: crypto.randomUUID(),
+    id: safeId(),
     storyId,
     creatorId: "iris",
     creatorName,
