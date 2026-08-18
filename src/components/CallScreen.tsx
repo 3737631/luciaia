@@ -877,9 +877,10 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
   }
 
   const doAI = useCallback(async (text: string) => {
-    const history = getConversationHistory(girl.id);
-    const memory = getUserMemory(girl.id);
-    const summary = getConversationSummary(girl.id);
+    const storageId = activeCustom?.id ?? girl.id;
+    const history = getConversationHistory(storageId);
+    const memory = getUserMemory(storageId);
+    const summary = getConversationSummary(storageId);
     const customScenario = activeCustom
       ? `Chica: ${activeCustom.girlDesc}\nRoleplay: ${activeCustom.roleplayDesc}`
       : "";
@@ -905,18 +906,18 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
         { role: "user", content: text },
         { role: "assistant", content: reply },
       ];
-      saveConversationHistory(girl.id, msgs);
+      saveConversationHistory(storageId, msgs);
       setSubtitleWords(reply);
       setTimeout(() => {
         const extracted = extractMemoryFromMessages(msgs);
         if (extracted.length > 0) {
-          const existing = getUserMemory(girl.id);
+          const existing = getUserMemory(storageId);
           const merged = [...new Map([...existing, ...extracted].map(m => [m, m])).values()];
-          saveUserMemory(girl.id, merged.slice(-30));
+          saveUserMemory(storageId, merged.slice(-30));
         }
         if (msgs.length > 20) {
           const sum = buildSummary(msgs);
-          if (sum) saveConversationSummary(girl.id, sum);
+          if (sum) saveConversationSummary(storageId, sum);
         }
       }, 0);
       await speakTTS(reply, false);
@@ -1251,11 +1252,12 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
     setIsHangingUp(true);
     setTimeout(() => {
       if (!mountedRef.current) return;
-      const msgs = getConversationHistory(girl.id);
+      const storageId = activeCustom?.id ?? girl.id;
+      const msgs = getConversationHistory(storageId);
       cleanup();
       setCS("ended");
-      if (msgs.length > 0) saveToHistory(girl.id, girl.name, msgs);
-      router.replace("/chat/" + girl.id);
+      if (msgs.length > 0) saveToHistory(storageId, activeCustom?.name ?? girl.name, msgs);
+      router.replace("/chat/" + girl.id + (activeCustom ? "?custom=" + activeCustom.id : ""));
     }, 0);
   }
 
@@ -1846,11 +1848,12 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
                     setIsHangingUp(true);
                     setTimeout(() => {
                       if (!mountedRef.current) return;
-                      const msgs = getConversationHistory(girl.id);
+                      const storageId = activeCustom?.id ?? girl.id;
+                      const msgs = getConversationHistory(storageId);
                       cleanup();
                       setCS("ended");
-                      if (msgs.length > 0) saveToHistory(girl.id, girl.name, msgs);
-                      router.replace("/chat/" + girl.id + "?callDur=" + callDuration);
+                      if (msgs.length > 0) saveToHistory(storageId, activeCustom?.name ?? girl.name, msgs);
+                      router.replace("/chat/" + girl.id + (activeCustom ? "?custom=" + activeCustom.id + "&" : "?") + "callDur=" + callDuration);
                     }, 0);
                   }}
                   aria-label="Ir al chat"

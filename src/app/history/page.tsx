@@ -62,7 +62,15 @@ export default function HistoryPage() {
     }
     otherRows.sort((a, b) => b.lastTs - a.lastTs);
 
-    setRows([...customRows, ...otherRows]);
+    const allRows = [...customRows, ...otherRows];
+    setRows(allRows);
+
+    const params = new URLSearchParams(window.location.search);
+    const preselect = params.get("custom") || params.get("girl");
+    if (preselect) {
+      const row = allRows.find((r) => r.girlId === preselect);
+      if (row) openGirl(row);
+    }
   }, []);
 
   function openGirl(row: GirlRow) {

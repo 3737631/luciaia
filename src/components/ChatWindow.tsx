@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Girl, minorBlockMessage } from "@/data/girls";
 import { detectGender } from "@/lib/gender";
@@ -31,6 +31,18 @@ const MINOR_KEYWORDS = [
 
 const bp = () => process.env.NEXT_PUBLIC_BASE_PATH || "";
 
+function barsFrom(seed: string): number[] {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+  let x = h || 1;
+  const bars: number[] = [];
+  for (let i = 0; i < 26; i++) {
+    x = (x * 1103515245 + 12345) >>> 0;
+    bars.push((x % 70) + 15);
+  }
+  return bars;
+}
+
 type ChatMsg = { id: string; from: "user" | "girl"; text: string; audio?: string; image?: string };
 
 export default function ChatWindow({ girl }: { girl: Girl }) {
@@ -52,6 +64,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   messagesRef.current = messages;
   const welcomeNameRef = useRef("");
   const skipWelcomeRef = useRef(false);
+  const activeCustomJsonRef = useRef("");
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
@@ -97,12 +110,18 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   }, []);
 
   useEffect(() => {
-    // Si la custom girl aÃºn no tiene avatar (IA generÃ¡ndolo), lo recogemos cuando se guarde.
+    // Si la custom girl aún no tiene avatar (IA generándolo), lo recogemos cuando se guarde.
     const customId = new URLSearchParams(window.location.search).get("custom");
     if (!customId) return;
     const timer = window.setInterval(() => {
       const g = getCustomGirls().find((x) => x.id === customId);
-      if (g) setActiveCustom(g);
+      if (g) {
+        const gj = JSON.stringify(g);
+        if (gj !== activeCustomJsonRef.current) {
+          activeCustomJsonRef.current = gj;
+          setActiveCustom(g);
+        }
+      }
     }, 3000);
     return () => window.clearInterval(timer);
   }, []);
@@ -203,12 +222,12 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     }
   }, [history, activeCustom]);
 
-  async function runReply(text: string, opts?: { image?: string; fallbackText?: string }) {
+  async function runReply(text: string, opts?: { image?: string; fallbackText?: string; silent?: boolean }) {
     const userText = opts?.fallbackText ?? text;
     try {
       const reply = await askAI(text, { image: opts?.image });
       if (mountedRef.current) {
-        setMessages((m) => [...m, { id: crypto.randomUUID(), from: "girl", text: reply }]);
+        if (!opts?.silent) setMessages((m) => [...m, { id: crypto.randomUUID(), from: "girl", text: reply }]);
         persistPair(userText, reply);
         setError(null);
       }
@@ -217,7 +236,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       console.warn("[Chat] AI error:", err);
       const fallback = getFallbackResponse(userText);
       if (mountedRef.current) {
-        setMessages((m) => [...m, { id: crypto.randomUUID(), from: "girl", text: fallback }]);
+        if (!opts?.silent) setMessages((m) => [...m, { id: crypto.randomUUID(), from: "girl", text: fallback }]);
         persistPair(userText, fallback);
         setError(err?.message || "Usando modo offline.");
       }
@@ -338,7 +357,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       const userMsg: ChatMsg = { id: crypto.randomUUID(), from: "user", text: transcript, audio: audioUrl };
       setMessages((m) => [...m, userMsg]);
 
-      const reply = await runReply(transcript);
+      const reply = await runReply(transcript, { silent: true });
       let replyAudio = "";
       try {
         const tts = await ttsText(reply.replace(/\*/g, "").trim(), `female-${activeCustom?.id ?? girl.id}`);
@@ -346,8 +365,12 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       } catch {
         replyAudio = "";
       }
-      if (mountedRef.current && replyAudio) {
-        setMessages((m) => [...m, { id: crypto.randomUUID(), from: "girl", text: reply, audio: replyAudio }]);
+      if (mountedRef.current) {
+        if (replyAudio) {
+          setMessages((m) => [...m, { id: crypto.randomUUID(), from: "girl", text: reply, audio: replyAudio }]);
+        } else {
+          setMessages((m) => [...m, { id: crypto.randomUUID(), from: "girl", text: reply }]);
+        }
       }
     } catch (err: any) {
       console.warn("[Chat] audio error:", err);
@@ -434,7 +457,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
               </div>
             </div>
           </div>
-          <a className={styles.personalityRow} href={`${p}/history/`}>
+          <a className={styles.personalityRow} href={`${p}/history/${activeCustom ? `?custom=${activeCustom.id}` : `?girl=${girl.id}`}`}>
             <svg className={styles.personalityIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             <span className={styles.personalityText}>Historial con {girl.name}</span>
             <svg className={styles.personalityChevron} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
@@ -558,19 +581,15 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
                     className={styles.photoImg}
                     onClick={() => window.open(m.image as string, "_blank")}
                   />
-                  {m.text && <span className={styles.photoCaption}>{m.text}</span>}
                 </div>
               ) : m.audio ? (
-                <div className={styles.audioWrap}>
-                  <button className={styles.audioPlayBtn} onClick={() => togglePlay(m.id, m.audio as string)} title={playingId === m.id ? "Pausar" : "Reproducir"}>
-                    {playingId === m.id ? (
-                      <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
-                    ) : (
-                      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                    )}
-                  </button>
-                  <span className={styles.audioLabel}>{m.text || "Nota de voz"}</span>
-                </div>
+                <AudioBubble
+                  id={m.id}
+                  src={m.audio as string}
+                  transcript={m.text}
+                  isPlaying={playingId === m.id}
+                  onPlay={() => togglePlay(m.id, m.audio as string)}
+                />
               ) : (
                 renderText(m.text)
               )}
@@ -627,5 +646,66 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         </div>
       </div>
     </div>
+  );
+}
+
+function AudioBubble({
+  id,
+  src,
+  transcript,
+  isPlaying,
+  onPlay,
+}: {
+  id: string;
+  src: string;
+  transcript: string;
+  isPlaying: boolean;
+  onPlay: () => void;
+}) {
+  const [dur, setDur] = useState("0:00");
+  const [showTrans, setShowTrans] = useState(false);
+
+  useEffect(() => {
+    const a = new Audio(src);
+    a.onloadedmetadata = () => {
+      const s = Math.round(a.duration);
+      if (Number.isFinite(s)) setDur(`${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`);
+    };
+    return () => { a.src = ""; };
+  }, [src]);
+
+  const bars = useMemo(() => barsFrom(id + src), [id, src]);
+
+  return (
+    <>
+      <div className={`${styles.audioWrap} ${isPlaying ? styles.audioPlaying : ""}`}>
+        <button className={styles.audioPlayBtn} onClick={onPlay} title={isPlaying ? "Pausar" : "Reproducir"}>
+          {isPlaying ? (
+            <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+          ) : (
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          )}
+        </button>
+        <div className={styles.audioWave}>
+          {bars.map((h, i) => (
+            <span
+              key={i}
+              className={styles.waveBar}
+              style={{ height: `${h}%`, animationDelay: `${(i % 8) * 0.09}s` }}
+            />
+          ))}
+        </div>
+        <span className={styles.audioTime}>{dur}</span>
+      </div>
+      <div className={styles.audioTransRow}>
+        {showTrans ? (
+          <span className={styles.audioTransText}>{transcript}</span>
+        ) : (
+          <button type="button" className={styles.transcribeBtn} onClick={() => setShowTrans(true)}>
+            transcribir
+          </button>
+        )}
+      </div>
+    </>
   );
 }

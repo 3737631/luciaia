@@ -689,8 +689,8 @@ async function handlePersonalityNext() {
                             <img src={refImage} alt="Foto de perfil" className="pointer-events-none block h-full w-full object-cover object-center" />
                           </button>
                         ) : (
-                          <label title="Subir foto" className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full bg-white/[0.06] text-white/70 transition hover:bg-white/[0.12] hover:text-white active:scale-90">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+                          <label title="Subir foto" className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full border border-white/[0.22] bg-white/[0.16] text-white transition hover:bg-white/[0.25] hover:border-white/[0.32] active:scale-90">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
                             <input type="file" accept="image/*" className="hidden" onChange={handleRefUpload} />
                           </label>
                         )}
@@ -819,22 +819,20 @@ async function handlePersonalityNext() {
                   </div>
 
                   <div className="mt-6 flex items-center justify-center gap-4">
-                    <button onClick={() => cropZoomBy(1 / 1.25)} aria-label="Alejar" className="flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.07] text-xl text-white/85 transition hover:bg-white/[0.12] active:scale-90">−</button>
-                    <button onClick={() => cropZoomBy(1.25)} aria-label="Acercar" className="flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.07] text-xl text-white/85 transition hover:bg-white/[0.12] active:scale-90">+</button>
+                    <button onClick={() => cropZoomBy(1 / 1.25)} aria-label="Alejar" className="flex h-11 w-11 items-center justify-center rounded-full border border-white/[0.2] bg-white/[0.16] text-xl text-white transition hover:bg-white/[0.24] active:scale-90">−</button>
+                    <button onClick={() => cropZoomBy(1.25)} aria-label="Acercar" className="flex h-11 w-11 items-center justify-center rounded-full border border-white/[0.2] bg-white/[0.16] text-xl text-white transition hover:bg-white/[0.24] active:scale-90">+</button>
                   </div>
 
-                  <div className="mt-6 flex gap-2.5">
-                    <label title="Subir otra foto" className="flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full bg-white/[0.06] text-white/70 transition hover:bg-white/[0.12] hover:text-white active:scale-90">
-                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+                  <div className="mt-6 flex items-center gap-2.5">
+                    <label title="Subir otra foto" className="flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full border border-white/[0.2] bg-white/[0.16] text-white transition hover:bg-white/[0.24] hover:border-white/[0.3] active:scale-90">
+                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
                       <input type="file" accept="image/*" className="hidden" onChange={handleRefUpload} />
                     </label>
-                    <button onClick={acceptCrop} className="h-12 flex-1 rounded-2xl bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-sm font-bold text-white shadow-[0_8px_24px_rgba(255,47,120,0.35)] transition hover:brightness-110 active:scale-[0.98]">Aceptar</button>
+                    <button type="button" onClick={() => { setCropOpen(false); setRefImage(null); }} title="Quitar foto" className="flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full border border-[#ff2f78]/45 bg-[#ff2f78]/25 text-[#ff9dbe] transition hover:bg-[#ff2f78]/45 hover:text-white active:scale-90">
+                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6M14 11v6"/></svg>
+                    </button>
+                    <button onClick={acceptCrop} className="h-12 flex-1 rounded-2xl bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-sm font-bold text-white shadow-[0_8px_28px_rgba(255,47,120,0.5)] ring-1 ring-white/25 transition hover:brightness-110 active:scale-[0.98]">Aceptar</button>
                   </div>
-
-                  <button onClick={() => { setCropOpen(false); setRefImage(null); }} className="mx-auto mt-5 flex h-10 items-center gap-1.5 rounded-full border border-white/[0.12] bg-white/[0.05] px-4 text-xs font-semibold text-white/75 transition hover:bg-white/[0.1] hover:text-white active:scale-95">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                    Quitar foto
-                  </button>
                 </div>
               </div>
             </div>

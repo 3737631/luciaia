@@ -169,7 +169,7 @@ export default function TusChicas({
                   </div>
                 ) : (
                   <div className="px-2 pb-2 pt-1">
-                    {customGirls.map((g, i) => {
+                    {[...customGirls].reverse().map((g, i) => {
                       const imgSrc = g.imageUrl || getGirlImage(g.baseId || "luna", g.hair, g.pose, g.background);
                       const hist = getConversationHistory(g.id);
                       const lastMsg = [...hist].reverse().find((m) => m.role === "assistant")?.content ?? "";

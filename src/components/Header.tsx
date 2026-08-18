@@ -5,7 +5,7 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 
 const navItems = [
-  { label: "Inicio", href: "/girls" },
+  { label: "Inicio", href: "/" },
   { label: "Explorar", href: "/girls" },
   { label: "Crear", href: "#crear" },
   { label: "Chat", href: "/chat/luna" },
@@ -75,7 +75,7 @@ export default function Header() {
 
         {/* Logo */}
         <Link
-          href="/girls"
+          href="/"
           style={{
             fontSize: 22,
             fontWeight: 800,
@@ -182,7 +182,7 @@ export default function Header() {
               position: "absolute", left: 0, top: 0, bottom: 0, width: 260,
               background: "#1a1a1a",
               borderRight: "1px solid rgba(255,255,255,0.06)",
-              padding: "calc(108px + env(safe-area-inset-top)) 20px 20px",
+              padding: "calc(88px + env(safe-area-inset-top)) 20px 20px",
               display: "flex",
               flexDirection: "column",
               gap: 2,
