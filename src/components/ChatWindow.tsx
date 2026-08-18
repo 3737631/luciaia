@@ -155,7 +155,11 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       const chatMsgs = messagesRef.current
         .filter((m) => m.id !== "welcome")
         .map((m) => ({ role: m.from === "user" ? "user" as const : "assistant" as const, content: m.text }));
-      if (chatMsgs.length > 1) saveToHistory(activeCustom?.id ?? girl.id, activeCustom?.name ?? girl.name, chatMsgs);
+      if (chatMsgs.length > 1) {
+        const storageId = activeCustom?.id ?? girl.id;
+        saveConversationHistory(storageId, chatMsgs);
+        saveToHistory(storageId, activeCustom?.name ?? girl.name, chatMsgs);
+      }
     };
   }, [girl.id, girl.name, activeCustom]);
 

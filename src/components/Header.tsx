@@ -189,6 +189,38 @@ export default function Header() {
             }}
           >
             {navItems.map((item) => {
+              if (item.label === "Premium") {
+                return (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    onClick={() => setMenuOpen(false)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 8,
+                      marginTop: 8,
+                      padding: "13px 14px",
+                      borderRadius: 12,
+                      fontSize: 15,
+                      fontWeight: 800,
+                      color: "#fff",
+                      textDecoration: "none",
+                      letterSpacing: "-0.01em",
+                      background: "linear-gradient(135deg, #a3004c, #e6005c)",
+                      border: "1px solid rgba(255,255,255,0.18)",
+                      boxShadow: "0 8px 22px rgba(166,0,76,0.45)",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    {item.label}
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2l2.4 7.2L22 9.6l-5.6 4.8 1.6 7.6L12 18l-6 4 1.6-7.6L2 9.6l7.6-.4z"/>
+                    </svg>
+                  </Link>
+                );
+              }
               const isActive = pathname === item.href;
               return (
                 <Link

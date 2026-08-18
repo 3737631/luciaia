@@ -15,7 +15,6 @@ import {
   extractMemoryFromMessages,
   buildSummary,
   saveConversationSummary,
-  clearAllMemory,
   saveToHistory,
   ChatMessage,
 } from "@/lib/memory";
@@ -1061,7 +1060,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
         if (!durTimerRef.current) {
           durTimerRef.current = setInterval(() => setCallDuration(d => d + 1), 1000);
         }
-        clearAllMemory(girl.id);
+        
         silentPingsRef.current = 0;
         await speakWithBrowserVoice(sanitizeForTTS(greeting) || greeting);
         if (abort.signal.aborted || !mountedRef.current) return;
@@ -1083,7 +1082,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
       };
       audioEl.onended = () => {
         if (mountedRef.current && callStateRef.current !== "ended" && callStateRef.current !== "error") {
-          clearAllMemory(girl.id);
+          
           silentPingsRef.current = 0;
           startListening();
         }
@@ -1101,7 +1100,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
         if (!durTimerRef.current) {
           durTimerRef.current = setInterval(() => setCallDuration(d => d + 1), 1000);
         }
-        clearAllMemory(girl.id);
+        
         silentPingsRef.current = 0;
         startListening();
       }
@@ -1126,7 +1125,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
         };
         audioEl.onended = () => {
           if (mountedRef.current && callStateRef.current !== "ended" && callStateRef.current !== "error") {
-            clearAllMemory(girl.id);
+            
             silentPingsRef.current = 0;
             startListening();
           }
@@ -1146,7 +1145,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
           await speakWithBrowserVoice(sanitizeForTTS(greeting) || greeting);
           if (abort.signal.aborted || !mountedRef.current) return;
           if (callStateRef.current !== "ended" && callStateRef.current !== "error") {
-            clearAllMemory(girl.id);
+            
             silentPingsRef.current = 0;
             startListening();
           }

@@ -818,9 +818,13 @@ async function handlePersonalityNext() {
                     })()}
                   </div>
 
-                  <div className="mt-6 flex items-center justify-center gap-4">
-                    <button onClick={() => cropZoomBy(1 / 1.25)} aria-label="Alejar" className="flex h-11 w-11 items-center justify-center rounded-full border border-white/[0.2] bg-white/[0.16] text-xl text-white transition hover:bg-white/[0.24] active:scale-90">−</button>
-                    <button onClick={() => cropZoomBy(1.25)} aria-label="Acercar" className="flex h-11 w-11 items-center justify-center rounded-full border border-white/[0.2] bg-white/[0.16] text-xl text-white transition hover:bg-white/[0.24] active:scale-90">+</button>
+                  <div className="mt-6 flex items-center justify-center gap-5">
+                    <button onClick={() => cropZoomBy(1 / 1.25)} aria-label="Alejar" title="Alejar" className="flex h-12 w-12 items-center justify-center rounded-full border border-white/[0.24] bg-white/[0.16] text-white transition hover:bg-white/[0.26] hover:border-white/[0.36] active:scale-90">
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><path d="M8 11h6"/></svg>
+                    </button>
+                    <button onClick={() => cropZoomBy(1.25)} aria-label="Acercar" title="Acercar" className="flex h-12 w-12 items-center justify-center rounded-full border border-white/[0.24] bg-white/[0.16] text-white transition hover:bg-white/[0.26] hover:border-white/[0.36] active:scale-90">
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><path d="M8 11h6M11 8v6"/></svg>
+                    </button>
                   </div>
 
                   <div className="mt-6 flex items-center gap-2.5">
