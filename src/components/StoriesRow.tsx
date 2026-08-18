@@ -119,6 +119,7 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
           images: idxs.map((i) => `${basePath}${g.storyImages![i]}`),
           avatar: g.cloudinaryImage ?? getGirlImage(g.id, null, null, null, g.cloudinaryImage),
           name: g.name,
+          greeting: g.roleplayGreetings?.[0] ?? "",
         };
       });
     const startIndex = chars.findIndex((c) => c.id === girl.id);

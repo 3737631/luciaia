@@ -2,8 +2,10 @@
 
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
+import { useRouter } from "next/navigation";
 import { saveInteraction } from "@/lib/storyInteractionsService";
 import { preloadImage as preloadAndDecodeImage, isImageReady } from "@/lib/preloadImage";
+import InAppNotification, { type NotificationData } from "./InAppNotification";
 
 const QUICK_REACTIONS = ["😍", "😂", "😮", "😢", "🔥"];
 const HOLD_REACTIONS = ["😂", "😍", "😮", "😢", "👏", "🔥"];
@@ -98,12 +100,13 @@ function createGesture(e: React.PointerEvent): GestureState {
 }
 
 export default function StoryViewer({ characters, startCharIndex, initialImageSrc, onClose, onMarkSeen }: {
-  characters: Array<{ id: string; images: string[]; avatar: string; name: string }>;
+  characters: Array<{ id: string; images: string[]; avatar: string; name: string; greeting?: string }>;
   startCharIndex: number;
   initialImageSrc: string;
   onClose: () => void;
   onMarkSeen?: (id: string) => void;
 }) {
+  const router = useRouter();
   const [charIndex, setCharIndex] = useState(startCharIndex);
   const [currentIndex, setCurrentIndex] = useState(0);
   const currentChar = characters[charIndex];
@@ -132,6 +135,19 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
   const [msgConfirm, setMsgConfirm] = useState<string | null>(null);
   const [longPressActive, setLongPressActive] = useState(false);
   const [timeAgo, setTimeAgo] = useState("");
+  const [notify, setNotify] = useState<NotificationData | null>(null);
+
+  const showReactionNotify = useCallback((char: { id: string; avatar: string; name: string; greeting?: string }) => {
+    const greeting = char.greeting?.trim() || `${char.name} reaccionó a tu historia`;
+    setNotify({
+      id: `${char.id}-${Date.now()}`,
+      type: "reaction",
+      title: char.name,
+      message: greeting,
+      avatar: char.avatar || undefined,
+      duration: 3500,
+    });
+  }, []);
 
   const [incomingChar, setIncomingChar] = useState<{
     charIdx: number;
@@ -586,6 +602,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
     }
     setTimeout(() => { if (mountedRef.current) setFloatingEmojis((p) => p.filter((r) => r.id !== id)); }, 850);
     setReactionPickerOpen(false); setHighlightedReaction(null); highlightRef.current = null;
+    showReactionNotify(currentChar);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentChar.name]);
 
@@ -612,9 +629,10 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
     if (heartHoldTimer.current) clearTimeout(heartHoldTimer.current);
     if (!heartOpenedPicker.current) {
       triggerHaptic(15);
+      const key = `${charIndex}-${currentIndex}`;
+      const isNowLiked = !likedStories[key];
+      if (isNowLiked) showReactionNotify(currentChar);
       setLikedStories((prev) => {
-        const key = `${charIndex}-${currentIndex}`;
-        const isNowLiked = !prev[key];
         if (isNowLiked) {
           const btn = heartBtnRef.current;
           const x = btn ? btn.getBoundingClientRect().left + btn.offsetWidth / 2 : window.innerWidth / 2;
@@ -627,7 +645,8 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
       });
     }
     heartOpenedPicker.current = false;
-  }, [charIndex, currentIndex]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [charIndex, currentIndex, likedStories, showReactionNotify]);
 
   const handleHeartCancel = useCallback(() => {
     if (heartHoldTimer.current) clearTimeout(heartHoldTimer.current);
@@ -1225,6 +1244,13 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
           </div>
         )}
       </div>
+      {notify && (
+        <InAppNotification
+          notification={notify}
+          onRemove={(id) => setNotify((n) => (n && n.id === id ? null : n))}
+          onClick={() => router.push(`/chat/${currentChar.id}`)}
+        />
+      )}
     </>
   );
 

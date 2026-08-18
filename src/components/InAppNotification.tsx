@@ -16,9 +16,10 @@ export interface NotificationData {
 interface Props {
   notification: NotificationData;
   onRemove: (id: string) => void;
+  onClick?: () => void;
 }
 
-export default function InAppNotification({ notification, onRemove }: Props) {
+export default function InAppNotification({ notification, onRemove, onClick }: Props) {
   const [exit, setExit] = useState(false);
 
   useEffect(() => {
@@ -38,6 +39,7 @@ export default function InAppNotification({ notification, onRemove }: Props) {
     <div
       role="alert"
       aria-live="assertive"
+      onClick={onClick}
       style={{
         position: "fixed",
         top: `calc(env(safe-area-inset-top, 8px) + 8px)`,
@@ -56,6 +58,8 @@ export default function InAppNotification({ notification, onRemove }: Props) {
         animation: exit ? "slideOutUp 0.3s ease forwards" : "slideInDown 0.3s ease",
         maxWidth: 400,
         margin: "0 auto",
+        cursor: onClick ? "pointer" : "default",
+        border: "1px solid rgba(255,255,255,0.08)",
       }}
     >
       {notification.avatar ? (
@@ -71,6 +75,9 @@ export default function InAppNotification({ notification, onRemove }: Props) {
         <div style={{ color: "#fff", fontSize: 13, fontWeight: 700 }}>{notification.title}</div>
         <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 12, marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{notification.message}</div>
       </div>
+      {onClick && (
+        <div style={{ color: "#FF5798", fontSize: 12, fontWeight: 700, flexShrink: 0 }}>Ver →</div>
+      )}
     </div>
   );
 }
