@@ -444,13 +444,6 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
     setCropScale((s) => clampScale(s * f));
   }
 
-  function cropReset() {
-    const { w, h } = cropNat.current;
-    if (!w || !h) return;
-    setCropScale(CROP_VIEW / Math.min(w, h));
-    setCropOffset({ x: 0, y: 0 });
-  }
-
   function acceptCrop() {
     const el = cropElRef.current;
     if (!el) return;
@@ -684,34 +677,29 @@ async function handlePersonalityNext() {
                       </AnimatePresence>
 
                       {/* Foto opcional */}
-                      <button type="button" onClick={() => setOpenSection(openSection === "photo" ? null : "photo")}
-                        className="mt-6 flex w-full items-center justify-between rounded-xl py-2 text-[0.95rem] font-semibold text-white/90 transition hover:text-white">
-                        <span>
-                          Foto de perfil (opcional)
-                          {!refImage && <span className="ml-2 align-middle text-[0.6rem] font-normal text-white/40">si no subes, la IA la crea</span>}
+                      <div className="mt-6 flex items-center justify-between gap-3">
+                        <span className="min-w-0 text-[0.95rem] font-semibold text-white/90">
+                          Foto de perfil
+                          <span className="ml-2 align-middle text-[0.6rem] font-normal text-white/40">
+                            {refImage ? "pulsa la foto para ajustarla" : "opcional, si no la IA la crea"}
+                          </span>
                         </span>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-200 ${openSection === "photo" ? "rotate-180" : ""}`}><path d="m6 9 6 6 6-6"/></svg>
-                      </button>
-                      <AnimatePresence initial={false}>
-                        {openSection === "photo" && (
-                          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
-                            {refImage ? (
-                              <div className="relative mt-2 mb-2">
-                                <button type="button" onClick={() => openCrop(rawRefImg.current || refImage)} title="Ajustar foto" className="block h-24 w-full overflow-hidden rounded-xl border border-white/[0.08] p-0">
-                                  <img src={refImage} alt="Referencia" className="pointer-events-none block h-full w-full object-cover object-center" />
-                                </button>
-                                <button onClick={() => setRefImage(null)} className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-xs text-white">✕</button>
-                              </div>
-                            ) : (
-                              <label className="mt-2 flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-white/[0.05] text-xs font-semibold text-white/80 transition hover:bg-white/[0.09] hover:text-white active:scale-[0.99]">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
-                                Subir una foto (opcional)
-                                <input type="file" accept="image/*" className="hidden" onChange={handleRefUpload} />
-                              </label>
-                            )}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                        <span className="flex shrink-0 items-center gap-2">
+                          {refImage && (
+                            <>
+                              <button type="button" onClick={() => openCrop(rawRefImg.current || refImage)} title="Ajustar foto" className="h-11 w-11 shrink-0 overflow-hidden rounded-full border border-white/[0.12] p-0 transition hover:brightness-110 active:scale-95">
+                                <img src={refImage} alt="Foto de perfil" className="pointer-events-none block h-full w-full object-cover object-center" />
+                              </button>
+                              <button onClick={() => setRefImage(null)} aria-label="Quitar foto" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/[0.05] text-sm text-white/60 transition hover:bg-white/[0.09] hover:text-white active:scale-95">✕</button>
+                            </>
+                          )}
+                          <label className="flex h-11 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-white/[0.05] px-3.5 text-xs font-semibold text-white/80 transition hover:bg-white/[0.09] hover:text-white active:scale-95">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
+                            {refImage ? "Cambiar" : "Subir"}
+                            <input type="file" accept="image/*" className="hidden" onChange={handleRefUpload} />
+                          </label>
+                        </span>
+                      </div>
 
                       <button ref={siguienteRef} onClick={handleDescribeNext}
                         className="mt-7 h-[52px] w-full rounded-2xl bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-[0.95rem] font-bold text-white transition hover:brightness-110 active:scale-[0.99]">
@@ -808,53 +796,46 @@ async function handlePersonalityNext() {
 
           {/* Editor de recorte circular */}
           {cropOpen && cropImg && (
-            <div className="fixed inset-0 z-[80] flex items-center justify-center overflow-y-auto bg-black/80 px-5 py-8 backdrop-blur-md">
-              <div className="my-auto w-full max-w-[380px] rounded-3xl border border-white/[0.08] bg-[#15151a]/95 p-5 shadow-2xl">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-[0.95rem] font-bold tracking-tight text-white">Ajustar foto de perfil</h3>
-                  <button onClick={() => setCropOpen(false)} aria-label="Cerrar" className="flex h-7 w-7 items-center justify-center rounded-full bg-white/[0.08] text-white/70 transition hover:bg-white/[0.14] hover:text-white active:scale-90">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
-                  </button>
-                </div>
-                <p className="mt-1 text-xs leading-relaxed text-white/40">
-                  Arrastra para mover la foto y usa los botones para acercar o alejar. Solo se guarda lo que se ve dentro del círculo.
-                </p>
+            <div className="fixed inset-0 z-[80] overflow-y-auto bg-black/80 px-6 py-8 backdrop-blur-md" onClick={() => setCropOpen(false)}>
+              <div className="flex min-h-full items-center justify-center">
+                <div className="my-auto w-full max-w-[300px]" onClick={(e) => e.stopPropagation()}>
+                  <div
+                    ref={cropViewRef}
+                    className="relative mx-auto touch-none select-none overflow-hidden rounded-full"
+                    style={{ width: CROP_VIEW, height: CROP_VIEW, boxShadow: "0 0 0 9999px rgba(0,0,0,0.55)", border: "2px solid rgba(255,255,255,0.3)" }}
+                    onPointerDown={onCropPointerDown}
+                    onPointerMove={onCropPointerMove}
+                    onPointerUp={onCropPointerEnd}
+                    onPointerCancel={onCropPointerEnd}
+                  >
+                    {(() => {
+                      const iw = cropNat.current.w * cropScale;
+                      const ih = cropNat.current.h * cropScale;
+                      return (
+                        <img
+                          src={cropImg}
+                          alt=""
+                          draggable={false}
+                          className="pointer-events-none select-none"
+                          style={{ position: "absolute", left: CROP_VIEW / 2 - iw / 2 + cropOffset.x, top: CROP_VIEW / 2 - ih / 2 + cropOffset.y, width: iw, height: ih, maxWidth: "none" }}
+                        />
+                      );
+                    })()}
+                  </div>
 
-                <div
-                  ref={cropViewRef}
-                  className="relative mx-auto mt-5 touch-none select-none overflow-hidden rounded-full"
-                  style={{ width: CROP_VIEW, height: CROP_VIEW, boxShadow: "0 0 0 9999px rgba(0,0,0,0.55)", border: "2px solid rgba(255,255,255,0.35)" }}
-                  onPointerDown={onCropPointerDown}
-                  onPointerMove={onCropPointerMove}
-                  onPointerUp={onCropPointerEnd}
-                  onPointerCancel={onCropPointerEnd}
-                >
-                  {(() => {
-                    const iw = cropNat.current.w * cropScale;
-                    const ih = cropNat.current.h * cropScale;
-                    return (
-                      <img
-                        src={cropImg}
-                        alt=""
-                        draggable={false}
-                        className="pointer-events-none select-none"
-                        style={{ position: "absolute", left: CROP_VIEW / 2 - iw / 2 + cropOffset.x, top: CROP_VIEW / 2 - ih / 2 + cropOffset.y, width: iw, height: ih, maxWidth: "none" }}
-                      />
-                    );
-                  })()}
-                </div>
+                  <div className="mt-6 flex items-center justify-center gap-4">
+                    <button onClick={() => cropZoomBy(1 / 1.25)} aria-label="Alejar" className="flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.07] text-xl text-white/85 transition hover:bg-white/[0.12] active:scale-90">−</button>
+                    <button onClick={() => cropZoomBy(1.25)} aria-label="Acercar" className="flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.07] text-xl text-white/85 transition hover:bg-white/[0.12] active:scale-90">+</button>
+                  </div>
 
-                <div className="mt-5 flex items-center justify-center gap-3">
-                  <button onClick={() => cropZoomBy(1 / 1.25)} aria-label="Alejar" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.07] text-xl text-white/85 transition hover:bg-white/[0.12] active:scale-90">−</button>
-                  <button onClick={cropReset} aria-label="Restablecer" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.07] text-white/85 transition hover:bg-white/[0.12] active:scale-90">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-                  </button>
-                  <button onClick={() => cropZoomBy(1.25)} aria-label="Acercar" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.07] text-xl text-white/85 transition hover:bg-white/[0.12] active:scale-90">+</button>
-                </div>
-
-                <div className="mt-6 flex gap-2.5">
-                  <button onClick={() => setCropOpen(false)} className="h-12 flex-1 rounded-2xl bg-white/[0.06] text-sm font-bold text-white/80 transition hover:bg-white/[0.1] active:scale-[0.98]">Cancelar</button>
-                  <button onClick={acceptCrop} className="h-12 flex-[1.6] rounded-2xl bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-sm font-bold text-white transition hover:brightness-110 active:scale-[0.98]">Aceptar</button>
+                  <div className="mt-6 flex gap-2.5">
+                    <label className="flex h-12 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-2xl bg-white/[0.06] text-sm font-bold text-white/80 transition hover:bg-white/[0.1] active:scale-[0.98]">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
+                      Subir otra
+                      <input type="file" accept="image/*" className="hidden" onChange={handleRefUpload} />
+                    </label>
+                    <button onClick={acceptCrop} className="h-12 flex-[1.6] rounded-2xl bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-sm font-bold text-white transition hover:brightness-110 active:scale-[0.98]">Aceptar</button>
+                  </div>
                 </div>
               </div>
             </div>
