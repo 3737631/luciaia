@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { getHistory, clearHistory, getConversationHistory, ChatMessage } from "@/lib/memory";
+import { getHistory, clearHistory, getConversationHistory } from "@/lib/memory";
 import { getCustomGirls } from "@/lib/storage";
 import { getGirlImage } from "@/lib/images";
 import { girls } from "@/data/girls";
@@ -21,7 +21,7 @@ interface GirlRow {
 export default function HistoryPage() {
   const [rows, setRows] = useState<GirlRow[]>([]);
   const [single, setSingle] = useState<GirlRow | null>(null);
-  const [singleMsgs, setSingleMsgs] = useState<ChatMessage[]>([]);
+  const [singleLast, setSingleLast] = useState("");
   const [confirmClear, setConfirmClear] = useState(false);
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export default function HistoryPage() {
           lastTs: 0,
           lastPreview: "",
         });
-        setSingleMsgs(getConversationHistory(g.id));
+        setSingleLast(lastMessage(g.id));
         return;
       }
     }
@@ -55,7 +55,7 @@ export default function HistoryPage() {
           lastTs: 0,
           lastPreview: "",
         });
-        setSingleMsgs(getConversationHistory(girl.id));
+        setSingleLast(lastMessage(girl.id));
         return;
       }
     }
@@ -108,11 +108,23 @@ export default function HistoryPage() {
   }, []);
 
   function handleClear() {
-    clearHistory();
-    for (const girl of girls) clearGirlConversation(girl.id);
-    for (const g of getCustomGirls()) clearGirlConversation(g.id);
-    setRows((rs) => rs.map((r) => ({ ...r, lastTs: 0, lastPreview: "" })));
+    if (single) {
+      clearGirlConversation(single.girlId);
+      setSingleLast("");
+    } else {
+      clearHistory();
+      for (const girl of girls) clearGirlConversation(girl.id);
+      for (const g of getCustomGirls()) clearGirlConversation(g.id);
+      setRows((rs) => rs.map((r) => ({ ...r, lastTs: 0, lastPreview: "" })));
+    }
     setConfirmClear(false);
+  }
+
+  function lastMessage(girlId: string): string {
+    const msgs = getConversationHistory(girlId);
+    if (msgs.length === 0) return "";
+    const last = msgs[msgs.length - 1];
+    return (last.role === "user" ? "Tú: " : "") + last.content.slice(0, 80);
   }
 
   function clearGirlConversation(girlId: string) {
@@ -147,7 +159,7 @@ export default function HistoryPage() {
                 : "Tus conversaciones con cada chica. Al entrar retomas donde la dejaste."}
             </p>
           </div>
-          {!single && rows.some((r) => r.lastTs > 0) && (
+          {(single || rows.some((r) => r.lastTs > 0)) && (
             <button
               onClick={() => setConfirmClear(true)}
               className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-muted transition-all hover:bg-[#ff2f78]/15 hover:text-white active:scale-95"
@@ -173,52 +185,25 @@ export default function HistoryPage() {
               Volver
             </Link>
 
-            {singleMsgs.length === 0 ? (
-              <div className="flex flex-1 flex-col items-center justify-center py-20 text-center">
-                <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl glass">
-                  <svg viewBox="0 0 24 24" className="h-7 w-7 text-muted/50" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="M22 7l-10 7L2 7" /></svg>
-                </div>
-                <p className="text-lg font-semibold tracking-tight">Aún no hay conversación con {single.name}</p>
-                <Link href={single.href} className="mt-8 rounded-xl gradient-btn px-6 py-3 text-sm font-semibold shadow-lg shadow-pink-500/25">
-                  Empezar a chatear con {single.name}
-                </Link>
+            <Link
+              href={single.href}
+              className="flex w-full items-center gap-3.5 rounded-2xl px-2 py-2.5 text-left transition hover:bg-white/[0.04] active:scale-[0.99]"
+            >
+              <div className="h-[62px] w-[62px] shrink-0 overflow-hidden rounded-full border border-white/[0.09] bg-gradient-to-br from-[#ff5798]/30 to-[#8b5cf6]/25">
+                {single.img ? (
+                  <img src={single.img} alt={single.name} className="h-full w-full object-cover object-center" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-lg font-bold text-white">{single.name[0]}</div>
+                )}
               </div>
-            ) : (
-              <>
-                <div className="mb-4 flex items-center gap-3">
-                  <div className="h-14 w-14 shrink-0 overflow-hidden rounded-full border border-white/[0.09] bg-gradient-to-br from-[#ff5798]/30 to-[#8b5cf6]/25">
-                    {single.img ? (
-                      <img src={single.img} alt={single.name} className="h-full w-full object-cover object-center" />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-lg font-bold text-white">{single.name[0]}</div>
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-lg font-bold tracking-tight text-white">{single.name}</p>
-                    <p className="text-xs text-white/40">{singleMsgs.length} mensaje{singleMsgs.length === 1 ? "" : "s"}</p>
-                  </div>
-                </div>
-                <div className="flex flex-col gap-3 rounded-3xl border border-white/[0.06] bg-white/[0.02] p-4">
-                  {singleMsgs.map((m, i) => (
-                    <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                      <div
-                        className={`max-w-[80%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
-                          m.role === "user"
-                            ? "rounded-br-md bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-white"
-                            : "rounded-bl-md bg-white/[0.08] text-white/85"
-                        }`}
-                      >
-                        {m.content}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <Link href={single.href} className="mx-auto mt-6 flex w-fit items-center gap-2 rounded-xl gradient-btn px-6 py-3 text-sm font-semibold shadow-lg shadow-pink-500/25">
-                  Chatear con {single.name}
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
-                </Link>
-              </>
-            )}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[1.02rem] font-semibold leading-tight text-white">{single.name}</p>
+                <p className="mt-0.5 max-w-full truncate text-[13px] text-white/40">
+                  {singleLast || "Toca para empezar a chatear"}
+                </p>
+              </div>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 text-white/25"><path d="M9 18l6-6-6-6" /></svg>
+            </Link>
           </div>
         ) : rows.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-32 text-center">
@@ -272,9 +257,19 @@ export default function HistoryPage() {
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#ff2f78]/15 text-[#ff5f8f]">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
               </div>
-              <h3 className="mt-4 text-lg font-bold tracking-tight text-white">Borrar todo el historial</h3>
+              <h3 className="mt-4 text-lg font-bold tracking-tight text-white">
+                {single ? `Borrar conversación con ${single.name}` : "Borrar todo el historial"}
+              </h3>
               <p className="mt-2 text-sm leading-relaxed text-white/55">
-                Se borrarán <span className="font-semibold text-white/80">para siempre</span> todas las conversaciones de este dispositivo. Esta acción no se puede deshacer.
+                {single ? (
+                  <>
+                    Se borrará <span className="font-semibold text-white/80">para siempre</span> la conversación con {single.name}. Esta acción no se puede deshacer.
+                  </>
+                ) : (
+                  <>
+                    Se borrarán <span className="font-semibold text-white/80">para siempre</span> todas las conversaciones de este dispositivo. Esta acción no se puede deshacer.
+                  </>
+                )}
               </p>
               <div className="mt-6 flex gap-2.5">
                 <button onClick={() => setConfirmClear(false)} className="h-12 flex-1 rounded-2xl bg-white/[0.06] text-sm font-bold text-white/80 transition hover:bg-white/[0.1] active:scale-[0.98]">
