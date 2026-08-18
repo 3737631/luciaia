@@ -10,6 +10,7 @@ import { getFallbackResponse } from "@/lib/ai";
 import { sendChatMessage } from "@/lib/chatClient";
 import { sttAudio, ttsText } from "@/lib/voiceClient";
 import {
+  getConversationHistory,
   saveConversationHistory,
   getConversationSummary,
   saveConversationSummary,
@@ -18,8 +19,7 @@ import {
   extractMemoryFromMessages,
   buildSummary,
   clearAllMemory,
-  createSession,
-  updateSession,
+  saveToHistory,
   ChatMessage,
 } from "@/lib/memory";
 import styles from "./ChatExperience.module.css";
@@ -64,7 +64,6 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   messagesRef.current = messages;
   const welcomeNameRef = useRef("");
   const skipWelcomeRef = useRef(false);
-  const sessionIdRef = useRef<string | null>(null);
   const activeCustomJsonRef = useRef("");
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -91,15 +90,19 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         setActiveCustom(g);
         setShowModePicker(false);
         skipWelcomeRef.current = true;
-        // Cada vez que entras empieza una conversación nueva.
+        // Retomar la conversación donde la dejaste.
+        const saved = getConversationHistory(customId);
+        if (saved.length > 0) {
+          setMessages(saved.map((m, i) => ({ id: `hist-${i}`, from: m.role === "user" ? "user" : "girl", text: m.content })));
+        }
         if (g.roleplayDesc?.trim()) {
           setMode("actions");
           const scenario = `Chica: ${g.girlDesc}\nRoleplay: ${g.roleplayDesc}`;
           setCustomScenario(scenario);
-          setMessages([{ id: "welcome", from: "girl", text: g.roleplayDesc }]);
+          if (saved.length === 0) setMessages([{ id: "welcome", from: "girl", text: g.roleplayDesc }]);
         } else {
           setMode("text");
-          setMessages([{ id: "welcome", from: "girl", text: `Hola, soy ${g.name}. Qué bien que hayas entrado` }]);
+          if (saved.length === 0) setMessages([{ id: "welcome", from: "girl", text: `Hola, soy ${g.name}. Qué bien que hayas entrado` }]);
         }
       }
     }
@@ -124,6 +127,13 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
 
   useEffect(() => {
     if (messagesRef.current.length > 0 || skipWelcomeRef.current) return;
+    // Retomar la conversación donde la dejaste.
+    const saved = getConversationHistory(girl.id);
+    if (saved.length > 0) {
+      skipWelcomeRef.current = true;
+      setMessages(saved.map((m, i) => ({ id: `hist-${i}`, from: m.role === "user" ? "user" : "girl", text: m.content })));
+      return;
+    }
     const name = welcomeNameRef.current || girl.name;
     const welcomes = [
       `Hola, soy ${name}. Qué bien que hayas entrado`,
@@ -148,26 +158,10 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       if (chatMsgs.length > 1) {
         const storageId = activeCustom?.id ?? girl.id;
         saveConversationHistory(storageId, chatMsgs);
-      }
-      if (sessionIdRef.current && messagesRef.current.length > 0) {
-        updateSession(
-          sessionIdRef.current,
-          messagesRef.current.map((m) => ({ role: m.from === "user" ? "user" as const : "assistant" as const, content: m.text }))
-        );
+        saveToHistory(storageId, activeCustom?.name ?? girl.name, chatMsgs);
       }
     };
   }, [girl.id, girl.name, activeCustom]);
-
-  // Cada entrada al chat crea una sesión nueva en el historial.
-  useEffect(() => {
-    const msgs = messagesRef.current;
-    if (msgs.length === 0) return;
-    const chat: ChatMessage[] = msgs.map((m) => ({ role: m.from === "user" ? "user" as const : "assistant" as const, content: m.text }));
-    if (!sessionIdRef.current) {
-      sessionIdRef.current = createSession(activeCustom?.id ?? girl.id, activeCustom?.name ?? girl.name);
-    }
-    updateSession(sessionIdRef.current, chat);
-  }, [messages, girl.id, girl.name, activeCustom]);
 
   async function startRoleplay() {
     setMode("actions");
