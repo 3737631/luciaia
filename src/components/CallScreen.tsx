@@ -1789,11 +1789,11 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
                   aria-pressed={subtitlesOn}
                   style={{
                     width: 68, height: 68, borderRadius: "50%",
-                    background: subtitlesOn ? "rgba(255,255,255,0.09)" : "rgba(255,255,255,0.86)",
+                    background: subtitlesOn ? "rgba(255,255,255,0.86)" : "rgba(255,255,255,0.09)",
                     border: "1px solid rgba(255,255,255,0.10)",
                     cursor: "pointer",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    color: subtitlesOn ? "rgba(255,255,255,0.92)" : "rgba(20,16,22,0.96)",
+                    color: subtitlesOn ? "rgba(20,16,22,0.96)" : "rgba(255,255,255,0.92)",
                     backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
                     transition: "transform 140ms ease, background-color 160ms ease, color 160ms ease",
                     WebkitTapHighlightColor: "transparent",

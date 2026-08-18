@@ -293,7 +293,7 @@ export default function StoryVideoViewer({
           onClick={(e) => { e.stopPropagation(); handleClose(); }}
           style={{
             position: "absolute", zIndex: 13,
-            top: "calc(env(safe-area-inset-top,0px) + 12px)", right: 10,
+            top: "calc(env(safe-area-inset-top,0px) + 4px)", right: 10,
             width: 38, height: 38, display: "grid", placeItems: "center",
             border: 0, borderRadius: "50%", background: "rgba(22,22,22,.5)",
             color: "#fff", cursor: "pointer",
