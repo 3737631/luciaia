@@ -29,7 +29,9 @@ Deno.serve(async (req) => {
     } = body;
 
     const apiKey = Deno.env.get("OPENROUTER_API_KEY");
-    const model = Deno.env.get("OPENROUTER_MODEL") || "openai/gpt-4o-mini";
+    const model = image
+      ? (Deno.env.get("OPENROUTER_VISION_MODEL") || "openai/gpt-4o-mini:openai")
+      : (Deno.env.get("OPENROUTER_MODEL") || "openai/gpt-4o-mini");
 
     if (!apiKey) {
       return new Response(
