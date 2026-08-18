@@ -89,8 +89,8 @@ async function nscaleGenerate(prompt: string, width: number, height: number, see
 //  - POLLINATIONS_MODEL: fuerza un Ãºnico modelo (p.ej. "seedream5").
 //  - POLLINATIONS_MODELS: lista ordenada separada por comas.
 const DEFAULT_POLLINATIONS_MODELS = [
-  "seedream5",
   "flux",
+  "seedream5",
   "gpt-image-2",
   "seedream5-pro",
   "nanobanana-2",
@@ -558,7 +558,7 @@ Deno.serve(async (req) => {
     // fotorrealista con textura de piel real.
     const rawDesc = String(body.prompt || "").trim();
     const prompt = isAvatar
-      ? `photorealistic professional headshot portrait of ${rawDesc || "a beautiful young woman"}, perfect square selfie composition, the face fills 70% of the image perfectly centered with even margins on all sides, head and shoulders tightly centered, camera directly facing her, bright clean soft studio lighting in light pastel tones, bright luminous background, no dark background, no black background, no shadows behind the subject, extremely realistic human skin rendered pixel by pixel with visible pores, fine vellus hairs, natural skin grain and micro texture, subtle skin blemishes and faint redness in cheeks, believable subsurface scattering, matte natural skin, slight natural shine on the skin, detailed iris with natural highlights, individual eyelashes, softly shaped natural brows, light natural makeup, natural friendly smile, soft natural window light, gentle catchlights in the eyes, shallow depth of field, tack sharp focus on the eyes, high resolution face detail, perfectly symmetrical clothing with both sleeves identical, proportionate normal shoulders and neck, natural human proportions, square profile picture crop for a circular avatar, the circle will cut the edges so the face must stay perfectly centered, no full body, no chest, no cleavage, candid real photography, must look like a real photo of a real person, raw camera photo with sensor noise and natural color grading, NOT a CGI render, no plastic skin, no wax skin, no airbrushed porcelain face, no doll-like mannequin face, no 3D render look, no anime, no cartoon, no illustration, no beauty filter, no smooth airbrushed skin, no glossy skin, no skin blur, no distorted anatomy, no extra limbs, no missing sleeve, no oversized body parts, no giant hands, no deformed face`
+      ? `candid smartphone front-camera selfie photo of a real person, ${rawDesc || "a beautiful young woman"}, close-up headshot selfie where the face fills most of the square frame and is perfectly centered, face looking slightly off-center like a real selfie, natural casual selfie lighting from a window or room light, bright soft clean background behind the head, real human skin with visible pores, tiny freckles, natural blemishes, subtle redness, fine vellus hairs on the skin, slightly uneven skin tone, natural matte skin, no makeup or very light natural makeup, natural slightly asymmetrical friendly smile, hair naturally messy and not perfectly styled, shot on a smartphone camera, amateur casual unedited selfie, slight motion softness, natural sensor noise and grain, candid real-life photo taken by a person, must look like a genuine unedited phone photo of a real woman, NOT a professional photoshoot, NOT a studio beauty portrait, NOT fashion magazine, NOT anime, NOT cartoon, NOT illustration, NOT CGI render, no beauty filter, no airbrushed skin, no plastic doll face, no wax skin, no porcelain perfect skin, no perfect symmetrical face, no glowing skin, no glamour makeup, no dark background, no black background`
       : buildPhotoPrompt(rawDesc, seed);
 
     // El avatar se genera en cuadrado para el cÃ­rculo de perfil.
