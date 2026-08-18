@@ -321,6 +321,7 @@ export default function CreateYourGirl({ open, onClose, onCreated, editGirl }: {
   const [openSection, setOpenSection] = useState<"roleplay" | "photo" | null>(null);
   const [top, setTop] = useState(88);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const siguienteRef = useRef<HTMLButtonElement>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -401,6 +402,9 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
         canvas.height = Math.round(img.height * scale);
         canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
         setRefImage(canvas.toDataURL("image/jpeg", 0.85));
+        requestAnimationFrame(() => {
+          siguienteRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        });
       };
       img.src = String(reader.result);
     };
@@ -580,8 +584,8 @@ async function handlePersonalityNext() {
                         {openSection === "photo" && (
                           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
                             {refImage ? (
-                              <div className="relative mt-2">
-                                <img src={refImage} alt="Referencia" className="h-28 w-full rounded-xl object-cover object-top" />
+                              <div className="relative mt-2 mb-2">
+                                <img src={refImage} alt="Referencia" className="block h-24 w-full rounded-xl object-cover object-center" />
                                 <button onClick={() => setRefImage(null)} className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-xs text-white">✕</button>
                               </div>
                             ) : (
@@ -595,7 +599,7 @@ async function handlePersonalityNext() {
                         )}
                       </AnimatePresence>
 
-                      <button onClick={handleDescribeNext}
+                      <button ref={siguienteRef} onClick={handleDescribeNext}
                         className="mt-7 h-[52px] w-full rounded-2xl bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-[0.95rem] font-bold text-white transition hover:brightness-110 active:scale-[0.99]">
                         Siguiente →
                       </button>

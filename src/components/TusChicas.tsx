@@ -129,9 +129,9 @@ export default function TusChicas({
                     type="button"
                     onClick={onCreate}
                     aria-label="Crear chica"
-                    className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.06] text-[1.35rem] font-normal leading-none text-white/70 transition hover:bg-white/[0.12] hover:text-white active:scale-90"
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.06] text-white/70 transition hover:bg-white/[0.12] hover:text-white active:scale-90"
                   >
-                    +
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
                   </button>
                 </div>
                 <div className="mt-5 h-0.5 w-full overflow-hidden rounded-full bg-white/[0.07]">
