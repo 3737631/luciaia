@@ -5,10 +5,10 @@ import Link from "next/link";
 import { getGirlImage } from "@/lib/images";
 
 const BANNERS = [
-  { id: "luna", name: "Sofia", tag: "En vivo ahora", href: "/chat/luna?picker=1" },
-  { id: "vera", name: "Vera", tag: "Nueva historia", href: "/chat/vera?picker=1" },
-  { id: "maya", name: "Maya", tag: "Popular", href: "/chat/maya?picker=1" },
-  { id: "sasha", name: "Sasha", tag: "En vivo ahora", href: "/chat/sasha?picker=1" },
+  { id: "luna", name: "Sofia", tag: "En vivo ahora", href: "/chat/luna" },
+  { id: "vera", name: "Vera", tag: "Nueva historia", href: "/chat/vera" },
+  { id: "maya", name: "Maya", tag: "Popular", href: "/chat/maya" },
+  { id: "sasha", name: "Sasha", tag: "En vivo ahora", href: "/chat/sasha" },
 ];
 
 export default function HeroShowcaseCarousel() {

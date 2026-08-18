@@ -91,7 +91,11 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     const qs = new URLSearchParams(window.location.search);
     if (qs.get("picker") === "1") forcePickerRef.current = true;
     const replyParam = qs.get("reply");
-    if (replyParam) storyReplyRef.current = replyParam;
+    if (replyParam) {
+      storyReplyRef.current = replyParam;
+      // Venir de una historia = chat directo, nunca el selector.
+      setShowModePicker(false);
+    }
     const customId = qs.get("custom");
     if (customId) {
       const g = getCustomGirls().find((x) => x.id === customId);

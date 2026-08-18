@@ -1076,33 +1076,26 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
             display: "flex", alignItems: "center", gap: 6,
             padding: "8px 14px max(16px, env(safe-area-inset-bottom,0px))",
           }}>
-            <div data-story-interactive style={{ flex: 1, minWidth: 0, position: "relative" }}>
-              <div style={{
-                position: "absolute", inset: 0, borderRadius: 999,
+            <div data-story-interactive
+              onPointerDown={(e) => { e.stopPropagation(); if (document.activeElement !== hiddenInputRef.current) hiddenInputRef.current?.focus({ preventScroll: true }); }}
+              onTouchStart={(e) => { e.stopPropagation(); }}
+              onTouchEnd={(e) => { e.stopPropagation(); if (document.activeElement !== hiddenInputRef.current) hiddenInputRef.current?.focus({ preventScroll: true }); }}
+              onClick={(e) => { e.stopPropagation(); if (document.activeElement !== hiddenInputRef.current) hiddenInputRef.current?.focus({ preventScroll: true }); }}
+              style={{
+                flex: 1, height: 41, minWidth: 0, display: "flex", alignItems: "center",
+                padding: "0 15px", borderRadius: 999,
                 border: "1px solid rgba(255,255,255,.44)",
                 background: "rgba(8,8,8,.14)",
                 backdropFilter: "blur(12px) saturate(120%)",
                 WebkitBackdropFilter: "blur(12px) saturate(120%)",
-                pointerEvents: "none",
+                cursor: "text",
+                color: message ? "#fff" : "rgba(255,255,255,.72)",
+                fontFamily: font, fontSize: 14, lineHeight: "20px", fontWeight: 400,
+                whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
                 transition: `border-color 180ms ${APPLE_SPRING}, background 180ms ${APPLE_SPRING}`,
-              }} />
-              <input
-                ref={hiddenInputRef}
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onFocus={() => setIsComposerFocused(true)}
-                onBlur={() => { setIsComposerFocused(false); setKeyboardInset(0); }}
-                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-                inputMode="text" autoComplete="off" enterKeyHint="send" aria-label="Enviar mensaje"
-                placeholder="Enviar mensaje..."
-                style={{
-                  position: "relative", width: "100%", height: 41, border: 0, outline: "none",
-                  background: "transparent", padding: "0 15px", borderRadius: 999,
-                  color: message ? "#fff" : "rgba(255,255,255,.72)",
-                  fontFamily: font, fontSize: 14, fontWeight: 400, cursor: "text",
-                  caretColor: "#fff", WebkitTapHighlightColor: "transparent",
-                }}
-              />
+              }}
+            >
+              {message || "Enviar mensaje..."}
             </div>
             {message.trim() && (
               <button aria-label="Enviar" data-story-interactive
@@ -1143,7 +1136,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
         @keyframes qrs{0%{opacity:0;transform:translateY(12px) scale(.92)}100%{opacity:1;transform:translateY(0) scale(1)}}
         @keyframes cf-out{from{opacity:1}to{opacity:0}}
         @keyframes close-open{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
-        .story-desktop-shell{position:fixed;inset:0;z-index:9999;display:flex;justify-content:center;align-items:center;overflow:hidden;background:#000;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;overscroll-behavior:none;height:100vh;height:100dvh;min-height:100dvh;animation:close-open 120ms ease-out both}
+        .story-desktop-shell{position:fixed;inset:0;z-index:9999;display:flex;justify-content:center;align-items:center;overflow:hidden;background:#000;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;overscroll-behavior:none;animation:close-open 120ms ease-out both}
         .story-desktop-shell.is-closing-down{animation:none;transform:translate3d(0,105%,0);opacity:0;transition:transform 280ms cubic-bezier(.32,.72,0,1),opacity 240ms ease}
         .story-desktop-shell.is-closing-right{animation:none;transform:translate3d(105%,0,0);opacity:0;transition:transform 280ms cubic-bezier(.32,.72,0,1),opacity 240ms ease}
         @keyframes sc-left{from{transform:translateX(0) rotateY(0deg)}to{transform:translateX(-48%) rotateY(72deg)}}
@@ -1159,7 +1152,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
         .story-media--incoming.is-visible{opacity:1}
         .story-action-button{width:40px;height:40px;display:grid;place-items:center;padding:0;border:0;background:transparent;color:#fff;-webkit-tap-highlight-color:transparent;cursor:pointer;transition:transform 160ms ${APPLE_SPRING}}
         .story-action-button:active{transform:scale(.88)}
-        .story-mobile-frame{position:relative;width:min(430px,calc(100vw - 32px));height:100vh;height:100dvh;min-height:100dvh;overflow:hidden;background:#000;border-radius:14px;box-shadow:0 20px 70px rgba(0,0,0,.55);will-change:transform}
+        .story-mobile-frame{position:relative;width:min(430px,calc(100vw - 32px));height:100%;overflow:hidden;background:#000;border-radius:14px;box-shadow:0 20px 70px rgba(0,0,0,.55);will-change:transform}
         .story-media-layer{opacity:0;transform:translate3d(0,0,0) scale(1);background:#000}
         .story-media-layer[data-state="active"]{opacity:1;transform:translate3d(0,0,0) scale(1)}
         .story-chrome{transition:opacity 170ms ease}
@@ -1176,6 +1169,21 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
         @media(min-width:768px){.story-perspective{width:min(430px,calc(100vw - 32px));left:50%;right:auto;transform:translateX(-50%)}}
         @media(max-width:767px){.story-desktop-shell{display:block}.story-blurred-background{display:none}.story-mobile-frame{width:100%!important;max-width:none!important;aspect-ratio:auto!important;border-radius:0!important;box-shadow:none!important}}
       `}</style>
+
+      {/* Input oculto arriba: el teclado sube sin mover la imagen */}
+      <input ref={hiddenInputRef}
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        onFocus={() => setIsComposerFocused(true)}
+        onBlur={() => { setIsComposerFocused(false); setKeyboardInset(0); }}
+        onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+        inputMode="text" autoComplete="off"
+        style={{
+          position: "fixed", top: 1, left: 1, width: 2, height: 2,
+          opacity: 0.01, fontSize: 16, border: 0, padding: 0, margin: 0,
+          zIndex: 10001, pointerEvents: "none",
+        }}
+      />
 
       <div ref={rootRef} className={"story-desktop-shell" + (closeDirection === "down" ? " is-closing-down" : closeDirection === "right" ? " is-closing-right" : "")}
         style={{ fontFamily: font, WebkitFontSmoothing: "antialiased" }}
