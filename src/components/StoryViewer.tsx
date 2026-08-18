@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { saveInteraction } from "@/lib/storyInteractionsService";
 import { preloadImage as preloadAndDecodeImage, isImageReady } from "@/lib/preloadImage";
 import type { NotificationData } from "./InAppNotification";
+import { detectGender } from "@/lib/gender";
 
 const QUICK_REACTIONS = ["😍", "😂", "😮", "😢", "🔥"];
 const HOLD_REACTIONS = ["😂", "😍", "😮", "😢", "👏", "🔥"];
@@ -25,6 +26,24 @@ const APPLE_SPRING = "cubic-bezier(.32,.72,0,1)";
 
 const font = `-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif`;
 const eFont = `"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+
+function buildReactionLine(name: string, type: "like" | "reaction"): string {
+  const usted = detectGender(name) === "mujer" ? "guapo" : "guapa";
+  const pool = type === "like"
+    ? [
+        `Me ha llegado tu like... me gusta, ${usted} 😘`,
+        `Uy, ¿te ha gustado mi historia, ${usted}? 😏`,
+        `Sabía que te gustaría, ${usted} ❤️`,
+        `Me alegra que te guste, ${usted} 😊`,
+        `¿Te ha gustado? Pues hay más donde eso... 😉`,
+      ]
+    : [
+        `Gracias por tu reacción, ${usted} 😉`,
+        `Me encanta que interactúes conmigo, ${usted} ❤️`,
+        `Se nota que me sigues, ${usted} 😏`,
+      ];
+  return pool[Math.floor(Math.random() * pool.length)];
+}
 
 function triggerHaptic(p: number | number[] = 12) {
   if ("vibrate" in navigator) try { navigator.vibrate(p); } catch {}
@@ -137,22 +156,21 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
   const [timeAgo, setTimeAgo] = useState("");
   const [notify, setNotify] = useState<NotificationData | null>(null);
 
-  const showReactionNotify = useCallback((char: { id: string; avatar: string; name: string; greeting?: string }) => {
-    const greeting = char.greeting?.trim() || `${char.name} reaccionó a tu historia`;
+  const showReactionNotify = useCallback((char: { id: string; avatar: string; name: string; greeting?: string }, type: "like" | "reaction" = "like") => {
     setNotify({
       id: `${char.id}-${Date.now()}`,
       type: "reaction",
       title: char.name,
-      message: greeting,
+      message: buildReactionLine(char.name, type),
       avatar: char.avatar || undefined,
-      duration: 3500,
+      duration: 5000,
     });
   }, []);
 
   // La notificación se muestra dentro de la historia y desaparece sola.
   useEffect(() => {
     if (!notify) return;
-    const t = setTimeout(() => setNotify((n) => (n && n.id === notify.id ? null : n)), notify.duration ?? 3500);
+    const t = setTimeout(() => setNotify((n) => (n && n.id === notify.id ? null : n)), notify.duration ?? 5000);
     return () => clearTimeout(t);
   }, [notify]);
 
@@ -609,7 +627,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
     }
     setTimeout(() => { if (mountedRef.current) setFloatingEmojis((p) => p.filter((r) => r.id !== id)); }, 850);
     setReactionPickerOpen(false); setHighlightedReaction(null); highlightRef.current = null;
-    showReactionNotify(currentChar);
+    showReactionNotify(currentChar, "reaction");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentChar.name]);
 
@@ -638,7 +656,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
       triggerHaptic(15);
       const key = `${charIndex}-${currentIndex}`;
       const isNowLiked = !likedStories[key];
-      if (isNowLiked) showReactionNotify(currentChar);
+      if (isNowLiked) showReactionNotify(currentChar, "like");
       setLikedStories((prev) => {
         if (isNowLiked) {
           const btn = heartBtnRef.current;
@@ -1041,8 +1059,9 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
             padding: "8px 14px max(16px, env(safe-area-inset-bottom,0px))",
           }}>
             <div data-story-interactive
-              onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); if (document.activeElement !== hiddenInputRef.current) hiddenInputRef.current?.focus({ preventScroll: true }); }}
-              onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); }}
+              onPointerDown={(e) => { e.stopPropagation(); if (document.activeElement !== hiddenInputRef.current) hiddenInputRef.current?.focus({ preventScroll: true }); }}
+              onTouchStart={(e) => { e.stopPropagation(); }}
+              onClick={(e) => { e.stopPropagation(); if (document.activeElement !== hiddenInputRef.current) hiddenInputRef.current?.focus({ preventScroll: true }); }}
               style={{
                 flex: 1, height: 41, minWidth: 0, display: "flex", alignItems: "center",
                 padding: "0 15px", borderRadius: 999,
@@ -1251,32 +1270,45 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
           </div>
         )}
         {notify && (
-          <div
-            onClick={() => router.push(`/chat/${currentChar.id}`)}
+          <div data-story-interactive
+            onClick={(e) => { e.stopPropagation(); router.push(`/chat/${currentChar.id}`); }}
+            onPointerDown={(e) => { e.stopPropagation(); }}
+            onPointerUp={(e) => { e.stopPropagation(); }}
+            onTouchStart={(e) => { e.stopPropagation(); }}
+            onTouchEnd={(e) => { e.stopPropagation(); }}
             style={{
-              position: "absolute", zIndex: 96,
-              top: "calc(env(safe-area-inset-top, 0px) + 54px)",
-              left: 10, right: 10, margin: "0 auto", maxWidth: 280,
-              display: "flex", alignItems: "center", gap: 9,
-              padding: "8px 11px", borderRadius: 13, cursor: "pointer",
-              background: "rgba(14,14,16,.92)",
-              backdropFilter: "blur(12px)",
-              WebkitBackdropFilter: "blur(12px)",
-              border: "1px solid rgba(255,255,255,.1)",
-              boxShadow: "0 6px 22px rgba(0,0,0,.45)",
-              animation: "slideInDown 0.3s ease",
+              position: "absolute", zIndex: 97,
+              top: "calc(env(safe-area-inset-top, 0px) + 8px)",
+              left: 10, right: 10,
+              display: "flex", alignItems: "center", gap: 10,
+              padding: "10px 12px", borderRadius: 22, cursor: "pointer",
+              background: "rgba(28,28,30,.88)",
+              backdropFilter: "blur(18px) saturate(160%)",
+              WebkitBackdropFilter: "blur(18px) saturate(160%)",
+              border: "1px solid rgba(255,255,255,.14)",
+              boxShadow: "0 10px 30px rgba(0,0,0,.5)",
+              animation: "slideInDown 0.35s cubic-bezier(.32,.72,0,1)",
+              touchAction: "none",
             }}
           >
-            {notify.avatar && (
-              <img
-                src={notify.avatar}
-                alt=""
-                style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover", border: "1.5px solid #FF5798", flexShrink: 0 }}
-              />
-            )}
-            <div style={{ minWidth: 0 }}>
-              <div style={{ color: "#fff", fontSize: 12.5, fontWeight: 700, lineHeight: 1.25 }}>{notify.title}</div>
-              <div style={{ color: "rgba(255,255,255,.6)", fontSize: 11.5, lineHeight: 1.3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{notify.message}</div>
+            <div style={{
+              width: 42, height: 42, borderRadius: 12, flexShrink: 0,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              background: "linear-gradient(135deg,#ff2f78,#a3004c)",
+              boxShadow: "0 4px 10px rgba(255,47,120,.35)",
+            }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff">
+                <path d="M12 21s-6.7-4.35-9.33-8.11C.9 10.26 1.65 6.6 4.9 5.1a4.9 4.9 0 0 1 5.24.53L12 7.3l1.86-1.67a4.9 4.9 0 0 1 5.24-.53c3.25 1.5 4 5.16 2.23 7.79C18.7 16.65 12 21 12 21Z"/>
+              </svg>
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                <span style={{ color: "#fff", fontSize: 13, fontWeight: 700, letterSpacing: "-0.01em" }}>LunaCall</span>
+                <span style={{ color: "rgba(255,255,255,.5)", fontSize: 12, fontWeight: 500, flexShrink: 0 }}>ahora</span>
+              </div>
+              <div style={{ color: "#fff", fontSize: 13.5, fontWeight: 500, lineHeight: 1.35, marginTop: 1 }}>
+                {notify.title}: {notify.message}
+              </div>
             </div>
           </div>
         )}
