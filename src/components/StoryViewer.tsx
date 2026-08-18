@@ -655,8 +655,8 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
     setMsgConfirm("Mensaje enviado");
     setTimeout(() => { if (mountedRef.current) setMsgConfirm(null); }, 800);
     setTimeout(() => { if (mountedRef.current) setIsSending(false); }, 300);
-    // La chica contesta al momento y llega su notificación.
-    setTimeout(() => { if (mountedRef.current) showNotify(charAtSend, replyText); }, 1000 + Math.random() * 600);
+    // La chica contesta enseguida y llega su notificación.
+    setTimeout(() => { if (mountedRef.current) showNotify(charAtSend, replyText); }, 550 + Math.random() * 500);
   }, [message, currentChar, isSending, showNotify]);
 
   const handleHeartDown = useCallback((e: React.PointerEvent) => {
@@ -1076,25 +1076,33 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
             display: "flex", alignItems: "center", gap: 6,
             padding: "8px 14px max(16px, env(safe-area-inset-bottom,0px))",
           }}>
-            <div data-story-interactive
-              onPointerDown={(e) => { e.stopPropagation(); if (document.activeElement !== hiddenInputRef.current) hiddenInputRef.current?.focus({ preventScroll: true }); }}
-              onTouchStart={(e) => { e.stopPropagation(); }}
-              onClick={(e) => { e.stopPropagation(); if (document.activeElement !== hiddenInputRef.current) hiddenInputRef.current?.focus({ preventScroll: true }); }}
-              style={{
-                flex: 1, height: 41, minWidth: 0, display: "flex", alignItems: "center",
-                padding: "0 15px", borderRadius: 999,
+            <div data-story-interactive style={{ flex: 1, minWidth: 0, position: "relative" }}>
+              <div style={{
+                position: "absolute", inset: 0, borderRadius: 999,
                 border: "1px solid rgba(255,255,255,.44)",
                 background: "rgba(8,8,8,.14)",
                 backdropFilter: "blur(12px) saturate(120%)",
                 WebkitBackdropFilter: "blur(12px) saturate(120%)",
-                cursor: "text",
-                color: message ? "#fff" : "rgba(255,255,255,.72)",
-                fontFamily: font, fontSize: 14, lineHeight: "20px", fontWeight: 400,
-                whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                pointerEvents: "none",
                 transition: `border-color 180ms ${APPLE_SPRING}, background 180ms ${APPLE_SPRING}`,
-              }}
-            >
-              {message || "Enviar mensaje..."}
+              }} />
+              <input
+                ref={hiddenInputRef}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onFocus={() => setIsComposerFocused(true)}
+                onBlur={() => { setIsComposerFocused(false); setKeyboardInset(0); }}
+                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+                inputMode="text" autoComplete="off" enterKeyHint="send" aria-label="Enviar mensaje"
+                placeholder="Enviar mensaje..."
+                style={{
+                  position: "relative", width: "100%", height: 41, border: 0, outline: "none",
+                  background: "transparent", padding: "0 15px", borderRadius: 999,
+                  color: message ? "#fff" : "rgba(255,255,255,.72)",
+                  fontFamily: font, fontSize: 14, fontWeight: 400, cursor: "text",
+                  caretColor: "#fff", WebkitTapHighlightColor: "transparent",
+                }}
+              />
             </div>
             {message.trim() && (
               <button aria-label="Enviar" data-story-interactive
@@ -1168,21 +1176,6 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
         @media(min-width:768px){.story-perspective{width:min(430px,calc(100vw - 32px));left:50%;right:auto;transform:translateX(-50%)}}
         @media(max-width:767px){.story-desktop-shell{display:block}.story-blurred-background{display:none}.story-mobile-frame{width:100%!important;max-width:none!important;aspect-ratio:auto!important;border-radius:0!important;box-shadow:none!important}}
       `}</style>
-
-      {/* Hidden input */}
-      <input ref={hiddenInputRef}
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        onFocus={() => setIsComposerFocused(true)}
-        onBlur={() => { setIsComposerFocused(false); setKeyboardInset(0); }}
-        onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-        inputMode="text" autoComplete="off"
-        style={{
-          position: "fixed", top: 1, left: 1, width: 2, height: 2,
-          opacity: 0.01, fontSize: 16, border: 0, padding: 0, margin: 0,
-          zIndex: 10001,
-        }}
-      />
 
       <div ref={rootRef} className={"story-desktop-shell" + (closeDirection === "down" ? " is-closing-down" : closeDirection === "right" ? " is-closing-right" : "")}
         style={{ fontFamily: font, WebkitFontSmoothing: "antialiased" }}

@@ -159,6 +159,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         ...base,
       ]);
       setMode(getSavedMode(girl.id) ?? "text");
+      setShowModePicker(false);
       return;
     }
     // Retomar la conversación donde la dejaste (y su modo, sin el selector).
