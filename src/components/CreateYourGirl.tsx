@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, type PointerEvent as ReactPointerEvent } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { saveCustomGirl, CustomGirlData } from "@/lib/storage";
@@ -15,6 +15,9 @@ const MINOR_WORDS = [
 ];
 
 const MINOR_AGE_PATTERN = /\b(1[0-7])\b/;
+
+const CROP_VIEW = 264;
+const CROP_SAVE = 700;
 
 function containsMinorReferences(text: string): string | null {
   const lower = text.toLowerCase();
@@ -320,8 +323,18 @@ export default function CreateYourGirl({ open, onClose, onCreated, editGirl }: {
   const [refImage, setRefImage] = useState<string | null>(null);
   const [openSection, setOpenSection] = useState<"roleplay" | "photo" | null>(null);
   const [top, setTop] = useState(88);
+  const [cropOpen, setCropOpen] = useState(false);
+  const [cropImg, setCropImg] = useState<string | null>(null);
+  const [cropScale, setCropScale] = useState(1);
+  const [cropOffset, setCropOffset] = useState({ x: 0, y: 0 });
   const scrollRef = useRef<HTMLDivElement>(null);
   const siguienteRef = useRef<HTMLButtonElement>(null);
+  const cropViewRef = useRef<HTMLDivElement>(null);
+  const cropElRef = useRef<HTMLImageElement | null>(null);
+  const cropNat = useRef({ w: 0, h: 0 });
+  const pointers = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const pinchDistRef = useRef(0);
+  const rawRefImg = useRef<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -395,20 +408,119 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
     reader.onload = () => {
       const img = new Image();
       img.onload = () => {
-        const maxW = 256;
+        const maxW = 1024;
         const scale = Math.min(1, maxW / img.width);
         const canvas = document.createElement("canvas");
         canvas.width = Math.round(img.width * scale);
         canvas.height = Math.round(img.height * scale);
         canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
-        setRefImage(canvas.toDataURL("image/jpeg", 0.85));
-        requestAnimationFrame(() => {
-          siguienteRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-        });
+        openCrop(canvas.toDataURL("image/jpeg", 0.9));
       };
       img.src = String(reader.result);
     };
     reader.readAsDataURL(file);
+  }
+
+  function openCrop(dataUrl: string) {
+    const el = new Image();
+    el.onload = () => {
+      cropNat.current = { w: el.naturalWidth, h: el.naturalHeight };
+      cropElRef.current = el;
+      setCropImg(dataUrl);
+      setCropScale(CROP_VIEW / Math.min(el.naturalWidth, el.naturalHeight));
+      setCropOffset({ x: 0, y: 0 });
+      setCropOpen(true);
+    };
+    el.src = dataUrl;
+  }
+
+  function clampScale(s: number): number {
+    const { w, h } = cropNat.current;
+    const minS = w && h ? CROP_VIEW / Math.min(w, h) : 0.4;
+    return Math.min(6, Math.max(minS, s));
+  }
+
+  function cropZoomBy(f: number) {
+    setCropScale((s) => clampScale(s * f));
+  }
+
+  function cropReset() {
+    const { w, h } = cropNat.current;
+    if (!w || !h) return;
+    setCropScale(CROP_VIEW / Math.min(w, h));
+    setCropOffset({ x: 0, y: 0 });
+  }
+
+  function acceptCrop() {
+    const el = cropElRef.current;
+    if (!el) return;
+    const { w, h } = cropNat.current;
+    const scale = clampScale(cropScale);
+    const iw = w * scale;
+    const ih = h * scale;
+    let sx = (CROP_VIEW / 2 - iw / 2 + cropOffset.x) / scale;
+    let sy = (CROP_VIEW / 2 - ih / 2 + cropOffset.y) / scale;
+    const size = CROP_VIEW / scale;
+    sx = Math.max(0, Math.min(sx, w - size));
+    sy = Math.max(0, Math.min(sy, h - size));
+    const canvas = document.createElement("canvas");
+    canvas.width = CROP_SAVE;
+    canvas.height = CROP_SAVE;
+    const ctx = canvas.getContext("2d")!;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(el, sx, sy, size, size, 0, 0, CROP_SAVE, CROP_SAVE);
+    rawRefImg.current = cropImg;
+    setRefImage(canvas.toDataURL("image/jpeg", 0.9));
+    setCropOpen(false);
+    requestAnimationFrame(() => {
+      siguienteRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+  }
+
+  useEffect(() => {
+    if (!cropOpen) return;
+    const el = cropViewRef.current;
+    if (!el) return;
+    const onWheel = (ev: WheelEvent) => {
+      ev.preventDefault();
+      cropZoomBy(ev.deltaY < 0 ? 1.12 : 1 / 1.12);
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [cropOpen]);
+
+  function onCropPointerDown(e: ReactPointerEvent<HTMLDivElement>) {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.current.size === 2) {
+      const [a, b] = [...pointers.current.values()];
+      pinchDistRef.current = Math.hypot(a.x - b.x, a.y - b.y);
+    }
+  }
+
+  function onCropPointerMove(e: ReactPointerEvent<HTMLDivElement>) {
+    const p = pointers.current.get(e.pointerId);
+    if (!p) return;
+    if (pointers.current.size === 1) {
+      const dx = e.clientX - p.x;
+      const dy = e.clientY - p.y;
+      pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      setCropOffset((o) => ({ x: o.x + dx, y: o.y + dy }));
+    } else if (pointers.current.size === 2) {
+      const [a, b] = [...pointers.current.values()];
+      const nd = Math.hypot(a.x - b.x, a.y - b.y);
+      if (pinchDistRef.current > 0 && nd > 0) {
+        setCropScale((s) => clampScale(s * (nd / pinchDistRef.current)));
+      }
+      pinchDistRef.current = nd;
+      pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    }
+  }
+
+  function onCropPointerEnd(e: ReactPointerEvent<HTMLDivElement>) {
+    pointers.current.delete(e.pointerId);
+    if (pointers.current.size < 2) pinchDistRef.current = 0;
   }
 
 async function handlePersonalityNext() {
@@ -585,7 +697,9 @@ async function handlePersonalityNext() {
                           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
                             {refImage ? (
                               <div className="relative mt-2 mb-2">
-                                <img src={refImage} alt="Referencia" className="block h-24 w-full rounded-xl object-cover object-center" />
+                                <button type="button" onClick={() => openCrop(rawRefImg.current || refImage)} title="Ajustar foto" className="block h-24 w-full overflow-hidden rounded-xl border border-white/[0.08] p-0">
+                                  <img src={refImage} alt="Referencia" className="pointer-events-none block h-full w-full object-cover object-center" />
+                                </button>
                                 <button onClick={() => setRefImage(null)} className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-xs text-white">✕</button>
                               </div>
                             ) : (
@@ -691,6 +805,60 @@ async function handlePersonalityNext() {
               </div>
             </motion.div>
           </motion.div>
+
+          {/* Editor de recorte circular */}
+          {cropOpen && cropImg && (
+            <div className="fixed inset-0 z-[80] flex items-center justify-center overflow-y-auto bg-black/80 px-5 py-8 backdrop-blur-md">
+              <div className="my-auto w-full max-w-[380px] rounded-3xl border border-white/[0.08] bg-[#15151a]/95 p-5 shadow-2xl">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-[0.95rem] font-bold tracking-tight text-white">Ajustar foto de perfil</h3>
+                  <button onClick={() => setCropOpen(false)} aria-label="Cerrar" className="flex h-7 w-7 items-center justify-center rounded-full bg-white/[0.08] text-white/70 transition hover:bg-white/[0.14] hover:text-white active:scale-90">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+                  </button>
+                </div>
+                <p className="mt-1 text-xs leading-relaxed text-white/40">
+                  Arrastra para mover la foto y usa los botones para acercar o alejar. Solo se guarda lo que se ve dentro del círculo.
+                </p>
+
+                <div
+                  ref={cropViewRef}
+                  className="relative mx-auto mt-5 touch-none select-none overflow-hidden rounded-full"
+                  style={{ width: CROP_VIEW, height: CROP_VIEW, boxShadow: "0 0 0 9999px rgba(0,0,0,0.55)", border: "2px solid rgba(255,255,255,0.35)" }}
+                  onPointerDown={onCropPointerDown}
+                  onPointerMove={onCropPointerMove}
+                  onPointerUp={onCropPointerEnd}
+                  onPointerCancel={onCropPointerEnd}
+                >
+                  {(() => {
+                    const iw = cropNat.current.w * cropScale;
+                    const ih = cropNat.current.h * cropScale;
+                    return (
+                      <img
+                        src={cropImg}
+                        alt=""
+                        draggable={false}
+                        className="pointer-events-none select-none"
+                        style={{ position: "absolute", left: CROP_VIEW / 2 - iw / 2 + cropOffset.x, top: CROP_VIEW / 2 - ih / 2 + cropOffset.y, width: iw, height: ih, maxWidth: "none" }}
+                      />
+                    );
+                  })()}
+                </div>
+
+                <div className="mt-5 flex items-center justify-center gap-3">
+                  <button onClick={() => cropZoomBy(1 / 1.25)} aria-label="Alejar" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.07] text-xl text-white/85 transition hover:bg-white/[0.12] active:scale-90">−</button>
+                  <button onClick={cropReset} aria-label="Restablecer" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.07] text-white/85 transition hover:bg-white/[0.12] active:scale-90">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                  </button>
+                  <button onClick={() => cropZoomBy(1.25)} aria-label="Acercar" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.07] text-xl text-white/85 transition hover:bg-white/[0.12] active:scale-90">+</button>
+                </div>
+
+                <div className="mt-6 flex gap-2.5">
+                  <button onClick={() => setCropOpen(false)} className="h-12 flex-1 rounded-2xl bg-white/[0.06] text-sm font-bold text-white/80 transition hover:bg-white/[0.1] active:scale-[0.98]">Cancelar</button>
+                  <button onClick={acceptCrop} className="h-12 flex-[1.6] rounded-2xl bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-sm font-bold text-white transition hover:brightness-110 active:scale-[0.98]">Aceptar</button>
+                </div>
+              </div>
+            </div>
+          )}
         </>
       )}
     </AnimatePresence>
