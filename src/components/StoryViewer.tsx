@@ -11,7 +11,7 @@ import { detectGender } from "@/lib/gender";
 const QUICK_REACTIONS = ["😍", "😂", "😮", "😢", "🔥"];
 const HOLD_REACTIONS = ["😂", "😍", "😮", "😢", "👏", "🔥"];
 const HOLD_TO_OPEN_MS = 300;
-const STORY_DURATION = 6000;
+const STORY_DURATION = 8000;
 const PROGRESS_INTERVAL = 16;
 const LONG_PRESS_MS = 220;
 const TAP_MAX_MS = 220;
@@ -47,6 +47,62 @@ function buildReactionLine(name: string, type: "like" | "reaction"): string {
 
 function buildReplyLine(name: string, userMessage: string): string {
   const usted = detectGender(name) === "mujer" ? "guapo" : "guapa";
+  const msg = userMessage.toLowerCase();
+  const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
+  if (/(deport|gimnasio|\bgym\b|f[úu]tbol|correr|entrenar|entreno|baloncesto|nataci[óo]n|boxeo|tenis|jugar)/.test(msg)) {
+    return pick([
+      `¿Te gusta el deporte, ${usted}? A mí me encanta entrenar 😅`,
+      `Uy, un deportista... me gusta, ${usted} 💪`,
+      `Yo también hago ejercicio, aunque me cuesta levantarme 😂`,
+      `Entrenando y guapo, ¿qué más se puede pedir? 😏`,
+    ]);
+  }
+  if (/(comida|comer|cocinar|cena|pizza|hamburguesa|dulce|chocolate|helado)/.test(msg)) {
+    return pick([
+      `Mmm, ahora me has dado hambre 😋`,
+      `¿Cocinamos algo juntos algún día? 😏`,
+      `Soy de dulce, no puedo evitarlo 🍫`,
+    ]);
+  }
+  if (/(m[úu]sica|canc[ióo]n|cantar|concierto)/.test(msg)) {
+    return pick([
+      `¿Cantamos algo? Te sigo el ritmo 🎶`,
+      `La música lo dice todo... me encanta eso, ${usted} 🎧`,
+      `Depende del día... hoy toca algo lento 😌`,
+    ]);
+  }
+  if (/(pel[íi]cula|pelicula|cine|serie|netflix)/.test(msg)) {
+    return pick([
+      `Una peli y palomitas suena perfecto 🍿`,
+      `¿De terror o de amor? Dímelo y la vemos 🎬`,
+      `Me encanta el cine, ¿cuál me recomiendas? 😉`,
+    ]);
+  }
+  if (/(mascota|perro|gato|animal)/.test(msg)) {
+    return pick([
+      `¡Ay, me encantan los animales! 🐶`,
+      `Tengo debilidad por los perritos, no puedo evitarlo 🐾`,
+    ]);
+  }
+  if (/(viaje|viajar|playa|monta[ñn]a|vacaciones)/.test(msg)) {
+    return pick([
+      `¡Me encanta viajar! ¿A dónde me llevarías? ✈️`,
+      `Una escapada a la playa no me vendría nada mal 🌊`,
+    ]);
+  }
+  if (/(trabajo|trabajar|estudiar|oficina|universidad)/.test(msg)) {
+    return pick([
+      `Cuéntame más de eso... me interesa, ${usted} 😊`,
+      `Se nota que eres constante... me gusta, ${usted} 😉`,
+    ]);
+  }
+  if (/(te quiero|te amo|guapa|bonita|preciosa|hermosa|me encantas|me gustas)/.test(msg)) {
+    return pick([
+      `Ay, me has puesto colorada... 🥰`,
+      `Tú también me encantas, ${usted} 💕`,
+      `No me digas esas cosas que me derrito 😊`,
+    ]);
+  }
   const pool = [
     `Me encanta que me escribas, ${usted} 😊`,
     `Cuéntame más... me tienes enganchada 😏`,

@@ -157,12 +157,10 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       const reply = storyReplyRef.current;
       storyReplyRef.current = "";
       skipWelcomeRef.current = true;
-      const base: ChatMsg[] = saved.map((m, i) => ({ id: `hist-${i}`, from: m.role === "user" ? "user" : "girl", text: m.content }));
       setMessages([
         { id: "story-ctx", from: "girl", note: "Respondiste a su historia", text: reply },
-        ...base,
       ]);
-      setMode(getSavedMode(girl.id) ?? "text");
+      setMode("text");
       setShowModePicker(false);
       return;
     }
