@@ -939,3 +939,62 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
     border-radius: 20px !important;
   }
 }
+
+/* Exposición del video de historia (LIVE) */
+.story-video-media {
+  filter: brightness(1.2) contrast(1.02) saturate(1.06);
+}
+
+/* Live: dot pulsante de EN VIVO */
+.tt-live-dot {
+  animation: tt-live-pulse 1.4s ease-in-out infinite;
+}
+@keyframes tt-live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(1.45); }
+}
+
+/* Live: corazones flotando al tocar */
+.tt-heart {
+  position: absolute;
+  bottom: 42%;
+  font-size: 30px;
+  line-height: 1;
+  pointer-events: none;
+  z-index: 30;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+  animation: tt-heart-up 1.5s ease-out forwards;
+}
+@keyframes tt-heart-up {
+  0% { transform: translateY(0) translateX(0) scale(0.5); opacity: 0; }
+  12% { opacity: 1; transform: translateY(-14px) scale(1.1); }
+  100% { transform: translateY(-150px) translateX(var(--sway, 0px)) scale(1); opacity: 0; }
+}
+
+/* Live: regalos flotando */
+.tt-gift {
+  position: absolute;
+  bottom: 36%;
+  font-size: 44px;
+  line-height: 1;
+  pointer-events: none;
+  z-index: 30;
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.4));
+  animation: tt-gift-up 2.4s ease-out forwards;
+}
+@keyframes tt-gift-up {
+  0% { transform: translateY(0) scale(0.4); opacity: 0; }
+  10% { opacity: 1; transform: translateY(-20px) scale(1.2); }
+  100% { transform: translateY(-190px) scale(1); opacity: 0; }
+}
+
+/* Live: comentarios entrando desde abajo */
+.tt-comment {
+  animation: tt-comment-in 6.8s ease-out forwards;
+}
+@keyframes tt-comment-in {
+  0% { opacity: 0; transform: translateY(18px); }
+  6% { opacity: 1; transform: translateY(0); }
+  90% { opacity: 1; }
+  100% { opacity: 0; }
+}
