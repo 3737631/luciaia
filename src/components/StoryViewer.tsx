@@ -655,8 +655,8 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
     setMsgConfirm("Mensaje enviado");
     setTimeout(() => { if (mountedRef.current) setMsgConfirm(null); }, 800);
     setTimeout(() => { if (mountedRef.current) setIsSending(false); }, 300);
-    // La chica contesta un poco después y llega su notificación.
-    setTimeout(() => { if (mountedRef.current) showNotify(charAtSend, replyText); }, 2200 + Math.random() * 900);
+    // La chica contesta al momento y llega su notificación.
+    setTimeout(() => { if (mountedRef.current) showNotify(charAtSend, replyText); }, 1000 + Math.random() * 600);
   }, [message, currentChar, isSending, showNotify]);
 
   const handleHeartDown = useCallback((e: React.PointerEvent) => {
@@ -1039,7 +1039,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
         <div data-story-interactive
           className="story-chrome"
           style={{
-            position: "absolute", zIndex: 60, left: 0, right: 0, touchAction: "none",
+            position: "absolute", zIndex: 60, left: 0, right: 0,
             bottom: keyboardInset > 100 ? keyboardInset : 0,
             transition: `opacity 120ms ease, bottom 200ms ${APPLE_SPRING}`,
             opacity: longPressActive ? 0 : 1,
@@ -1087,7 +1087,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
                 background: "rgba(8,8,8,.14)",
                 backdropFilter: "blur(12px) saturate(120%)",
                 WebkitBackdropFilter: "blur(12px) saturate(120%)",
-                cursor: "text", touchAction: "none",
+                cursor: "text",
                 color: message ? "#fff" : "rgba(255,255,255,.72)",
                 fontFamily: font, fontSize: 14, lineHeight: "20px", fontWeight: 400,
                 whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
@@ -1180,7 +1180,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
         style={{
           position: "fixed", top: 1, left: 1, width: 2, height: 2,
           opacity: 0.01, fontSize: 16, border: 0, padding: 0, margin: 0,
-          zIndex: 10001, pointerEvents: "none",
+          zIndex: 10001,
         }}
       />
 
@@ -1289,7 +1289,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
         )}
         {notify && (
           <div data-story-interactive
-            onClick={(e) => { e.stopPropagation(); router.push(`/chat/${currentChar.id}?picker=1`); }}
+            onClick={(e) => { e.stopPropagation(); router.push(`/chat/${currentChar.id}?reply=${encodeURIComponent(notify.message)}`); }}
             onPointerDown={(e) => { e.stopPropagation(); }}
             onPointerUp={(e) => { e.stopPropagation(); }}
             onTouchStart={(e) => { e.stopPropagation(); }}
@@ -1324,12 +1324,11 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-                <span style={{ color: "rgba(255,255,255,.55)", fontSize: 12, fontWeight: 600, letterSpacing: "-0.01em" }}>LunaCall</span>
+                <span style={{ color: "#fff", fontSize: 13.5, fontWeight: 800, letterSpacing: "-0.01em" }}>{notify.title}</span>
                 <span style={{ color: "rgba(255,255,255,.45)", fontSize: 12, fontWeight: 500, flexShrink: 0 }}>ahora</span>
               </div>
-              <div style={{ color: "#fff", fontSize: 13.5, fontWeight: 600, lineHeight: 1.3, marginTop: 1 }}>
-                <span style={{ fontWeight: 800 }}>{notify.title}</span>
-                <span style={{ color: "rgba(255,255,255,.85)" }}>&nbsp;{notify.message}</span>
+              <div style={{ color: "rgba(255,255,255,.9)", fontSize: 13, fontWeight: 500, lineHeight: 1.3, marginTop: 1 }}>
+                {notify.message}
               </div>
               <div style={{ color: "#ff5f8f", fontSize: 11.5, fontWeight: 700, marginTop: 2 }}>Toca para chatear</div>
             </div>

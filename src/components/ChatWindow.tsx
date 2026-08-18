@@ -45,7 +45,7 @@ function barsFrom(seed: string): number[] {
   return bars;
 }
 
-type ChatMsg = { id: string; from: "user" | "girl"; text: string; audio?: string; image?: string };
+type ChatMsg = { id: string; from: "user" | "girl"; text: string; audio?: string; image?: string; note?: string };
 
 export default function ChatWindow({ girl }: { girl: Girl }) {
   const [messages, setMessages] = useState<ChatMsg[]>([]);
@@ -67,6 +67,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   const welcomeNameRef = useRef("");
   const skipWelcomeRef = useRef(false);
   const forcePickerRef = useRef(false);
+  const storyReplyRef = useRef("");
   const activeCustomJsonRef = useRef("");
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -86,8 +87,11 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     }
     // La custom girl se identifica por la URL (?custom=id): solo se aplica a su chat.
     // ?picker=1 fuerza mostrar el selector (roleplay / vivir una historia) al llegar.
+    // ?reply= trae la respuesta de la chica desde una historia.
     const qs = new URLSearchParams(window.location.search);
     if (qs.get("picker") === "1") forcePickerRef.current = true;
+    const replyParam = qs.get("reply");
+    if (replyParam) storyReplyRef.current = replyParam;
     const customId = qs.get("custom");
     if (customId) {
       const g = getCustomGirls().find((x) => x.id === customId);
@@ -115,7 +119,14 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         if (savedMode) setMode(savedMode);
       }
     }
-  }, []);
+    // Limpiar de la URL los parámetros temporales (reply/picker).
+    if (replyParam || qs.get("picker") === "1") {
+      qs.delete("reply");
+      qs.delete("picker");
+      const clean = qs.toString();
+      router.replace(`/chat/${girl.id}${clean ? "?" + clean : ""}`, { scroll: false });
+    }
+  }, [router, girl.id]);
 
   useEffect(() => {
     // Si la custom girl aún no tiene avatar (IA generándolo), lo recogemos cuando se guarde.
@@ -136,12 +147,25 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
 
   useEffect(() => {
     if (messagesRef.current.length > 0 || skipWelcomeRef.current) return;
-    // Retomar la conversación donde la dejaste (y su modo, sin el selector).
     const saved = getConversationHistory(girl.id);
+    // Venir de una historia: la chica te contesta y se muestra "Respondiste a su historia".
+    if (storyReplyRef.current) {
+      const reply = storyReplyRef.current;
+      storyReplyRef.current = "";
+      skipWelcomeRef.current = true;
+      const base: ChatMsg[] = saved.map((m, i) => ({ id: `hist-${i}`, from: m.role === "user" ? "user" : "girl", text: m.content }));
+      setMessages([
+        { id: "story-ctx", from: "girl", note: "Respondiste a su historia", text: reply },
+        ...base,
+      ]);
+      setMode(getSavedMode(girl.id) ?? "text");
+      return;
+    }
+    // Retomar la conversación donde la dejaste (y su modo, sin el selector).
     if (saved.length > 0) {
       skipWelcomeRef.current = true;
       setMessages(saved.map((m, i) => ({ id: `hist-${i}`, from: m.role === "user" ? "user" : "girl", text: m.content })));
-      // Si venimos con ?picker=1 (desde una historia) mostramos el selector igualmente.
+      // Si venimos con ?picker=1 (desde la pestaña principal) mostramos el selector igualmente.
       if (forcePickerRef.current) return;
       setMode(getSavedMode(girl.id) ?? "text");
       setShowModePicker(false);
@@ -596,6 +620,9 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       <div ref={scrollRef} className={styles.messagesArea}>
         {messages.map((m) => (
           <div key={m.id} className={`${styles.messageRow} ${m.from === "user" ? styles.messageRowRight : styles.messageRowLeft}`}>
+            {m.note && (
+              <div style={{ textAlign: "center", fontSize: 11, fontWeight: 600, color: "hsla(240,7%,97%,.38)", margin: "0 0 6px" }}>{m.note}</div>
+            )}
             <div className={`${styles.bubble} ${m.from === "user" ? styles.bubbleRight : styles.bubbleLeft}`}>
               {m.image ? (
                 <div className={styles.photoWrap}>

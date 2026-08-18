@@ -8,7 +8,7 @@ const navItems = [
   { label: "Inicio", href: "/" },
   { label: "Explorar", href: "/girls" },
   { label: "Crear", href: "#crear" },
-  { label: "Chat", href: "/chat/luna" },
+  { label: "Chat", href: "/chat/luna?picker=1" },
   { label: "Premium", href: "#premium" },
 ];
 
