@@ -149,6 +149,39 @@ export function getHistory(): HistoryEntry[] {
   }
 }
 
+export function createSession(girlId: string, girlName: string): string {
+  if (typeof window === "undefined") return `s_${Date.now()}`;
+  try {
+    const raw = localStorage.getItem(historyKey());
+    const list: HistoryEntry[] = raw ? JSON.parse(raw) : [];
+    const id = `s_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    list.unshift({ id, girlId, girlName, timestamp: Date.now(), preview: "Conversación", messages: [] });
+    localStorage.setItem(historyKey(), JSON.stringify(list.slice(0, 50)));
+    return id;
+  } catch {
+    return `s_${Date.now()}`;
+  }
+}
+
+export function updateSession(id: string, messages: ChatMessage[]): void {
+  if (typeof window === "undefined") return;
+  try {
+    const raw = localStorage.getItem(historyKey());
+    const list: HistoryEntry[] = raw ? JSON.parse(raw) : [];
+    const idx = list.findIndex((e) => e.id === id);
+    if (idx === -1) return;
+    const preview =
+      messages.filter((m) => m.role === "user").slice(-1)[0]?.content.slice(0, 80) ||
+      "Conversación";
+    list[idx] = { ...list[idx], timestamp: Date.now(), preview, messages: messages.slice(-40) };
+    localStorage.setItem(historyKey(), JSON.stringify(list));
+  } catch {}
+}
+
+export function getHistoryForGirl(girlId: string): HistoryEntry[] {
+  return getHistory().filter((e) => e.girlId === girlId);
+}
+
 export function clearHistory(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem(historyKey());
