@@ -86,14 +86,19 @@ function compressImage(blob: Blob): Promise<string> {
     const url = URL.createObjectURL(blob);
     const img = new Image();
     img.onload = () => {
-      const maxW = 900;
-      const scale = Math.min(1, maxW / img.width);
+      const size = 900;
+      const side = Math.min(img.width, img.height);
+      const sx = (img.width - side) / 2;
+      const sy = (img.height - side) / 2;
       const canvas = document.createElement("canvas");
-      canvas.width = Math.round(img.width * scale);
-      canvas.height = Math.round(img.height * scale);
-      canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d")!;
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(img, sx, sy, side, side, 0, 0, size, size);
       URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL("image/jpeg", 0.9));
+      resolve(canvas.toDataURL("image/jpeg", 0.92));
     };
     img.onerror = () => {
       URL.revokeObjectURL(url);
@@ -300,7 +305,7 @@ function buildAvatarPrompt(desc: string): string {
   if (/(ojos azules|blue eyes)/.test(w)) eyes = "blue eyes";
   else if (/(ojos verdes|green eyes)/.test(w)) eyes = "green eyes";
   else if (/(ojos grises|ojos claros|ojos de hielo|hielo)/.test(w)) eyes = "ice blue eyes";
-  return `photorealistic casual selfie photo of a beautiful adult woman in her mid 20s with ${hair} and ${eyes}, natural smartphone photo taken with a front camera, perfectly centered square composition, the face is dead center of the image filling the frame with even margins on all sides, head and shoulders tightly centered, camera directly facing her, extremely realistic human skin rendered pixel by pixel with visible pores, fine vellus hairs, natural skin grain and micro texture, subtle skin blemishes and faint redness in cheeks, believable subsurface scattering, matte natural skin, slight natural shine on the skin, detailed iris with natural highlights, individual eyelashes, softly shaped natural brows, light natural makeup, natural smile, wearing a simple elegant black top, perfectly symmetrical clothing with both sleeves identical, proportionate normal shoulders and neck, natural human proportions, sharp focus on the eyes, soft natural window light with gentle catchlights, shallow depth of field, blurred neutral background, square profile picture crop for a circular avatar, the circle will cut the edges so the face must stay perfectly centered, no full body, no chest, no cleavage, candid real photography, must look like a real photo of a real person, raw camera photo with sensor noise and natural color grading, not CGI, no plastic skin, no wax skin, no airbrushed face, no beauty filter, no 3D render look, no anime, no illustration, no glossy skin, no skin blur, no distorted anatomy, no extra limbs, no missing sleeve, no oversized body parts, no giant hands, no deformed face`;
+  return `photorealistic professional portrait photo of a beautiful adult woman in her mid 20s with ${hair} and ${eyes}, perfect headshot centered exactly in the middle of the frame, the face fills 70% of the image, even margins on all sides, camera directly facing her, bright clean soft studio lighting in light pastel tones, bright luminous background, no dark background, no black background, no shadows behind the subject, extremely realistic human skin rendered pixel by pixel with visible pores, fine vellus hairs, natural skin grain and micro texture, subtle skin blemishes and faint redness in cheeks, believable subsurface scattering, matte natural skin, slight natural shine on the skin, detailed iris with natural highlights, individual eyelashes, softly shaped natural brows, light natural makeup, natural friendly smile, wearing a simple elegant neutral top, perfectly symmetrical clothing with both sleeves identical, proportionate normal shoulders and neck, natural human proportions, sharp focus on the eyes, soft natural window light with gentle catchlights, shallow depth of field, square profile picture crop for a circular avatar, the circle will cut the edges so the face must stay perfectly centered, no full body, no chest, no cleavage, candid real photography, must look like a real photo of a real person, raw camera photo with sensor noise and natural color grading, high resolution, crisp details, not CGI, no plastic skin, no wax skin, no airbrushed face, no beauty filter, no 3D render look, no anime, no illustration, no glossy skin, no skin blur, no distorted anatomy, no extra limbs, no missing sleeve, no oversized body parts, no giant hands, no deformed face`;
 }
 
 export default function CreateYourGirl({ open, onClose, onCreated, editGirl }: { open: boolean; onClose: () => void; onCreated?: () => void; editGirl?: CustomGirlData | null }) {

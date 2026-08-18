@@ -98,7 +98,7 @@ export default function Avatar({
         }
       >
         <div
-          className="absolute inset-0 rounded-full bg-[#1a1023]"
+          className="absolute inset-0 rounded-full bg-gradient-to-br from-[#ff5798]/25 to-[#8b5cf6]/20"
           style={{ width: size, height: size }}
         />
         {!failed && (

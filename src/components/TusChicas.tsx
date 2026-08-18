@@ -188,7 +188,7 @@ export default function TusChicas({
                             onClick={() => openChat(g)}
                             className="flex items-center gap-3.5 rounded-2xl px-2 py-2.5 transition hover:bg-white/[0.04] active:scale-[0.99]"
                           >
-                            <div className="h-[60px] w-[60px] shrink-0 overflow-hidden rounded-full border border-white/[0.09] bg-white/[0.05]"
+                            <div className="h-[60px] w-[60px] shrink-0 overflow-hidden rounded-full border border-white/[0.09] bg-gradient-to-br from-[#ff5798]/30 to-[#8b5cf6]/25"
                               style={isActive ? { boxShadow: "0 0 0 2.5px #131318, 0 0 0 5px #ff2f78" } : undefined}
                             >
                               <img src={imgSrc} alt={g.name} className="h-full w-full object-cover object-center" />
@@ -238,7 +238,7 @@ export default function TusChicas({
                                   transition={{ type: "spring", stiffness: 320, damping: 28 }}
                                 >
                                   <div className="flex items-center gap-3 px-5 pb-2 pt-5">
-                                    <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/[0.09] bg-white/[0.05]">
+                                    <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/[0.09] bg-gradient-to-br from-[#ff5798]/30 to-[#8b5cf6]/25">
                                       <img src={imgSrc} alt={g.name} className="h-full w-full object-cover object-center" />
                                     </div>
                                     <div className="min-w-0">
