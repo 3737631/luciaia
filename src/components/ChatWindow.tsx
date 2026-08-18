@@ -68,6 +68,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   const skipWelcomeRef = useRef(false);
   const forcePickerRef = useRef(false);
   const storyReplyRef = useRef("");
+  const storySentRef = useRef("");
   const activeCustomJsonRef = useRef("");
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -96,6 +97,8 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       // Venir de una historia = chat directo, nunca el selector.
       setShowModePicker(false);
     }
+    const sentParam = qs.get("sent");
+    if (sentParam) storySentRef.current = sentParam;
     const customId = qs.get("custom");
     if (customId) {
       const g = getCustomGirls().find((x) => x.id === customId);
@@ -123,10 +126,11 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         if (savedMode) setMode(savedMode);
       }
     }
-    // Limpiar de la URL los parámetros temporales (reply/picker).
-    if (replyParam || qs.get("picker") === "1") {
+    // Limpiar de la URL los parámetros temporales (reply/picker/sent).
+    if (replyParam || qs.get("picker") === "1" || sentParam) {
       qs.delete("reply");
       qs.delete("picker");
+      qs.delete("sent");
       const clean = qs.toString();
       router.replace(`/chat/${girl.id}${clean ? "?" + clean : ""}`, { scroll: false });
     }
@@ -157,7 +161,10 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       const reply = storyReplyRef.current;
       storyReplyRef.current = "";
       skipWelcomeRef.current = true;
+      const sent = storySentRef.current;
+      storySentRef.current = "";
       setMessages([
+        ...(sent ? [{ id: "story-ctx-user", from: "user", text: sent } as ChatMsg] : []),
         { id: "story-ctx", from: "girl", note: "Respondiste a su historia", text: reply },
       ]);
       setMode("text");

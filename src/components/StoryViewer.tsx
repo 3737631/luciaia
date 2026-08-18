@@ -219,6 +219,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
   const [likedStories, setLikedStories] = useState<Record<string, boolean>>({});
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const sentInStoryRef = useRef("");
   const [likeParticles, setLikeParticles] = useState<{ id: string; x: number; y: number }[]>([]);
   const [floatingEmojis, setFloatingEmojis] = useState<{ id: string; emoji: string; x: number; y: number }[]>([]);
   const [msgConfirm, setMsgConfirm] = useState<string | null>(null);
@@ -717,6 +718,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
     saveInteraction(`daily_${currentChar.name}`, currentChar.name, "message", message.trim());
     const charAtSend = currentChar;
     const replyText = buildReplyLine(charAtSend.name, message.trim());
+    sentInStoryRef.current = message.trim();
     setMessage(""); hiddenInputRef.current?.blur();
     setMsgConfirm("Mensaje enviado");
     setTimeout(() => { if (mountedRef.current) setMsgConfirm(null); }, 800);
@@ -1356,7 +1358,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
         )}
         {notify && (
           <div data-story-interactive
-            onClick={(e) => { e.stopPropagation(); router.push(`/chat/${currentChar.id}?reply=${encodeURIComponent(notify.message)}`); }}
+            onClick={(e) => { e.stopPropagation(); router.push(`/chat/${currentChar.id}?reply=${encodeURIComponent(notify.message)}&sent=${encodeURIComponent(sentInStoryRef.current)}`); }}
             onPointerDown={(e) => { e.stopPropagation(); }}
             onPointerUp={(e) => { e.stopPropagation(); }}
             onTouchStart={(e) => { e.stopPropagation(); }}
