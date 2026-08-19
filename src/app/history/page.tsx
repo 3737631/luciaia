@@ -31,13 +31,13 @@ function HistoryContent() {
   const [rows, setRows] = useState<GirlRow[]>([]);
   const [single, setSingle] = useState<GirlRow | null>(null);
   const [singleLast, setSingleLast] = useState("");
-  const [singleMsgs, setSingleMsgs] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
+  const [singleSessions, setSingleSessions] = useState<{ id: string; ts: number; preview: string }[]>([]);
   const [confirmClear, setConfirmClear] = useState(false);
 
   useEffect(() => {
     const customId = searchParams.get("custom");
     const girlId = searchParams.get("girl");
-    setSingleMsgs([]);
+    setSingleSessions([]);
 
     if (customId) {
       const g = getCustomGirls().find((x) => x.id === customId);
@@ -51,7 +51,7 @@ function HistoryContent() {
           lastPreview: "",
         });
         setSingleLast(lastMessage(g.id));
-        setSingleMsgs(getConversationHistory(g.id));
+        setSingleSessions(girlSessions(g.id));
         return;
       }
     }
@@ -67,7 +67,7 @@ function HistoryContent() {
           lastPreview: "",
         });
         setSingleLast(lastMessage(girl.id));
-        setSingleMsgs(getConversationHistory(girl.id));
+        setSingleSessions(girlSessions(girl.id));
         return;
       }
     }
@@ -125,7 +125,7 @@ function HistoryContent() {
     if (single) {
       clearGirlConversation(single.girlId);
       setSingleLast("");
-      setSingleMsgs([]);
+      setSingleSessions([]);
     } else {
       clearHistory();
       for (const girl of girls) clearGirlConversation(girl.id);
@@ -133,6 +133,13 @@ function HistoryContent() {
       setRows((rs) => rs.map((r) => ({ ...r, lastTs: 0, lastPreview: "" })));
     }
     setConfirmClear(false);
+  }
+
+  function girlSessions(girlId: string) {
+    return getHistory()
+      .filter((e) => e.girlId === girlId)
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .map((e) => ({ id: e.id, ts: e.timestamp, preview: e.preview }));
   }
 
   function lastMessage(girlId: string): string {
@@ -169,8 +176,8 @@ function HistoryContent() {
             </h1>
             <p className="mt-1.5 text-sm text-muted/70">
               {single
-                ? "Tus mensajes con esta chica. Al entrar retomas donde la dejaste."
-                : "Tus conversaciones con cada chica. Al entrar retomas donde la dejaste."}
+                ? "Todas las veces que has hablado con ella, en orden."
+                : "Tus conversaciones con cada chica."}
             </p>
           </div>
           {!single && rows.some((r) => r.lastTs > 0) && (
@@ -190,7 +197,7 @@ function HistoryContent() {
         </div>
 
         {single ? (
-          <div className="flex flex-col">
+          <div className="flex min-h-[50dvh] flex-col">
             <div className="mb-4 flex items-center gap-2">
               <button
                 onClick={() => { if (window.history.length > 1) router.back(); else router.push("/history"); }}
@@ -213,43 +220,52 @@ function HistoryContent() {
               </button>
             </div>
 
-            <div className="mb-5 flex items-center gap-3">
-              <div className="h-[52px] w-[52px] shrink-0 overflow-hidden rounded-full border border-white/[0.09] bg-gradient-to-br from-[#ff5798]/30 to-[#8b5cf6]/25">
-                {single.img ? (
-                  <img src={single.img} alt={single.name} className="h-full w-full object-cover object-center" />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-lg font-bold text-white">{single.name[0]}</div>
-                )}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-[1.02rem] font-semibold leading-tight text-white">{single.name}</p>
-                <p className="mt-0.5 max-w-full truncate text-[13px] text-white/40">
-                  {singleMsgs.length > 0 ? `${singleMsgs.length} mensajes` : "Sin mensajes guardados"}
-                </p>
-              </div>
-              <Link href={single.href} className="shrink-0 rounded-full bg-white/[0.05] px-4 py-2 text-xs font-semibold text-white/70 transition hover:bg-white/[0.1] hover:text-white active:scale-95">
-                Chatear
-              </Link>
-            </div>
-
-            <div className="space-y-2">
-              {singleMsgs.length === 0 ? (
-                <p className="py-10 text-center text-sm text-white/35">No hay mensajes guardados con {single.name}.</p>
+            <div className="space-y-1">
+              {singleSessions.length === 0 ? (
+                <p className="py-10 text-center text-sm text-white/35">No hay conversaciones con {single.name} todavía.</p>
               ) : (
-                singleMsgs.map((m, i) => (
-                  <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                    <div
-                      className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-[13.5px] leading-relaxed ${
-                        m.role === "user"
-                          ? "rounded-br-md bg-gradient-to-br from-[#ff2f78] to-[#ff4c91] text-white"
-                          : "rounded-bl-md bg-white/[0.07] text-white/85"
-                      }`}
-                    >
-                      {m.content}
+                singleSessions.map((s) => (
+                  <Link
+                    key={s.id}
+                    href={single.href}
+                    className="flex w-full items-center gap-3.5 rounded-2xl px-2 py-2.5 text-left transition hover:bg-white/[0.04] active:scale-[0.99]"
+                  >
+                    <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full border border-white/[0.09] bg-gradient-to-br from-[#ff5798]/30 to-[#8b5cf6]/25">
+                      {single.img ? (
+                        <img src={single.img} alt={single.name} className="h-full w-full object-cover object-center" />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-base font-bold text-white">{single.name[0]}</div>
+                      )}
                     </div>
-                  </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] text-white/30">{formatDate(s.ts)}</p>
+                      <p className="mt-0.5 max-w-full truncate text-[13px] text-white/40">{s.preview || "Conversación"}</p>
+                    </div>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 text-white/25"><path d="M9 18l6-6-6-6" /></svg>
+                  </Link>
                 ))
               )}
+            </div>
+
+            <div className="mt-auto pb-2">
+              <Link
+                href={single.href}
+                className="flex w-full items-center gap-3.5 px-2 py-2.5 text-left"
+              >
+                <div className="h-[62px] w-[62px] shrink-0 overflow-hidden rounded-full border border-white/[0.09] bg-gradient-to-br from-[#ff5798]/30 to-[#8b5cf6]/25">
+                  {single.img ? (
+                    <img src={single.img} alt={single.name} className="h-full w-full object-cover object-center" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-lg font-bold text-white">{single.name[0]}</div>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[1.02rem] font-semibold leading-tight text-white">{single.name}</p>
+                  <p className="mt-0.5 max-w-full truncate text-[13px] text-white/40">
+                    {singleLast || "Toca para empezar a chatear"}
+                  </p>
+                </div>
+              </Link>
             </div>
           </div>
         ) : rows.length === 0 ? (

@@ -280,9 +280,14 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
   const hiddenInputRef = useRef<HTMLInputElement>(null);
   const keyboardWasOpenRef = useRef(false);
   const kbInsetRef = useRef(0);
+  const kbStartedRef = useRef(false);
   const focusComposer = useCallback(() => {
     const input = hiddenInputRef.current;
     if (!input) return;
+    // Si ya está enfocado (p. ej. toque rápido que dispara pointerdown+touch+click),
+    // no volver a enfocar: en iOS re-focus durante la apertura hace subir y bajar el teclado.
+    if (document.activeElement === input) return;
+    kbStartedRef.current = false;
     try { input.focus({ preventScroll: true }); } catch {}
     // iOS a veces ignora el primer focus: reintentar si no se ha conseguido.
     const check = () => {
@@ -338,6 +343,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
     const update = () => {
       const rawInset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
       kbInsetRef.current = rawInset > 100 ? rawInset : 0;
+      if (rawInset > 0) kbStartedRef.current = true;
       setKeyboardInset(kbInsetRef.current);
       const isOpen = rawInset > 100;
       // Si el teclado estaba abierto y se cierra, soltamos el foco para reanudar
@@ -501,11 +507,12 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
       progressFrozenRef.current = true;
       setPaused(true);
       const t = setTimeout(() => {
-        // Si el teclado no llegó a abrirse, soltamos el foco para no dejar la historia parada.
-        if (kbInsetRef.current <= 100 && document.activeElement === hiddenInputRef.current) {
+        // Si el teclado no llegó a empezar a abrirse, soltamos el foco para no dejar
+        // la historia parada (pero nunca si ya está abriéndose, o el teclado sube y baja).
+        if (!kbStartedRef.current && document.activeElement === hiddenInputRef.current) {
           try { hiddenInputRef.current?.blur(); } catch {}
         }
-      }, 750);
+      }, 1000);
       return () => clearTimeout(t);
     } else {
       progressFrozenRef.current = false;
