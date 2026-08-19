@@ -176,7 +176,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       const storageId = activeCustom?.id ?? girl.id;
       const saved = getConversationHistory(storageId);
       const alreadySaved = sent
-        ? saved.some((m, i) => m.role === "user" && m.content === sent && i + 1 < saved.length && saved[i + 1].role === "assistant" && saved[i + 1].content === reply)
+        ? saved.some((m) => m.role === "user" && m.content === sent)
         : saved.some((m) => m.role === "assistant" && m.content === reply);
       setMessages([
         ...saved.map((m, i) => ({ id: `resume-${i}`, from: m.role === "user" ? "user" as const : "girl" as const, text: m.content })),

@@ -41,6 +41,9 @@ export function saveConversationHistory(girlId: string, history: ChatMessage[]):
 export function appendToConversation(girlId: string, msgs: ChatMessage[]): void {
   if (typeof window === "undefined" || msgs.length === 0) return;
   const prev = getConversationHistory(girlId);
+  // Evitar duplicados: si el último mensaje enviado es idéntico al entrante, se ignora.
+  const lastUser = [...prev].reverse().find((m) => m.role === "user");
+  if (lastUser && msgs[0].role === "user" && lastUser.content === msgs[0].content) return;
   saveConversationHistory(girlId, [...prev, ...msgs].slice(-60));
 }
 
@@ -252,7 +255,9 @@ export function markUnreadReply(girlId: string, data: Omit<UnreadReply, "id" | "
       girlId,
       ts: Date.now(),
     };
-    localStorage.setItem(UNREAD_KEY, JSON.stringify([entry, ...all].slice(0, 30)));
+    // Una sola entrada por reacción/mensaje idéntico de la misma chica.
+    const filtered = all.filter((u) => !(u.girlId === girlId && u.sent === data.sent));
+    localStorage.setItem(UNREAD_KEY, JSON.stringify([entry, ...filtered].slice(0, 30)));
     notifyUnreadChange();
   } catch {}
 }
