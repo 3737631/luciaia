@@ -31,11 +31,13 @@ function HistoryContent() {
   const [rows, setRows] = useState<GirlRow[]>([]);
   const [single, setSingle] = useState<GirlRow | null>(null);
   const [singleLast, setSingleLast] = useState("");
+  const [singleMsgs, setSingleMsgs] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
   const [confirmClear, setConfirmClear] = useState(false);
 
   useEffect(() => {
     const customId = searchParams.get("custom");
     const girlId = searchParams.get("girl");
+    setSingleMsgs([]);
 
     if (customId) {
       const g = getCustomGirls().find((x) => x.id === customId);
@@ -49,6 +51,7 @@ function HistoryContent() {
           lastPreview: "",
         });
         setSingleLast(lastMessage(g.id));
+        setSingleMsgs(getConversationHistory(g.id));
         return;
       }
     }
@@ -64,6 +67,7 @@ function HistoryContent() {
           lastPreview: "",
         });
         setSingleLast(lastMessage(girl.id));
+        setSingleMsgs(getConversationHistory(girl.id));
         return;
       }
     }
@@ -121,6 +125,7 @@ function HistoryContent() {
     if (single) {
       clearGirlConversation(single.girlId);
       setSingleLast("");
+      setSingleMsgs([]);
     } else {
       clearHistory();
       for (const girl of girls) clearGirlConversation(girl.id);
@@ -185,7 +190,7 @@ function HistoryContent() {
         </div>
 
         {single ? (
-          <div className="flex min-h-[50dvh] flex-col">
+          <div className="flex flex-col">
             <div className="mb-4 flex items-center gap-2">
               <button
                 onClick={() => { if (window.history.length > 1) router.back(); else router.push("/history"); }}
@@ -208,25 +213,43 @@ function HistoryContent() {
               </button>
             </div>
 
-            <div className="mt-auto pb-2">
-              <Link
-                href={single.href}
-                className="flex w-full items-center gap-3.5 px-2 py-2.5 text-left"
-              >
-                <div className="h-[62px] w-[62px] shrink-0 overflow-hidden rounded-full border border-white/[0.09] bg-gradient-to-br from-[#ff5798]/30 to-[#8b5cf6]/25">
-                  {single.img ? (
-                    <img src={single.img} alt={single.name} className="h-full w-full object-cover object-center" />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-lg font-bold text-white">{single.name[0]}</div>
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[1.02rem] font-semibold leading-tight text-white">{single.name}</p>
-                  <p className="mt-0.5 max-w-full truncate text-[13px] text-white/40">
-                    {singleLast || "Toca para empezar a chatear"}
-                  </p>
-                </div>
+            <div className="mb-5 flex items-center gap-3">
+              <div className="h-[52px] w-[52px] shrink-0 overflow-hidden rounded-full border border-white/[0.09] bg-gradient-to-br from-[#ff5798]/30 to-[#8b5cf6]/25">
+                {single.img ? (
+                  <img src={single.img} alt={single.name} className="h-full w-full object-cover object-center" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-lg font-bold text-white">{single.name[0]}</div>
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[1.02rem] font-semibold leading-tight text-white">{single.name}</p>
+                <p className="mt-0.5 max-w-full truncate text-[13px] text-white/40">
+                  {singleMsgs.length > 0 ? `${singleMsgs.length} mensajes` : "Sin mensajes guardados"}
+                </p>
+              </div>
+              <Link href={single.href} className="shrink-0 rounded-full bg-white/[0.05] px-4 py-2 text-xs font-semibold text-white/70 transition hover:bg-white/[0.1] hover:text-white active:scale-95">
+                Chatear
               </Link>
+            </div>
+
+            <div className="space-y-2">
+              {singleMsgs.length === 0 ? (
+                <p className="py-10 text-center text-sm text-white/35">No hay mensajes guardados con {single.name}.</p>
+              ) : (
+                singleMsgs.map((m, i) => (
+                  <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                    <div
+                      className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-[13.5px] leading-relaxed ${
+                        m.role === "user"
+                          ? "rounded-br-md bg-gradient-to-br from-[#ff2f78] to-[#ff4c91] text-white"
+                          : "rounded-bl-md bg-white/[0.07] text-white/85"
+                      }`}
+                    >
+                      {m.content}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         ) : rows.length === 0 ? (

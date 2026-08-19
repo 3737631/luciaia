@@ -279,6 +279,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
   const frameRef = useRef<HTMLDivElement>(null);
   const hiddenInputRef = useRef<HTMLInputElement>(null);
   const keyboardWasOpenRef = useRef(false);
+  const kbInsetRef = useRef(0);
   const focusComposer = useCallback(() => {
     const input = hiddenInputRef.current;
     if (!input) return;
@@ -336,7 +337,8 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
     if (!vv) return;
     const update = () => {
       const rawInset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-      setKeyboardInset(rawInset > 100 ? rawInset : 0);
+      kbInsetRef.current = rawInset > 100 ? rawInset : 0;
+      setKeyboardInset(kbInsetRef.current);
       const isOpen = rawInset > 100;
       // Si el teclado estaba abierto y se cierra, soltamos el foco para reanudar
       // la historia (iOS no siempre dispara blur al cerrar el teclado).
@@ -495,14 +497,21 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
   }, [currentIndex, startProgress, stopProgress]);
 
   useEffect(() => {
-    if (isComposerFocused && keyboardInset > 100) {
+    if (isComposerFocused) {
       progressFrozenRef.current = true;
       setPaused(true);
+      const t = setTimeout(() => {
+        // Si el teclado no llegó a abrirse, soltamos el foco para no dejar la historia parada.
+        if (kbInsetRef.current <= 100 && document.activeElement === hiddenInputRef.current) {
+          try { hiddenInputRef.current?.blur(); } catch {}
+        }
+      }, 750);
+      return () => clearTimeout(t);
     } else {
       progressFrozenRef.current = false;
       setPaused(false);
     }
-  }, [isComposerFocused, keyboardInset]);
+  }, [isComposerFocused]);
 
   // ── Transition functions ──
 
@@ -1139,7 +1148,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
           onTouchStart={(e) => { e.stopPropagation() }}
           onTouchEnd={(e) => { e.stopPropagation() }}
         >
-          {isComposerFocused && keyboardInset > 100 && (
+          {isComposerFocused && (
             <div style={{
               display: "flex", justifyContent: "center", gap: 4,
               padding: "0 13px 8px",
@@ -1264,7 +1273,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         onFocus={() => setIsComposerFocused(true)}
-        onBlur={() => { setIsComposerFocused(false); setKeyboardInset(0); }}
+        onBlur={() => { setIsComposerFocused(false); kbInsetRef.current = 0; setKeyboardInset(0); }}
         onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
         inputMode="text" autoComplete="off"
         style={{

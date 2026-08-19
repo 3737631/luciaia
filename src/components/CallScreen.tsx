@@ -1246,7 +1246,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
       cleanup();
       setCS("ended");
       if (msgs.length > 0) saveToHistory(storageId, activeCustom?.name ?? girl.name, msgs);
-      router.replace("/chat/" + girl.id + (activeCustom ? "?custom=" + activeCustom.id : ""));
+      router.replace("/girls");
     }, 0);
   }
 
@@ -1842,7 +1842,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
                       cleanup();
                       setCS("ended");
                       if (msgs.length > 0) saveToHistory(storageId, activeCustom?.name ?? girl.name, msgs);
-                      router.replace("/chat/" + girl.id + (activeCustom ? "?custom=" + activeCustom.id + "&" : "?") + "callDur=" + callDuration);
+                      router.replace("/girls");
                     }, 0);
                   }}
                   aria-label="Ir al chat"
