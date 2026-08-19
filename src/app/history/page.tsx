@@ -116,7 +116,9 @@ function HistoryContent() {
     }
     otherRows.sort((a, b) => b.lastTs - a.lastTs);
 
-    const all = [...customRows, ...otherRows].sort((a, b) => b.lastTs - a.lastTs);
+    const all = [...customRows, ...otherRows]
+      .sort((a, b) => b.lastTs - a.lastTs)
+      .filter((r) => r.lastTs > 0 || r.lastPreview);
 
     setRows(all);
   }, [searchParams]);
@@ -130,7 +132,7 @@ function HistoryContent() {
       clearHistory();
       for (const girl of girls) clearGirlConversation(girl.id);
       for (const g of getCustomGirls()) clearGirlConversation(g.id);
-      setRows((rs) => rs.map((r) => ({ ...r, lastTs: 0, lastPreview: "" })));
+      setRows([]);
     }
     setConfirmClear(false);
   }
@@ -265,7 +267,7 @@ function HistoryContent() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[1.02rem] font-semibold leading-tight text-white">{single.name}</p>
                   <p className="mt-0.5 max-w-full truncate text-[13px] text-white/40">
-                    {singleLast || "Toca para empezar a chatear"}
+                    {singleLast || "Chatear"}
                   </p>
                 </div>
               </Link>
@@ -307,7 +309,7 @@ function HistoryContent() {
                     )}
                   </div>
                   <p className="mt-0.5 max-w-full truncate text-[13px] text-white/40">
-                    {r.lastPreview || "Toca para empezar a chatear"}
+                    {r.lastPreview || "Conversación"}
                   </p>
                 </div>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 text-white/25"><path d="M9 18l6-6-6-6" /></svg>
