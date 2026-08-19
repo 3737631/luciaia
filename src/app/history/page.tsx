@@ -242,56 +242,56 @@ function HistoryContent() {
               </button>
             </div>
 
-            <div className="space-y-1">
-              {singleSessions.length === 0 ? (
-                <p className="py-10 text-center text-sm text-white/35">No hay conversaciones con {single.name} todavía.</p>
-              ) : (
-                singleSessions.map((s) => (
-                  <Link
-                    key={s.id}
-                    href={single.href}
-                    className="flex w-full items-center gap-3.5 rounded-2xl px-2 py-2.5 text-left transition hover:bg-white/[0.04] active:scale-[0.99]"
-                  >
-                    <div className="h-[62px] w-[62px] shrink-0 overflow-hidden rounded-full bg-[#ff2f78]">
-                      {single.img ? (
-                        <img src={single.img} alt={single.name} className="h-full w-full object-cover object-center" />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center text-lg font-bold text-white">{single.name[0]}</div>
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-baseline justify-between gap-3">
-                        <p className="truncate text-[1.02rem] font-semibold leading-tight text-white">{single.name}</p>
-                        <p className="shrink-0 text-[10px] text-white/30">{formatDate(s.ts)}</p>
-                      </div>
-                      <p className="mt-0.5 max-w-full truncate text-[13px] text-white/40">{s.preview || "Conversación"}</p>
-                    </div>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 text-white/25"><path d="M9 18l6-6-6-6" /></svg>
-                  </Link>
-                ))
-              )}
-            </div>
+            {singleSessions.length === 0 && !singleLast ? null : (
+              <>
+                {singleSessions.length > 0 && (
+                  <div className="space-y-1">
+                    {singleSessions.map((s) => (
+                      <Link
+                        key={s.id}
+                        href={single.href}
+                        className="flex w-full items-center gap-3.5 rounded-2xl px-2 py-2.5 text-left transition hover:bg-white/[0.04] active:scale-[0.99]"
+                      >
+                        <div className="relative h-[62px] w-[62px] shrink-0 overflow-hidden rounded-full bg-[#ff2f78]">
+                          {single.img && (
+                            <img src={single.img} alt={single.name} className="absolute inset-0 h-full w-full object-cover object-center" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+                          )}
+                          <div className="flex h-full w-full items-center justify-center text-lg font-bold text-white">{single.name[0]}</div>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-baseline justify-between gap-3">
+                            <p className="truncate text-[1.02rem] font-semibold leading-tight text-white">{single.name}</p>
+                            <p className="shrink-0 text-[10px] text-white/30">{formatDate(s.ts)}</p>
+                          </div>
+                          <p className="mt-0.5 max-w-full truncate text-[13px] text-white/40">{s.preview || "Conversación"}</p>
+                        </div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 text-white/25"><path d="M9 18l6-6-6-6" /></svg>
+                      </Link>
+                    ))}
+                  </div>
+                )}
 
-            <div className="mt-auto pb-2">
-              <Link
-                href={`${single.href}${single.href.includes("?") ? "&" : "?"}picker=1`}
-                className="flex w-full items-center gap-3.5 px-2 py-2.5 text-left"
-              >
-                <div className="h-[62px] w-[62px] shrink-0 overflow-hidden rounded-full bg-[#ff2f78]">
-                  {single.img ? (
-                    <img src={single.img} alt={single.name} className="h-full w-full object-cover object-center" />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-lg font-bold text-white">{single.name[0]}</div>
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[1.02rem] font-semibold leading-tight text-white">{single.name}</p>
-                  <p className="mt-0.5 max-w-full truncate text-[13px] text-white/40">
-                    {singleLast || "Chatear"}
-                  </p>
-                </div>
-              </Link>
-            </div>
+                {singleLast && (
+                  <div className="mt-auto pb-2">
+                    <Link
+                      href={`${single.href}${single.href.includes("?") ? "&" : "?"}picker=1`}
+                      className="flex w-full items-center gap-3.5 px-2 py-2.5 text-left"
+                    >
+                      <div className="relative h-[62px] w-[62px] shrink-0 overflow-hidden rounded-full bg-[#ff2f78]">
+                        {single.img && (
+                          <img src={single.img} alt={single.name} className="absolute inset-0 h-full w-full object-cover object-center" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+                        )}
+                        <div className="flex h-full w-full items-center justify-center text-lg font-bold text-white">{single.name[0]}</div>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[1.02rem] font-semibold leading-tight text-white">{single.name}</p>
+                        <p className="mt-0.5 max-w-full truncate text-[13px] text-white/40">{singleLast}</p>
+                      </div>
+                    </Link>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         ) : rows.length === 0 ? null : (
           <div className="space-y-1">
