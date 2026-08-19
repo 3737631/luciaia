@@ -169,7 +169,7 @@ function MessagesContent() {
                 className={`flex w-full items-center gap-3.5 rounded-2xl px-2 py-2.5 text-left transition hover:bg-white/[0.04] active:scale-[0.99] ${r.pending ? "bg-[#ff2f78]/[0.07] ring-1 ring-[#ff2f78]/25" : ""}`}
               >
                 <div className="relative shrink-0">
-                  <div className={`h-[62px] w-[62px] overflow-hidden rounded-full border bg-gradient-to-br from-[#ff5798]/30 to-[#8b5cf6]/25 ${r.pending ? "border-[#ff2f78]/60" : "border-white/[0.09]"}`}>
+                  <div className={`h-[62px] w-[62px] overflow-hidden rounded-full border bg-[#ff2f78] ${r.pending ? "border-[#ff2f78]/60" : "border-white/[0.09]"}`}>
                     {r.img ? (
                       <img src={r.img} alt={r.name} className="h-full w-full object-cover object-center" />
                     ) : (

@@ -111,7 +111,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         skipWelcomeRef.current = true;
         clearUnreadReply(g.id);
         const saved = getConversationHistory(g.id);
-        if (saved.length > 0) {
+        if (saved.length > 0 && !forcePickerRef.current) {
           // Reanudar la conversación exactamente donde se dejó.
           setMode(getSavedMode(g.id) ?? "text");
           setMessages(saved.map((m, i) => ({ id: `resume-${i}`, from: m.role === "user" ? "user" : "girl", text: m.content })));
@@ -180,7 +180,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     }
     // Reanudar la conversación exactamente donde se dejó.
     const saved = getConversationHistory(girl.id);
-    if (saved.length > 0) {
+    if (saved.length > 0 && !forcePickerRef.current) {
       setMessages(saved.map((m, i) => ({ id: `resume-${i}`, from: m.role === "user" ? "user" : "girl", text: m.content })));
       setMode(getSavedMode(girl.id) ?? "text");
       setShowModePicker(false);
