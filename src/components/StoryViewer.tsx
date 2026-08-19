@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { saveInteraction } from "@/lib/storyInteractionsService";
+import { markUnreadReply } from "@/lib/memory";
 import { preloadImage as preloadAndDecodeImage, isImageReady } from "@/lib/preloadImage";
 import type { NotificationData } from "./InAppNotification";
 import { detectGender } from "@/lib/gender";
@@ -761,6 +762,12 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
     setTimeout(() => { if (mountedRef.current) setMsgConfirm(null); }, 800);
     setTimeout(() => { if (mountedRef.current) setIsSending(false); }, 300);
     // La chica contesta enseguida y llega su notificación.
+    markUnreadReply(charAtSend.id, {
+      reply: replyText,
+      sent: sentText,
+      name: charAtSend.name,
+      img: charAtSend.avatar || "",
+    });
     setTimeout(() => { if (mountedRef.current) showNotify(charAtSend, replyText, sentText); }, 550 + Math.random() * 500);
   }, [message, currentChar, isSending, showNotify]);
 

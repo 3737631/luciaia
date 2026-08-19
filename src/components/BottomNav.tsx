@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { hasUnreadReplies, onUnreadChange } from "@/lib/memory";
 
 const items = [
   {
@@ -19,6 +21,16 @@ const items = [
     icon: (active: boolean) => (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "#FF5798" : "rgba(255,255,255,0.35)"} strokeWidth="1.8">
         <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+    ),
+  },
+  {
+    label: "Mensajes",
+    href: "/messages",
+    icon: (active: boolean) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "#FF5798" : "rgba(255,255,255,0.35)"} strokeWidth="1.8">
+        <path d="M4 4h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H8l-4 4V5a1 1 0 0 1 1-1z"/>
+        <path d="M8 9h8M8 13h5"/>
       </svg>
     ),
   },
@@ -66,6 +78,12 @@ const items = [
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const [hasUnread, setHasUnread] = useState(false);
+
+  useEffect(() => {
+    setHasUnread(hasUnreadReplies());
+    return onUnreadChange(() => setHasUnread(hasUnreadReplies()));
+  }, []);
 
   return (
     <nav className="bottom-nav">
@@ -85,7 +103,24 @@ export default function BottomNav() {
               paddingTop: 6,
             }}
           >
-            {item.icon(active)}
+            <span style={{ position: "relative" }}>
+              {item.icon(active)}
+              {item.label === "Mensajes" && hasUnread && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: -3,
+                    right: -4,
+                    width: 9,
+                    height: 9,
+                    borderRadius: "50%",
+                    background: "#ff2f78",
+                    border: "2px solid #121212",
+                    boxShadow: "0 0 6px rgba(255,47,120,0.9)",
+                  }}
+                />
+              )}
+            </span>
             <span
               style={{
                 fontSize: 10,

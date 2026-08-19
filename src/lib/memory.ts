@@ -167,3 +167,69 @@ export function clearAllMemory(girlId: string): void {
   localStorage.removeItem(storageKey(girlId, "summary"));
   localStorage.removeItem(storageKey(girlId, "memory"));
 }
+
+export interface UnreadReply {
+  reply: string;
+  sent: string;
+  name: string;
+  img: string;
+  ts: number;
+}
+
+const UNREAD_KEY = "lunacall_unread_replies";
+const UNREAD_EVENT = "lunacall-unread-change";
+
+function notifyUnreadChange(): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent(UNREAD_EVENT));
+}
+
+export function getUnreadReplies(): Record<string, UnreadReply> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(UNREAD_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function hasUnreadReplies(): boolean {
+  return Object.keys(getUnreadReplies()).length > 0;
+}
+
+export function markUnreadReply(girlId: string, data: Omit<UnreadReply, "ts">): void {
+  if (typeof window === "undefined") return;
+  try {
+    const all = getUnreadReplies();
+    all[girlId] = { ...data, ts: Date.now() };
+    localStorage.setItem(UNREAD_KEY, JSON.stringify(all));
+    notifyUnreadChange();
+  } catch {}
+}
+
+export function clearUnreadReply(girlId: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    const all = getUnreadReplies();
+    if (all[girlId]) {
+      delete all[girlId];
+      localStorage.setItem(UNREAD_KEY, JSON.stringify(all));
+      notifyUnreadChange();
+    }
+  } catch {}
+}
+
+export function clearAllUnreadReplies(): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem(UNREAD_KEY);
+    notifyUnreadChange();
+  } catch {}
+}
+
+export function onUnreadChange(cb: () => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  window.addEventListener(UNREAD_EVENT, cb);
+  return () => window.removeEventListener(UNREAD_EVENT, cb);
+}

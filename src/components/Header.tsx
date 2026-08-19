@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { hasUnreadReplies, onUnreadChange } from "@/lib/memory";
 
 const navItems = [
   { label: "Inicio", href: "/" },
   { label: "Explorar", href: "/girls" },
+  { label: "Mensajes", href: "/messages" },
   { label: "Crear", href: "#crear" },
   { label: "Chat", href: "/chat/luna?picker=1" },
   { label: "Premium", href: "#premium" },
@@ -21,7 +23,13 @@ const categoryLinks = [
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
+  const [hasUnread, setHasUnread] = useState(false);
   const pathname = usePathname();
+
+  useEffect(() => {
+    setHasUnread(hasUnreadReplies());
+    return onUnreadChange(() => setHasUnread(hasUnreadReplies()));
+  }, []);
 
   const currentCat = categoryLinks.find((c) => pathname.startsWith(c.href)) ?? categoryLinks[0];
 
@@ -53,25 +61,42 @@ export default function Header() {
         }}
       >
         {/* Hamburger */}
-        <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          style={{
-            background: "none",
-            border: 0,
-            color: "#fff",
-            padding: 4,
-            display: "flex",
-            flexDirection: "column",
-            gap: 4,
-            cursor: "pointer",
-            flexShrink: 0,
-          }}
-          aria-label="Menú"
-        >
-          <span style={{ display: "block", width: 20, height: 2, background: "#fff", borderRadius: 2 }} />
-          <span style={{ display: "block", width: 20, height: 2, background: "#fff", borderRadius: 2 }} />
-          <span style={{ display: "block", width: 20, height: 2, background: "#fff", borderRadius: 2 }} />
-        </button>
+        <div style={{ position: "relative", flexShrink: 0 }}>
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            style={{
+              background: "none",
+              border: 0,
+              color: "#fff",
+              padding: 4,
+              display: "flex",
+              flexDirection: "column",
+              gap: 4,
+              cursor: "pointer",
+              flexShrink: 0,
+            }}
+            aria-label="Menú"
+          >
+            <span style={{ display: "block", width: 20, height: 2, background: "#fff", borderRadius: 2 }} />
+            <span style={{ display: "block", width: 20, height: 2, background: "#fff", borderRadius: 2 }} />
+            <span style={{ display: "block", width: 20, height: 2, background: "#fff", borderRadius: 2 }} />
+          </button>
+          {hasUnread && (
+            <span
+              style={{
+                position: "absolute",
+                top: -2,
+                right: -2,
+                width: 9,
+                height: 9,
+                borderRadius: "50%",
+                background: "#ff2f78",
+                border: "2px solid #171717",
+                boxShadow: "0 0 6px rgba(255,47,120,0.9)",
+              }}
+            />
+          )}
+        </div>
 
         {/* Logo */}
         <Link
@@ -225,7 +250,9 @@ export default function Header() {
                   href={item.href}
                   onClick={() => setMenuOpen(false)}
                   style={{
-                    display: "block",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
                     padding: "10px 12px",
                     borderRadius: 10,
                     fontSize: 15,
@@ -237,6 +264,17 @@ export default function Header() {
                   }}
                 >
                   {item.label}
+                  {item.label === "Mensajes" && hasUnread && (
+                    <span
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: "50%",
+                        background: "#ff2f78",
+                        boxShadow: "0 0 6px rgba(255,47,120,0.9)",
+                      }}
+                    />
+                  )}
                 </Link>
               );
             })}

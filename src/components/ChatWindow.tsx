@@ -11,8 +11,10 @@ import { sendChatMessage } from "@/lib/chatClient";
 import { sttAudio, ttsText, getGirlVoice, getCustomGirlVoice } from "@/lib/voiceClient";
 import {
   saveConversationHistory,
+  getConversationHistory,
   getConversationSummary,
   saveConversationSummary,
+  getSavedMode,
   getUserMemory,
   saveUserMemory,
   extractMemoryFromMessages,
@@ -20,6 +22,7 @@ import {
   clearAllMemory,
   saveToHistory,
   saveMode,
+  clearUnreadReply,
   ChatMessage,
 } from "@/lib/memory";
 import styles from "./ChatExperience.module.css";
@@ -106,7 +109,13 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         setActiveCustom(g);
         setShowModePicker(false);
         skipWelcomeRef.current = true;
-        if (g.roleplayDesc?.trim()) {
+        clearUnreadReply(g.id);
+        const saved = getConversationHistory(g.id);
+        if (saved.length > 0) {
+          // Reanudar la conversación exactamente donde se dejó.
+          setMode(getSavedMode(g.id) ?? "text");
+          setMessages(saved.map((m, i) => ({ id: `resume-${i}`, from: m.role === "user" ? "user" : "girl", text: m.content })));
+        } else if (g.roleplayDesc?.trim()) {
           setMode("actions");
           const scenario = `Chica: ${g.girlDesc}\nRoleplay: ${g.roleplayDesc}`;
           setCustomScenario(scenario);
@@ -117,6 +126,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         }
       }
     }
+    clearUnreadReply(girl.id);
     // Limpiar de la URL los parámetros temporales (reply/picker/sent).
     if (replyParam || qs.get("picker") === "1" || sentParam) {
       qs.delete("reply");
@@ -168,7 +178,15 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       setShowModePicker(false);
       return;
     }
-    // Empezar siempre de cero: cada entrada es un chat nuevo con saludo.
+    // Reanudar la conversación exactamente donde se dejó.
+    const saved = getConversationHistory(girl.id);
+    if (saved.length > 0) {
+      setMessages(saved.map((m, i) => ({ id: `resume-${i}`, from: m.role === "user" ? "user" : "girl", text: m.content })));
+      setMode(getSavedMode(girl.id) ?? "text");
+      setShowModePicker(false);
+      return () => { mountedRef.current = false; };
+    }
+    // Sin historial: cada entrada es un chat nuevo con saludo.
     const name = welcomeNameRef.current || girl.name;
     const welcomes = [
       `Hola, soy ${name}. Qué bien que hayas entrado`,
