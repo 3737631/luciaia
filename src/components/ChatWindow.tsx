@@ -165,15 +165,23 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       storyChatRef.current = true;
       const sent = storySentRef.current;
       storySentRef.current = "";
+      // Reacciones y mensajes con la misma chica van acumulándose en un solo chat:
+      // se carga lo ya guardado y se añade la nueva reacción sin duplicar.
+      const storageId = activeCustom?.id ?? girl.id;
+      const saved = getConversationHistory(storageId);
+      const alreadySaved = sent
+        ? saved.some((m, i) => m.role === "user" && m.content === sent && i + 1 < saved.length && saved[i + 1].role === "assistant" && saved[i + 1].content === reply)
+        : saved.some((m) => m.role === "assistant" && m.content === reply);
       setMessages([
-        ...(sent
-          ? [
-              { id: "story-ctx-user", from: "user", note: "Respondiste a su historia", text: sent } as ChatMsg,
-              { id: "story-ctx", from: "girl", text: reply } as ChatMsg,
-            ]
-          : [
-              { id: "story-ctx", from: "girl", note: "Respondiste a su historia", text: reply } as ChatMsg,
-            ]),
+        ...saved.map((m, i) => ({ id: `resume-${i}`, from: m.role === "user" ? "user" as const : "girl" as const, text: m.content })),
+        ...(alreadySaved
+          ? []
+          : sent
+            ? [
+                { id: "story-ctx-user", from: "user", note: "Respondiste a su historia", text: sent } as ChatMsg,
+                { id: "story-ctx", from: "girl", text: reply } as ChatMsg,
+              ]
+            : [{ id: "story-ctx", from: "girl", note: "Respondiste a su historia", text: reply } as ChatMsg]),
       ]);
       setMode("text");
       setShowModePicker(false);
@@ -217,16 +225,9 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       if (chatMsgs.length > 1) {
         const storageId = activeCustom?.id ?? girl.id;
         const girlName = activeCustom?.name ?? girl.name;
-        if (storyChatRef.current) {
-          // Venir de una historia: se añade a la conversación existente sin pisarla.
-          const prev = getConversationHistory(storageId);
-          const merged = [...prev, ...chatMsgs].slice(-60);
-          saveConversationHistory(storageId, merged);
-          saveToHistory(storageId, girlName, merged);
-        } else {
-          saveConversationHistory(storageId, chatMsgs);
-          saveToHistory(storageId, girlName, chatMsgs);
-        }
+        // La pantalla ya contiene la conversación acumulada, así que se guarda tal cual.
+        saveConversationHistory(storageId, chatMsgs);
+        saveToHistory(storageId, girlName, chatMsgs);
       }
     };
   }, [girl.id, girl.name, activeCustom]);
