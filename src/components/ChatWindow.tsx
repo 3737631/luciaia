@@ -69,6 +69,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   const forcePickerRef = useRef(false);
   const storyReplyRef = useRef("");
   const storySentRef = useRef("");
+  const skipSaveRef = useRef(false);
   const activeCustomJsonRef = useRef("");
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -161,6 +162,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       const reply = storyReplyRef.current;
       storyReplyRef.current = "";
       skipWelcomeRef.current = true;
+      skipSaveRef.current = true;
       const sent = storySentRef.current;
       storySentRef.current = "";
       setMessages([
@@ -205,6 +207,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
 
   useEffect(() => {
     return () => {
+      if (skipSaveRef.current) return;
       const chatMsgs = messagesRef.current
         .filter((m) => m.id !== "welcome")
         .map((m) => ({ role: m.from === "user" ? "user" as const : "assistant" as const, content: m.text }));

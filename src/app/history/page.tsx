@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { getHistory, clearHistory, getConversationHistory } from "@/lib/memory";
 import { getCustomGirls } from "@/lib/storage";
 import { getGirlImage } from "@/lib/images";
@@ -17,15 +18,23 @@ interface GirlRow {
 }
 
 export default function HistoryPage() {
+  return (
+    <Suspense fallback={null}>
+      <HistoryContent />
+    </Suspense>
+  );
+}
+
+function HistoryContent() {
+  const searchParams = useSearchParams();
   const [rows, setRows] = useState<GirlRow[]>([]);
   const [single, setSingle] = useState<GirlRow | null>(null);
   const [singleLast, setSingleLast] = useState("");
   const [confirmClear, setConfirmClear] = useState(false);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const customId = params.get("custom");
-    const girlId = params.get("girl");
+    const customId = searchParams.get("custom");
+    const girlId = searchParams.get("girl");
 
     if (customId) {
       const g = getCustomGirls().find((x) => x.id === customId);
@@ -103,7 +112,7 @@ export default function HistoryPage() {
     otherRows.sort((a, b) => b.lastTs - a.lastTs);
 
     setRows([...customRows, ...otherRows]);
-  }, []);
+  }, [searchParams]);
 
   function handleClear() {
     if (single) {
@@ -156,7 +165,7 @@ export default function HistoryPage() {
                 : "Tus conversaciones con cada chica. Al entrar retomas donde la dejaste."}
             </p>
           </div>
-          {(single || rows.some((r) => r.lastTs > 0)) && (
+          {!single && rows.some((r) => r.lastTs > 0) && (
             <button
               onClick={() => setConfirmClear(true)}
               className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-muted transition-all hover:bg-[#ff2f78]/15 hover:text-white active:scale-95"
@@ -174,33 +183,48 @@ export default function HistoryPage() {
 
         {single ? (
           <div className="flex min-h-[50dvh] flex-col">
-            <Link
-              href="/history"
-              className="mb-4 flex w-fit items-center gap-1.5 rounded-full bg-white/[0.05] px-4 py-2 text-xs font-semibold text-white/70 transition hover:bg-white/[0.1] hover:text-white active:scale-95"
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
-              Volver
-            </Link>
+            <div className="mb-4 flex items-center gap-2">
+              <Link
+                href="/history"
+                className="flex w-fit items-center gap-1.5 rounded-full bg-white/[0.05] px-4 py-2 text-xs font-semibold text-white/70 transition hover:bg-white/[0.1] hover:text-white active:scale-95"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+                Volver
+              </Link>
+              <button
+                onClick={() => setConfirmClear(true)}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.05] text-white/60 transition hover:bg-[#ff2f78]/15 hover:text-white active:scale-95"
+                aria-label="Limpiar historial"
+                title="Limpiar historial"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                  <path d="M3 6h18" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  <path d="M10 11v6M14 11v6" />
+                </svg>
+              </button>
+            </div>
 
-            <Link
-              href={single.href}
-              className="flex w-full items-center gap-3.5 rounded-2xl px-2 py-2.5 text-left transition hover:bg-white/[0.04] active:scale-[0.99]"
-            >
-              <div className="h-[62px] w-[62px] shrink-0 overflow-hidden rounded-full border border-white/[0.09] bg-gradient-to-br from-[#ff5798]/30 to-[#8b5cf6]/25">
-                {single.img ? (
-                  <img src={single.img} alt={single.name} className="h-full w-full object-cover object-center" />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-lg font-bold text-white">{single.name[0]}</div>
-                )}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-[1.02rem] font-semibold leading-tight text-white">{single.name}</p>
-                <p className="mt-0.5 max-w-full truncate text-[13px] text-white/40">
-                  {singleLast || "Toca para empezar a chatear"}
-                </p>
-              </div>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 text-white/25"><path d="M9 18l6-6-6-6" /></svg>
-            </Link>
+            <div className="mt-auto pb-2">
+              <Link
+                href={single.href}
+                className="flex w-full items-center gap-3.5 px-2 py-2.5 text-left"
+              >
+                <div className="h-[62px] w-[62px] shrink-0 overflow-hidden rounded-full border border-white/[0.09] bg-gradient-to-br from-[#ff5798]/30 to-[#8b5cf6]/25">
+                  {single.img ? (
+                    <img src={single.img} alt={single.name} className="h-full w-full object-cover object-center" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-lg font-bold text-white">{single.name[0]}</div>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[1.02rem] font-semibold leading-tight text-white">{single.name}</p>
+                  <p className="mt-0.5 max-w-full truncate text-[13px] text-white/40">
+                    {singleLast || "Toca para empezar a chatear"}
+                  </p>
+                </div>
+              </Link>
+            </div>
           </div>
         ) : rows.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-32 text-center">

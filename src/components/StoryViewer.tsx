@@ -278,6 +278,19 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
   const rootRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   const hiddenInputRef = useRef<HTMLInputElement>(null);
+  const focusComposer = useCallback(() => {
+    const input = hiddenInputRef.current;
+    if (!input) return;
+    try { input.focus({ preventScroll: true }); } catch {}
+    // iOS a veces ignora el primer focus: reintentar si no se ha conseguido.
+    const check = () => {
+      if (mountedRef.current && document.activeElement !== input) {
+        try { input.focus({ preventScroll: true }); } catch {}
+      }
+    };
+    setTimeout(check, 80);
+    setTimeout(check, 300);
+  }, []);
   const heartBtnRef = useRef<HTMLButtonElement>(null);
   const scrollYRef = useRef(0);
   const mountedRef = useRef(true);
@@ -1145,10 +1158,10 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
             padding: "8px 14px max(16px, env(safe-area-inset-bottom,0px))",
           }}>
             <div data-story-interactive
-              onPointerDown={(e) => { e.stopPropagation(); if (document.activeElement !== hiddenInputRef.current) hiddenInputRef.current?.focus({ preventScroll: true }); }}
+              onPointerDown={(e) => { e.stopPropagation(); focusComposer(); }}
               onTouchStart={(e) => { e.stopPropagation(); }}
-              onTouchEnd={(e) => { e.stopPropagation(); if (document.activeElement !== hiddenInputRef.current) hiddenInputRef.current?.focus({ preventScroll: true }); }}
-              onClick={(e) => { e.stopPropagation(); if (document.activeElement !== hiddenInputRef.current) hiddenInputRef.current?.focus({ preventScroll: true }); }}
+              onTouchEnd={(e) => { e.stopPropagation(); focusComposer(); }}
+              onClick={(e) => { e.stopPropagation(); focusComposer(); }}
               style={{
                 flex: 1, height: 41, minWidth: 0, display: "flex", alignItems: "center",
                 padding: "0 15px", borderRadius: 999,
