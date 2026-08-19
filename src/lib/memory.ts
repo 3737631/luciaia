@@ -175,6 +175,8 @@ export function clearAllMemory(girlId: string): void {
 }
 
 export interface UnreadReply {
+  id: string;
+  girlId: string;
   reply: string;
   sent: string;
   name: string;
@@ -190,26 +192,32 @@ function notifyUnreadChange(): void {
   window.dispatchEvent(new CustomEvent(UNREAD_EVENT));
 }
 
-export function getUnreadReplies(): Record<string, UnreadReply> {
-  if (typeof window === "undefined") return {};
+export function getUnreadReplies(): UnreadReply[] {
+  if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(UNREAD_KEY);
-    return raw ? JSON.parse(raw) : {};
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
-    return {};
+    return [];
   }
 }
 
 export function hasUnreadReplies(): boolean {
-  return Object.keys(getUnreadReplies()).length > 0;
+  return getUnreadReplies().length > 0;
 }
 
-export function markUnreadReply(girlId: string, data: Omit<UnreadReply, "ts">): void {
+export function markUnreadReply(girlId: string, data: Omit<UnreadReply, "id" | "girlId" | "ts">): void {
   if (typeof window === "undefined") return;
   try {
     const all = getUnreadReplies();
-    all[girlId] = { ...data, ts: Date.now() };
-    localStorage.setItem(UNREAD_KEY, JSON.stringify(all));
+    const entry: UnreadReply = {
+      ...data,
+      id: `${girlId}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      girlId,
+      ts: Date.now(),
+    };
+    localStorage.setItem(UNREAD_KEY, JSON.stringify([entry, ...all].slice(0, 30)));
     notifyUnreadChange();
   } catch {}
 }
@@ -217,12 +225,9 @@ export function markUnreadReply(girlId: string, data: Omit<UnreadReply, "ts">): 
 export function clearUnreadReply(girlId: string): void {
   if (typeof window === "undefined") return;
   try {
-    const all = getUnreadReplies();
-    if (all[girlId]) {
-      delete all[girlId];
-      localStorage.setItem(UNREAD_KEY, JSON.stringify(all));
-      notifyUnreadChange();
-    }
+    const all = getUnreadReplies().filter((u) => u.girlId !== girlId);
+    localStorage.setItem(UNREAD_KEY, JSON.stringify(all));
+    notifyUnreadChange();
   } catch {}
 }
 

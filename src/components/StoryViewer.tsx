@@ -46,10 +46,10 @@ function buildReactionLine(name: string, type: "like" | "reaction"): string {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
-function buildReplyLine(name: string, userMessage: string): string {
+function buildReplyLine(name: string, userMessage: string, count = 0): string {
   const usted = detectGender(name) === "mujer" ? "guapo" : "guapa";
-  const msg = userMessage.toLowerCase();
-  const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
+  const msg = userMessage.toLowerCase().trim();
+  const pick = (arr: string[]) => arr[(Math.floor(Math.random() * arr.length) + count) % arr.length];
   if (/(deport|gimnasio|\bgym\b|f[úu]tbol|correr|entrenar|entreno|baloncesto|nataci[óo]n|boxeo|tenis|jugar)/.test(msg)) {
     return pick([
       `¿Te gusta el deporte, ${usted}? A mí me encanta entrenar 😅`,
@@ -104,16 +104,22 @@ function buildReplyLine(name: string, userMessage: string): string {
       `No me digas esas cosas que me derrito 😊`,
     ]);
   }
-  const pool = [
-    `Me encanta que me escribas, ${usted} 😊`,
-    `Cuéntame más... me tienes enganchada 😏`,
-    `Jajaja, me haces reír, ${usted} 😂`,
-    `Justo pensaba en ti... 😌`,
+  if (/\?\s*$/.test(msg)) {
+    return pick([
+      `Buena pregunta... cuéntame por qué lo dices, ${usted} 😏`,
+      `Mmm, depende... ¿por qué preguntas? 😊`,
+      `Si me cuentas algo de ti, te respondo, ${usted} 😉`,
+    ]);
+  }
+  const words = userMessage.split(/\s+/).filter((w) => /[a-zñíóúéá0-9]/i.test(w) && w.length > 2).slice(0, 3);
+  const echo = words.length ? words.join(" ") : (userMessage.slice(0, 24) || "...");
+  return pick([
+    `¿En serio, ${echo}? Cuéntame más, ${usted} 😏`,
+    `Mmm, ${echo}... me encanta cómo piensas, ${usted} 😉`,
     `Sigue así y no podré parar de escribirte 🔥`,
-    `Mmm... me gusta cómo piensas 😏`,
+    `Justo pensaba en ti... 😌`,
     `Tienes razón, ${usted}... me gusta cómo lo ves 😉`,
-  ];
-  return pool[Math.floor(Math.random() * pool.length)];
+  ]);
 }
 
 function triggerHaptic(p: number | number[] = 12) {
@@ -284,6 +290,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
   const kbStartedRef = useRef(false);
   const sendingRef = useRef(false);
   const reactionLockRef = useRef(false);
+  const replyCountRef = useRef<Record<string, number>>({});
   const focusComposer = useCallback(() => {
     const input = hiddenInputRef.current;
     if (!input) return;
@@ -766,7 +773,9 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
     setIsSending(true); triggerHaptic(10);
     saveInteraction(`daily_${currentChar.name}`, currentChar.name, "message", sentText);
     const charAtSend = currentChar;
-    const replyText = buildReplyLine(charAtSend.name, sentText);
+    const replyCount = (replyCountRef.current[charAtSend.id] ?? 0) + 1;
+    replyCountRef.current[charAtSend.id] = replyCount;
+    const replyText = buildReplyLine(charAtSend.name, sentText, replyCount);
     setMessage(""); hiddenInputRef.current?.blur();
     setMsgConfirm("Mensaje enviado");
     setTimeout(() => { if (mountedRef.current) setMsgConfirm(null); }, 800);

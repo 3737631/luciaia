@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
@@ -22,6 +22,8 @@ interface Props {
 
 export default function InAppNotification({ notification, onRemove, onClick }: Props) {
   const [exit, setExit] = useState(false);
+  const [dragY, setDragY] = useState(0);
+  const startRef = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => setExit(true), (notification.duration ?? 2500) - 300);
@@ -41,6 +43,23 @@ export default function InAppNotification({ notification, onRemove, onClick }: P
       role="alert"
       aria-live="assertive"
       onClick={onClick}
+      onPointerDown={(e) => {
+        startRef.current = { x: e.clientX, y: e.clientY };
+        setDragY(0);
+      }}
+      onPointerMove={(e) => {
+        if (!startRef.current) return;
+        const dy = e.clientY - startRef.current.y;
+        if (dy < 0) setDragY(dy);
+      }}
+      onPointerUp={(e) => {
+        if (!startRef.current) return;
+        const dy = startRef.current.y - e.clientY;
+        startRef.current = null;
+        setDragY(0);
+        if (dy > 45) { setExit(true); onRemove(notification.id); }
+      }}
+      onPointerCancel={() => { startRef.current = null; setDragY(0); }}
       style={{
         position: "fixed",
         top: `calc(env(safe-area-inset-top, 8px) + 8px)`,
@@ -57,10 +76,13 @@ export default function InAppNotification({ notification, onRemove, onClick }: P
         WebkitBackdropFilter: "blur(16px)",
         boxShadow: "0 4px 24px rgba(0,0,0,0.4)",
         animation: exit ? "slideOutUp 0.3s ease forwards" : "slideInDown 0.3s ease",
+        transform: dragY < 0 ? `translateY(${dragY}px)` : undefined,
+        transition: dragY < 0 ? "none" : "transform 0.2s ease",
         maxWidth: 400,
         margin: "0 auto",
         cursor: onClick ? "pointer" : "default",
         border: "1px solid rgba(255,255,255,0.08)",
+        touchAction: "pan-y",
       }}
     >
       {notification.avatar ? (

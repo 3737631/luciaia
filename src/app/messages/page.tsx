@@ -9,7 +9,6 @@ import {
   clearAllUnreadReplies,
   getUnreadReplies,
   onUnreadChange,
-  type UnreadReply,
 } from "@/lib/memory";
 import { getCustomGirls } from "@/lib/storage";
 import { getGirlImage } from "@/lib/images";
@@ -42,8 +41,7 @@ function MessagesContent() {
 
   useEffect(() => {
     const rebuild = () => {
-      const pendingMap = getUnreadReplies();
-      const pending: [string, UnreadReply][] = Object.entries(pendingMap);
+      const pending = getUnreadReplies();
       const customs = getCustomGirls();
       const entries = getHistory();
       const byGirl = new Map<string, { ts: number; preview: string }>();
@@ -52,12 +50,12 @@ function MessagesContent() {
         if (!prev || e.timestamp > prev.ts) byGirl.set(e.girlId, { ts: e.timestamp, preview: e.preview });
       }
 
-      const pendingRows: MsgRow[] = pending.map(([id, u]) => ({
-        key: `p-${id}`,
-        girlId: id,
+      const pendingRows: MsgRow[] = pending.map((u) => ({
+        key: `p-${u.id}`,
+        girlId: u.girlId,
         name: u.name,
         img: u.img,
-        href: `/chat/${id}?reply=${encodeURIComponent(u.reply)}&sent=${encodeURIComponent(u.sent)}`,
+        href: `/chat/${u.girlId}?reply=${encodeURIComponent(u.reply)}&sent=${encodeURIComponent(u.sent)}`,
         ts: u.ts,
         preview: u.reply,
         pending: true,
@@ -66,7 +64,7 @@ function MessagesContent() {
       }));
       pendingRows.sort((a, b) => b.ts - a.ts);
 
-      const seenPending = new Set(pending.map(([id]) => id));
+      const seenPending = new Set(pending.map((u) => u.girlId));
       const restRows: MsgRow[] = [];
 
       for (const g of [...customs].reverse()) {
@@ -169,7 +167,7 @@ function MessagesContent() {
                 className={`flex w-full items-center gap-3.5 rounded-2xl px-2 py-2.5 text-left transition hover:bg-white/[0.04] active:scale-[0.99] ${r.pending ? "bg-[#ff2f78]/[0.07] ring-1 ring-[#ff2f78]/25" : ""}`}
               >
                 <div className="relative shrink-0">
-                  <div className={`h-[62px] w-[62px] overflow-hidden rounded-full border bg-[#ff2f78] ${r.pending ? "border-[#ff2f78]/60" : "border-white/[0.09]"}`}>
+                  <div className="h-[62px] w-[62px] overflow-hidden rounded-full bg-[#ff2f78]">
                     {r.img ? (
                       <img src={r.img} alt={r.name} className="h-full w-full object-cover object-center" />
                     ) : (

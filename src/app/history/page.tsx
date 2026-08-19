@@ -232,7 +232,7 @@ function HistoryContent() {
                     href={single.href}
                     className="flex w-full items-center gap-3.5 rounded-2xl px-2 py-2.5 text-left transition hover:bg-white/[0.04] active:scale-[0.99]"
                   >
-                    <div className="h-[62px] w-[62px] shrink-0 overflow-hidden rounded-full border border-white/[0.09] bg-[#ff2f78]">
+                    <div className="h-[62px] w-[62px] shrink-0 overflow-hidden rounded-full bg-[#ff2f78]">
                       {single.img ? (
                         <img src={single.img} alt={single.name} className="h-full w-full object-cover object-center" />
                       ) : (
@@ -257,7 +257,7 @@ function HistoryContent() {
                 href={`${single.href}${single.href.includes("?") ? "&" : "?"}picker=1`}
                 className="flex w-full items-center gap-3.5 px-2 py-2.5 text-left"
               >
-                <div className="h-[62px] w-[62px] shrink-0 overflow-hidden rounded-full border border-white/[0.09] bg-[#ff2f78]">
+                <div className="h-[62px] w-[62px] shrink-0 overflow-hidden rounded-full bg-[#ff2f78]">
                   {single.img ? (
                     <img src={single.img} alt={single.name} className="h-full w-full object-cover object-center" />
                   ) : (
@@ -294,7 +294,7 @@ function HistoryContent() {
                 href={r.href}
                 className="flex w-full items-center gap-3.5 rounded-2xl px-2 py-2.5 text-left transition hover:bg-white/[0.04] active:scale-[0.99]"
               >
-                <div className="h-[62px] w-[62px] shrink-0 overflow-hidden rounded-full border border-white/[0.09] bg-[#ff2f78]">
+                <div className="h-[62px] w-[62px] shrink-0 overflow-hidden rounded-full bg-[#ff2f78]">
                   {r.img ? (
                     <img src={r.img} alt={r.name} className="h-full w-full object-cover object-center" />
                   ) : (
