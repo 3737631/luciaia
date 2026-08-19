@@ -242,15 +242,12 @@ function MessagesContent() {
                 </Link>
                 <button
                   onClick={() => setConfirmDelete(r)}
-                  className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-white/35 transition hover:bg-[#ff2f78]/15 hover:text-white active:scale-90"
-                  aria-label={`Borrar conversación con ${r.name}`}
-                  title="Borrar conversación"
+                  className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl text-[1.15rem] font-semibold leading-none tracking-widest text-white/45 transition hover:bg-white/[0.07] hover:text-white active:scale-90"
+                  aria-label={`Opciones de ${r.name}`}
+                  title="Opciones"
+                  style={{ paddingLeft: 4, paddingRight: 2 }}
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-                    <path d="M3 6h18" />
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                    <path d="M10 11v6M14 11v6" />
-                  </svg>
+                  ···
                 </button>
               </div>
             ))}
