@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getHistory, clearHistory, getConversationHistory } from "@/lib/memory";
+import { getHistory, clearHistory, clearGirlData, getConversationHistory } from "@/lib/memory";
 import { getCustomGirls } from "@/lib/storage";
 import { getGirlImage } from "@/lib/images";
 import { girls } from "@/data/girls";
@@ -33,6 +33,7 @@ function HistoryContent() {
   const [singleLast, setSingleLast] = useState("");
   const [singleSessions, setSingleSessions] = useState<{ id: string; ts: number; preview: string }[]>([]);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [deleteRow, setDeleteRow] = useState<GirlRow | null>(null);
 
   useEffect(() => {
     const customId = searchParams.get("custom");
@@ -125,16 +126,23 @@ function HistoryContent() {
 
   function handleClear() {
     if (single) {
-      clearGirlConversation(single.girlId);
+      clearGirlData(single.girlId);
       setSingleLast("");
       setSingleSessions([]);
     } else {
       clearHistory();
-      for (const girl of girls) clearGirlConversation(girl.id);
-      for (const g of getCustomGirls()) clearGirlConversation(g.id);
+      for (const girl of girls) clearGirlData(girl.id);
+      for (const g of getCustomGirls()) clearGirlData(g.id);
       setRows([]);
     }
     setConfirmClear(false);
+  }
+
+  function handleDeleteRow() {
+    if (!deleteRow) return;
+    clearGirlData(deleteRow.girlId);
+    setRows((prev) => prev.filter((r) => r.girlId !== deleteRow.girlId));
+    setDeleteRow(null);
   }
 
   function girlSessions(girlId: string) {
@@ -149,13 +157,6 @@ function HistoryContent() {
     if (msgs.length === 0) return "";
     const last = msgs[msgs.length - 1];
     return (last.role === "user" ? "Tú: " : "") + last.content.slice(0, 80);
-  }
-
-  function clearGirlConversation(girlId: string) {
-    try {
-      localStorage.removeItem(`lunacall_${girlId}_history`);
-      localStorage.removeItem(`lunacall_${girlId}_summary`);
-    } catch {}
   }
 
   function formatDate(ts: number) {
@@ -182,12 +183,12 @@ function HistoryContent() {
                 : "Tus conversaciones con cada chica."}
             </p>
           </div>
-          {!single && rows.some((r) => r.lastTs > 0) && (
+          {!single && (
             <button
               onClick={() => setConfirmClear(true)}
               className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-muted transition-all hover:bg-[#ff2f78]/15 hover:text-white active:scale-95"
-              aria-label="Limpiar historial"
-              title="Limpiar historial"
+              aria-label="Borrar todos tus mensajes"
+              title="Borrar todos tus mensajes"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
                 <path d="M3 6h18" />
@@ -289,31 +290,44 @@ function HistoryContent() {
         ) : (
           <div className="space-y-1">
             {rows.map((r) => (
-              <Link
-                key={r.girlId}
-                href={r.href}
-                className="flex w-full items-center gap-3.5 rounded-2xl px-2 py-2.5 text-left transition hover:bg-white/[0.04] active:scale-[0.99]"
-              >
-                <div className="h-[62px] w-[62px] shrink-0 overflow-hidden rounded-full bg-[#ff2f78]">
-                  {r.img ? (
-                    <img src={r.img} alt={r.name} className="h-full w-full object-cover object-center" />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-lg font-bold text-white">{r.name[0]}</div>
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-baseline justify-between gap-3">
-                    <p className="truncate text-[1.02rem] font-semibold leading-tight text-white">{r.name}</p>
-                    {r.lastTs > 0 && (
-                      <p className="shrink-0 text-[10px] text-white/30">{formatDate(r.lastTs)}</p>
+              <div key={r.girlId} className="group relative flex items-center">
+                <Link
+                  href={r.href}
+                  className="flex w-full items-center gap-3.5 rounded-2xl px-2 py-2.5 pr-14 text-left transition hover:bg-white/[0.04] active:scale-[0.99]"
+                >
+                  <div className="h-[62px] w-[62px] shrink-0 overflow-hidden rounded-full bg-[#ff2f78]">
+                    {r.img ? (
+                      <img src={r.img} alt={r.name} className="h-full w-full object-cover object-center" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-lg font-bold text-white">{r.name[0]}</div>
                     )}
                   </div>
-                  <p className="mt-0.5 max-w-full truncate text-[13px] text-white/40">
-                    {r.lastPreview || "Conversación"}
-                  </p>
-                </div>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 text-white/25"><path d="M9 18l6-6-6-6" /></svg>
-              </Link>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <p className="truncate text-[1.02rem] font-semibold leading-tight text-white">{r.name}</p>
+                      {r.lastTs > 0 && (
+                        <p className="shrink-0 text-[10px] text-white/30">{formatDate(r.lastTs)}</p>
+                      )}
+                    </div>
+                    <p className="mt-0.5 max-w-full truncate text-[13px] text-white/40">
+                      {r.lastPreview || "Conversación"}
+                    </p>
+                  </div>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 text-white/25"><path d="M9 18l6-6-6-6" /></svg>
+                </Link>
+                <button
+                  onClick={() => setDeleteRow(r)}
+                  className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-white/35 transition hover:bg-[#ff2f78]/15 hover:text-white active:scale-90"
+                  aria-label={`Borrar conversación con ${r.name}`}
+                  title="Borrar conversación"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                    <path d="M3 6h18" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    <path d="M10 11v6M14 11v6" />
+                  </svg>
+                </button>
+              </div>
             ))}
           </div>
         )}
@@ -326,16 +340,16 @@ function HistoryContent() {
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
               </div>
               <h3 className="mt-4 text-lg font-bold tracking-tight text-white">
-                {single ? `Borrar conversación con ${single.name}` : "Borrar todo el historial"}
+                {single ? `Borrar conversación con ${single.name}` : "Borrar todos tus mensajes"}
               </h3>
               <p className="mt-2 text-sm leading-relaxed text-white/55">
                 {single ? (
                   <>
-                    Se borrará <span className="font-semibold text-white/80">para siempre</span> la conversación con {single.name}. Esta acción no se puede deshacer.
+                    Se borrará <span className="font-semibold text-white/80">para siempre</span> la conversación con {single.name} y nunca volverá a aparecer. Esta acción no se puede deshacer.
                   </>
                 ) : (
                   <>
-                    Se borrarán <span className="font-semibold text-white/80">para siempre</span> todas las conversaciones de este dispositivo. Esta acción no se puede deshacer.
+                    Se borrarán <span className="font-semibold text-white/80">para siempre</span> todas las conversaciones de este dispositivo y nunca volverán a aparecer. Esta acción no se puede deshacer.
                   </>
                 )}
               </p>
@@ -345,6 +359,29 @@ function HistoryContent() {
                 </button>
                 <button onClick={handleClear} className="h-12 flex-[1.4] rounded-2xl bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-sm font-bold text-white transition hover:brightness-110 active:scale-[0.98]">
                   Borrar todo
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Confirmación de borrado de una sola chica */}
+        {deleteRow && (
+          <div className="fixed inset-0 z-[80] flex items-center justify-center overflow-y-auto bg-black/80 px-6 backdrop-blur-md" onClick={() => setDeleteRow(null)}>
+            <div className="my-auto w-full max-w-[340px] rounded-3xl border border-white/[0.08] bg-[#15151a]/95 p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#ff2f78]/15 text-[#ff5f8f]">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
+              </div>
+              <h3 className="mt-4 text-lg font-bold tracking-tight text-white">Borrar conversación con {deleteRow.name}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-white/55">
+                Se borrará <span className="font-semibold text-white/80">para siempre</span> la conversación con {deleteRow.name} y nunca volverá a aparecer. Esta acción no se puede deshacer.
+              </p>
+              <div className="mt-6 flex gap-2.5">
+                <button onClick={() => setDeleteRow(null)} className="h-12 flex-1 rounded-2xl bg-white/[0.06] text-sm font-bold text-white/80 transition hover:bg-white/[0.1] active:scale-[0.98]">
+                  Cancelar
+                </button>
+                <button onClick={handleDeleteRow} className="h-12 flex-[1.4] rounded-2xl bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-sm font-bold text-white transition hover:brightness-110 active:scale-[0.98]">
+                  Borrar
                 </button>
               </div>
             </div>

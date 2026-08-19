@@ -108,20 +108,26 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       if (g) {
         welcomeNameRef.current = g.name;
         setActiveCustom(g);
-        setShowModePicker(false);
         skipWelcomeRef.current = true;
         clearUnreadReply(g.id);
         const saved = getConversationHistory(g.id);
-        if (saved.length > 0 && !forcePickerRef.current) {
+        if (forcePickerRef.current) {
+          // Chatear desde el historial: siempre mostrar el selector (mensaje / vivir una historia).
+          setShowModePicker(true);
+          setMessages([{ id: "welcome", from: "girl", text: g.roleplayDesc || `Hola, soy ${g.name}. Qué bien que hayas entrado` }]);
+        } else if (saved.length > 0) {
           // Reanudar la conversación exactamente donde se dejó.
+          setShowModePicker(false);
           setMode(getSavedMode(g.id) ?? "text");
           setMessages(saved.map((m, i) => ({ id: `resume-${i}`, from: m.role === "user" ? "user" : "girl", text: m.content })));
         } else if (g.roleplayDesc?.trim()) {
+          setShowModePicker(false);
           setMode("actions");
           const scenario = `Chica: ${g.girlDesc}\nRoleplay: ${g.roleplayDesc}`;
           setCustomScenario(scenario);
           setMessages([{ id: "welcome", from: "girl", text: g.roleplayDesc }]);
         } else {
+          setShowModePicker(false);
           setMode("text");
           setMessages([{ id: "welcome", from: "girl", text: `Hola, soy ${g.name}. Qué bien que hayas entrado` }]);
         }
@@ -235,9 +241,15 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   async function startRoleplay() {
     setMode("actions");
     setShowModePicker(false);
-    setCustomScenario(girl.story);
-    const pick = girl.roleplayGreetings[Math.floor(Math.random() * girl.roleplayGreetings.length)];
-    setMessages([{ id: "welcome", from: "girl", text: pick }]);
+    if (activeCustom) {
+      const scenario = `Chica: ${activeCustom.girlDesc}\nRoleplay: ${activeCustom.roleplayDesc}`;
+      setCustomScenario(scenario);
+      setMessages([{ id: "welcome", from: "girl", text: activeCustom.roleplayDesc }]);
+    } else {
+      setCustomScenario(girl.story);
+      const pick = girl.roleplayGreetings[Math.floor(Math.random() * girl.roleplayGreetings.length)];
+      setMessages([{ id: "welcome", from: "girl", text: pick }]);
+    }
   }
 
   // Recuerda el modo (texto o historia) de cada conversación.

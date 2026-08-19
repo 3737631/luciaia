@@ -125,14 +125,23 @@ export default function TusChicas({
                   <h3 className="text-[1.4rem] font-bold leading-tight tracking-tight text-white">
                     Tus chicas
                   </h3>
-                  <button
-                    type="button"
-                    onClick={onCreate}
-                    aria-label="Crear chica"
-                    className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.06] text-white/70 transition hover:bg-white/[0.12] hover:text-white active:scale-90"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="flex h-9 items-center rounded-full bg-white/[0.06] px-3.5 text-sm font-semibold text-white/70 transition hover:bg-white/[0.12] hover:text-white active:scale-90"
+                    >
+                      Salir
+                    </button>
+                    <button
+                      type="button"
+                      onClick={onCreate}
+                      aria-label="Crear chica"
+                      className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.06] text-white/70 transition hover:bg-white/[0.12] hover:text-white active:scale-90"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+                    </button>
+                  </div>
                 </div>
                 <div className="mt-5 h-0.5 w-full overflow-hidden rounded-full bg-white/[0.07]">
                   <div
@@ -188,7 +197,7 @@ export default function TusChicas({
                             onClick={() => openChat(g)}
                             className="flex items-center gap-3.5 rounded-2xl px-2 py-2.5 transition hover:bg-white/[0.04] active:scale-[0.99]"
                           >
-                            <div className="h-[60px] w-[60px] shrink-0 overflow-hidden rounded-full border border-white/[0.09] bg-gradient-to-br from-[#ff5798]/30 to-[#8b5cf6]/25"
+                            <div className="h-[60px] w-[60px] shrink-0 overflow-hidden rounded-full bg-[#ff2f78]"
                               style={isActive ? { boxShadow: "0 0 0 2.5px #131318, 0 0 0 5px #ff2f78" } : undefined}
                             >
                               <img src={imgSrc} alt={g.name} className="h-full w-full object-cover object-center" />
@@ -238,7 +247,7 @@ export default function TusChicas({
                                   transition={{ type: "spring", stiffness: 320, damping: 28 }}
                                 >
                                   <div className="flex items-center gap-3 px-5 pb-2 pt-5">
-                                    <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/[0.09] bg-gradient-to-br from-[#ff5798]/30 to-[#8b5cf6]/25">
+                                    <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[#ff2f78]">
                                       <img src={imgSrc} alt={g.name} className="h-full w-full object-cover object-center" />
                                     </div>
                                     <div className="min-w-0">
@@ -306,11 +315,6 @@ export default function TusChicas({
                   </div>
                 )}
               </div>
-
-              {/* Salir */}
-              <button onClick={onClose} className="mx-auto mt-10 flex w-full items-center justify-center py-3 text-sm font-medium text-white/40 transition hover:text-white active:scale-95">
-                Salir
-              </button>
             </motion.div>
           </motion.div>
 

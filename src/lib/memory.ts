@@ -167,6 +167,31 @@ export function clearHistory(): void {
   localStorage.removeItem(historyKey());
 }
 
+/**
+ * Borra PARA SIEMPRE todo lo relacionado con una chica:
+ * conversación, resumen, memoria, modo, sus entradas del historial global
+ * y sus notificaciones pendientes. Así, al reiniciar, nada vuelve a aparecer.
+ */
+export function clearGirlData(girlId: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem(storageKey(girlId, "history"));
+    localStorage.removeItem(storageKey(girlId, "summary"));
+    localStorage.removeItem(storageKey(girlId, "memory"));
+    localStorage.removeItem(storageKey(girlId, "mode"));
+    const raw = localStorage.getItem(historyKey());
+    if (raw) {
+      const list = JSON.parse(raw);
+      if (Array.isArray(list)) {
+        const filtered = list.filter((e: HistoryEntry) => e.girlId !== girlId);
+        if (filtered.length > 0) localStorage.setItem(historyKey(), JSON.stringify(filtered));
+        else localStorage.removeItem(historyKey());
+      }
+    }
+    clearUnreadReply(girlId);
+  } catch {}
+}
+
 export function clearAllMemory(girlId: string): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem(storageKey(girlId, "history"));

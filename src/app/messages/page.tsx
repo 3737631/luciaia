@@ -7,6 +7,8 @@ import {
   getHistory,
   getConversationHistory,
   clearAllUnreadReplies,
+  clearHistory,
+  clearGirlData,
   getUnreadReplies,
   onUnreadChange,
 } from "@/lib/memory";
@@ -38,6 +40,7 @@ export default function MessagesPage() {
 function MessagesContent() {
   const [rows, setRows] = useState<MsgRow[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [confirmDelete, setConfirmDelete] = useState<"all" | MsgRow | null>(null);
 
   useEffect(() => {
     const rebuild = () => {
@@ -119,6 +122,22 @@ function MessagesContent() {
     });
   }
 
+  function handleDeleteAll() {
+    clearHistory();
+    for (const girl of girls) clearGirlData(girl.id);
+    for (const g of getCustomGirls()) clearGirlData(g.id);
+    clearAllUnreadReplies();
+    setRows([]);
+    setUnreadCount(0);
+    setConfirmDelete(null);
+  }
+
+  function handleDeleteRow(r: MsgRow) {
+    clearGirlData(r.girlId);
+    setRows((prev) => prev.filter((x) => x.girlId !== r.girlId));
+    setConfirmDelete(null);
+  }
+
   return (
     <>
       <Header />
@@ -130,6 +149,21 @@ function MessagesContent() {
               Respuestas sin contestar arriba y todas tus conversaciones.
             </p>
           </div>
+          <div className="flex items-center gap-2">
+          {rows.length > 0 && (
+            <button
+              onClick={() => setConfirmDelete("all")}
+              className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-muted transition-all hover:bg-[#ff2f78]/15 hover:text-white active:scale-95"
+              aria-label="Borrar todos tus mensajes"
+              title="Borrar todos tus mensajes"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                <path d="M3 6h18" />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                <path d="M10 11v6M14 11v6" />
+              </svg>
+            </button>
+          )}
           {unreadCount > 0 && (
             <button
               onClick={() => clearAllUnreadReplies()}
@@ -143,6 +177,7 @@ function MessagesContent() {
               </svg>
             </button>
           )}
+        </div>
         </div>
 
         {rows.length === 0 ? (
@@ -161,55 +196,102 @@ function MessagesContent() {
         ) : (
           <div className="space-y-1">
             {rows.map((r) => (
-              <Link
-                key={r.key}
-                href={r.href}
-                className={`flex w-full items-center gap-3.5 rounded-2xl px-2 py-2.5 text-left transition hover:bg-white/[0.04] active:scale-[0.99] ${r.pending ? "bg-[#ff2f78]/[0.07]" : ""}`}
-              >
-                <div className="relative shrink-0">
-                  <div className="h-[62px] w-[62px] overflow-hidden rounded-full bg-[#ff2f78]">
-                    {r.img ? (
-                      <img src={r.img} alt={r.name} className="h-full w-full object-cover object-center" />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-lg font-bold text-white">{r.name[0]}</div>
+              <div key={r.key} className="group relative flex items-center">
+                <Link
+                  href={r.href}
+                  className={`flex w-full items-center gap-3.5 rounded-2xl px-2 py-2.5 pr-14 text-left transition hover:bg-white/[0.04] active:scale-[0.99] ${r.pending ? "bg-[#ff2f78]/[0.07]" : ""}`}
+                >
+                  <div className="relative shrink-0">
+                    <div className="h-[62px] w-[62px] overflow-hidden rounded-full bg-[#ff2f78]">
+                      {r.img ? (
+                        <img src={r.img} alt={r.name} className="h-full w-full object-cover object-center" />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-lg font-bold text-white">{r.name[0]}</div>
+                      )}
+                    </div>
+                    {r.pending && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: -2,
+                          right: -2,
+                          width: 12,
+                          height: 12,
+                          borderRadius: "50%",
+                          background: "#ff2f78",
+                          border: "2px solid #121212",
+                        }}
+                      />
                     )}
                   </div>
-                  {r.pending && (
-                    <span
-                      style={{
-                        position: "absolute",
-                        top: -2,
-                        right: -2,
-                        width: 12,
-                        height: 12,
-                        borderRadius: "50%",
-                        background: "#ff2f78",
-                        border: "2px solid #121212",
-                        boxShadow: "0 0 8px rgba(255,47,120,0.9)",
-                      }}
-                    />
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-baseline justify-between gap-3">
-                    <p className="truncate text-[1.02rem] font-semibold leading-tight text-white">{r.name}</p>
-                    <p className="shrink-0 text-[10px] text-white/30">{formatDate(r.ts)}</p>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <p className="truncate text-[1.02rem] font-semibold leading-tight text-white">{r.name}</p>
+                      <p className="shrink-0 text-[10px] text-white/30">{formatDate(r.ts)}</p>
+                    </div>
+                    <p className="mt-0.5 max-w-full truncate text-[13px] text-white/40">
+                      {r.pending ? <span className="font-semibold text-[#ff7fae]">{r.preview}</span> : (r.preview || "Toca para chatear")}
+                    </p>
                   </div>
-                  <p className="mt-0.5 max-w-full truncate text-[13px] text-white/40">
-                    {r.pending ? <span className="font-semibold text-[#ff7fae]">{r.preview}</span> : (r.preview || "Toca para chatear")}
-                  </p>
-                </div>
-                {r.pending && (
-                  <span className="shrink-0 rounded-full bg-[#ff2f78]/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[#ff7fae]">
-                    Nueva
-                  </span>
-                )}
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 text-white/25"><path d="M9 18l6-6-6-6" /></svg>
-              </Link>
+                  {r.pending && (
+                    <span className="shrink-0 rounded-full bg-[#ff2f78]/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[#ff7fae]">
+                      Nueva
+                    </span>
+                  )}
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 text-white/25"><path d="M9 18l6-6-6-6" /></svg>
+                </Link>
+                <button
+                  onClick={() => setConfirmDelete(r)}
+                  className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-white/35 transition hover:bg-[#ff2f78]/15 hover:text-white active:scale-90"
+                  aria-label={`Borrar conversación con ${r.name}`}
+                  title="Borrar conversación"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                    <path d="M3 6h18" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    <path d="M10 11v6M14 11v6" />
+                  </svg>
+                </button>
+              </div>
             ))}
           </div>
         )}
       </main>
+
+      {confirmDelete && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center overflow-y-auto bg-black/80 px-6 backdrop-blur-md" onClick={() => setConfirmDelete(null)}>
+          <div className="my-auto w-full max-w-[340px] rounded-3xl border border-white/[0.08] bg-[#15151a]/95 p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#ff2f78]/15 text-[#ff5f8f]">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
+            </div>
+            <h3 className="mt-4 text-lg font-bold tracking-tight text-white">
+              {confirmDelete === "all" ? "Borrar todos tus mensajes" : `Borrar conversación con ${confirmDelete.name}`}
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-white/55">
+              {confirmDelete === "all" ? (
+                <>
+                  Se borrarán <span className="font-semibold text-white/80">para siempre</span> todos los mensajes y nunca volverán a aparecer. Esta acción no se puede deshacer.
+                </>
+              ) : (
+                <>
+                  Se borrará <span className="font-semibold text-white/80">para siempre</span> la conversación con {confirmDelete.name} y nunca volverá a aparecer. Esta acción no se puede deshacer.
+                </>
+              )}
+            </p>
+            <div className="mt-6 flex gap-2.5">
+              <button onClick={() => setConfirmDelete(null)} className="h-12 flex-1 rounded-2xl bg-white/[0.06] text-sm font-bold text-white/80 transition hover:bg-white/[0.1] active:scale-[0.98]">
+                Cancelar
+              </button>
+              <button
+                onClick={() => (confirmDelete === "all" ? handleDeleteAll() : handleDeleteRow(confirmDelete))}
+                className="h-12 flex-[1.4] rounded-2xl bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-sm font-bold text-white transition hover:brightness-110 active:scale-[0.98]"
+              >
+                Borrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
