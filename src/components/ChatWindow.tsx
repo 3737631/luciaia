@@ -164,8 +164,14 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       const sent = storySentRef.current;
       storySentRef.current = "";
       setMessages([
-        ...(sent ? [{ id: "story-ctx-user", from: "user", text: sent } as ChatMsg] : []),
-        { id: "story-ctx", from: "girl", note: "Respondiste a su historia", text: reply },
+        ...(sent
+          ? [
+              { id: "story-ctx-user", from: "user", note: "Respondiste a su historia", text: sent } as ChatMsg,
+              { id: "story-ctx", from: "girl", text: reply } as ChatMsg,
+            ]
+          : [
+              { id: "story-ctx", from: "girl", note: "Respondiste a su historia", text: reply } as ChatMsg,
+            ]),
       ]);
       setMode("text");
       setShowModePicker(false);
@@ -493,7 +499,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     return (
       <div className={styles.container}>
         <div className={styles.topBar}>
-          <button className={styles.topBarBtn} onClick={() => { window.location.href = `${p}/girls`; }} aria-label="Volver atrás">
+          <button className={styles.topBarBtn} onClick={() => { if (window.history.length > 1) router.back(); else router.push("/girls"); }} aria-label="Volver atrás">
             <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           </button>
           <button className={`${styles.topBarBtn} ${styles.dotsBtn}`} aria-label="Menú">
@@ -592,7 +598,6 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     );
   }
 
-  const p = bp();
   const avatarSrc = activeCustom?.imageUrl || girl.cloudinaryImage;
   const displayName = activeCustom?.name || girl.name;
   return (
@@ -601,7 +606,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       <div className={styles.chatBgOverlay} />
       <div className={styles.chatHeader}>
         <div className={styles.chatHeaderInner}>
-          <button className={styles.chatBackBtn} onClick={() => { window.location.href = `${p}/girls`; }} aria-label="Volver">
+          <button className={styles.chatBackBtn} onClick={() => { if (window.history.length > 1) router.back(); else router.push("/girls"); }} aria-label="Volver">
             <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           </button>
           {avatarSrc ? (

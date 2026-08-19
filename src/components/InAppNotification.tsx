@@ -11,6 +11,7 @@ export interface NotificationData {
   message: string;
   avatar?: string;
   duration?: number;
+  sent?: string;
 }
 
 interface Props {

@@ -219,7 +219,6 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
   const [likedStories, setLikedStories] = useState<Record<string, boolean>>({});
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
-  const sentInStoryRef = useRef("");
   const [likeParticles, setLikeParticles] = useState<{ id: string; x: number; y: number }[]>([]);
   const [floatingEmojis, setFloatingEmojis] = useState<{ id: string; emoji: string; x: number; y: number }[]>([]);
   const [msgConfirm, setMsgConfirm] = useState<string | null>(null);
@@ -227,12 +226,13 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
   const [timeAgo, setTimeAgo] = useState("");
   const [notify, setNotify] = useState<NotificationData | null>(null);
 
-  const showNotify = useCallback((char: { id: string; avatar: string; name: string }, message: string) => {
+  const showNotify = useCallback((char: { id: string; avatar: string; name: string }, message: string, sent?: string) => {
     setNotify({
       id: `${char.id}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       type: "reaction",
       title: char.name,
       message,
+      sent: sent || "",
       avatar: char.avatar || undefined,
       duration: 5000,
     });
@@ -714,17 +714,17 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
 
   const handleSend = useCallback(() => {
     if (!message.trim() || isSending) return;
+    const sentText = message.trim();
     setIsSending(true); triggerHaptic(10);
-    saveInteraction(`daily_${currentChar.name}`, currentChar.name, "message", message.trim());
+    saveInteraction(`daily_${currentChar.name}`, currentChar.name, "message", sentText);
     const charAtSend = currentChar;
-    const replyText = buildReplyLine(charAtSend.name, message.trim());
-    sentInStoryRef.current = message.trim();
+    const replyText = buildReplyLine(charAtSend.name, sentText);
     setMessage(""); hiddenInputRef.current?.blur();
     setMsgConfirm("Mensaje enviado");
     setTimeout(() => { if (mountedRef.current) setMsgConfirm(null); }, 800);
     setTimeout(() => { if (mountedRef.current) setIsSending(false); }, 300);
     // La chica contesta enseguida y llega su notificación.
-    setTimeout(() => { if (mountedRef.current) showNotify(charAtSend, replyText); }, 550 + Math.random() * 500);
+    setTimeout(() => { if (mountedRef.current) showNotify(charAtSend, replyText, sentText); }, 550 + Math.random() * 500);
   }, [message, currentChar, isSending, showNotify]);
 
   const handleHeartDown = useCallback((e: React.PointerEvent) => {
@@ -1108,7 +1108,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
           className="story-chrome"
           style={{
             position: "absolute", zIndex: 60, left: 0, right: 0,
-            bottom: keyboardInset > 100 ? keyboardInset : 0,
+            bottom: isComposerFocused && keyboardInset > 100 ? keyboardInset : 0,
             transition: `opacity 120ms ease, bottom 200ms ${APPLE_SPRING}`,
             opacity: longPressActive ? 0 : 1,
           }}
@@ -1358,7 +1358,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
         )}
         {notify && (
           <div data-story-interactive
-            onClick={(e) => { e.stopPropagation(); router.push(`/chat/${currentChar.id}?reply=${encodeURIComponent(notify.message)}&sent=${encodeURIComponent(sentInStoryRef.current)}`); }}
+            onClick={(e) => { e.stopPropagation(); router.push(`/chat/${currentChar.id}?reply=${encodeURIComponent(notify.message)}${notify.sent ? `&sent=${encodeURIComponent(notify.sent)}` : ""}`); }}
             onPointerDown={(e) => { e.stopPropagation(); }}
             onPointerUp={(e) => { e.stopPropagation(); }}
             onTouchStart={(e) => { e.stopPropagation(); }}
