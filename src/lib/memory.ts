@@ -140,6 +140,16 @@ export function saveToHistory(girlId: string, girlName: string, messages: ChatMe
     const list: HistoryEntry[] = raw ? JSON.parse(raw) : [];
     const last = messages[messages.length - 1];
     const preview = last ? (last.role === "user" ? "Tú: " : "") + last.content.slice(0, 80) : "Conversación";
+    // Una sola entrada por chica: si ya existe, se actualiza en vez de duplicarla.
+    const existing = list.find((e) => e.girlId === girlId);
+    if (existing) {
+      existing.girlName = girlName;
+      existing.timestamp = Date.now();
+      existing.preview = preview;
+      existing.messages = messages.slice(-40);
+      localStorage.setItem(historyKey(), JSON.stringify(list.slice(0, 50)));
+      return;
+    }
     list.unshift({
       id: `${girlId}_${Date.now()}`,
       girlId,
@@ -268,4 +278,30 @@ export function onUnreadChange(cb: () => void): () => void {
   if (typeof window === "undefined") return () => {};
   window.addEventListener(UNREAD_EVENT, cb);
   return () => window.removeEventListener(UNREAD_EVENT, cb);
+}
+
+const PIN_KEY = "lunacall_pinned_girls";
+
+export function getPinnedGirls(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(PIN_KEY);
+    const p = raw ? JSON.parse(raw) : [];
+    return Array.isArray(p) ? p : [];
+  } catch {
+    return [];
+  }
+}
+
+export function isGirlPinned(girlId: string): boolean {
+  return getPinnedGirls().includes(girlId);
+}
+
+export function togglePinGirl(girlId: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    const cur = getPinnedGirls();
+    const next = cur.includes(girlId) ? cur.filter((id) => id !== girlId) : [...cur, girlId];
+    localStorage.setItem(PIN_KEY, JSON.stringify(next));
+  } catch {}
 }

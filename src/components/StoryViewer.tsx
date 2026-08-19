@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { saveInteraction } from "@/lib/storyInteractionsService";
-import { markUnreadReply, appendToConversation } from "@/lib/memory";
+import { markUnreadReply, appendToConversation, saveToHistory, getConversationHistory } from "@/lib/memory";
 import { preloadImage as preloadAndDecodeImage, isImageReady } from "@/lib/preloadImage";
 import type { NotificationData } from "./InAppNotification";
 import { detectGender } from "@/lib/gender";
@@ -748,6 +748,11 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reactionPickerOpen]);
 
+  const syncGirlHistory = useCallback((char: { id: string; name: string }) => {
+    const msgs = getConversationHistory(char.id);
+    if (msgs.length >= 2) saveToHistory(char.id, char.name, msgs);
+  }, []);
+
   const sendReaction = useCallback((emoji: string | null, originX?: number, originY?: number) => {
     if (!emoji || reactionLockRef.current) return;
     reactionLockRef.current = true;
@@ -766,6 +771,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
       name: currentChar.name,
       img: currentChar.avatar || "",
     });
+    syncGirlHistory(currentChar);
     const id = crypto.randomUUID?.() ?? `${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
     if (originX != null && originY != null) {
       setFloatingEmojis((p) => [...p, { id, emoji, x: originX, y: originY }]);
@@ -834,6 +840,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
           name: currentChar.name,
           img: currentChar.avatar || "",
         });
+        syncGirlHistory(currentChar);
       }
       setLikedStories((prev) => {
         if (isNowLiked) {
