@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getHistory, clearHistory, getConversationHistory } from "@/lib/memory";
 import { getCustomGirls } from "@/lib/storage";
 import { getGirlImage } from "@/lib/images";
@@ -27,6 +27,7 @@ export default function HistoryPage() {
 
 function HistoryContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [rows, setRows] = useState<GirlRow[]>([]);
   const [single, setSingle] = useState<GirlRow | null>(null);
   const [singleLast, setSingleLast] = useState("");
@@ -111,7 +112,9 @@ function HistoryContent() {
     }
     otherRows.sort((a, b) => b.lastTs - a.lastTs);
 
-    setRows([...customRows, ...otherRows]);
+    const all = [...customRows, ...otherRows].sort((a, b) => b.lastTs - a.lastTs);
+
+    setRows(all);
   }, [searchParams]);
 
   function handleClear() {
@@ -184,13 +187,13 @@ function HistoryContent() {
         {single ? (
           <div className="flex min-h-[50dvh] flex-col">
             <div className="mb-4 flex items-center gap-2">
-              <Link
-                href="/history"
+              <button
+                onClick={() => { if (window.history.length > 1) router.back(); else router.push("/history"); }}
                 className="flex w-fit items-center gap-1.5 rounded-full bg-white/[0.05] px-4 py-2 text-xs font-semibold text-white/70 transition hover:bg-white/[0.1] hover:text-white active:scale-95"
               >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
                 Volver
-              </Link>
+              </button>
               <button
                 onClick={() => setConfirmClear(true)}
                 className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.05] text-white/60 transition hover:bg-[#ff2f78]/15 hover:text-white active:scale-95"

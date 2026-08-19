@@ -10,7 +10,6 @@ import { getFallbackResponse } from "@/lib/ai";
 import { sendChatMessage } from "@/lib/chatClient";
 import { sttAudio, ttsText, getGirlVoice, getCustomGirlVoice } from "@/lib/voiceClient";
 import {
-  getConversationHistory,
   saveConversationHistory,
   getConversationSummary,
   saveConversationSummary,
@@ -20,7 +19,6 @@ import {
   buildSummary,
   clearAllMemory,
   saveToHistory,
-  getSavedMode,
   saveMode,
   ChatMessage,
 } from "@/lib/memory";
@@ -108,23 +106,15 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         setActiveCustom(g);
         setShowModePicker(false);
         skipWelcomeRef.current = true;
-        // Retomar la conversación donde la dejaste.
-        const saved = getConversationHistory(customId);
-        if (saved.length > 0) {
-          setMessages(saved.map((m, i) => ({ id: `hist-${i}`, from: m.role === "user" ? "user" : "girl", text: m.content })));
-        }
         if (g.roleplayDesc?.trim()) {
           setMode("actions");
           const scenario = `Chica: ${g.girlDesc}\nRoleplay: ${g.roleplayDesc}`;
           setCustomScenario(scenario);
-          if (saved.length === 0) setMessages([{ id: "welcome", from: "girl", text: g.roleplayDesc }]);
+          setMessages([{ id: "welcome", from: "girl", text: g.roleplayDesc }]);
         } else {
           setMode("text");
-          if (saved.length === 0) setMessages([{ id: "welcome", from: "girl", text: `Hola, soy ${g.name}. Qué bien que hayas entrado` }]);
+          setMessages([{ id: "welcome", from: "girl", text: `Hola, soy ${g.name}. Qué bien que hayas entrado` }]);
         }
-        // Retomar el modo (texto o historia) en el que se quedó.
-        const savedMode = getSavedMode(customId);
-        if (savedMode) setMode(savedMode);
       }
     }
     // Limpiar de la URL los parámetros temporales (reply/picker/sent).
@@ -156,7 +146,6 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
 
   useEffect(() => {
     if (messagesRef.current.length > 0 || skipWelcomeRef.current) return;
-    const saved = getConversationHistory(girl.id);
     // Venir de una historia: la chica te contesta y se muestra "Respondiste a su historia".
     if (storyReplyRef.current) {
       const reply = storyReplyRef.current;
@@ -179,16 +168,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       setShowModePicker(false);
       return;
     }
-    // Retomar la conversación donde la dejaste (y su modo, sin el selector).
-    if (saved.length > 0) {
-      skipWelcomeRef.current = true;
-      setMessages(saved.map((m, i) => ({ id: `hist-${i}`, from: m.role === "user" ? "user" : "girl", text: m.content })));
-      // Si venimos con ?picker=1 (desde la pestaña principal) mostramos el selector igualmente.
-      if (forcePickerRef.current) return;
-      setMode(getSavedMode(girl.id) ?? "text");
-      setShowModePicker(false);
-      return;
-    }
+    // Empezar siempre de cero: cada entrada es un chat nuevo con saludo.
     const name = welcomeNameRef.current || girl.name;
     const welcomes = [
       `Hola, soy ${name}. Qué bien que hayas entrado`,
@@ -198,6 +178,10 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       `Soy ${name}. Estaba esperando a que entrases...`,
     ];
     setMessages([{ id: "welcome", from: "girl", text: welcomes[Math.floor(Math.random() * welcomes.length)] }]);
+    if (!forcePickerRef.current) {
+      setMode("text");
+      setShowModePicker(false);
+    }
     return () => { mountedRef.current = false; };
   }, [girl.id, girl.name]);
 

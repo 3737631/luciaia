@@ -278,6 +278,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
   const rootRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   const hiddenInputRef = useRef<HTMLInputElement>(null);
+  const keyboardWasOpenRef = useRef(false);
   const focusComposer = useCallback(() => {
     const input = hiddenInputRef.current;
     if (!input) return;
@@ -336,6 +337,13 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
     const update = () => {
       const rawInset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
       setKeyboardInset(rawInset > 100 ? rawInset : 0);
+      const isOpen = rawInset > 100;
+      // Si el teclado estaba abierto y se cierra, soltamos el foco para reanudar
+      // la historia (iOS no siempre dispara blur al cerrar el teclado).
+      if (keyboardWasOpenRef.current && !isOpen && hiddenInputRef.current && document.activeElement === hiddenInputRef.current) {
+        try { hiddenInputRef.current.blur(); } catch {}
+      }
+      keyboardWasOpenRef.current = isOpen;
     };
     update();
     vv.addEventListener("resize", update);
@@ -487,14 +495,14 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
   }, [currentIndex, startProgress, stopProgress]);
 
   useEffect(() => {
-    if (isComposerFocused) {
+    if (isComposerFocused && keyboardInset > 100) {
       progressFrozenRef.current = true;
       setPaused(true);
     } else {
       progressFrozenRef.current = false;
       setPaused(false);
     }
-  }, [isComposerFocused]);
+  }, [isComposerFocused, keyboardInset]);
 
   // ── Transition functions ──
 
@@ -1122,7 +1130,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
           style={{
             position: "absolute", zIndex: 60, left: 0, right: 0,
             bottom: isComposerFocused && keyboardInset > 100 ? keyboardInset : 0,
-            transition: `opacity 120ms ease, bottom 200ms ${APPLE_SPRING}`,
+            transition: `opacity 120ms ease`,
             opacity: longPressActive ? 0 : 1,
           }}
           onPointerDown={(e) => { e.stopPropagation() }}
