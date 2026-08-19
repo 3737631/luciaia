@@ -71,6 +71,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   const storyReplyRef = useRef("");
   const storySentRef = useRef("");
   const skipSaveRef = useRef(false);
+  const storyChatRef = useRef(false);
   const activeCustomJsonRef = useRef("");
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -161,7 +162,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       const reply = storyReplyRef.current;
       storyReplyRef.current = "";
       skipWelcomeRef.current = true;
-      skipSaveRef.current = true;
+      storyChatRef.current = true;
       const sent = storySentRef.current;
       storySentRef.current = "";
       setMessages([
@@ -215,8 +216,17 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         .map((m) => ({ role: m.from === "user" ? "user" as const : "assistant" as const, content: m.text }));
       if (chatMsgs.length > 1) {
         const storageId = activeCustom?.id ?? girl.id;
-        saveConversationHistory(storageId, chatMsgs);
-        saveToHistory(storageId, activeCustom?.name ?? girl.name, chatMsgs);
+        const girlName = activeCustom?.name ?? girl.name;
+        if (storyChatRef.current) {
+          // Venir de una historia: se añade a la conversación existente sin pisarla.
+          const prev = getConversationHistory(storageId);
+          const merged = [...prev, ...chatMsgs].slice(-60);
+          saveConversationHistory(storageId, merged);
+          saveToHistory(storageId, girlName, merged);
+        } else {
+          saveConversationHistory(storageId, chatMsgs);
+          saveToHistory(storageId, girlName, chatMsgs);
+        }
       }
     };
   }, [girl.id, girl.name, activeCustom]);

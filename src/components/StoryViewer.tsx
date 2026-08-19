@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { saveInteraction } from "@/lib/storyInteractionsService";
-import { markUnreadReply } from "@/lib/memory";
+import { markUnreadReply, appendToConversation } from "@/lib/memory";
 import { preloadImage as preloadAndDecodeImage, isImageReady } from "@/lib/preloadImage";
 import type { NotificationData } from "./InAppNotification";
 import { detectGender } from "@/lib/gender";
@@ -282,6 +282,8 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
   const keyboardWasOpenRef = useRef(false);
   const kbInsetRef = useRef(0);
   const kbStartedRef = useRef(false);
+  const sendingRef = useRef(false);
+  const reactionLockRef = useRef(false);
   const focusComposer = useCallback(() => {
     const input = hiddenInputRef.current;
     if (!input) return;
@@ -732,9 +734,16 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
   }, [reactionPickerOpen]);
 
   const sendReaction = useCallback((emoji: string | null, originX?: number, originY?: number) => {
-    if (!emoji) return;
+    if (!emoji || reactionLockRef.current) return;
+    reactionLockRef.current = true;
+    setTimeout(() => { reactionLockRef.current = false; }, 500);
     triggerHaptic(15);
     saveInteraction(`daily_${currentChar.name}`, currentChar.name, "reaction", emoji);
+    // La reacción también llega a la conversación de chat con la chica.
+    appendToConversation(currentChar.id, [
+      { role: "user", content: emoji },
+      { role: "assistant", content: buildReactionLine(currentChar.name, "reaction") },
+    ]);
     const id = crypto.randomUUID?.() ?? `${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
     if (originX != null && originY != null) {
       setFloatingEmojis((p) => [...p, { id, emoji, x: originX, y: originY }]);
@@ -751,7 +760,8 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
   }, [currentChar.name]);
 
   const handleSend = useCallback(() => {
-    if (!message.trim() || isSending) return;
+    if (!message.trim() || isSending || sendingRef.current) return;
+    sendingRef.current = true;
     const sentText = message.trim();
     setIsSending(true); triggerHaptic(10);
     saveInteraction(`daily_${currentChar.name}`, currentChar.name, "message", sentText);
@@ -760,7 +770,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
     setMessage(""); hiddenInputRef.current?.blur();
     setMsgConfirm("Mensaje enviado");
     setTimeout(() => { if (mountedRef.current) setMsgConfirm(null); }, 800);
-    setTimeout(() => { if (mountedRef.current) setIsSending(false); }, 300);
+    setTimeout(() => { if (mountedRef.current) { setIsSending(false); sendingRef.current = false; } }, 350);
     // La chica contesta enseguida y llega su notificación.
     markUnreadReply(charAtSend.id, {
       reply: replyText,
@@ -786,7 +796,14 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
       triggerHaptic(15);
       const key = `${charIndex}-${currentIndex}`;
       const isNowLiked = !likedStories[key];
-      if (isNowLiked) showNotify(currentChar, buildReactionLine(currentChar.name, "like"));
+      if (isNowLiked) {
+        showNotify(currentChar, buildReactionLine(currentChar.name, "like"));
+        // El "me gusta" también llega a la conversación de chat con la chica.
+        appendToConversation(currentChar.id, [
+          { role: "user", content: "❤️" },
+          { role: "assistant", content: buildReactionLine(currentChar.name, "like") },
+        ]);
+      }
       setLikedStories((prev) => {
         if (isNowLiked) {
           const btn = heartBtnRef.current;
@@ -962,6 +979,12 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
 
     // ═══ Tap (only if not dragged, not long press) ═══
     if (!g.moved && elapsed < TAP_MAX_MS && performance.now() > suppressClickRef.current) {
+      // Con el chat/teclado abierto, tocar solo cierra el teclado (no avanza).
+      if (hiddenInputRef.current && document.activeElement === hiddenInputRef.current) {
+        try { hiddenInputRef.current.blur(); } catch {}
+        gestureRef.current = null;
+        return;
+      }
       const rect = el.getBoundingClientRect();
       const zoneX = e.clientX - rect.left;
       const zoneW = el.clientWidth;
@@ -1170,7 +1193,8 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
             }}>
               {QUICK_REACTIONS.map((emoji) => (
                 <button key={emoji} data-story-interactive
-                  onClick={(e) => { e.stopPropagation(); const r = e.currentTarget.getBoundingClientRect(); sendReaction(emoji, r.left + r.width / 2, r.top + r.height / 2) }}
+                  onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); const r = e.currentTarget.getBoundingClientRect(); sendReaction(emoji, r.left + r.width / 2, r.top + r.height / 2) }}
+                  onClick={(e) => { e.stopPropagation(); e.preventDefault(); const r = e.currentTarget.getBoundingClientRect(); sendReaction(emoji, r.left + r.width / 2, r.top + r.height / 2) }}
                   style={{
                     width: 44, height: 44, display: "grid", placeItems: "center", padding: 0, border: 0,
                     borderRadius: "50%", background: "rgba(255,255,255,.14)",
@@ -1211,8 +1235,8 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
             </div>
             {message.trim() && (
               <button aria-label="Enviar" data-story-interactive
-                onPointerDown={(e) => { e.stopPropagation() }}
-                onClick={(e) => { e.stopPropagation(); handleSend() }}
+                onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); handleSend(); }}
+                onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleSend(); }}
                 disabled={isSending}
                 className="story-action-button"
                 style={{ width: 34, height: 34, borderRadius: "50%", background: "#fff", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}

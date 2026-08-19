@@ -38,6 +38,12 @@ export function saveConversationHistory(girlId: string, history: ChatMessage[]):
   save(girlId, "history", history);
 }
 
+export function appendToConversation(girlId: string, msgs: ChatMessage[]): void {
+  if (typeof window === "undefined" || msgs.length === 0) return;
+  const prev = getConversationHistory(girlId);
+  saveConversationHistory(girlId, [...prev, ...msgs].slice(-60));
+}
+
 export function getConversationSummary(girlId: string): string {
   return load(girlId, "summary", "");
 }
