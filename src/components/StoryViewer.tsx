@@ -50,6 +50,14 @@ function buildReplyLine(name: string, userMessage: string, count = 0): string {
   const usted = detectGender(name) === "mujer" ? "guapo" : "guapa";
   const msg = userMessage.toLowerCase().trim();
   const pick = (arr: string[]) => arr[(Math.floor(Math.random() * arr.length) + count) % arr.length];
+  if (/^(hola|holi|holis|hey|ey|heey|hello|hi|buenas|buen(as)?\s*(d[ií]as|tardes|noches)?|que tal|q tal|buenas)$/i.test(msg.trim()) || /^hola[\s\S]*/.test(msg.trim())) {
+    return pick([
+      `¡Hola, ${usted}! Qué alegría que me escribas 😊`,
+      `¡Hey! Justo pensaba en ti... ¿qué tal estás? 😏`,
+      `¡Hola! Cuéntame, ¿cómo va tu día? 💕`,
+      `¡Holaaa! Me encanta que me saludes 😄`,
+    ]);
+  }
   if (/(deport|gimnasio|\bgym\b|f[úu]tbol|correr|entrenar|entreno|baloncesto|nataci[óo]n|boxeo|tenis|jugar)/.test(msg)) {
     return pick([
       `¿Te gusta el deporte, ${usted}? A mí me encanta entrenar 😅`,
@@ -746,11 +754,18 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
     setTimeout(() => { reactionLockRef.current = false; }, 500);
     triggerHaptic(15);
     saveInteraction(`daily_${currentChar.name}`, currentChar.name, "reaction", emoji);
+    const reactionReply = buildReactionLine(currentChar.name, "reaction");
     // La reacción también llega a la conversación de chat con la chica.
     appendToConversation(currentChar.id, [
       { role: "user", content: emoji },
-      { role: "assistant", content: buildReactionLine(currentChar.name, "reaction") },
+      { role: "assistant", content: reactionReply },
     ]);
+    markUnreadReply(currentChar.id, {
+      reply: reactionReply,
+      sent: emoji,
+      name: currentChar.name,
+      img: currentChar.avatar || "",
+    });
     const id = crypto.randomUUID?.() ?? `${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
     if (originX != null && originY != null) {
       setFloatingEmojis((p) => [...p, { id, emoji, x: originX, y: originY }]);
@@ -762,7 +777,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
     }
     setTimeout(() => { if (mountedRef.current) setFloatingEmojis((p) => p.filter((r) => r.id !== id)); }, 850);
     setReactionPickerOpen(false); setHighlightedReaction(null); highlightRef.current = null;
-    showNotify(currentChar, buildReactionLine(currentChar.name, "reaction"));
+    showNotify(currentChar, reactionReply);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentChar.name]);
 
@@ -806,12 +821,19 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
       const key = `${charIndex}-${currentIndex}`;
       const isNowLiked = !likedStories[key];
       if (isNowLiked) {
-        showNotify(currentChar, buildReactionLine(currentChar.name, "like"));
+        const likeReply = buildReactionLine(currentChar.name, "like");
+        showNotify(currentChar, likeReply);
         // El "me gusta" también llega a la conversación de chat con la chica.
         appendToConversation(currentChar.id, [
           { role: "user", content: "❤️" },
-          { role: "assistant", content: buildReactionLine(currentChar.name, "like") },
+          { role: "assistant", content: likeReply },
         ]);
+        markUnreadReply(currentChar.id, {
+          reply: likeReply,
+          sent: "❤️",
+          name: currentChar.name,
+          img: currentChar.avatar || "",
+        });
       }
       setLikedStories((prev) => {
         if (isNowLiked) {
@@ -1458,7 +1480,6 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
             <div style={{
               width: 38, height: 38, borderRadius: "50%", flexShrink: 0, overflow: "hidden",
               background: "rgba(255,255,255,.12)",
-              boxShadow: "0 0 0 1.5px rgba(255,255,255,.35)",
             }}>
               {notify.avatar ? (
                 <img src={notify.avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />

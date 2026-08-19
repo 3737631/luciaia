@@ -86,7 +86,7 @@ export default function InAppNotification({ notification, onRemove, onClick }: P
       }}
     >
       {notification.avatar ? (
-        <div style={{ width: 36, height: 36, borderRadius: "50%", overflow: "hidden", flexShrink: 0, border: "2px solid #FF5798" }}>
+        <div style={{ width: 36, height: 36, borderRadius: "50%", overflow: "hidden", flexShrink: 0 }}>
           <img src={notification.avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         </div>
       ) : (

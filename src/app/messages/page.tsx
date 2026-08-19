@@ -164,7 +164,7 @@ function MessagesContent() {
               <Link
                 key={r.key}
                 href={r.href}
-                className={`flex w-full items-center gap-3.5 rounded-2xl px-2 py-2.5 text-left transition hover:bg-white/[0.04] active:scale-[0.99] ${r.pending ? "bg-[#ff2f78]/[0.07] ring-1 ring-[#ff2f78]/25" : ""}`}
+                className={`flex w-full items-center gap-3.5 rounded-2xl px-2 py-2.5 text-left transition hover:bg-white/[0.04] active:scale-[0.99] ${r.pending ? "bg-[#ff2f78]/[0.07]" : ""}`}
               >
                 <div className="relative shrink-0">
                   <div className="h-[62px] w-[62px] overflow-hidden rounded-full bg-[#ff2f78]">

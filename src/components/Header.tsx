@@ -92,7 +92,6 @@ export default function Header() {
                 borderRadius: "50%",
                 background: "#ff2f78",
                 border: "2px solid #171717",
-                boxShadow: "0 0 6px rgba(255,47,120,0.9)",
               }}
             />
           )}
@@ -271,7 +270,6 @@ export default function Header() {
                         height: 8,
                         borderRadius: "50%",
                         background: "#ff2f78",
-                        boxShadow: "0 0 6px rgba(255,47,120,0.9)",
                       }}
                     />
                   )}
