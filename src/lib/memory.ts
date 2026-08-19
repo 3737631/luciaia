@@ -143,16 +143,7 @@ export function saveToHistory(girlId: string, girlName: string, messages: ChatMe
     const list: HistoryEntry[] = raw ? JSON.parse(raw) : [];
     const last = messages[messages.length - 1];
     const preview = last ? (last.role === "user" ? "Tú: " : "") + last.content.slice(0, 80) : "Conversación";
-    // Una sola entrada por chica: si ya existe, se actualiza en vez de duplicarla.
-    const existing = list.find((e) => e.girlId === girlId);
-    if (existing) {
-      existing.girlName = girlName;
-      existing.timestamp = Date.now();
-      existing.preview = preview;
-      existing.messages = messages.slice(-40);
-      localStorage.setItem(historyKey(), JSON.stringify(list.slice(0, 50)));
-      return;
-    }
+    // Cada vez que entras y sales de un chat se crea una nueva entrada del historial.
     list.unshift({
       id: `${girlId}_${Date.now()}`,
       girlId,
@@ -255,9 +246,7 @@ export function markUnreadReply(girlId: string, data: Omit<UnreadReply, "id" | "
       girlId,
       ts: Date.now(),
     };
-    // Una sola entrada por reacción/mensaje idéntico de la misma chica.
-    const filtered = all.filter((u) => !(u.girlId === girlId && u.sent === data.sent));
-    localStorage.setItem(UNREAD_KEY, JSON.stringify([entry, ...filtered].slice(0, 30)));
+    localStorage.setItem(UNREAD_KEY, JSON.stringify([entry, ...all].slice(0, 30)));
     notifyUnreadChange();
   } catch {}
 }

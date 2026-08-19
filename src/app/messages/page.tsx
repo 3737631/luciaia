@@ -175,11 +175,11 @@ function MessagesContent() {
               Respuestas sin contestar arriba y todas tus conversaciones.
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
           {rows.length > 0 && (
             <button
               onClick={() => setConfirmDelete("all")}
-              className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-muted transition-all hover:bg-[#ff2f78]/15 hover:text-white active:scale-95"
+              className="flex h-11 w-11 items-center justify-center text-muted transition-all hover:text-white active:scale-95"
               aria-label="Borrar todos tus mensajes"
               title="Borrar todos tus mensajes"
             >
@@ -193,7 +193,7 @@ function MessagesContent() {
           {unreadCount > 0 && (
             <button
               onClick={() => clearAllUnreadReplies()}
-              className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-muted transition-all hover:bg-[#ff2f78]/15 hover:text-white active:scale-95"
+              className="flex h-11 w-11 items-center justify-center text-muted transition-all hover:text-white active:scale-95"
               aria-label="Marcar todos como leídos"
               title="Marcar todos como leídos"
             >

@@ -76,56 +76,73 @@ function HistoryContent() {
 
     const customs = getCustomGirls();
 
-    const entries = getHistory();
-    const byGirl = new Map<string, { ts: number; preview: string }>();
-    for (const e of entries) {
-      const prev = byGirl.get(e.girlId);
-      if (!prev || e.timestamp > prev.ts) byGirl.set(e.girlId, { ts: e.timestamp, preview: e.preview });
-    }
-
-    const customRows: GirlRow[] = [...customs]
-      .reverse()
-      .map((g) => {
-        const saved = getConversationHistory(g.id);
-        const info = byGirl.get(g.id);
-        return {
-          girlId: g.id,
-          name: g.name,
-          img: g.imageUrl || getGirlImage(g.baseId || "luna", g.hair, g.pose, g.background),
-          href: `/chat/luna?custom=${g.id}`,
-          lastTs: info?.ts ?? 0,
-          lastPreview:
-            info?.preview ??
-            (saved.length > 0 ? saved[saved.length - 1].content.slice(0, 80) : ""),
-        };
-      });
-
-    const otherRows: GirlRow[] = [];
+    const girlInfo = new Map<string, { img: string | null; href: string }>();
     for (const girl of girls) {
-      const info = byGirl.get(girl.id);
-      const saved = getConversationHistory(girl.id);
-      if (!info && saved.length === 0) continue;
-      otherRows.push({
-        girlId: girl.id,
-        name: girl.name,
+      girlInfo.set(girl.id, {
         img: getGirlImage(girl.id, null, null, null, girl.cloudinaryImage),
         href: `/chat/${girl.id}`,
-        lastTs: info?.ts ?? 0,
-        lastPreview:
-          info?.preview ??
-          (saved.length > 0 ? saved[saved.length - 1].content.slice(0, 80) : ""),
       });
     }
-    otherRows.sort((a, b) => b.lastTs - a.lastTs);
-
-    const all = [...customRows, ...otherRows]
-      .filter((r) => r.lastTs > 0 || r.lastPreview)
-      .sort((a, b) => {
-        const pa = getPinnedGirls().includes(a.girlId) ? 1 : 0;
-        const pb = getPinnedGirls().includes(b.girlId) ? 1 : 0;
-        if (pa !== pb) return pb - pa;
-        return b.lastTs - a.lastTs;
+    for (const g of customs) {
+      girlInfo.set(g.id, {
+        img: g.imageUrl || getGirlImage(g.baseId || "luna", g.hair, g.pose, g.background),
+        href: `/chat/luna?custom=${g.id}`,
       });
+    }
+
+    const entries = getHistory();
+    const all: GirlRow[] = [];
+    // Cada vez que entras y sales de un chat se crea una entrada nueva: todas salen, la más reciente arriba.
+    for (const e of entries) {
+      const info = girlInfo.get(e.girlId);
+      if (!info) continue;
+      all.push({
+        girlId: e.girlId,
+        name: e.girlName || e.girlId,
+        img: info.img,
+        href: info.href,
+        lastTs: e.timestamp,
+        lastPreview: e.preview,
+      });
+    }
+
+    // Chicas con conversación pero sin entrada aún (p. ej. reacciones sin abrir).
+    const seen = new Set(entries.map((e) => e.girlId));
+    for (const g of [...customs].reverse()) {
+      if (seen.has(g.id)) continue;
+      const saved = getConversationHistory(g.id);
+      if (saved.length === 0) continue;
+      const info = girlInfo.get(g.id)!;
+      all.push({
+        girlId: g.id,
+        name: g.name,
+        img: info.img,
+        href: info.href,
+        lastTs: 0,
+        lastPreview: saved[saved.length - 1].content.slice(0, 80),
+      });
+    }
+    for (const girl of girls) {
+      if (seen.has(girl.id)) continue;
+      const saved = getConversationHistory(girl.id);
+      if (saved.length === 0) continue;
+      const info = girlInfo.get(girl.id)!;
+      all.push({
+        girlId: girl.id,
+        name: girl.name,
+        img: info.img,
+        href: info.href,
+        lastTs: 0,
+        lastPreview: saved[saved.length - 1].content.slice(0, 80),
+      });
+    }
+
+    all.sort((a, b) => {
+      const pa = getPinnedGirls().includes(a.girlId) ? 1 : 0;
+      const pb = getPinnedGirls().includes(b.girlId) ? 1 : 0;
+      if (pa !== pb) return pb - pa;
+      return b.lastTs - a.lastTs;
+    });
 
     setRows(all);
   }, [searchParams]);
@@ -338,11 +355,10 @@ function HistoryContent() {
                       {r.lastPreview || "Conversación"}
                     </p>
                   </div>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 text-white/25"><path d="M9 18l6-6-6-6" /></svg>
                 </Link>
                 <button
                   onClick={() => setMenuRow(r)}
-                  className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl text-[1.15rem] font-semibold leading-none tracking-widest text-white/45 transition hover:bg-white/[0.07] hover:text-white active:scale-90"
+                  className="absolute right-2 top-1.5 flex h-9 w-9 items-center justify-center rounded-xl text-[1.15rem] font-semibold leading-none tracking-widest text-white/45 transition hover:bg-white/[0.07] hover:text-white active:scale-90"
                   aria-label={`Opciones de ${r.name}`}
                   title="Opciones"
                   style={{ paddingLeft: 4, paddingRight: 2 }}
