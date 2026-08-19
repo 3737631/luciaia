@@ -293,20 +293,7 @@ function HistoryContent() {
               </Link>
             </div>
           </div>
-        ) : rows.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-32 text-center">
-            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl glass">
-              <svg viewBox="0 0 24 24" className="h-7 w-7 text-muted/50" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="M22 7l-10 7L2 7" /></svg>
-            </div>
-            <p className="text-lg font-semibold tracking-tight">No hay conversaciones todavía</p>
-            <p className="mt-2 text-sm text-muted/70 max-w-xs">
-              Cuando hables con una chica, aquí aparecerá con su foto y el último mensaje.
-            </p>
-            <Link href="/girls" className="mt-8 rounded-xl gradient-btn px-6 py-3 text-sm font-semibold shadow-lg shadow-pink-500/25">
-              Ir a chicas IA
-            </Link>
-          </div>
-        ) : (
+        ) : rows.length === 0 ? null : (
           <div className="space-y-1">
             {rows.map((r) => (
               <div key={r.girlId} className="group relative flex items-center">
