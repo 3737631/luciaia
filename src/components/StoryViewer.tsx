@@ -240,8 +240,21 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
   const [longPressActive, setLongPressActive] = useState(false);
   const [timeAgo, setTimeAgo] = useState("");
   const [notify, setNotify] = useState<NotificationData | null>(null);
+  const [notifyDragY, setNotifyDragY] = useState(0);
+  const [notifyExit, setNotifyExit] = useState(false);
+  const notifyStartY = useRef<number | null>(null);
+  const notifyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const dismissNotify = useCallback((delay = 0) => {
+    setNotifyExit(true);
+    if (notifyTimer.current) clearTimeout(notifyTimer.current);
+    notifyTimer.current = setTimeout(() => setNotify(null), delay || 260);
+  }, []);
 
   const showNotify = useCallback((char: { id: string; avatar: string; name: string }, message: string, sent?: string) => {
+    setNotifyExit(false);
+    setNotifyDragY(0);
+    notifyStartY.current = null;
     setNotify({
       id: `${char.id}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       type: "reaction",
@@ -1458,8 +1471,22 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
         {notify && (
           <div data-story-interactive
             onClick={(e) => { e.stopPropagation(); router.push(`/chat/${currentChar.id}?reply=${encodeURIComponent(notify.message)}${notify.sent ? `&sent=${encodeURIComponent(notify.sent)}` : ""}`); }}
-            onPointerDown={(e) => { e.stopPropagation(); }}
-            onPointerUp={(e) => { e.stopPropagation(); }}
+            onPointerDown={(e) => { e.stopPropagation(); notifyStartY.current = e.clientY; setNotifyDragY(0); }}
+            onPointerMove={(e) => {
+              if (notifyStartY.current == null) return;
+              e.stopPropagation();
+              const dy = e.clientY - notifyStartY.current;
+              setNotifyDragY(dy < 0 ? dy : 0);
+            }}
+            onPointerUp={(e) => {
+              e.stopPropagation();
+              if (notifyStartY.current == null) return;
+              const dy = notifyStartY.current - e.clientY;
+              notifyStartY.current = null;
+              setNotifyDragY(0);
+              if (dy > 45) dismissNotify();
+            }}
+            onPointerCancel={() => { notifyStartY.current = null; setNotifyDragY(0); }}
             onTouchStart={(e) => { e.stopPropagation(); }}
             onTouchEnd={(e) => { e.stopPropagation(); }}
             style={{
@@ -1473,7 +1500,10 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
               WebkitBackdropFilter: "blur(18px) saturate(160%)",
               border: "1px solid rgba(255,255,255,.14)",
               boxShadow: "0 10px 30px rgba(0,0,0,.5)",
-              animation: "slideInDown 0.35s cubic-bezier(.32,.72,0,1)",
+              opacity: notifyDragY < 0 ? Math.max(1 + notifyDragY / 140, 0.3) : 1,
+              transform: notifyDragY < 0 ? `translateY(${notifyDragY}px)` : undefined,
+              transition: notifyDragY < 0 ? "none" : "transform 0.2s ease, opacity 0.2s ease",
+              animation: notifyDragY < 0 ? "none" : (notifyExit ? "slideOutUp 0.3s ease forwards" : "slideInDown 0.35s cubic-bezier(.32,.72,0,1)"),
               touchAction: "none",
             }}
           >
