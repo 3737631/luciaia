@@ -80,13 +80,13 @@ function HistoryContent() {
     for (const girl of girls) {
       girlInfo.set(girl.id, {
         img: getGirlImage(girl.id, null, null, null, girl.cloudinaryImage),
-        href: `/chat/${girl.id}`,
+        href: `/chat/${girl.id}?picker=1`,
       });
     }
     for (const g of customs) {
       girlInfo.set(g.id, {
         img: g.imageUrl || getGirlImage(g.baseId || "luna", g.hair, g.pose, g.background),
-        href: `/chat/luna?custom=${g.id}`,
+        href: `/chat/luna?custom=${g.id}&picker=1`,
       });
     }
 
