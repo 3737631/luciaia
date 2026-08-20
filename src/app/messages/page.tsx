@@ -21,7 +21,7 @@ import {
 import { getCustomGirls } from "@/lib/storage";
 import { getGirlImage } from "@/lib/images";
 import { girls } from "@/data/girls";
-import { isDebugMode, sessionShortId } from "@/lib/debug";
+import { isDebugMode, getShowSessionIds, setShowSessionIds, onShowSessionIdsChange, sessionShortId } from "@/lib/debug";
 
 interface MsgRow {
   key: string;
@@ -214,6 +214,13 @@ function MessagesContent() {
   }
 
   const debug = isDebugMode();
+  const [showSessionIds, setShowSessionIdsState] = useState(() => getShowSessionIds());
+
+  useEffect(() => {
+    return onShowSessionIdsChange(() => setShowSessionIdsState(getShowSessionIds()));
+  }, []);
+
+  const showNum = debug || showSessionIds;
 
   return (
     <>
@@ -227,6 +234,18 @@ function MessagesContent() {
             </p>
           </div>
           <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setShowSessionIds(!getShowSessionIds())}
+            className="flex h-11 w-11 items-center justify-center text-muted transition-all hover:text-white active:scale-95"
+            aria-label="Ver números de sesión"
+            title={showNum ? "Ocultar números de sesión" : "Ver números de sesión"}
+            style={showNum ? { color: "#ff2f78" } : undefined}
+          >
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          </button>
           {rows.length > 0 && (
             <button
               onClick={() => setConfirmDelete("all")}
@@ -324,7 +343,7 @@ function MessagesContent() {
                     <div className="flex items-baseline justify-between gap-3">
                       <p className="truncate text-[1.02rem] font-semibold leading-tight text-white">
                         {r.name}
-                        {debug && r.sessionId && (
+                        {showNum && r.sessionId && (
                           <span className="ml-1.5 rounded bg-white/10 px-1.5 py-0.5 align-middle font-mono text-[9px] font-normal leading-none text-white/40">
                             #{sessionShortId(r.sessionId)}
                           </span>

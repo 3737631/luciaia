@@ -7,7 +7,7 @@ import { getHistory, clearHistory, clearGirlData, getConversationHistory, isGirl
 import { getCustomGirls } from "@/lib/storage";
 import { getGirlImage } from "@/lib/images";
 import { goBack } from "@/lib/nav";
-import { isDebugMode, sessionShortId } from "@/lib/debug";
+import { isDebugMode, getShowSessionIds, onShowSessionIdsChange, sessionShortId } from "@/lib/debug";
 import { girls } from "@/data/girls";
 
 interface GirlRow {
@@ -32,6 +32,13 @@ function HistoryContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const debug = isDebugMode();
+  const [showSessionIds, setShowSessionIdsState] = useState(() => getShowSessionIds());
+
+  useEffect(() => {
+    return onShowSessionIdsChange(() => setShowSessionIdsState(getShowSessionIds()));
+  }, []);
+
+  const showNum = debug || showSessionIds;
   const [rows, setRows] = useState<GirlRow[]>([]);
   const [single, setSingle] = useState<GirlRow | null>(null);
   const [singleLast, setSingleLast] = useState("");
@@ -343,7 +350,7 @@ function HistoryContent() {
                           <div className="flex items-baseline justify-between gap-3">
                             <p className="truncate text-[1.02rem] font-semibold leading-tight text-white">
                               {single.name}
-                              {debug && (
+                              {showNum && (
                                 <span className="ml-1.5 rounded bg-white/10 px-1.5 py-0.5 align-middle font-mono text-[9px] font-normal leading-none text-white/40">
                                   #{sessionShortId(s.id)}
                                 </span>
@@ -409,7 +416,7 @@ function HistoryContent() {
                     <div className="flex items-baseline justify-between gap-3">
                       <p className="truncate text-[1.02rem] font-semibold leading-tight text-white">
                       {r.name}
-                      {debug && r.sessionId && (
+                      {showNum && r.sessionId && (
                         <span className="ml-1.5 rounded bg-white/10 px-1.5 py-0.5 align-middle font-mono text-[9px] font-normal leading-none text-white/40">
                           #{sessionShortId(r.sessionId)}
                         </span>
