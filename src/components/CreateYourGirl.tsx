@@ -810,7 +810,7 @@ async function handlePersonalityNext() {
                   <div
                     ref={cropViewRef}
                     className="relative mx-auto touch-none select-none overflow-hidden rounded-full"
-                    style={{ width: CROP_VIEW, height: CROP_VIEW, boxShadow: "0 0 0 9999px rgba(0,0,0,0.55)", border: "2px solid rgba(255,255,255,0.3)" }}
+                    style={{ width: CROP_VIEW, height: CROP_VIEW, border: "2px solid rgba(255,255,255,0.3)", boxShadow: "0 0 0 1px rgba(0,0,0,0.4), 0 8px 30px rgba(0,0,0,0.5)" }}
                     onPointerDown={onCropPointerDown}
                     onPointerMove={onCropPointerMove}
                     onPointerUp={onCropPointerEnd}
@@ -825,6 +825,15 @@ async function handlePersonalityNext() {
                           alt=""
                           draggable={false}
                           className="pointer-events-none select-none"
+                          onLoad={(e) => {
+                            if (!cropNat.current.w) {
+                              const el = e.currentTarget;
+                              if (el.naturalWidth > 0) {
+                                cropNat.current = { w: el.naturalWidth, h: el.naturalHeight };
+                                setCropScale(CROP_VIEW / Math.min(el.naturalWidth, el.naturalHeight));
+                              }
+                            }
+                          }}
                           style={{ position: "absolute", left: CROP_VIEW / 2 - iw / 2 + cropOffset.x, top: CROP_VIEW / 2 - ih / 2 + cropOffset.y, width: iw, height: ih, maxWidth: "none" }}
                         />
                       );
