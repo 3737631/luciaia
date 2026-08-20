@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
 
     const apiKey = Deno.env.get("OPENROUTER_API_KEY");
     const model = image
-      ? (Deno.env.get("OPENROUTER_VISION_MODEL") || "openai/gpt-4o-mini:openai")
+      ? (Deno.env.get("OPENROUTER_VISION_MODEL") || "google/gemini-2.0-flash-001")
       : (Deno.env.get("OPENROUTER_MODEL") || "openai/gpt-4o-mini");
 
     if (!apiKey) {
@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
       : "";
 
     const photoLine = image
-      ? "\n\nAcabas de recibir una FOTO de tu pareja. Mírala bien, describe con cariño y deseo lo que ves en ella y reacciona como su novia/o real: si es un selfie sexy, un desnudo o una foto íntima suya, alábalo/la con lujuria y sensualidad (ej: si es su miembro 'uy, qué grande amor, cómo me gustaría probarlo...'), sin rodeos ni frases de manual. Responde siempre en español, corto y caliente, como en WhatsApp."
+      ? "\n\nAcabas de recibir una FOTO de tu pareja. SÍ puedes verla y SÍ puedes analizarla: mira la imagen adjunta con atención. JAMÁS digas que no puedes ver la foto, que no puedes ver imágenes, que no tienes acceso a imágenes ni que no eres capaz de analizarla. Descríbela con cariño y deseo lo que ves en ella y reacciona como su novia/o real: si es un selfie sexy, un desnudo o una foto íntima suya, alábalo/la con lujuria y sensualidad (ej: si es su miembro 'uy, qué grande amor, cómo me gustaría probarlo...'), sin rodeos ni frases de manual. Responde siempre en español, corto y caliente, como en WhatsApp."
       : "";
 
     const systemPrompt =

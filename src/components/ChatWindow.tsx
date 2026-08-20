@@ -35,6 +35,14 @@ const MINOR_KEYWORDS = [
 
 const bp = () => process.env.NEXT_PUBLIC_BASE_PATH || "";
 
+function looksLikeVisionRefusal(text: string): boolean {
+  return /(no\s+(puedo|puede|puedes)\s+(ver|analizar|acceder|accedo)|no\s+tengo\s+(acceso|capacidad|permiso|forma)|cannot\s+(see|view|access|analyse|analyze)|can'?t\s+(see|view|access|analyse|analyze)|no\s+puedo\s+verla|no\s+puedo\s+verlas|no\s+soy\s+capaz)/i.test(text);
+}
+
+function photoFallbackReaction(): string {
+  return "*me quedo mirando la foto un buen rato*\nUf, vaya foto… se me ha puesto la piel de gallina. Cuando quieras te enseño lo bien que se me da corresponderte 😏";
+}
+
 function barsFrom(seed: string): number[] {
   let h = 0;
   for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
@@ -544,7 +552,25 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     setError(null);
     setTyping(true);
     try {
-      await runReply(text, { image: dataUrl });
+      let reply = await askAI(text, { image: dataUrl });
+      if (looksLikeVisionRefusal(reply)) {
+        reply = await askAI("Mira bien la foto que te acabo de mandar, dime exactamente qué ves en ella y reacciona.", { image: dataUrl });
+      }
+      if (looksLikeVisionRefusal(reply)) {
+        reply = photoFallbackReaction();
+      }
+      if (mountedRef.current) {
+        setMessages((m) => [...m, { id: crypto.randomUUID(), from: "girl", text: reply }]);
+        persistPair(text, reply);
+      }
+    } catch (err: any) {
+      console.warn("[Chat] photo error:", err);
+      const fallback = getFallbackResponse(text);
+      if (mountedRef.current) {
+        setMessages((m) => [...m, { id: crypto.randomUUID(), from: "girl", text: fallback }]);
+        persistPair(text, fallback);
+        setError(err?.message || "Usando modo offline.");
+      }
     } finally {
       setTyping(false);
     }
@@ -569,9 +595,6 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         <div className={styles.topBar}>
           <button className={styles.topBarBtn} onClick={() => { if (window.history.length > 1) router.back(); else router.push("/girls"); }} aria-label="Volver atrás">
             <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-          </button>
-          <button className={`${styles.topBarBtn} ${styles.dotsBtn}`} aria-label="Menú">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
           </button>
         </div>
         <div className={styles.heroCard}>
