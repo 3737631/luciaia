@@ -20,6 +20,7 @@ import {
   extractMemoryFromMessages,
   buildSummary,
   clearAllMemory,
+  clearGirlData,
   saveToHistory,
   saveMode,
   clearUnreadReply,
@@ -61,6 +62,8 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   const [activeCustom, setActiveCustom] = useState<CustomGirlData | null>(null);
   const [recording, setRecording] = useState(false);
   const [playingId, setPlayingId] = useState<string | null>(null);
+  const [chatMenu, setChatMenu] = useState(false);
+  const [confirmDeleteChat, setConfirmDeleteChat] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef(true);
   const messagesRef = useRef(messages);
@@ -397,6 +400,16 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     setBlocked(false);
   }
 
+  function deleteChatForever() {
+    const storageId = activeCustom?.id ?? girl.id;
+    clearGirlData(storageId);
+    setMessages([{ id: crypto.randomUUID(), from: "girl", text: `Hola, soy ${displayName}. Qué bien que hayas entrado` }]);
+    setError(null);
+    setBlocked(false);
+    setConfirmDeleteChat(false);
+    setChatMenu(false);
+  }
+
   function pickAudioMime() {
     const candidates = [
       "audio/webm;codecs=opus",
@@ -682,7 +695,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
           <button className={`${styles.chatHeaderIcon} ${styles.video}`} title="Llamada de voz" onClick={() => { router.push(`/call/${girl.id}?mode=voice${activeCustom ? `&custom=${activeCustom.id}` : ""}`); }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
           </button>
-          <button className={`${styles.chatHeaderIcon} ${styles.menu}`} title="Menú" onClick={() => {}}>
+          <button className={`${styles.chatHeaderIcon} ${styles.menu}`} title="Menú" onClick={() => setChatMenu((v) => !v)}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
           </button>
         </div>
@@ -766,6 +779,56 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
           </button>
         </div>
       </div>
+      {chatMenu && (
+        <div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/70 backdrop-blur-sm" onClick={() => setChatMenu(false)}>
+          <div className="mb-5 w-full max-w-[360px] overflow-hidden rounded-3xl border border-white/[0.08] bg-[#15151a]/95 p-2 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => {
+                setChatMenu(false);
+                router.push(`/history?${activeCustom ? `custom=${activeCustom.id}` : `girl=${girl.id}`}`);
+              }}
+              className="flex w-full items-center gap-3 rounded-2xl px-4 py-3.5 text-left transition hover:bg-white/[0.06] active:scale-[0.99]"
+            >
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-white/70">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              </span>
+              <span className="text-sm font-semibold text-white">Historial con {displayName}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmDeleteChat(true)}
+              className="flex w-full items-center gap-3 rounded-2xl px-4 py-3.5 text-left transition hover:bg-white/[0.06] active:scale-[0.99]"
+            >
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#ff2f78]/15 text-[#ff5f8f]">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
+              </span>
+              <span className="text-sm font-semibold text-[#ff5f8f]">Borrar chat para siempre</span>
+            </button>
+          </div>
+        </div>
+      )}
+      {confirmDeleteChat && (
+        <div className="fixed inset-0 z-[95] flex items-center justify-center overflow-y-auto bg-black/80 px-6 backdrop-blur-md" onClick={() => setConfirmDeleteChat(false)}>
+          <div className="my-auto w-full max-w-[340px] rounded-3xl border border-white/[0.08] bg-[#15151a]/95 p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#ff2f78]/15 text-[#ff5f8f]">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
+            </div>
+            <h3 className="mt-4 text-lg font-bold tracking-tight text-white">Borrar chat para siempre</h3>
+            <p className="mt-2 text-sm leading-relaxed text-white/55">
+              Se borrará <span className="font-semibold text-white/80">para siempre</span> la conversación con {displayName} y nunca volverá a aparecer. Esta acción no se puede deshacer.
+            </p>
+            <div className="mt-6 flex gap-2.5">
+              <button onClick={() => setConfirmDeleteChat(false)} className="h-12 flex-1 rounded-2xl bg-white/[0.06] text-sm font-bold text-white/80 transition hover:bg-white/[0.1] active:scale-[0.98]">
+                Cancelar
+              </button>
+              <button onClick={deleteChatForever} className="h-12 flex-1 rounded-2xl bg-[#ff2f78] text-sm font-bold text-white transition hover:brightness-110 active:scale-[0.98]">
+                Borrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

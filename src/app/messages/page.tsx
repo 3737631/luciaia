@@ -57,18 +57,24 @@ function MessagesContent() {
         if (!prev || e.timestamp > prev.ts) byGirl.set(e.girlId, { ts: e.timestamp, preview: e.preview });
       }
 
-      const pendingRows: MsgRow[] = pending.map((u) => ({
-        key: `p-${u.id}`,
-        girlId: u.girlId,
-        name: u.name,
-        img: u.img,
-        href: `/chat/${u.girlId}?reply=${encodeURIComponent(u.reply)}&sent=${encodeURIComponent(u.sent)}`,
-        ts: u.ts,
-        preview: u.reply,
-        pending: true,
-        reply: u.reply,
-        sent: u.sent,
-      }));
+      const seenPendingGirls = new Set<string>();
+      const pendingRows: MsgRow[] = [];
+      for (const u of [...pending].sort((a, b) => b.ts - a.ts)) {
+        if (seenPendingGirls.has(u.girlId)) continue;
+        seenPendingGirls.add(u.girlId);
+        pendingRows.push({
+          key: `p-${u.id}`,
+          girlId: u.girlId,
+          name: u.name,
+          img: u.img,
+          href: `/chat/${u.girlId}?reply=${encodeURIComponent(u.reply)}&sent=${encodeURIComponent(u.sent)}`,
+          ts: u.ts,
+          preview: u.reply,
+          pending: true,
+          reply: u.reply,
+          sent: u.sent,
+        });
+      }
       pendingRows.sort((a, b) => b.ts - a.ts);
 
       const seenPending = new Set(pending.map((u) => u.girlId));
@@ -227,7 +233,13 @@ function MessagesContent() {
                   href={r.href}
                   className={`flex w-full items-center gap-3.5 rounded-2xl px-2 py-2.5 pr-14 text-left transition hover:bg-white/[0.04] active:scale-[0.99] ${r.pending ? "bg-[#ff2f78]/[0.07]" : ""}`}
                 >
-                  <div className="relative h-[62px] w-[62px] overflow-hidden rounded-full bg-[#ff2f78]">
+                  <div className="relative h-[62px] w-[62px] shrink-0">
+                    <div className="relative h-full w-full overflow-hidden rounded-full bg-[#ff2f78]">
+                      {r.img && (
+                        <img src={r.img} alt={r.name} className="absolute inset-0 h-full w-full object-cover object-center" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+                      )}
+                      <div className="flex h-full w-full items-center justify-center text-lg font-bold text-white">{r.name[0]}</div>
+                    </div>
                     {isGirlPinned(r.girlId) && (
                       <span
                         style={{
@@ -247,10 +259,6 @@ function MessagesContent() {
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="#ff2f78" stroke="#ff2f78" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
                       </span>
                     )}
-                    {r.img && (
-                      <img src={r.img} alt={r.name} className="absolute inset-0 h-full w-full object-cover object-center" onError={(e) => { e.currentTarget.style.display = "none"; }} />
-                    )}
-                    <div className="flex h-full w-full items-center justify-center text-lg font-bold text-white">{r.name[0]}</div>
                     {r.pending && (
                       <span
                         style={{
@@ -281,7 +289,6 @@ function MessagesContent() {
                       Nueva
                     </span>
                   )}
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 text-white/25"><path d="M9 18l6-6-6-6" /></svg>
                 </Link>
                 <button
                   onClick={() => setMenuRow(r)}

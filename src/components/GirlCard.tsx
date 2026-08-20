@@ -9,7 +9,6 @@ import { getCustomization } from "@/lib/storage";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const chatPath = (id: string) => `/chat/${id}?picker=1`;
-const storyPath = (id: string) => `/chat/${id}?story=1`;
 
 function shouldBeOnline(): boolean {
   return Math.random() < 0.55;
@@ -124,11 +123,11 @@ export default function GirlCard({ girl, index = 0 }: { girl: Girl; index?: numb
       </div>
 
       <Link
-        href={storyPath(girl.id)}
+        href={chatPath(girl.id)}
         className="person-action"
-        onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(storyPath(girl.id)); }}
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(chatPath(girl.id)); }}
         onPointerDown={handlePointerDown}
-        onPointerUp={(e) => { e.stopPropagation(); handlePointerUp(e, storyPath(girl.id)); }}
+        onPointerUp={(e) => { e.stopPropagation(); handlePointerUp(e, chatPath(girl.id)); }}
       >
         Chatear
       </Link>
