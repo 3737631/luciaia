@@ -612,6 +612,14 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   color: rgba(255,255,255,0.35);
 }
 
+/* En escritorio/tablet los círculos de historias crecen para llenar la fila */
+@media (min-width: 769px) {
+  .stories-row { gap: 20px; padding: 16px 4px 10px; }
+  .story-item { width: 88px; gap: 7px; }
+  .story-ring { width: 88px; height: 88px; padding: 3.5px; }
+  .story-name { font-size: 13px; }
+}
+
 .nuvia-fantasy-cta {
   position: relative;
   left: 50%;
@@ -677,12 +685,13 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
 
 .nuvia-fantasy-cta__image {
   display: block;
-  width: 72px;
-  height: 72px;
-  border-radius: 12px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
   object-fit: cover;
-  align-self: flex-end;
-  margin-bottom: -18px;
+  align-self: center;
+  margin: 0;
+  box-shadow: 0 0 0 3px rgba(255, 56, 132, 0.25), 0 8px 24px rgba(255, 47, 120, 0.3);
 }
 
 .nuvia-fantasy-cta__copy {
@@ -790,6 +799,32 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   transform: translateY(-1px);
 }
 
+/* En escritorio el CTA respira más: icono mayor y más altura */
+@media (min-width: 769px) {
+  .nuvia-fantasy-cta {
+    grid-template-columns: 88px minmax(0, 1fr) 150px;
+    column-gap: 22px;
+    min-height: 132px;
+    padding: 22px 28px;
+    width: min(calc(100vw - 80px), 1040px);
+  }
+  .nuvia-fantasy-cta__icon {
+    width: 88px;
+  }
+  .nuvia-fantasy-cta__image {
+    width: 72px;
+    height: 72px;
+  }
+  .nuvia-fantasy-cta__title {
+    font-size: clamp(30px, 3vw, 42px);
+  }
+  .nuvia-fantasy-cta__button {
+    width: 150px;
+    height: 58px;
+    font-size: 19px;
+  }
+}
+
 @media (max-width: 768px) {
   .nuvia-fantasy-cta {
     grid-template-columns: 58px minmax(0, 1fr) 104px;
@@ -830,6 +865,11 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
 
     transform: translate(1px, -2px);
     transform-origin: center;
+  }
+
+  .nuvia-fantasy-cta__image {
+    width: 44px;
+    height: 44px;
   }
 
   .nuvia-fantasy-cta__copy {
@@ -897,6 +937,11 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
 
     transform: translate(1px, -1px);
     transform-origin: center;
+  }
+
+  .nuvia-fantasy-cta__image {
+    width: 38px;
+    height: 38px;
   }
 
   .nuvia-fantasy-cta__title {
