@@ -6,6 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { getHistory, clearHistory, clearGirlData, getConversationHistory, isGirlPinned, togglePinGirl, getPinnedGirls, isSessionPinned, togglePinSession, deleteHistoryEntry } from "@/lib/memory";
 import { getCustomGirls } from "@/lib/storage";
 import { getGirlImage } from "@/lib/images";
+import { goBack } from "@/lib/nav";
+import { isDebugMode, sessionShortId } from "@/lib/debug";
 import { girls } from "@/data/girls";
 
 interface GirlRow {
@@ -29,6 +31,7 @@ export default function HistoryPage() {
 function HistoryContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const debug = isDebugMode();
   const [rows, setRows] = useState<GirlRow[]>([]);
   const [single, setSingle] = useState<GirlRow | null>(null);
   const [singleLast, setSingleLast] = useState("");
@@ -279,7 +282,7 @@ function HistoryContent() {
           <div className="flex min-h-[50dvh] flex-col">
             <div className="mb-4 flex items-center gap-2">
               <button
-                onClick={() => { if (window.history.length > 1) router.back(); else router.push("/history"); }}
+                onClick={() => goBack(router, "/history")}
                 className="flex w-fit items-center gap-1.5 rounded-full bg-white/[0.05] px-4 py-2 text-xs font-semibold text-white/70 transition hover:bg-white/[0.1] hover:text-white active:scale-95"
               >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
@@ -338,7 +341,14 @@ function HistoryContent() {
                           </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-baseline justify-between gap-3">
-                            <p className="truncate text-[1.02rem] font-semibold leading-tight text-white">{single.name}</p>
+                            <p className="truncate text-[1.02rem] font-semibold leading-tight text-white">
+                              {single.name}
+                              {debug && (
+                                <span className="ml-1.5 rounded bg-white/10 px-1.5 py-0.5 align-middle font-mono text-[9px] font-normal leading-none text-white/40">
+                                  #{sessionShortId(s.id)}
+                                </span>
+                              )}
+                            </p>
                             <p className="shrink-0 text-[10px] text-white/30">{formatDate(s.ts)}</p>
                           </div>
                           <p className="mt-0.5 max-w-full truncate text-[13px] text-white/40">{s.preview || "Conversación"}</p>
@@ -397,7 +407,14 @@ function HistoryContent() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-3">
-                      <p className="truncate text-[1.02rem] font-semibold leading-tight text-white">{r.name}</p>
+                      <p className="truncate text-[1.02rem] font-semibold leading-tight text-white">
+                      {r.name}
+                      {debug && r.sessionId && (
+                        <span className="ml-1.5 rounded bg-white/10 px-1.5 py-0.5 align-middle font-mono text-[9px] font-normal leading-none text-white/40">
+                          #{sessionShortId(r.sessionId)}
+                        </span>
+                      )}
+                    </p>
                       {r.lastTs > 0 && (
                         <p className="shrink-0 text-[10px] text-white/30">{formatDate(r.lastTs)}</p>
                       )}

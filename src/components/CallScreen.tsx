@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { getCustomization, getCustomGirls, CustomGirlData } from "@/lib/storage";
 import { getFallbackResponse } from "@/lib/ai";
+import { goBack } from "@/lib/nav";
 import { sendChatMessage } from "@/lib/chatClient";
 import { splitForTTS, sttAudio, ttsText, voiceIdMap, getCustomGirlVoice } from "@/lib/voiceClient";
 import {
@@ -2117,7 +2118,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
                     setErrorMsg(null);
                     setErrorType("");
                     setIsHangingUp(true);
-                    setTimeout(() => { router.back(); }, 0);
+                    setTimeout(() => { goBack(router, "/girls"); }, 0);
                   }}
                   style={{
                     padding: "10px 24px", borderRadius: 999, border: 0,

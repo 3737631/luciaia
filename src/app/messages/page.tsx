@@ -1,23 +1,27 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import {
   getHistory,
   getConversationHistory,
   clearAllUnreadReplies,
+  clearUnreadReply,
   clearHistory,
   clearGirlData,
   getUnreadReplies,
   onUnreadChange,
   isGirlPinned,
   togglePinGirl,
-  getPinnedGirls,
+  isSessionPinned,
+  togglePinSession,
+  deleteHistoryEntry,
 } from "@/lib/memory";
 import { getCustomGirls } from "@/lib/storage";
 import { getGirlImage } from "@/lib/images";
 import { girls } from "@/data/girls";
+import { isDebugMode, sessionShortId } from "@/lib/debug";
 
 interface MsgRow {
   key: string;
@@ -28,6 +32,7 @@ interface MsgRow {
   ts: number;
   preview: string;
   pending: boolean;
+  sessionId?: string;
   reply?: string;
   sent?: string;
 }
@@ -46,89 +51,126 @@ function MessagesContent() {
   const [confirmDelete, setConfirmDelete] = useState<"all" | MsgRow | null>(null);
   const [menuRow, setMenuRow] = useState<MsgRow | null>(null);
 
-  useEffect(() => {
-    const rebuild = () => {
-      const pending = getUnreadReplies();
-      const customs = getCustomGirls();
-      const entries = getHistory();
-      const byGirl = new Map<string, { ts: number; preview: string }>();
-      for (const e of entries) {
-        const prev = byGirl.get(e.girlId);
-        if (!prev || e.timestamp > prev.ts) byGirl.set(e.girlId, { ts: e.timestamp, preview: e.preview });
-      }
+  const rebuild = useCallback(() => {
+    const pending = getUnreadReplies();
+    const customs = getCustomGirls();
+    const entries = getHistory();
 
-      const seenPendingGirls = new Set<string>();
-      const pendingRows: MsgRow[] = [];
-      for (const u of [...pending].sort((a, b) => b.ts - a.ts)) {
-        if (seenPendingGirls.has(u.girlId)) continue;
-        seenPendingGirls.add(u.girlId);
-        pendingRows.push({
-          key: `p-${u.id}`,
-          girlId: u.girlId,
-          name: u.name,
-          img: u.img,
-          href: `/chat/${u.girlId}?reply=${encodeURIComponent(u.reply)}&sent=${encodeURIComponent(u.sent)}`,
-          ts: u.ts,
-          preview: u.reply,
-          pending: true,
-          reply: u.reply,
-          sent: u.sent,
-        });
-      }
-      pendingRows.sort((a, b) => b.ts - a.ts);
-
-      const seenPending = new Set(pending.map((u) => u.girlId));
-      const restRows: MsgRow[] = [];
-
-      for (const g of [...customs].reverse()) {
-        if (seenPending.has(g.id)) continue;
-        const saved = getConversationHistory(g.id);
-        const info = byGirl.get(g.id);
-        if (!info && saved.length === 0) continue;
-        restRows.push({
-          key: `c-${g.id}`,
-          girlId: g.id,
-          name: g.name,
-          img: g.imageUrl || getGirlImage(g.baseId || "luna", g.hair, g.pose, g.background),
-          href: `/chat/luna?custom=${g.id}`,
-          ts: info?.ts ?? 0,
-          preview: info?.preview ?? (saved.length > 0 ? saved[saved.length - 1].content.slice(0, 80) : ""),
-          pending: false,
-        });
-      }
-
-      for (const girl of girls) {
-        if (seenPending.has(girl.id)) continue;
-        const saved = getConversationHistory(girl.id);
-        const info = byGirl.get(girl.id);
-        if (!info && saved.length === 0) continue;
-        restRows.push({
-          key: `g-${girl.id}`,
-          girlId: girl.id,
-          name: girl.name,
-          img: getGirlImage(girl.id, null, null, null, girl.cloudinaryImage),
-          href: `/chat/${girl.id}`,
-          ts: info?.ts ?? 0,
-          preview: info?.preview ?? (saved.length > 0 ? saved[saved.length - 1].content.slice(0, 80) : ""),
-          pending: false,
-        });
-      }
-      restRows.sort((a, b) => b.ts - a.ts);
-
-      const all = [...pendingRows, ...restRows].sort((a, b) => {
-        const pa = getPinnedGirls().includes(a.girlId) ? 1 : 0;
-        const pb = getPinnedGirls().includes(b.girlId) ? 1 : 0;
-        if (pa !== pb) return pb - pa;
-        if (a.pending !== b.pending) return a.pending ? -1 : 1;
-        return b.ts - a.ts;
+    const girlInfo = new Map<string, { name: string; img: string; href: string }>();
+    for (const g of customs) {
+      girlInfo.set(g.id, {
+        name: g.name,
+        img: g.imageUrl || getGirlImage(g.baseId || "luna", g.hair, g.pose, g.background),
+        href: `/chat/luna?custom=${g.id}`,
       });
+    }
+    for (const girl of girls) {
+      girlInfo.set(girl.id, {
+        name: girl.name,
+        img: getGirlImage(girl.id, null, null, null, girl.cloudinaryImage),
+        href: `/chat/${girl.id}`,
+      });
+    }
 
-      setRows(all);
-      setUnreadCount(pendingRows.length);
-    };
+    const rows: MsgRow[] = [];
+
+    // Respuestas sin contestar (reacciones a historias): una fila por chica, arriba.
+    const seenPendingGirls = new Set<string>();
+    let pendingCount = 0;
+    for (const u of [...pending].sort((a, b) => b.ts - a.ts)) {
+      if (seenPendingGirls.has(u.girlId)) continue;
+      seenPendingGirls.add(u.girlId);
+      pendingCount++;
+      rows.push({
+        key: `p-${u.id}`,
+        girlId: u.girlId,
+        name: u.name,
+        img: u.img,
+        href: `/chat/${u.girlId}?reply=${encodeURIComponent(u.reply)}&sent=${encodeURIComponent(u.sent)}`,
+        ts: u.ts,
+        preview: u.reply,
+        pending: true,
+        reply: u.reply,
+        sent: u.sent,
+      });
+    }
+
+    // Cada vez que hablas con una chica se crea una sesión nueva y aparece
+    // como un chat independiente (esté fijada o no).
+    for (const e of entries) {
+      const info = girlInfo.get(e.girlId);
+      if (!info) continue;
+      rows.push({
+        key: `s-${e.id}`,
+        girlId: e.girlId,
+        name: e.girlName || info.name,
+        img: info.img,
+        href: info.href,
+        ts: e.timestamp,
+        preview: e.preview,
+        pending: false,
+        sessionId: e.id,
+      });
+    }
+
+    // Chicas con conversación pero sin ninguna sesión todavía.
+    const seenGirls = new Set(entries.map((e) => e.girlId));
+    const pendingGirls = new Set(pending.map((u) => u.girlId));
+    for (const g of [...customs].reverse()) {
+      if (seenGirls.has(g.id) || pendingGirls.has(g.id)) continue;
+      const saved = getConversationHistory(g.id);
+      if (saved.length === 0) continue;
+      const info = girlInfo.get(g.id)!;
+      rows.push({
+        key: `c-${g.id}`,
+        girlId: g.id,
+        name: info.name,
+        img: info.img,
+        href: info.href,
+        ts: 0,
+        preview: saved[saved.length - 1].content.slice(0, 80),
+        pending: false,
+      });
+    }
+    for (const girl of girls) {
+      if (seenGirls.has(girl.id) || pendingGirls.has(girl.id)) continue;
+      const saved = getConversationHistory(girl.id);
+      if (saved.length === 0) continue;
+      const info = girlInfo.get(girl.id)!;
+      rows.push({
+        key: `g-${girl.id}`,
+        girlId: girl.id,
+        name: info.name,
+        img: info.img,
+        href: info.href,
+        ts: 0,
+        preview: saved[saved.length - 1].content.slice(0, 80),
+        pending: false,
+      });
+    }
+
+    rows.sort((a, b) => {
+      const pa = pinScore(a);
+      const pb = pinScore(b);
+      if (pa !== pb) return pb - pa;
+      if (a.pending !== b.pending) return a.pending ? -1 : 1;
+      return b.ts - a.ts;
+    });
+
+    setRows(rows);
+    setUnreadCount(pendingCount);
+  }, []);
+
+  useEffect(() => {
     rebuild();
     return onUnreadChange(rebuild);
-  }, []);
+  }, [rebuild]);
+
+  function pinScore(r: MsgRow): number {
+    if (r.sessionId) return isSessionPinned(r.sessionId) ? 2 : 0;
+    if (r.pending) return 0;
+    return isGirlPinned(r.girlId) ? 1 : 0;
+  }
 
   function formatDate(ts: number) {
     if (!ts) return "";
@@ -145,30 +187,33 @@ function MessagesContent() {
     for (const girl of girls) clearGirlData(girl.id);
     for (const g of getCustomGirls()) clearGirlData(g.id);
     clearAllUnreadReplies();
-    setRows([]);
-    setUnreadCount(0);
+    rebuild();
     setConfirmDelete(null);
   }
 
   function handleDeleteRow(r: MsgRow) {
-    clearGirlData(r.girlId);
-    setRows((prev) => prev.filter((x) => x.girlId !== r.girlId));
+    if (r.pending) {
+      clearUnreadReply(r.girlId);
+    } else if (r.sessionId) {
+      deleteHistoryEntry(r.sessionId);
+    } else {
+      clearGirlData(r.girlId);
+    }
+    rebuild();
     setConfirmDelete(null);
   }
 
   function handlePinRow(r: MsgRow) {
-    togglePinGirl(r.girlId);
-    setRows((prev) =>
-      [...prev].sort((a, b) => {
-        const pa = getPinnedGirls().includes(a.girlId) ? 1 : 0;
-        const pb = getPinnedGirls().includes(b.girlId) ? 1 : 0;
-        if (pa !== pb) return pb - pa;
-        if (a.pending !== b.pending) return a.pending ? -1 : 1;
-        return b.ts - a.ts;
-      }),
-    );
+    if (r.sessionId) {
+      togglePinSession(r.sessionId);
+    } else {
+      togglePinGirl(r.girlId);
+    }
+    rebuild();
     setMenuRow(null);
   }
+
+  const debug = isDebugMode();
 
   return (
     <>
@@ -198,7 +243,7 @@ function MessagesContent() {
           )}
           {unreadCount > 0 && (
             <button
-              onClick={() => clearAllUnreadReplies()}
+              onClick={() => { clearAllUnreadReplies(); rebuild(); }}
               className="flex h-11 w-11 items-center justify-center text-muted transition-all hover:text-white active:scale-95"
               aria-label="Marcar todos como leídos"
               title="Marcar todos como leídos"
@@ -240,7 +285,7 @@ function MessagesContent() {
                       )}
                       <div className="flex h-full w-full items-center justify-center text-lg font-bold text-white">{r.name[0]}</div>
                     </div>
-                    {isGirlPinned(r.girlId) && (
+                    {pinScore(r) > 0 && (
                       <span
                         style={{
                           position: "absolute",
@@ -277,7 +322,14 @@ function MessagesContent() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-3">
-                      <p className="truncate text-[1.02rem] font-semibold leading-tight text-white">{r.name}</p>
+                      <p className="truncate text-[1.02rem] font-semibold leading-tight text-white">
+                        {r.name}
+                        {debug && r.sessionId && (
+                          <span className="ml-1.5 rounded bg-white/10 px-1.5 py-0.5 align-middle font-mono text-[9px] font-normal leading-none text-white/40">
+                            #{sessionShortId(r.sessionId)}
+                          </span>
+                        )}
+                      </p>
                       <p className="shrink-0 text-[10px] text-white/30">{formatDate(r.ts)}</p>
                     </div>
                     <p className="mt-0.5 max-w-full truncate text-[13px] text-white/40">
@@ -312,12 +364,26 @@ function MessagesContent() {
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
             </div>
             <h3 className="mt-4 text-lg font-bold tracking-tight text-white">
-              {confirmDelete === "all" ? "Borrar todos tus mensajes" : `Borrar conversación con ${confirmDelete.name}`}
+              {confirmDelete === "all"
+                ? "Borrar todos tus mensajes"
+                : confirmDelete.pending
+                  ? "Borrar respuesta"
+                  : confirmDelete.sessionId
+                    ? "Borrar esta sesión"
+                    : `Borrar conversación con ${confirmDelete.name}`}
             </h3>
             <p className="mt-2 text-sm leading-relaxed text-white/55">
               {confirmDelete === "all" ? (
                 <>
                   Se borrarán <span className="font-semibold text-white/80">para siempre</span> todos los mensajes y nunca volverán a aparecer. Esta acción no se puede deshacer.
+                </>
+              ) : confirmDelete.pending ? (
+                <>
+                  Se borrará <span className="font-semibold text-white/80">para siempre</span> la respuesta sin contestar de {confirmDelete.name}. Esta acción no se puede deshacer.
+                </>
+              ) : confirmDelete.sessionId ? (
+                <>
+                  Se borrará <span className="font-semibold text-white/80">para siempre</span> esta sesión con {confirmDelete.name} y nunca volverá a aparecer. Esta acción no se puede deshacer.
                 </>
               ) : (
                 <>
@@ -359,19 +425,31 @@ function MessagesContent() {
                 </div>
               </div>
               <div className="p-2.5">
-                <button
-                  onClick={() => handlePinRow(menuRow)}
-                  className="flex w-full items-center gap-3.5 rounded-2xl px-3.5 py-3.5 text-left transition hover:bg-white/[0.06] active:scale-[0.985] active:bg-white/[0.09]"
-                >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#ff2f78]/20 to-[#ff4c91]/10 text-[#ff5798]">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
-                  </span>
-                  <span>
-                    <span className="block text-sm font-semibold text-white">{isGirlPinned(menuRow.girlId) ? "Desfijar chat" : "Fijar chat"}</span>
-                    <span className="block text-xs text-white/40">{isGirlPinned(menuRow.girlId) ? "Dejará de aparecer arriba" : "Siempre aparecerá arriba"}</span>
-                  </span>
-                </button>
-                <div className="mx-4 h-px bg-white/[0.06]" />
+                {menuRow.sessionId || !menuRow.pending ? (
+                  <>
+                    <button
+                      onClick={() => handlePinRow(menuRow)}
+                      className="flex w-full items-center gap-3.5 rounded-2xl px-3.5 py-3.5 text-left transition hover:bg-white/[0.06] active:scale-[0.985] active:bg-white/[0.09]"
+                    >
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#ff2f78]/20 to-[#ff4c91]/10 text-[#ff5798]">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
+                      </span>
+                      <span>
+                        <span className="block text-sm font-semibold text-white">
+                          {menuRow.sessionId
+                            ? (isSessionPinned(menuRow.sessionId) ? "Desfijar sesión" : "Fijar sesión")
+                            : (isGirlPinned(menuRow.girlId) ? "Desfijar chat" : "Fijar chat")}
+                        </span>
+                        <span className="block text-xs text-white/40">
+                          {menuRow.sessionId
+                            ? (isSessionPinned(menuRow.sessionId) ? "Dejará de aparecer arriba" : "Siempre aparecerá arriba")
+                            : (isGirlPinned(menuRow.girlId) ? "Dejará de aparecer arriba" : "Siempre aparecerá arriba")}
+                        </span>
+                      </span>
+                    </button>
+                    <div className="mx-4 h-px bg-white/[0.06]" />
+                  </>
+                ) : null}
                 <button
                   onClick={() => { setConfirmDelete(menuRow); setMenuRow(null); }}
                   className="flex w-full items-center gap-3.5 rounded-2xl px-3.5 py-3.5 text-left transition hover:bg-[#ff2f78]/[0.08] active:scale-[0.985] active:bg-[#ff2f78]/[0.14]"
@@ -380,7 +458,9 @@ function MessagesContent() {
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                   </span>
                   <span>
-                    <span className="block text-sm font-semibold text-[#ff5f8f]">Borrar conversación</span>
+                    <span className="block text-sm font-semibold text-[#ff5f8f]">
+                      {menuRow.pending ? "Borrar respuesta" : menuRow.sessionId ? "Borrar sesión" : "Borrar conversación"}
+                    </span>
                     <span className="block text-xs text-white/40">Se borrará para siempre</span>
                   </span>
                 </button>

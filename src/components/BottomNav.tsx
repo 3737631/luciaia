@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { hasUnreadReplies, onUnreadChange } from "@/lib/memory";
+import { rememberTab } from "@/lib/nav";
 
 const items = [
   {
@@ -81,9 +82,10 @@ export default function BottomNav() {
   const [hasUnread, setHasUnread] = useState(false);
 
   useEffect(() => {
+    rememberTab(pathname);
     setHasUnread(hasUnreadReplies());
     return onUnreadChange(() => setHasUnread(hasUnreadReplies()));
-  }, []);
+  }, [pathname]);
 
   return (
     <nav className="bottom-nav">

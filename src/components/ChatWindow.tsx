@@ -7,6 +7,7 @@ import { detectGender } from "@/lib/gender";
 import { getCustomization } from "@/lib/storage";
 import { getCustomGirls, CustomGirlData } from "@/lib/storage";
 import { getFallbackResponse } from "@/lib/ai";
+import { goBack } from "@/lib/nav";
 import { sendChatMessage } from "@/lib/chatClient";
 import { sttAudio, ttsText, getGirlVoice, getCustomGirlVoice } from "@/lib/voiceClient";
 import {
@@ -593,7 +594,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     return (
       <div className={styles.container}>
         <div className={styles.topBar}>
-          <button className={styles.topBarBtn} onClick={() => { if (window.history.length > 1) router.back(); else router.push("/girls"); }} aria-label="Volver atrás">
+          <button className={styles.topBarBtn} onClick={() => goBack(router, "/girls")} aria-label="Volver atrás">
             <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           </button>
         </div>
@@ -697,7 +698,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       <div className={styles.chatBgOverlay} />
       <div className={styles.chatHeader}>
         <div className={styles.chatHeaderInner}>
-          <button className={styles.chatBackBtn} onClick={() => { if (window.history.length > 1) router.back(); else router.push("/girls"); }} aria-label="Volver">
+          <button className={styles.chatBackBtn} onClick={() => goBack(router, "/girls")} aria-label="Volver">
             <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           </button>
           {avatarSrc ? (
