@@ -87,7 +87,7 @@ export default function CustomGirlCard({ data, onDelete }: { data: CustomGirlDat
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
       </button>
       <div className="flex items-center gap-1.5 p-3 sm:p-4">
-        <Link href={`/chat/luna?custom=${data.id}&picker=1`} onClick={handleClick} className="btn-primary flex h-9 flex-1 items-center justify-center text-[0.6rem] font-bold sm:text-xs">
+        <Link href={`/chat/luna?custom=${data.id}&story=1`} onClick={handleClick} className="btn-primary flex h-9 flex-1 items-center justify-center text-[0.6rem] font-bold sm:text-xs">
           Chatear
         </Link>
       </div>

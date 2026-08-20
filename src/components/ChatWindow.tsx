@@ -68,6 +68,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   const welcomeNameRef = useRef("");
   const skipWelcomeRef = useRef(false);
   const forcePickerRef = useRef(false);
+  const forceStoryRef = useRef(false);
   const storyReplyRef = useRef("");
   const storySentRef = useRef("");
   const skipSaveRef = useRef(false);
@@ -95,6 +96,8 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     // ?reply= trae la respuesta de la chica desde una historia.
     const qs = new URLSearchParams(window.location.search);
     if (qs.get("picker") === "1") forcePickerRef.current = true;
+    // ?story=1 entra directamente a "Vivir una historia" (rolplay) sin selector.
+    if (qs.get("story") === "1") forceStoryRef.current = true;
     const replyParam = qs.get("reply");
     if (replyParam) {
       storyReplyRef.current = replyParam;
@@ -112,7 +115,14 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         skipWelcomeRef.current = true;
         clearUnreadReply(g.id);
         const saved = getConversationHistory(g.id);
-        if (forcePickerRef.current) {
+        if (forceStoryRef.current) {
+          // Chatear = entrar directo a "Vivir una historia".
+          setShowModePicker(false);
+          setMode("actions");
+          const scenario = `Chica: ${g.girlDesc}\nRoleplay: ${g.roleplayDesc}`;
+          setCustomScenario(scenario);
+          setMessages([{ id: "welcome", from: "girl", text: g.roleplayDesc || `Hola, soy ${g.name}. Qué bien que hayas entrado` }]);
+        } else if (forcePickerRef.current) {
           // Chatear desde el historial: siempre mostrar el selector (mensaje / vivir una historia).
           setShowModePicker(true);
           setMessages([{ id: "welcome", from: "girl", text: g.roleplayDesc || `Hola, soy ${g.name}. Qué bien que hayas entrado` }]);
@@ -135,10 +145,11 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       }
     }
     clearUnreadReply(girl.id);
-    // Limpiar de la URL los parámetros temporales (reply/picker/sent).
-    if (replyParam || qs.get("picker") === "1" || sentParam) {
+    // Limpiar de la URL los parámetros temporales (reply/picker/story/sent).
+    if (replyParam || qs.get("picker") === "1" || qs.get("story") === "1" || sentParam) {
       qs.delete("reply");
       qs.delete("picker");
+      qs.delete("story");
       qs.delete("sent");
       const clean = qs.toString();
       router.replace(`/chat/${girl.id}${clean ? "?" + clean : ""}`, { scroll: false });
@@ -164,6 +175,15 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
 
   useEffect(() => {
     if (messagesRef.current.length > 0 || skipWelcomeRef.current) return;
+    // Chatear = entrar directo a "Vivir una historia".
+    if (forceStoryRef.current) {
+      setShowModePicker(false);
+      setMode("actions");
+      setCustomScenario(girl.story);
+      const pick = girl.roleplayGreetings[Math.floor(Math.random() * girl.roleplayGreetings.length)];
+      setMessages([{ id: "welcome", from: "girl", text: pick }]);
+      return () => { mountedRef.current = false; };
+    }
     // Venir de una historia: la chica te contesta y se muestra "Respondiste a su historia".
     if (storyReplyRef.current) {
       const reply = storyReplyRef.current;
