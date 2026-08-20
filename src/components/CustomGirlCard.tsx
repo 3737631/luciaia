@@ -37,7 +37,7 @@ export default function CustomGirlCard({ data, onDelete }: { data: CustomGirlDat
             <img
               src={imgSrc}
               alt={data.name}
-              className="h-full w-full object-cover object-top transition-all duration-700 ease-out group-hover:scale-105"
+              className="h-full w-full object-cover object-center transition-all duration-700 ease-out group-hover:scale-105"
               onError={() => setImgFailed(true)}
             />
           ) : (

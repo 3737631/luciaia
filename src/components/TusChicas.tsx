@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { getCustomGirls, deleteCustomGirl, saveCustomGirl, CustomGirlData } from "@/lib/storage";
 import { getGirlImage } from "@/lib/images";
-import { getConversationHistory, getHistory } from "@/lib/memory";
+import { getConversationHistory, getHistory, isGirlPinned, togglePinGirl } from "@/lib/memory";
 
 export default function TusChicas({
   open,
@@ -178,7 +178,7 @@ export default function TusChicas({
                   </div>
                 ) : (
                   <div className="px-2 pb-2 pt-1">
-                    {[...customGirls].reverse().map((g, i) => {
+                    {[...customGirls].reverse().sort((a, b) => Number(isGirlPinned(b.id)) - Number(isGirlPinned(a.id))).map((g, i) => {
                       const imgSrc = g.imageUrl || getGirlImage(g.baseId || "luna", g.hair, g.pose, g.background);
                       const hist = getConversationHistory(g.id);
                       const lastMsg = [...hist].reverse().find((m) => m.role === "assistant")?.content ?? "";
@@ -197,10 +197,31 @@ export default function TusChicas({
                             onClick={() => openChat(g)}
                             className="flex items-center gap-3.5 rounded-2xl px-2 py-2.5 transition hover:bg-white/[0.04] active:scale-[0.99]"
                           >
-                            <div className="h-[60px] w-[60px] shrink-0 overflow-hidden rounded-full bg-[#ff2f78]"
-                              style={isActive ? { boxShadow: "0 0 0 2.5px #131318, 0 0 0 5px #ff2f78" } : undefined}
-                            >
-                              <img src={imgSrc} alt={g.name} className="h-full w-full object-cover object-center" />
+                            <div className="relative h-[60px] w-[60px] shrink-0">
+                              <div className="h-full w-full overflow-hidden rounded-full bg-[#ff2f78]"
+                                style={isActive ? { boxShadow: "0 0 0 2.5px #131318, 0 0 0 5px #ff2f78" } : undefined}
+                              >
+                                <img src={imgSrc} alt={g.name} className="h-full w-full object-cover object-center" />
+                              </div>
+                              {isGirlPinned(g.id) && (
+                                <span
+                                  style={{
+                                    position: "absolute",
+                                    bottom: -1,
+                                    right: -1,
+                                    width: 18,
+                                    height: 18,
+                                    borderRadius: "50%",
+                                    background: "#121212",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    zIndex: 3,
+                                  }}
+                                >
+                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="#ff2f78" stroke="#ff2f78" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
+                                </span>
+                              )}
                             </div>
                             <div className="min-w-0 flex-1">
                               <p className="truncate text-[1.02rem] font-semibold leading-tight text-white">
@@ -257,6 +278,25 @@ export default function TusChicas({
                                   </div>
 
                                   <div className="p-2.5">
+                                    <button
+                                      onClick={() => {
+                                        togglePinGirl(g.id);
+                                        setMenuId(null);
+                                        refresh();
+                                      }}
+                                      className="flex w-full items-center gap-3.5 rounded-2xl px-3.5 py-3.5 text-left transition hover:bg-white/[0.06] active:scale-[0.985] active:bg-white/[0.09]"
+                                    >
+                                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#ff2f78]/20 to-[#ff4c91]/10 text-[#ff5798]">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
+                                      </span>
+                                      <span>
+                                        <span className="block text-sm font-semibold text-white">{isGirlPinned(g.id) ? "Desfijar personaje" : "Fijar personaje"}</span>
+                                        <span className="block text-xs text-white/40">{isGirlPinned(g.id) ? "Dejará de aparecer arriba" : "Siempre aparecerá arriba"}</span>
+                                      </span>
+                                    </button>
+
+                                    <div className="mx-4 h-px bg-white/[0.06]" />
+
                                     <button
                                       onClick={() => {
                                         setMenuId(null);
