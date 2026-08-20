@@ -215,6 +215,20 @@ function HistoryContent() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight gradient-text">
               {single ? `Historial con ${single.name}` : "Historial"}
+              {single && isGirlPinned(single.girlId) && (
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="#ff2f78"
+                  stroke="#ff2f78"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="ml-2 inline-block -translate-y-0.5"
+                  aria-label="Conversación fijada"
+                ><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
+              )}
             </h1>
             <p className="mt-1.5 text-sm text-muted/70">
               {single
@@ -279,25 +293,6 @@ function HistoryContent() {
                               )}
                               <div className="flex h-full w-full items-center justify-center text-lg font-bold text-white">{single.name[0]}</div>
                             </div>
-                            {isGirlPinned(single.girlId) && (
-                              <span
-                                style={{
-                                  position: "absolute",
-                                  bottom: -1,
-                                  right: -1,
-                                  width: 18,
-                                  height: 18,
-                                  borderRadius: "50%",
-                                  background: "#121212",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  zIndex: 2,
-                                }}
-                              >
-                                <svg width="11" height="11" viewBox="0 0 24 24" fill="#ff2f78" stroke="#ff2f78" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
-                              </span>
-                            )}
                           </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-baseline justify-between gap-3">
