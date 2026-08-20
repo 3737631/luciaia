@@ -157,6 +157,7 @@ export default function Header() {
                       key={c.label}
                       href={c.href}
                       onClick={() => setCatOpen(false)}
+                      className="press"
                       style={{
                         display: "block", width: "100%", padding: "10px 16px",
                         background: isActive ? "rgba(255,255,255,0.08)" : "transparent",
@@ -219,6 +220,7 @@ export default function Header() {
                     key={item.label}
                     href={item.href}
                     onClick={() => setMenuOpen(false)}
+                    className="press"
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -248,6 +250,7 @@ export default function Header() {
                   key={item.label}
                   href={item.href}
                   onClick={() => setMenuOpen(false)}
+                  className="press"
                   style={{
                     display: "flex",
                     alignItems: "center",

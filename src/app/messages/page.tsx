@@ -234,18 +234,6 @@ function MessagesContent() {
             </p>
           </div>
           <div className="flex items-center gap-1.5">
-          <button
-            onClick={() => setShowSessionIds(!getShowSessionIds())}
-            className="flex h-11 w-11 items-center justify-center text-muted transition-all hover:text-white active:scale-95"
-            aria-label="Ver números de sesión"
-            title={showNum ? "Ocultar números de sesión" : "Ver números de sesión"}
-            style={showNum ? { color: "#ff2f78" } : undefined}
-          >
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
-              <circle cx="12" cy="12" r="3" />
-            </svg>
-          </button>
           {rows.length > 0 && (
             <button
               onClick={() => setConfirmDelete("all")}
@@ -260,6 +248,18 @@ function MessagesContent() {
               </svg>
             </button>
           )}
+          <button
+            onClick={() => setShowSessionIds(!getShowSessionIds())}
+            className="flex h-11 w-11 items-center justify-center text-muted transition-all hover:text-white active:scale-95"
+            aria-label="Ver números de sesión"
+            title={showNum ? "Ocultar números de sesión" : "Ver números de sesión"}
+            style={showNum ? { color: "#ff2f78" } : undefined}
+          >
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          </button>
           {unreadCount > 0 && (
             <button
               onClick={() => { clearAllUnreadReplies(); rebuild(); }}
@@ -290,7 +290,7 @@ function MessagesContent() {
             </Link>
           </div>
         ) : (
-          <div className="space-y-1">
+          <div className="list-enter space-y-1">
             {rows.map((r) => (
               <div key={r.key} className="group relative flex items-center">
                 <Link

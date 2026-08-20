@@ -7,7 +7,7 @@ import { getHistory, clearHistory, clearGirlData, getConversationHistory, isGirl
 import { getCustomGirls } from "@/lib/storage";
 import { getGirlImage } from "@/lib/images";
 import { goBack } from "@/lib/nav";
-import { isDebugMode, getShowSessionIds, onShowSessionIdsChange, sessionShortId } from "@/lib/debug";
+import { isDebugMode, getShowSessionIds, setShowSessionIds, onShowSessionIdsChange, sessionShortId } from "@/lib/debug";
 import { girls } from "@/data/girls";
 
 interface GirlRow {
@@ -270,18 +270,32 @@ function HistoryContent() {
             </p>
           </div>
           {!single && (
-            <button
-              onClick={() => setConfirmClear(true)}
-              className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-muted transition-all hover:bg-[#ff2f78]/15 hover:text-white active:scale-95"
-              aria-label="Borrar todos tus mensajes"
-              title="Borrar todos tus mensajes"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-                <path d="M3 6h18" />
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                <path d="M10 11v6M14 11v6" />
-              </svg>
-            </button>
+            <>
+              <button
+                onClick={() => setShowSessionIds(!getShowSessionIds())}
+                className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-muted transition-all hover:bg-[#ff2f78]/15 hover:text-white active:scale-95"
+                aria-label="Ver números de sesión"
+                title={showNum ? "Ocultar números de sesión" : "Ver números de sesión"}
+                style={showNum ? { color: "#ff2f78" } : undefined}
+              >
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </button>
+              <button
+                onClick={() => setConfirmClear(true)}
+                className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-muted transition-all hover:bg-[#ff2f78]/15 hover:text-white active:scale-95"
+                aria-label="Borrar todos tus mensajes"
+                title="Borrar todos tus mensajes"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                  <path d="M3 6h18" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  <path d="M10 11v6M14 11v6" />
+                </svg>
+              </button>
+            </>
           )}
         </div>
 
@@ -294,6 +308,18 @@ function HistoryContent() {
               >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
                 Volver
+              </button>
+              <button
+                onClick={() => setShowSessionIds(!getShowSessionIds())}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.05] text-white/60 transition hover:bg-[#ff2f78]/15 hover:text-white active:scale-95"
+                aria-label="Ver números de sesión"
+                title={showNum ? "Ocultar números de sesión" : "Ver números de sesión"}
+                style={showNum ? { color: "#ff2f78" } : undefined}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
               </button>
               <button
                 onClick={() => setConfirmClear(true)}
@@ -312,7 +338,7 @@ function HistoryContent() {
             {singleSessions.length === 0 && !singleLast ? null : (
               <>
                 {singleSessions.length > 0 && (
-                  <div className="space-y-1">
+                  <div className="list-enter space-y-1">
                     {singleSessions.map((s) => (
                       <div key={s.id} className="group relative flex items-center">
                         <Link
@@ -377,7 +403,7 @@ function HistoryContent() {
             )}
           </div>
         ) : rows.length === 0 ? null : (
-          <div className="space-y-1">
+          <div className="list-enter space-y-1">
             {rows.map((r) => (
               <div key={r.girlId} className="group relative flex items-center">
                 <Link

@@ -108,6 +108,34 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
 }
 .fade-in { animation: fadeUp 0.5s ease-out both; }
 
+/* Transición de página tipo app: fundido al navegar entre pestañas */
+@keyframes pageFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.page-enter { animation: pageFade 240ms cubic-bezier(0.25, 0.1, 0.25, 1) both; }
+
+/* Entrada escalonada de listas (solo animación, sin cambios visuales) */
+@keyframes itemIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.list-enter > * { animation: itemIn 420ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.list-enter > *:nth-child(2) { animation-delay: 40ms; }
+.list-enter > *:nth-child(3) { animation-delay: 80ms; }
+.list-enter > *:nth-child(4) { animation-delay: 120ms; }
+.list-enter > *:nth-child(5) { animation-delay: 160ms; }
+.list-enter > *:nth-child(6) { animation-delay: 200ms; }
+.list-enter > *:nth-child(7) { animation-delay: 240ms; }
+.list-enter > *:nth-child(8) { animation-delay: 280ms; }
+.list-enter > *:nth-child(9) { animation-delay: 320ms; }
+.list-enter > *:nth-child(10) { animation-delay: 360ms; }
+.list-enter > *:nth-child(n+11) { animation-delay: 400ms; }
+
+/* Pulsación táctil: feedback al pinchar (no cambia el aspecto en reposo) */
+.press { -webkit-tap-highlight-color: transparent; }
+.press:active { transform: scale(0.96); }
+
 @keyframes breathe {
   0%, 100% { opacity: 0.3; transform: scale(1); }
   50% { opacity: 0.5; transform: scale(1.05); }
@@ -126,6 +154,16 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 24px;
 }
+.person-grid > * { animation: itemIn 420ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.person-grid > *:nth-child(2) { animation-delay: 40ms; }
+.person-grid > *:nth-child(3) { animation-delay: 80ms; }
+.person-grid > *:nth-child(4) { animation-delay: 120ms; }
+.person-grid > *:nth-child(5) { animation-delay: 160ms; }
+.person-grid > *:nth-child(6) { animation-delay: 200ms; }
+.person-grid > *:nth-child(7) { animation-delay: 240ms; }
+.person-grid > *:nth-child(8) { animation-delay: 280ms; }
+.person-grid > *:nth-child(9) { animation-delay: 320ms; }
+.person-grid > *:nth-child(n+10) { animation-delay: 360ms; }
 @media (max-width: 1050px) {
   .person-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
