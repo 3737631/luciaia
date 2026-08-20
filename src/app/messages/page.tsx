@@ -429,7 +429,7 @@ function MessagesContent() {
       {menuRow && (
         <>
           <div className="fixed inset-0 z-[70] bg-black/70 backdrop-blur-md" onClick={() => setMenuRow(null)} />
-          <div className="fixed inset-x-0 bottom-0 z-[70] flex justify-center px-6">
+          <div className="fixed inset-x-0 bottom-0 z-[70] flex justify-center px-6" onClick={(e) => { if (e.target === e.currentTarget) setMenuRow(null); }}>
             <div className="w-full max-w-[400px] overflow-hidden rounded-[1.8rem] border border-white/[0.08] bg-[#15151a]/95 shadow-[0_-20px_60px_rgba(0,0,0,0.55)] backdrop-blur-2xl">
               <div className="flex items-center gap-3 px-5 pb-2 pt-5">
                 <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[#ff2f78]">

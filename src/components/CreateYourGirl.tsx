@@ -597,9 +597,10 @@ async function handlePersonalityNext() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 40 }}
             transition={{ type: "spring", stiffness: 320, damping: 34 }}
+            onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
           >
             <motion.div
-              className="mx-auto flex w-full max-w-[480px] flex-1 flex-col px-5"
+              className="mx-auto flex w-full max-w-[480px] flex-1 flex-col min-h-0 px-5"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
@@ -628,7 +629,7 @@ async function handlePersonalityNext() {
               {/* Body scrollable */}
               <div
                 ref={scrollRef}
-                className="flex-1 overflow-y-auto overscroll-contain pb-32"
+                className="flex-1 overflow-y-auto overscroll-contain pb-32 min-h-0"
                 style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain", touchAction: "pan-y" }}
               >
 
