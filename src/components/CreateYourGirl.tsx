@@ -584,7 +584,7 @@ async function handlePersonalityNext() {
       {open && (
         <>
           <motion.div
-            className="fixed inset-0 z-40 bg-black/70 backdrop-blur-md"
+            className="fixed inset-0 z-40 bg-black/70"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -805,7 +805,7 @@ async function handlePersonalityNext() {
 
           {/* Editor de recorte circular */}
           {cropOpen && cropImg && (
-            <div className="fixed inset-0 z-[80] overflow-y-auto bg-black/80 px-6 py-8 backdrop-blur-md" onClick={() => setCropOpen(false)}>
+            <div className="fixed inset-0 z-[80] overflow-y-auto bg-black/80 px-6 py-8" onClick={() => setCropOpen(false)}>
               <div className="flex min-h-full items-center justify-center">
                 <div className="my-auto w-full max-w-[300px]" onClick={(e) => e.stopPropagation()}>
                   <div
