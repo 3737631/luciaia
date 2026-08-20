@@ -29,8 +29,20 @@ export default function HeroImage({ src, pos, alt = "" }: { src: string; pos: st
           backgroundImage: `url(${src})`,
           backgroundSize: "cover",
           backgroundPosition: pos,
-          filter: "blur(46px) brightness(0.55)",
+          filter: "blur(46px) brightness(0.7)",
           transform: "scale(1.05)",
+          opacity: ready ? 1 : 0,
+          transition: "opacity 0.2s ease",
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="hero-blend"
+        style={{
+          position: "absolute",
+          inset: 0,
+          background:
+            "linear-gradient(to right, #0B0B0F 0%, rgba(11,11,15,0) 18%, rgba(11,11,15,0) 82%, #0B0B0F 100%)",
           opacity: ready ? 1 : 0,
           transition: "opacity 0.2s ease",
         }}
