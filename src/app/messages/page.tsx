@@ -225,7 +225,7 @@ function MessagesContent() {
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-3xl overflow-x-hidden px-4 pb-10 pt-8">
+      <main className="mx-auto max-w-3xl overflow-x-hidden px-4 pb-10 pt-8 sm:px-5 sm:py-16">
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight gradient-text">Mensajes</h1>

@@ -28,7 +28,7 @@ export default function RootLayout({
       <body className={`${jakarta.className} min-h-screen bg-bg text-ink antialiased`}>
         <ErrorBoundary>
           <AnimatedBackground />
-          <div className="app-frame">{children}</div>
+          {children}
         </ErrorBoundary>
       </body>
     </html>

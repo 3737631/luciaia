@@ -763,7 +763,7 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   transform: translateY(-1px);
 }
 
-@media (max-width: 768px), (min-width: 700px) {
+@media (max-width: 768px) {
   .nuvia-fantasy-cta {
     grid-template-columns: 58px minmax(0, 1fr) 104px;
     column-gap: 10px;
@@ -1035,59 +1035,4 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   6% { opacity: 1; transform: translateY(0); }
   90% { opacity: 1; }
   100% { opacity: 0; }
-}
-
-/* ═══ Escritorio y tablet: la app se ve a tamaño de móvil, centrada ═══
-   En pantallas < 700px (móvil) no se aplica nada de esto. */
-@media (min-width: 700px) {
-  html { background: #0B0B0F; }
-  body { background: #0B0B0F; padding-bottom: 0; }
-
-  :root {
-    --container-padding: 12px;
-    --header-h: 48px;
-  }
-
-  .app-frame {
-    width: 430px;
-    margin: 0 auto;
-    min-height: 100dvh;
-    background: transparent;
-    border-left: 1px solid rgba(255,255,255,0.06);
-    border-right: 1px solid rgba(255,255,255,0.06);
-    box-shadow: 0 0 90px rgba(0,0,0,0.6);
-  }
-
-  /* Todos los elementos fijos se centran en la columna del móvil */
-  .fixed:not(.story-kb-trigger),
-  [style*="position:fixed" i]:not(.story-kb-trigger),
-  [style*="position: fixed" i]:not(.story-kb-trigger) {
-    left: 50% !important;
-    right: auto !important;
-    width: 430px !important;
-    margin-left: -215px !important;
-  }
-
-  /* Layouts de móvil en escritorio/tablet */
-  .person-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px !important; }
-  .character-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 12px !important; }
-  .featured-row {
-    display: flex !important;
-    overflow-x: auto !important;
-    scroll-snap-type: x mandatory !important;
-    scrollbar-width: none !important;
-    gap: 12px !important;
-    margin-bottom: 18px !important;
-  }
-  .featured-row .featured-card { flex: 0 0 78% !important; min-height: 130px !important; }
-
-  .story-video-frame {
-    width: calc(100vw - 20px) !important;
-    max-width: 410px !important;
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: 88dvh !important;
-    aspect-ratio: 9 / 16 !important;
-    border-radius: 20px !important;
-  }
 }
