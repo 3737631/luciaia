@@ -29,9 +29,9 @@ export default function HeroImage({ src, pos, alt = "" }: { src: string; pos: st
           backgroundImage: `url(${src})`,
           backgroundSize: "cover",
           backgroundPosition: pos,
-          filter: "blur(46px) brightness(0.7)",
-          transform: "scale(1.05)",
-          opacity: ready ? 1 : 0,
+          filter: "blur(20px) brightness(0.65) saturate(1.05)",
+          transform: "scale(1.04)",
+          opacity: ready ? 0.6 : 0,
           transition: "opacity 0.2s ease",
         }}
       />
@@ -42,7 +42,7 @@ export default function HeroImage({ src, pos, alt = "" }: { src: string; pos: st
           position: "absolute",
           inset: 0,
           background:
-            "linear-gradient(to right, #0B0B0F 0%, rgba(11,11,15,0) 18%, rgba(11,11,15,0) 82%, #0B0B0F 100%)",
+            "linear-gradient(to right, #0B0B0F 0%, rgba(11,11,15,0) 14%, rgba(11,11,15,0) 86%, #0B0B0F 100%)",
           opacity: ready ? 1 : 0,
           transition: "opacity 0.2s ease",
         }}

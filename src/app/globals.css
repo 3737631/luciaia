@@ -128,8 +128,8 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
     max-width: 1080px;
     max-height: 340px;
     margin: 0 auto;
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 13%, black 87%, transparent 100%);
-    mask-image: linear-gradient(to right, transparent 0%, black 13%, black 87%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
   }
 }
 
