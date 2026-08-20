@@ -145,11 +145,11 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
       }
     }
     clearUnreadReply(girl.id);
-    // Limpiar de la URL los parámetros temporales (reply/picker/story/sent).
-    if (replyParam || qs.get("picker") === "1" || qs.get("story") === "1" || sentParam) {
+    // Limpiar de la URL los parámetros temporales (reply/picker/sent).
+    // ?story=1 NO se limpia: hacerlo remonta el chat y pierde "Vivir una historia".
+    if (replyParam || qs.get("picker") === "1" || sentParam) {
       qs.delete("reply");
       qs.delete("picker");
-      qs.delete("story");
       qs.delete("sent");
       const clean = qs.toString();
       router.replace(`/chat/${girl.id}${clean ? "?" + clean : ""}`, { scroll: false });
