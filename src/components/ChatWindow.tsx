@@ -72,6 +72,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   const storySentRef = useRef("");
   const skipSaveRef = useRef(false);
   const storyChatRef = useRef(false);
+  const interactedRef = useRef(false);
   const activeCustomJsonRef = useRef("");
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -189,6 +190,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
               ]
             : [{ id: "story-ctx", from: "girl", note: "Respondiste a su historia", text: reply } as ChatMsg]),
       ]);
+      if (!alreadySaved) interactedRef.current = true;
       setMode("text");
       setShowModePicker(false);
       return;
@@ -233,7 +235,10 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         const girlName = activeCustom?.name ?? girl.name;
         // La pantalla ya contiene la conversación acumulada, así que se guarda tal cual.
         saveConversationHistory(storageId, chatMsgs);
-        saveToHistory(storageId, girlName, chatMsgs);
+        // Solo se crea una nueva entrada del historial si hubo interacción nueva.
+        if (interactedRef.current) {
+          saveToHistory(storageId, girlName, chatMsgs);
+        }
       }
     };
   }, [girl.id, girl.name, activeCustom]);
@@ -316,6 +321,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
 
   async function runReply(text: string, opts?: { image?: string; fallbackText?: string; silent?: boolean }) {
     const userText = opts?.fallbackText ?? text;
+    interactedRef.current = true;
     try {
       const reply = await askAI(text, { image: opts?.image });
       if (mountedRef.current) {
@@ -343,6 +349,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     setError(null);
 
     if (MINOR_KEYWORDS.some((k) => text.toLowerCase().includes(k))) {
+      interactedRef.current = true;
       setMessages((m) => [
         ...m,
         { id: crypto.randomUUID(), from: "user", text },
