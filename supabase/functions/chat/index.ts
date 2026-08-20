@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
 
     const apiKey = Deno.env.get("OPENROUTER_API_KEY");
     const model = image
-      ? (Deno.env.get("OPENROUTER_VISION_MODEL") || "google/gemini-2.0-flash-001")
+      ? (Deno.env.get("OPENROUTER_VISION_MODEL") || "google/gemini-2.5-flash")
       : (Deno.env.get("OPENROUTER_MODEL") || "openai/gpt-4o-mini");
 
     if (!apiKey) {

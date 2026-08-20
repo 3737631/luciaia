@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getHistory, clearHistory, clearGirlData, getConversationHistory, isGirlPinned, togglePinGirl, getPinnedGirls, isSessionPinned, togglePinSession } from "@/lib/memory";
+import { getHistory, clearHistory, clearGirlData, getConversationHistory, isGirlPinned, togglePinGirl, getPinnedGirls, isSessionPinned, togglePinSession, deleteHistoryEntry } from "@/lib/memory";
 import { getCustomGirls } from "@/lib/storage";
 import { getGirlImage } from "@/lib/images";
 import { girls } from "@/data/girls";
@@ -77,33 +77,37 @@ function HistoryContent() {
 
     const customs = getCustomGirls();
 
-    const girlInfo = new Map<string, { img: string | null; href: string }>();
+    const girlInfo = new Map<string, { img: string | null; href: string; name: string }>();
     for (const girl of girls) {
       girlInfo.set(girl.id, {
         img: getGirlImage(girl.id, null, null, null, girl.cloudinaryImage),
         href: `/chat/${girl.id}?picker=1`,
+        name: girl.name,
       });
     }
     for (const g of customs) {
       girlInfo.set(g.id, {
         img: g.imageUrl || getGirlImage(g.baseId || "luna", g.hair, g.pose, g.background),
         href: `/chat/luna?custom=${g.id}&picker=1`,
+        name: g.name,
       });
     }
 
     const entries = getHistory();
     const all: GirlRow[] = [];
-    // Cada vez que entras y sales de un chat se crea una entrada nueva: todas salen, la más reciente arriba.
+    // Cada vez que entras y sales de un chat se crea una sesión: cada una sale
+    // como una fila independiente (da igual que haya alguna fijada).
     for (const e of entries) {
       const info = girlInfo.get(e.girlId);
       if (!info) continue;
       all.push({
         girlId: e.girlId,
-        name: e.girlName || e.girlId,
+        name: e.girlName || girlInfo.get(e.girlId)?.name || e.girlId,
         img: info.img,
         href: info.href,
         lastTs: e.timestamp,
         lastPreview: e.preview,
+        sessionId: e.id,
       });
     }
 
@@ -126,7 +130,7 @@ function HistoryContent() {
     for (const girl of girls) {
       if (seen.has(girl.id)) continue;
       const saved = getConversationHistory(girl.id);
-      if (saved.length === 0) continue;
+      if ( saved.length === 0) continue;
       const info = girlInfo.get(girl.id)!;
       all.push({
         girlId: girl.id,
@@ -139,8 +143,8 @@ function HistoryContent() {
     }
 
     all.sort((a, b) => {
-      const pa = getPinnedGirls().includes(a.girlId) ? 1 : 0;
-      const pb = getPinnedGirls().includes(b.girlId) ? 1 : 0;
+      const pa = a.sessionId ? (isSessionPinned(a.sessionId) ? 1 : 0) : (isGirlPinned(a.girlId) ? 1 : 0);
+      const pb = b.sessionId ? (isSessionPinned(b.sessionId) ? 1 : 0) : (isGirlPinned(b.girlId) ? 1 : 0);
       if (pa !== pb) return pb - pa;
       return b.lastTs - a.lastTs;
     });
@@ -164,18 +168,40 @@ function HistoryContent() {
 
   function handleDeleteRow() {
     if (!deleteRow) return;
-    clearGirlData(deleteRow.girlId);
-    setRows((prev) => prev.filter((r) => r.girlId !== deleteRow.girlId));
-    if (single && deleteRow.girlId === single.girlId) {
-      setSingle(null);
-      setSingleSessions([]);
+    if (deleteRow.sessionId) {
+      deleteHistoryEntry(deleteRow.sessionId);
+      setRows((prev) => prev.filter((r) => r.sessionId !== deleteRow.sessionId));
+      if (single && deleteRow.girlId === single.girlId) {
+        setSingleSessions(girlSessions(single.girlId));
+        setSingleLast(lastMessage(single.girlId));
+      }
+    } else {
+      clearGirlData(deleteRow.girlId);
+      setRows((prev) => prev.filter((r) => r.girlId !== deleteRow.girlId));
+      if (single && deleteRow.girlId === single.girlId) {
+        setSingle(null);
+        setSingleSessions([]);
+      }
     }
     setDeleteRow(null);
+  }
+
+  function pinScore(r: GirlRow) {
+    if (r.sessionId) return isSessionPinned(r.sessionId) ? 1 : 0;
+    return isGirlPinned(r.girlId) ? 1 : 0;
   }
 
   function handlePinRow(r: GirlRow) {
     if (r.sessionId) {
       togglePinSession(r.sessionId);
+      setRows((prev) =>
+        [...prev].sort((a, b) => {
+          const pa = pinScore(a);
+          const pb = pinScore(b);
+          if (pa !== pb) return pb - pa;
+          return b.lastTs - a.lastTs;
+        }),
+      );
       if (single) setSingleSessions(girlSessions(single.girlId));
     } else {
       togglePinGirl(r.girlId);
@@ -349,7 +375,7 @@ function HistoryContent() {
                       )}
                       <div className="flex h-full w-full items-center justify-center text-lg font-bold text-white">{r.name[0]}</div>
                     </div>
-                    {isGirlPinned(r.girlId) && (
+                    {pinScore(r) > 0 && (
                       <span
                         style={{
                           position: "absolute",
@@ -434,9 +460,17 @@ function HistoryContent() {
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#ff2f78]/15 text-[#ff5f8f]">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
               </div>
-              <h3 className="mt-4 text-lg font-bold tracking-tight text-white">Borrar conversación con {deleteRow.name}</h3>
+              <h3 className="mt-4 text-lg font-bold tracking-tight text-white">{deleteRow.sessionId ? "Borrar esta sesión" : `Borrar conversación con ${deleteRow.name}`}</h3>
               <p className="mt-2 text-sm leading-relaxed text-white/55">
-                Se borrará <span className="font-semibold text-white/80">para siempre</span> la conversación con {deleteRow.name} y nunca volverá a aparecer. Esta acción no se puede deshacer.
+                {deleteRow.sessionId ? (
+                  <>
+                    Se borrará <span className="font-semibold text-white/80">para siempre</span> esta sesión del historial. Esta acción no se puede deshacer.
+                  </>
+                ) : (
+                  <>
+                    Se borrará <span className="font-semibold text-white/80">para siempre</span> la conversación con {deleteRow.name} y nunca volverá a aparecer. Esta acción no se puede deshacer.
+                  </>
+                )}
               </p>
               <div className="mt-6 flex gap-2.5">
                 <button onClick={() => setDeleteRow(null)} className="h-12 flex-1 rounded-2xl bg-white/[0.06] text-sm font-bold text-white/80 transition hover:bg-white/[0.1] active:scale-[0.98]">

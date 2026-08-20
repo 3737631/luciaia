@@ -172,6 +172,27 @@ export function clearHistory(): void {
   localStorage.removeItem(PIN_SESSION_KEY);
 }
 
+export function deleteHistoryEntry(sessionId: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    const raw = localStorage.getItem(historyKey());
+    if (raw) {
+      const list = JSON.parse(raw);
+      if (Array.isArray(list)) {
+        const filtered = list.filter((e: HistoryEntry) => e.id !== sessionId);
+        if (filtered.length > 0) localStorage.setItem(historyKey(), JSON.stringify(filtered));
+        else localStorage.removeItem(historyKey());
+      }
+    }
+    const pinned = getPinnedSessions();
+    if (pinned.includes(sessionId)) {
+      const next = pinned.filter((id) => id !== sessionId);
+      if (next.length > 0) localStorage.setItem(PIN_SESSION_KEY, JSON.stringify(next));
+      else localStorage.removeItem(PIN_SESSION_KEY);
+    }
+  } catch {}
+}
+
 /**
  * Borra PARA SIEMPRE todo lo relacionado con una chica:
  * conversación, resumen, memoria, modo, sus entradas del historial global
