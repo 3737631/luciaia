@@ -584,7 +584,7 @@ async function handlePersonalityNext() {
       {open && (
         <>
           <motion.div
-            className="fixed inset-0 z-40 bg-black/70"
+            className="fixed inset-0 z-40 bg-black/70 backdrop-blur-md"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -593,10 +593,10 @@ async function handlePersonalityNext() {
           <motion.div
             className="fixed inset-x-0 bottom-0 z-40 flex flex-col"
             style={{ top }}
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 60 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 40 }}
-            transition={{ type: "spring", stiffness: 320, damping: 34 }}
+            exit={{ opacity: 0, y: 60 }}
+            transition={{ type: "spring", stiffness: 220, damping: 32 }}
             onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
           >
             <motion.div

@@ -1495,7 +1495,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
             onPointerMove={(e) => {
               if (notifyStartY.current == null) return;
               e.stopPropagation();
-              const dy = e.clientY - notifyStartY.current;
+              const dy = Math.max(e.clientY - notifyStartY.current, -80);
               if (dy < 0) setNotifyDragY(dy);
             }}
             onPointerUp={(e) => {
@@ -1526,7 +1526,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
               transition: notifyDragY < 0
                 ? "none"
                 : "transform 0.3s var(--ease-spring), opacity 0.3s var(--ease-apple)",
-              animation: !notifyExiting && notifyDragY === 0 && !notifyEntered ? "slideInDown 0.35s cubic-bezier(.32,.72,0,1)" : "none",
+              animation: !notifyExiting && notifyDragY === 0 && !notifyEntered ? "slideInDown 0.6s cubic-bezier(.32,.72,0,1)" : "none",
               touchAction: "none",
             }}
           >
