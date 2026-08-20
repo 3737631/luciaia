@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getHistory, clearHistory, clearGirlData, getConversationHistory, isGirlPinned, togglePinGirl, getPinnedGirls } from "@/lib/memory";
+import { getHistory, clearHistory, clearGirlData, getConversationHistory, isGirlPinned, togglePinGirl, getPinnedGirls, isSessionPinned, togglePinSession } from "@/lib/memory";
 import { getCustomGirls } from "@/lib/storage";
 import { getGirlImage } from "@/lib/images";
 import { girls } from "@/data/girls";
@@ -15,6 +15,7 @@ interface GirlRow {
   href: string;
   lastTs: number;
   lastPreview: string;
+  sessionId?: string;
 }
 
 export default function HistoryPage() {
@@ -173,22 +174,32 @@ function HistoryContent() {
   }
 
   function handlePinRow(r: GirlRow) {
-    togglePinGirl(r.girlId);
-    setRows((prev) =>
-      [...prev].sort((a, b) => {
-        const pa = getPinnedGirls().includes(a.girlId) ? 1 : 0;
-        const pb = getPinnedGirls().includes(b.girlId) ? 1 : 0;
-        if (pa !== pb) return pb - pa;
-        return b.lastTs - a.lastTs;
-      }),
-    );
+    if (r.sessionId) {
+      togglePinSession(r.sessionId);
+      if (single) setSingleSessions(girlSessions(single.girlId));
+    } else {
+      togglePinGirl(r.girlId);
+      setRows((prev) =>
+        [...prev].sort((a, b) => {
+          const pa = getPinnedGirls().includes(a.girlId) ? 1 : 0;
+          const pb = getPinnedGirls().includes(b.girlId) ? 1 : 0;
+          if (pa !== pb) return pb - pa;
+          return b.lastTs - a.lastTs;
+        }),
+      );
+    }
     setMenuRow(null);
   }
 
   function girlSessions(girlId: string) {
     return getHistory()
       .filter((e) => e.girlId === girlId)
-      .sort((a, b) => b.timestamp - a.timestamp)
+      .sort((a, b) => {
+        const pa = isSessionPinned(a.id) ? 1 : 0;
+        const pb = isSessionPinned(b.id) ? 1 : 0;
+        if (pa !== pb) return pb - pa;
+        return b.timestamp - a.timestamp;
+      })
       .map((e) => ({ id: e.id, ts: e.timestamp, preview: e.preview }));
   }
 
@@ -215,20 +226,6 @@ function HistoryContent() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight gradient-text">
               {single ? `Historial con ${single.name}` : "Historial"}
-              {single && isGirlPinned(single.girlId) && (
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="#ff2f78"
-                  stroke="#ff2f78"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="ml-2 inline-block -translate-y-0.5"
-                  aria-label="Conversación fijada"
-                ><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
-              )}
             </h1>
             <p className="mt-1.5 text-sm text-muted/70">
               {single
@@ -293,6 +290,25 @@ function HistoryContent() {
                               )}
                               <div className="flex h-full w-full items-center justify-center text-lg font-bold text-white">{single.name[0]}</div>
                             </div>
+                            {isSessionPinned(s.id) && (
+                              <span
+                                style={{
+                                  position: "absolute",
+                                  bottom: -1,
+                                  right: -1,
+                                  width: 18,
+                                  height: 18,
+                                  borderRadius: "50%",
+                                  background: "#121212",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  zIndex: 2,
+                                }}
+                              >
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="#ff2f78" stroke="#ff2f78" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
+                              </span>
+                            )}
                           </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-baseline justify-between gap-3">
@@ -303,7 +319,7 @@ function HistoryContent() {
                           </div>
                         </Link>
                         <button
-                          onClick={() => setMenuRow({ ...single, lastTs: s.ts, lastPreview: s.preview })}
+                          onClick={() => setMenuRow({ ...single, lastTs: s.ts, lastPreview: s.preview, sessionId: s.id })}
                           className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl text-white/45 transition hover:bg-white/[0.07] hover:text-white active:scale-90"
                           aria-label={`Opciones de ${single.name}`}
                           title="Opciones"
@@ -461,8 +477,8 @@ function HistoryContent() {
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
                     </span>
                     <span>
-                      <span className="block text-sm font-semibold text-white">{isGirlPinned(menuRow.girlId) ? "Desfijar chat" : "Fijar chat"}</span>
-                      <span className="block text-xs text-white/40">{isGirlPinned(menuRow.girlId) ? "Dejará de aparecer arriba" : "Siempre aparecerá arriba"}</span>
+                      <span className="block text-sm font-semibold text-white">{(menuRow.sessionId ? isSessionPinned(menuRow.sessionId) : isGirlPinned(menuRow.girlId)) ? "Desfijar chat" : "Fijar chat"}</span>
+                      <span className="block text-xs text-white/40">{(menuRow.sessionId ? isSessionPinned(menuRow.sessionId) : isGirlPinned(menuRow.girlId)) ? "Dejará de aparecer arriba" : "Solo esta sesión aparecerá fijada"}</span>
                     </span>
                   </button>
                   <div className="mx-4 h-px bg-white/[0.06]" />

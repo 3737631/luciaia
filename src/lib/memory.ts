@@ -169,6 +169,7 @@ export function getHistory(): HistoryEntry[] {
 export function clearHistory(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem(historyKey());
+  localStorage.removeItem(PIN_SESSION_KEY);
 }
 
 /**
@@ -193,6 +194,15 @@ export function clearGirlData(girlId: string): void {
       }
     }
     clearUnreadReply(girlId);
+    const rawPinned = localStorage.getItem(PIN_SESSION_KEY);
+    if (rawPinned) {
+      const pinned = JSON.parse(rawPinned);
+      if (Array.isArray(pinned)) {
+        const kept = pinned.filter((sid: string) => !sid.startsWith(`${girlId}_`));
+        if (kept.length > 0) localStorage.setItem(PIN_SESSION_KEY, JSON.stringify(kept));
+        else localStorage.removeItem(PIN_SESSION_KEY);
+      }
+    }
   } catch {}
 }
 
@@ -297,5 +307,31 @@ export function togglePinGirl(girlId: string): void {
     const cur = getPinnedGirls();
     const next = cur.includes(girlId) ? cur.filter((id) => id !== girlId) : [...cur, girlId];
     localStorage.setItem(PIN_KEY, JSON.stringify(next));
+  } catch {}
+}
+
+const PIN_SESSION_KEY = "lunacall_pinned_sessions";
+
+export function getPinnedSessions(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(PIN_SESSION_KEY);
+    const p = raw ? JSON.parse(raw) : [];
+    return Array.isArray(p) ? p : [];
+  } catch {
+    return [];
+  }
+}
+
+export function isSessionPinned(sessionId: string): boolean {
+  return getPinnedSessions().includes(sessionId);
+}
+
+export function togglePinSession(sessionId: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    const cur = getPinnedSessions();
+    const next = cur.includes(sessionId) ? cur.filter((id) => id !== sessionId) : [...cur, sessionId];
+    localStorage.setItem(PIN_SESSION_KEY, JSON.stringify(next));
   } catch {}
 }
