@@ -277,7 +277,7 @@ function MessagesContent() {
         </div>
 
         {rows.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-32 text-center">
+          <div className="min-h-[calc(100dvh-114px)] flex-col items-center justify-center text-center">
             <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl glass">
               <svg viewBox="0 0 24 24" className="h-7 w-7 text-muted/50" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H8l-4 4V5a1 1 0 0 1 1-1z" /></svg>
             </div>

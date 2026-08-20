@@ -950,8 +950,14 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
       return;
     }
 
-    // Horizontal axis: preload adjacent group only
+    // Horizontal axis: follow the pointer with a rubber-band so it feels controlled,
+    // and preload the adjacent group.
     if (g.axis === "horizontal") {
+      const drag = Math.max(-140, Math.min(140, dx));
+      if (frameRef.current) {
+        frameRef.current.style.transition = "none";
+        frameRef.current.style.transform = `translate3d(${drag * 0.35}px, 0, 0)`;
+      }
       if (dx < 0 && hasNextGroup) preloadGroup(charIndex + 1);
       if (dx > 0 && hasPrevGroup) preloadGroup(charIndex - 1);
     }
@@ -1014,6 +1020,10 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
     }
     // ═══ Horizontal swipe: navigate like a tap ═══
     if (g.axis === "horizontal" && g.moved) {
+      if (frameRef.current) {
+        frameRef.current.style.transition = `transform 200ms ${APPLE_SPRING}`;
+        frameRef.current.style.transform = "translate3d(0,0,0)";
+      }
       if (dx < 0) {
         handleNext();
       } else {
@@ -1472,6 +1482,13 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
           </div>
         )}
         {notify && (
+          <div style={{
+            position: "absolute", zIndex: 97,
+            top: "calc(env(safe-area-inset-top, 0px) + 8px)",
+            left: 10, right: 10,
+            display: "flex", justifyContent: "center",
+            pointerEvents: "none",
+          }}>
           <div data-story-interactive
             onClick={(e) => { e.stopPropagation(); router.push(`/chat/${currentChar.id}?reply=${encodeURIComponent(notify.message)}${notify.sent ? `&sent=${encodeURIComponent(notify.sent)}` : ""}`); }}
             onPointerDown={(e) => { e.stopPropagation(); notifyStartY.current = e.clientY; setNotifyDragY(0); }}
@@ -1494,9 +1511,9 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
             onTouchEnd={(e) => { e.stopPropagation(); }}
             onAnimationEnd={(e) => { if (e.animationName === "slideInDown") setNotifyEntered(true); }}
             style={{
-              position: "absolute", zIndex: 97,
-              top: "calc(env(safe-area-inset-top, 0px) + 8px)",
-              left: 10, right: 10,
+              pointerEvents: "auto",
+              width: "100%",
+              maxWidth: 430,
               display: "flex", alignItems: "center", gap: 10,
               padding: "10px 12px", borderRadius: 22, cursor: "pointer",
               background: "rgba(28,28,30,.88)",
@@ -1535,6 +1552,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
               </div>
               <div style={{ color: "#ff5f8f", fontSize: 11.5, fontWeight: 700, marginTop: 2 }}>Toca para chatear</div>
             </div>
+          </div>
           </div>
         )}
       </div>

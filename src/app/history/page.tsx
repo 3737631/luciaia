@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import Header from "@/components/Header";
 import { getHistory, clearHistory, clearGirlData, getConversationHistory, isGirlPinned, togglePinGirl, getPinnedGirls, isSessionPinned, togglePinSession, deleteHistoryEntry } from "@/lib/memory";
 import { getCustomGirls } from "@/lib/storage";
 import { getGirlImage } from "@/lib/images";
@@ -257,6 +258,7 @@ function HistoryContent() {
 
   return (
     <>
+      <Header />
       <main className="mx-auto max-w-3xl overflow-x-hidden px-4 pb-10 pt-8 sm:px-5 sm:py-16">
         <div className="mb-8 flex items-center justify-between">
           <div>
@@ -402,7 +404,20 @@ function HistoryContent() {
               </>
             )}
           </div>
-        ) : rows.length === 0 ? null : (
+        ) : rows.length === 0 ? (
+          <div className="min-h-[calc(100dvh-114px)] flex-col items-center justify-center text-center">
+            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl glass">
+              <svg viewBox="0 0 24 24" className="h-7 w-7 text-muted/50" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+            <p className="text-lg font-semibold tracking-tight">No tienes historial todavía</p>
+            <p className="mt-2 max-w-xs text-sm text-muted/70">
+              Cuando hables con una chica, tus conversaciones aparecerán aquí.
+            </p>
+            <Link href="/girls" className="mt-8 rounded-xl gradient-btn px-6 py-3 text-sm font-semibold shadow-lg shadow-pink-500/25">
+              Ir a chicas IA
+            </Link>
+          </div>
+        ) : (
           <div className="list-enter space-y-1">
             {rows.map((r) => (
               <div key={r.girlId} className="group relative flex items-center">
