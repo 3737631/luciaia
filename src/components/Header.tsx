@@ -148,8 +148,6 @@ export default function Header() {
                   background: "#222", borderRadius: 12,
                   border: "1px solid rgba(255,255,255,0.1)", overflow: "hidden",
                   zIndex: 100, minWidth: 100,
-                  animation: "popIn 180ms var(--ease-apple) both",
-                  transformOrigin: "top right",
                 }}
               >
                 {categoryLinks.map((c) => {
@@ -201,7 +199,6 @@ export default function Header() {
             style={{
               position: "absolute", inset: 0,
               background: "rgba(0,0,0,0.5)",
-              animation: "menuBackdropIn 220ms var(--ease-apple) both",
             }}
           />
           <div
@@ -214,7 +211,6 @@ export default function Header() {
               display: "flex",
               flexDirection: "column",
               gap: 2,
-              animation: "menuPanelIn 320ms var(--ease-apple) both",
             }}
           >
             {navItems.map((item) => {
