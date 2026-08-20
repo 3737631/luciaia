@@ -1366,6 +1366,7 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
           opacity: 0.01, fontSize: 16, border: 0, padding: 0, margin: 0,
           zIndex: 10001,
         }}
+        className="story-kb-trigger"
       />
 
       <div ref={rootRef} className={"story-desktop-shell" + (closeDirection === "down" ? " is-closing-down" : closeDirection === "right" ? " is-closing-right" : "")}

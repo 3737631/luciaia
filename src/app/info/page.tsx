@@ -23,9 +23,9 @@ export default function InfoPage() {
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-6xl overflow-x-hidden px-4 pb-24 sm:px-5">
-        <section className="py-16 text-center sm:py-20">
-          <h1 className="mx-auto max-w-2xl text-5xl font-extrabold leading-[1.1] gradient-text sm:text-6xl">
+      <main className="mx-auto max-w-6xl overflow-x-hidden px-4 pb-24">
+        <section className="py-16 text-center">
+          <h1 className="mx-auto max-w-2xl text-5xl font-extrabold leading-[1.1] gradient-text">
             NuviaChat
           </h1>
           <p className="mx-auto mt-5 max-w-lg text-base text-muted/80 leading-relaxed">
@@ -41,7 +41,7 @@ export default function InfoPage() {
           </div>
         </section>
 
-        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <section className="grid grid-cols-1 gap-4">
           {features.map((f) => (
             <div
               key={f.title}
@@ -61,10 +61,10 @@ export default function InfoPage() {
           ))}
         </section>
 
-        <section className="py-16 sm:py-20">
+        <section className="py-16">
           <h2 className="mb-3 text-center text-2xl font-bold tracking-tight">Cómo funciona</h2>
           <p className="mb-10 text-center text-sm text-muted/70">Empieza en segundos, sin complicaciones</p>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4">
             {steps.map((s, i) => (
               <div key={s} className="glass glass-hover rounded-xl3 p-6 text-center">
                 <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-full gradient-btn text-sm font-bold shadow-lg shadow-pink-500/25">
@@ -76,8 +76,8 @@ export default function InfoPage() {
           </div>
         </section>
 
-        <section className="py-16 sm:py-20">
-          <div className="mx-auto max-w-lg rounded-xl3 glass p-6 text-center shadow-glow sm:p-10">
+        <section className="py-16">
+          <div className="mx-auto max-w-lg rounded-xl3 glass p-6 text-center shadow-glow">
             <p className="mb-2 text-sm text-pink font-semibold tracking-wide uppercase">Demo gratuita</p>
             <p className="mb-4 text-5xl font-extrabold gradient-text">Sin límites</p>
             <p className="mb-8 text-sm text-muted/70 leading-relaxed">

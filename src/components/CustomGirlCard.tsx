@@ -55,9 +55,9 @@ export default function CustomGirlCard({ data, onDelete }: { data: CustomGirlDat
               CREADA
             </span>
           </div>
-          <div className="absolute bottom-0 left-0 right-0 z-10 p-4 sm:p-5">
+          <div className="absolute bottom-0 left-0 right-0 z-10 p-4">
             <h3
-              className="font-black leading-none tracking-tighter text-white sm:leading-[28px]"
+              className="font-black leading-none tracking-tighter text-white"
               style={{
                 fontSize: "clamp(18px, 5vw, 25px)",
                 textShadow: "0 2px 12px rgba(0,0,0,0.7)",
@@ -68,7 +68,7 @@ export default function CustomGirlCard({ data, onDelete }: { data: CustomGirlDat
               <span className="font-bold text-white/90">{data.age}</span>
             </h3>
             <p
-              className="mt-1.5 leading-snug text-white/85 line-clamp-2 sm:leading-snug"
+              className="mt-1.5 leading-snug text-white/85 line-clamp-2"
               style={{
                 fontSize: "clamp(12px, 3vw, 15px)",
                 textShadow: "0 1px 8px rgba(0,0,0,0.6)",
@@ -86,8 +86,8 @@ export default function CustomGirlCard({ data, onDelete }: { data: CustomGirlDat
       >
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
       </button>
-      <div className="flex items-center gap-1.5 p-3 sm:p-4">
-        <Link href={`/chat/luna?custom=${data.id}&picker=1`} onClick={handleClick} className="btn-primary flex h-9 flex-1 items-center justify-center text-[0.6rem] font-bold sm:text-xs">
+      <div className="flex items-center gap-1.5 p-3">
+        <Link href={`/chat/luna?custom=${data.id}&picker=1`} onClick={handleClick} className="btn-primary flex h-9 flex-1 items-center justify-center text-[0.6rem] font-bold">
           Chatear
         </Link>
       </div>
