@@ -10,7 +10,7 @@ export default function FeaturedRow({ girls: charList }: { girls?: Girl[] }) {
   if (featured.length === 0) return null;
 
   return (
-    <div className="featured-row">
+    <div className="featured-row list-enter">
       {featured.map((girl) => (
         <Link
           key={girl.id}

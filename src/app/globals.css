@@ -21,6 +21,8 @@
   --header-h: 48px;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --ease-apple: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @media (min-width: 768px) {
@@ -50,13 +52,17 @@ body {
 
 /* Micro-interacciones suaves estilo Apple */
 button, a, [role="button"], input, textarea, select, summary, label[for] {
-  transition: color 0.22s cubic-bezier(0.25, 0.1, 0.25, 1),
-              background-color 0.22s cubic-bezier(0.25, 0.1, 0.25, 1),
-              border-color 0.22s cubic-bezier(0.25, 0.1, 0.25, 1),
-              box-shadow 0.22s cubic-bezier(0.25, 0.1, 0.25, 1),
-              opacity 0.22s cubic-bezier(0.25, 0.1, 0.25, 1),
-              transform 0.22s cubic-bezier(0.25, 0.1, 0.25, 1),
-              filter 0.22s cubic-bezier(0.25, 0.1, 0.25, 1);
+  transition: color 0.22s var(--ease-apple),
+              background-color 0.22s var(--ease-apple),
+              border-color 0.22s var(--ease-apple),
+              box-shadow 0.22s var(--ease-apple),
+              opacity 0.22s var(--ease-apple),
+              transform 0.3s var(--ease-spring),
+              filter 0.22s var(--ease-apple);
+}
+/* Feedback táctil universal: todo lo pulsable responde al instante al pinchar */
+button:active, a:active, [role="button"]:active, summary:active, label[for]:active {
+  transform: scale(0.96);
 }
 @media (prefers-color-scheme: dark) {
   ::selection { background: var(--pink-glow); }
@@ -108,12 +114,26 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
 }
 .fade-in { animation: fadeUp 0.5s ease-out both; }
 
-/* Transición de página tipo app: fundido al navegar entre pestañas */
+/* Transición de página tipo app: fundido + sutil ascenso al navegar entre pestañas */
 @keyframes pageFade {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.page-enter { animation: pageFade 320ms var(--ease-apple) both; }
+
+/* Entrada de menús y desplegables tipo app */
+@keyframes menuBackdropIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
-.page-enter { animation: pageFade 240ms cubic-bezier(0.25, 0.1, 0.25, 1) both; }
+@keyframes menuPanelIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+@keyframes popIn {
+  from { opacity: 0; transform: translateY(4px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
 
 /* Entrada escalonada de listas (solo animación, sin cambios visuales) */
 @keyframes itemIn {
@@ -134,7 +154,11 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
 
 /* Pulsación táctil: feedback al pinchar (no cambia el aspecto en reposo) */
 .press { -webkit-tap-highlight-color: transparent; }
-.press:active { transform: scale(0.96); }
+.press:active { transform: scale(0.94); }
+
+/* Tarjetas: también responden al toque (mantienen su aspecto en reposo) */
+.person-card:active { transform: scale(0.97); }
+.featured-card:active { transform: scale(0.97); }
 
 @keyframes breathe {
   0%, 100% { opacity: 0.3; transform: scale(1); }
