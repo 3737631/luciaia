@@ -324,7 +324,7 @@ function buildAvatarPrompt(desc: string): string {
   return `photorealistic professional portrait photo of a beautiful adult woman in her mid 20s with ${hair} and ${eyes}, ${extra}perfect headshot centered exactly in the middle of the frame, the face fills 70% of the image, even margins on all sides, camera directly facing her, bright clean soft studio lighting in light pastel tones, bright luminous background, no dark background, no black background, no shadows behind the subject, extremely realistic human skin rendered pixel by pixel with visible pores, fine vellus hairs, natural skin grain and micro texture, subtle skin blemishes and faint redness in cheeks, believable subsurface scattering, matte natural skin, slight natural shine on the skin, detailed iris with natural highlights, individual eyelashes, softly shaped natural brows, light natural makeup, natural friendly smile, wearing a simple elegant neutral top, perfectly symmetrical clothing with both sleeves identical, proportionate normal shoulders and neck, natural human proportions, sharp focus on the eyes, soft natural window light with gentle catchlights, shallow depth of field, square profile picture crop for a circular avatar, the circle will cut the edges so the face must stay perfectly centered, no full body, no chest, no cleavage, candid real photography, must look like a real photo of a real person, raw camera photo with sensor noise and natural color grading, high resolution, crisp details, not CGI, no plastic skin, no wax skin, no airbrushed face, no beauty filter, no 3D render look, no anime, no illustration, no glossy skin, no skin blur, no distorted anatomy, no extra limbs, no missing sleeve, no oversized body parts, no giant hands, no deformed face`;
 }
 
-export default function CreateYourGirl({ open, onClose, onCreated, editGirl }: { open: boolean; onClose: () => void; onCreated?: () => void; editGirl?: CustomGirlData | null }) {
+export default function CreateYourGirl({ open, onClose, onCreated, editGirl, backgroundImage }: { open: boolean; onClose: () => void; onCreated?: () => void; editGirl?: CustomGirlData | null; backgroundImage?: string | null }) {
   const [girlDesc, setGirlDesc] = useState("");
   const [roleplayDesc, setRoleplayDesc] = useState("");
   const [error, setError] = useState("");
@@ -580,13 +580,17 @@ async function handlePersonalityNext() {
     <AnimatePresence>
       {open && (
         <>
-          <motion.div
-            className="fixed inset-0 z-40 bg-black/70 backdrop-blur-md md:z-[150] md:backdrop-blur-[44px]"
+<motion.div
+            className="fixed inset-0 z-40 bg-black/70 backdrop-blur-md md:z-[150] md:bg-black/60 md:backdrop-blur-none"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-          />
+          >
+            {backgroundImage && (
+              <div className="hidden md:block" style={{ position: "absolute", inset: "-40px", backgroundImage: `url(${backgroundImage})`, backgroundPosition: "center", backgroundSize: "cover", filter: "blur(28px)", transform: "scale(1.08)", opacity: 0.55, pointerEvents: "none" }} />
+            )}
+          </motion.div>
           <motion.div
             className="fixed inset-x-0 bottom-0 top-[88px] z-40 flex flex-col md:top-0 md:z-[150]"
             initial={{ opacity: 0, y: 60 }}
