@@ -241,18 +241,21 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
   const [timeAgo, setTimeAgo] = useState("");
   const [notify, setNotify] = useState<NotificationData | null>(null);
   const [notifyDragY, setNotifyDragY] = useState(0);
-  const [notifyExit, setNotifyExit] = useState(false);
+  const [notifyExiting, setNotifyExiting] = useState(false);
+  const [notifyEntered, setNotifyEntered] = useState(false);
   const notifyStartY = useRef<number | null>(null);
   const notifyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const dismissNotify = useCallback((delay = 0) => {
-    setNotifyExit(true);
+  const dismissNotify = useCallback(() => {
+    setNotifyExiting(true);
+    setNotifyDragY(0);
     if (notifyTimer.current) clearTimeout(notifyTimer.current);
-    notifyTimer.current = setTimeout(() => setNotify(null), delay || 260);
+    notifyTimer.current = setTimeout(() => setNotify(null), 300);
   }, []);
 
   const showNotify = useCallback((char: { id: string; avatar: string; name: string }, message: string, sent?: string) => {
-    setNotifyExit(false);
+    setNotifyExiting(false);
+    setNotifyEntered(false);
     setNotifyDragY(0);
     notifyStartY.current = null;
     setNotify({
@@ -269,9 +272,9 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
   // La notificación se muestra dentro de la historia y desaparece sola.
   useEffect(() => {
     if (!notify) return;
-    const t = setTimeout(() => setNotify((n) => (n && n.id === notify.id ? null : n)), notify.duration ?? 5000);
+    const t = setTimeout(() => dismissNotify(), notify.duration ?? 5000);
     return () => clearTimeout(t);
-  }, [notify]);
+  }, [notify, dismissNotify]);
 
   const [incomingChar, setIncomingChar] = useState<{
     charIdx: number;
@@ -1476,19 +1479,20 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
               if (notifyStartY.current == null) return;
               e.stopPropagation();
               const dy = e.clientY - notifyStartY.current;
-              setNotifyDragY(dy < 0 ? dy : 0);
+              if (dy < 0) setNotifyDragY(dy);
             }}
             onPointerUp={(e) => {
               e.stopPropagation();
               if (notifyStartY.current == null) return;
               const dy = notifyStartY.current - e.clientY;
               notifyStartY.current = null;
-              setNotifyDragY(0);
               if (dy > 45) dismissNotify();
+              else setNotifyDragY(0);
             }}
             onPointerCancel={() => { notifyStartY.current = null; setNotifyDragY(0); }}
             onTouchStart={(e) => { e.stopPropagation(); }}
             onTouchEnd={(e) => { e.stopPropagation(); }}
+            onAnimationEnd={(e) => { if (e.animationName === "slideInDown") setNotifyEntered(true); }}
             style={{
               position: "absolute", zIndex: 97,
               top: "calc(env(safe-area-inset-top, 0px) + 8px)",
@@ -1500,10 +1504,12 @@ export default function StoryViewer({ characters, startCharIndex, initialImageSr
               WebkitBackdropFilter: "blur(18px) saturate(160%)",
               border: "1px solid rgba(255,255,255,.14)",
               boxShadow: "0 10px 30px rgba(0,0,0,.5)",
-              opacity: notifyDragY < 0 ? Math.max(1 + notifyDragY / 140, 0.3) : 1,
-              transform: notifyDragY < 0 ? `translateY(${notifyDragY}px)` : undefined,
-              transition: notifyDragY < 0 ? "none" : "transform 0.2s ease, opacity 0.2s ease",
-              animation: notifyDragY < 0 ? "none" : (notifyExit ? "slideOutUp 0.3s ease forwards" : "slideInDown 0.35s cubic-bezier(.32,.72,0,1)"),
+              opacity: notifyExiting ? 0 : (notifyDragY < 0 ? Math.max(1 + notifyDragY / 120, 0) : 1),
+              transform: notifyExiting ? "translateY(-150px)" : (notifyDragY < 0 ? `translateY(${notifyDragY}px)` : undefined),
+              transition: notifyDragY < 0
+                ? "none"
+                : "transform 0.3s var(--ease-spring), opacity 0.3s var(--ease-apple)",
+              animation: !notifyExiting && notifyDragY === 0 && !notifyEntered ? "slideInDown 0.35s cubic-bezier(.32,.72,0,1)" : "none",
               touchAction: "none",
             }}
           >
