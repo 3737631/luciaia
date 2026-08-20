@@ -61,7 +61,7 @@ export default function Header() {
         }}
       >
         {/* Hamburger */}
-        <div style={{ position: "relative", flexShrink: 0 }}>
+        <div style={{ position: "relative", flexShrink: 0 }} className="header-hamburger">
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             style={{
@@ -111,6 +111,37 @@ export default function Header() {
         >
           nuvia<span style={{ color: "#ff5f8f" }}>.ai</span>
         </Link>
+
+        {/* Navegación de escritorio/tablet (oculta en móvil) */}
+        <div className="header-nav-desktop" style={{ display: "flex", alignItems: "center", gap: 2, marginLeft: 18 }}>
+          {navItems.map((item) => {
+            const isPremium = item.label === "Premium";
+            const isActive = !isPremium && pathname === item.href;
+            return (
+              <Link
+                key={item.label}
+                href={item.href}
+                onClick={() => setMenuOpen(false)}
+                className="press"
+                style={{
+                  padding: "7px 12px",
+                  borderRadius: 999,
+                  fontSize: 14,
+                  fontWeight: isActive ? 700 : 600,
+                  color: isPremium ? "#ff5f8f" : isActive ? "#ff5f8f" : "rgba(255,255,255,0.7)",
+                  textDecoration: "none",
+                  background: isActive ? "rgba(255,95,143,0.1)" : "transparent",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {item.label}
+                {item.label === "Mensajes" && hasUnread && (
+                  <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#ff2f78", display: "inline-block", marginLeft: 6, verticalAlign: "middle" }} />
+                )}
+              </Link>
+            );
+          })}
+        </div>
 
         {/* Spacer */}
         <div style={{ flex: 1 }} />

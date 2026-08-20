@@ -108,6 +108,18 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
 }
 .fade-in { animation: fadeUp 0.5s ease-out both; }
 
+/* Navegación de la cabecera: visible en escritorio/tablet, oculta en móvil */
+.header-nav-desktop { display: none !important; }
+@media (min-width: 768px) {
+  .header-nav-desktop { display: flex !important; }
+  .header-hamburger { display: none !important; }
+}
+
+/* Hero: altura limitada en pantallas grandes para no dominar */
+@media (min-width: 1024px) {
+  .hero-img { max-height: 440px; }
+}
+
 /* Transición de página tipo app: fundido al navegar entre pestañas */
 @keyframes pageFade {
   from { opacity: 0; }

@@ -25,6 +25,7 @@ export default function HeroImage({ src, pos, alt = "" }: { src: string; pos: st
       loading="eager"
       fetchPriority="high"
       decoding="sync"
+      className="hero-img"
       style={{
         width: "100%",
         display: "block",
