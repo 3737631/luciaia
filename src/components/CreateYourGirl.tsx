@@ -464,8 +464,8 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
     const scale = clampScale(cropScale);
     const iw = w * scale;
     const ih = h * scale;
-    let sx = (CROP_VIEW / 2 - iw / 2 + cropOffset.x) / scale;
-    let sy = (CROP_VIEW / 2 - ih / 2 + cropOffset.y) / scale;
+    let sx = (iw / 2 - CROP_VIEW / 2 - cropOffset.x) / scale;
+    let sy = (ih / 2 - CROP_VIEW / 2 - cropOffset.y) / scale;
     const size = CROP_VIEW / scale;
     sx = Math.max(0, Math.min(sx, w - size));
     sy = Math.max(0, Math.min(sy, h - size));
