@@ -581,7 +581,7 @@ async function handlePersonalityNext() {
       {open && (
         <>
           <motion.div
-            className="fixed inset-0 z-40 bg-black/70 backdrop-blur-md md:z-[150]"
+            className="fixed inset-0 z-40 bg-black/70 backdrop-blur-md md:z-[150] md:backdrop-blur-[44px]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
