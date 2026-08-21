@@ -141,7 +141,7 @@ export default function GirlsPage() {
         <StoriesRow girls={femaleGirls} />
 
         <FantasyCTA mode="girls" onCreate={() => setCreateOpen(true)} onView={() => setViewOpen(true)} />
-        <CreateYourGirl open={createOpen} onClose={() => setCreateOpen(false)} editGirl={editGirl} backgroundImage={createOpen ? `${basePath}/${HERO_IMAGES[heroIndex]}` : null} />
+        <CreateYourGirl open={createOpen} onClose={() => setCreateOpen(false)} editGirl={editGirl} />
         <TusChicas open={viewOpen} onClose={() => setViewOpen(false)} onEdit={(g) => { setViewOpen(false); setEditGirl(g); setCreateOpen(true); }} onCreate={() => { setViewOpen(false); setEditGirl(null); setCreateOpen(true); }} />
 
         <section id="characters">
