@@ -116,7 +116,7 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
         const idxs = getDailyStorySelection(g.id, g.storyImages!.length);
         return {
           id: g.id,
-          images: idxs.map((i) => `${basePath}${g.storyImages![i]}`),
+          images: idxs.map((i) => { const src = g.storyImages![i]; return src.startsWith("http") ? src : `${basePath}${src}`; }),
           avatar: g.cloudinaryImage ?? getGirlImage(g.id, null, null, null, g.cloudinaryImage),
           name: g.name,
           greeting: g.roleplayGreetings?.[0] ?? "",
