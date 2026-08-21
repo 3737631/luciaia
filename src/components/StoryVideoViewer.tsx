@@ -237,6 +237,7 @@ export default function StoryVideoViewer({
           playsInline
           preload="auto"
           onTimeUpdate={handleTimeUpdate}
+          poster="/sofia-poster.jpg"
           className="story-video-media"
           style={{
             width: "100%",
