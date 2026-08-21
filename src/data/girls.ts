@@ -50,7 +50,7 @@ export const girls: Girl[] = [
       "¿Te quedas? la noche acaba de empezar.",
     ],
     cloudinaryImage: "https://res.cloudinary.com/dmuxgamms/image/upload/v1783787897/photo_2026-07-11_18-35-00_klplnn.jpg",
-    storyImages: ["https://res.cloudinary.com/dmuxgamms/image/upload/v1783787897/photo_2026-07-11_18-35-00_klplnn.jpg"],
+    storyVideo: "/sofia-real.mp4",
   },
   {
     id: "nia",
