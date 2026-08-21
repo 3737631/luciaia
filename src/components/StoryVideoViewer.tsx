@@ -61,26 +61,14 @@ export default function StoryVideoViewer({
   const scrollYRef = useRef(0);
 
   const [closing, setClosing] = useState(false);
-  const [timeAgo, setTimeAgo] = useState("");
   const [likes, setLikes] = useState(3421);
   const [viewers, setViewers] = useState(1247);
   const [hearts, setHearts] = useState<Heart[]>([]);
   const [comments, setComments] = useState<TtComment[]>([]);
   const [gifts, setGifts] = useState<GiftPop[]>([]);
-
-  useEffect(() => {
-    const update = () => {
-      const now = new Date();
-      const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-      const diff = now.getTime() - start.getTime();
-      const h = Math.floor(diff / 3600000);
-      const m = Math.floor((diff % 3600000) / 60000);
-      setTimeAgo(h >= 1 ? `Hace ${h}h` : `Hace ${m}m`);
-    };
-    update();
-    const t = setInterval(update, 30000);
-    return () => clearInterval(t);
-  }, []);
+  const [warmFilter, setWarmFilter] = useState(false);
+  const [userComment, setUserComment] = useState("");
+  const [userComments, setUserComments] = useState<{ id: number; text: string }[]>([]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -141,7 +129,33 @@ export default function StoryVideoViewer({
     if (closing) return;
     setClosing(true);
     videoRef.current?.pause();
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
     setTimeout(onClose, 280);
+  };
+
+  const handleTimeUpdate = () => {
+    const v = videoRef.current;
+    if (v && v.currentTime >= 10 && !warmFilter) setWarmFilter(true);
+  };
+
+  const handleUserComment = () => {
+    const text = userComment.trim();
+    if (!text) return;
+    const id = nextId();
+    setUserComments((prev) => [...prev.slice(-4), { id, text }]);
+    setUserComment("");
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "es-ES";
+      u.rate = 1.05;
+      u.pitch = 1.1;
+      const voices = window.speechSynthesis.getVoices();
+      const female = voices.find((v) => v.lang.startsWith("es") && /femenin|female|paulina|monica|elena|conchita/i.test(v.name)) || voices.find((v) => v.lang.startsWith("es"));
+      if (female) u.voice = female;
+      window.speechSynthesis.speak(u);
+    }
+    setTimeout(() => setUserComments((prev) => prev.filter((c) => c.id !== id)), 8000);
   };
 
   const spawnHearts = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -221,6 +235,8 @@ export default function StoryVideoViewer({
           muted
           loop
           playsInline
+          preload="auto"
+          onTimeUpdate={handleTimeUpdate}
           className="story-video-media"
           style={{
             width: "100%",
@@ -228,6 +244,8 @@ export default function StoryVideoViewer({
             objectFit: "cover",
             display: "block",
             pointerEvents: "none",
+            filter: warmFilter ? "sepia(0.18) saturate(1.25) brightness(1.05) hue-rotate(-5deg)" : "none",
+            transition: "filter 1.5s ease",
           }}
         />
 
@@ -242,26 +260,6 @@ export default function StoryVideoViewer({
           background: "linear-gradient(to top,rgba(0,0,0,.7) 0%,rgba(0,0,0,.3) 45%,transparent 100%)",
           pointerEvents: "none",
         }} />
-
-        {/* EN VIVO badge */}
-        <div style={{
-          position: "absolute", zIndex: 12,
-          top: "calc(env(safe-area-inset-top,0px) + 10px)", left: 12,
-          display: "flex", alignItems: "center", gap: 7,
-        }} data-story-interactive>
-          <span style={{
-            display: "flex", alignItems: "center", gap: 5,
-            background: "#e2183b", padding: "5px 9px", borderRadius: 14,
-            color: "#fff", fontWeight: 700, fontSize: 11, letterSpacing: 0.4,
-            boxShadow: "0 2px 8px rgba(0,0,0,.35)",
-          }}>
-            <span className="tt-live-dot" style={{ width: 7, height: 7, borderRadius: "50%", background: "#fff", display: "inline-block" }} />
-            EN VIVO
-          </span>
-          <span style={{ color: "#fff", fontSize: 11, fontWeight: 600, textShadow: "0 1px 2px rgba(0,0,0,.5)" }}>
-            {fmt(viewers)} viendo
-          </span>
-        </div>
 
         {/* Avatar + user + follow */}
         <div style={{
@@ -304,23 +302,7 @@ export default function StoryVideoViewer({
           </svg>
         </button>
 
-        {/* Bottom info */}
-        <div style={{
-          position: "absolute", zIndex: 12, left: 14, right: 82, bottom: 62,
-          display: "flex", flexDirection: "column", gap: 5,
-        }} data-story-interactive>
-          <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", textShadow: "0 1px 3px rgba(0,0,0,.6)" }}>
-            Sofía en vivo 🌸
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "rgba(255,255,255,.88)", textShadow: "0 1px 2px rgba(0,0,0,.5)" }}>
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" style={{ flex: "0 0 auto" }}>
-              <path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z" />
-            </svg>
-            <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              sonido original · {timeAgo}
-            </span>
-          </div>
-        </div>
+        {/* Bottom info - empty for clean look */}
 
         {/* Action rail */}
         <div style={{
@@ -402,6 +384,21 @@ export default function StoryVideoViewer({
               </span>
             </div>
           ))}
+          {userComments.map((c) => (
+            <div key={c.id} className="tt-comment" style={{ display: "flex", alignItems: "center", gap: 7, maxWidth: "100%" }}>
+              <span style={{
+                width: 22, height: 22, borderRadius: "50%", flex: "0 0 auto",
+                display: "grid", placeItems: "center", color: "#fff",
+                fontSize: 10.5, fontWeight: 700, textTransform: "uppercase",
+                background: "linear-gradient(135deg,#fe2c55,#ff8a00)",
+              }}>
+                Tú
+              </span>
+              <span style={{ background: "rgba(22,22,22,.45)", padding: "5px 11px", borderRadius: 16, fontSize: 12.5, color: "#fff", lineHeight: 1.35, backdropFilter: "blur(4px)" }}>
+                <b style={{ fontWeight: 600 }}>Tú</b>&nbsp; {c.text}
+              </span>
+            </div>
+          ))}
         </div>
 
         {/* Input bar */}
@@ -416,14 +413,21 @@ export default function StoryVideoViewer({
             borderRadius: 22, padding: "8px 13px", color: "rgba(255,255,255,.88)",
             fontSize: 13, backdropFilter: "blur(8px)",
           }}>
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="#ffd447" style={{ flex: "0 0 auto" }}>
-              <circle cx="12" cy="12" r="10" fill="#ffd447" /><path d="M8 14s1.5 2 4 2 4-2 4-2" stroke="#7a4e00" strokeWidth="1.6" fill="none" strokeLinecap="round" /><circle cx="9" cy="10" r="1.3" fill="#7a4e00" /><circle cx="15" cy="10" r="1.3" fill="#7a4e00" />
-            </svg>
-            <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Añade un comentario...</span>
+            <input
+              value={userComment}
+              onChange={(e) => setUserComment(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleUserComment(); } }}
+              placeholder="Escribe a Sofía..."
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                flex: 1, background: "transparent", border: 0, outline: "none",
+                color: "#fff", fontSize: 13, fontFamily: "inherit",
+              }}
+            />
           </div>
           <button
             aria-label="Enviar"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); handleUserComment(); }}
             style={{ width: 36, height: 36, flex: "0 0 auto", display: "grid", placeItems: "center", border: 0, borderRadius: "50%", background: "#e2183b", color: "#fff", cursor: "pointer" }}
           >
             <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" style={{ transform: "rotate(15deg)" }}>
