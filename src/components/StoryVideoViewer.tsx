@@ -69,6 +69,7 @@ export default function StoryVideoViewer({
   const [warmFilter, setWarmFilter] = useState(false);
   const [userComment, setUserComment] = useState("");
   const [userComments, setUserComments] = useState<{ id: number; text: string }[]>([]);
+  const [showChat, setShowChat] = useState(true);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -303,6 +304,22 @@ export default function StoryVideoViewer({
           </svg>
         </button>
 
+        {/* Chat toggle */}
+        <button
+          onClick={() => setShowChat((v) => !v)}
+          style={{
+            position: "absolute", zIndex: 13,
+            top: "calc(env(safe-area-inset-top,0px) + 80px)", right: 10,
+            width: 38, height: 38, display: "grid", placeItems: "center",
+            border: 0, borderRadius: "50%", background: "rgba(22,22,22,.5)",
+            color: "#fff", cursor: "pointer",
+          }}
+        >
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <path d="M8 12l4 4L16 8" />
+          </svg>
+        </button>
+
         {/* Bottom info - empty for clean look */}
 
         {/* Action rail */}
@@ -368,7 +385,8 @@ export default function StoryVideoViewer({
         {/* Comments */}
         <div style={{
           position: "absolute", zIndex: 11, left: 14, right: 84, bottom: 80,
-          display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 8,
+          display: showChat ? "flex" : "none",
+          flexDirection: "column", alignItems: "flex-start", gap: 8,
         }} data-story-interactive>
           {comments.map((c) => (
             <div key={c.id} className="tt-comment" style={{ display: "flex", alignItems: "center", gap: 7, maxWidth: "100%" }}>
