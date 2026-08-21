@@ -98,7 +98,7 @@ export default function TusChicas({
       {open && (
         <>
           <motion.div
-            className="fixed inset-0 z-40 bg-black/70 backdrop-blur-md md:backdrop-blur-none"
+            className="fixed inset-0 z-40 bg-black/70 backdrop-blur-md md:bg-black md:backdrop-blur-none"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -248,7 +248,7 @@ export default function TusChicas({
                           {menuId === g.id && (
                             <>
                               <motion.div
-                                className="fixed inset-0 z-[70] bg-black/70 backdrop-blur-md md:backdrop-blur-none"
+                                className="fixed inset-0 z-[70] bg-black/70 backdrop-blur-md md:bg-black md:backdrop-blur-none"
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
@@ -364,7 +364,7 @@ export default function TusChicas({
           {editing && (
             <>
               <motion.div
-                className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-md md:backdrop-blur-none"
+                className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-md md:bg-black md:backdrop-blur-none"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
