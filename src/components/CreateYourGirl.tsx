@@ -581,18 +581,14 @@ async function handlePersonalityNext() {
       {open && (
         <>
 <motion.div
-            className="fixed inset-0 z-40 bg-black/70 backdrop-blur-md md:z-[150] md:bg-black/60 md:backdrop-blur-none"
+            className="fixed inset-0 z-40 bg-black/70 backdrop-blur-md md:backdrop-blur-none"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-          >
-            {backgroundImage && (
-              <div className="hidden md:block" style={{ position: "absolute", inset: "-40px", backgroundImage: `url(${backgroundImage})`, backgroundPosition: "center", backgroundSize: "cover", filter: "blur(28px)", transform: "scale(1.08)", opacity: 0.55, pointerEvents: "none" }} />
-            )}
-          </motion.div>
+          />
           <motion.div
-            className="fixed inset-x-0 bottom-0 top-[88px] z-40 flex flex-col md:top-0 md:z-[150]"
+            className="fixed inset-x-0 bottom-0 top-[88px] z-40 flex flex-col"
             initial={{ opacity: 0, y: 60 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 60 }}
@@ -600,7 +596,7 @@ async function handlePersonalityNext() {
             onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
           >
             <motion.div
-              className="mx-auto flex w-full max-w-[480px] flex-1 flex-col min-h-0 px-5 md:max-w-none"
+              className="mx-auto flex w-full max-w-[480px] flex-1 flex-col min-h-0 px-5"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
