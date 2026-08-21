@@ -108,17 +108,8 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
 }
 .fade-in { animation: fadeUp 0.5s ease-out both; }
 
-/* Navegación de la cabecera: visible en escritorio/tablet, oculta en móvil */
+/* Navegación de la cabecera: oculta siempre (hamburger visible en todas las pantallas) */
 .header-nav-desktop { display: none !important; }
-@media (min-width: 768px) {
-  .header-nav-desktop { display: flex !important; }
-  .header-hamburger { display: none !important; }
-}
-/* En tablets (768-1100) los enlaces se compactan para que la cabecera no desborde */
-@media (min-width: 768px) and (max-width: 1100px) {
-  .header-nav-desktop { margin-left: 10px; gap: 0 !important; }
-  .header-nav-desktop a { padding: 6px 8px !important; font-size: 13px !important; }
-}
 
 /* Hero: en pantallas grandes se limita ancho y alto para no estirar los banners (400x1200).
    Se aplica una máscara degradada en los bordes laterales para fundir la foto nítida
