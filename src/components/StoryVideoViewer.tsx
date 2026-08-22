@@ -344,7 +344,9 @@ export default function StoryVideoViewer({
           playsInline
           preload="auto"
           onTimeUpdate={handleTimeUpdate}
-          onCanPlay={() => setBuffering(false)}
+          onCanPlay={() => { setBuffering(false); const v = videoRef.current; if (v && v.paused && !closing) v.play().catch(() => {}); }}
+          onLoadedMetadata={() => { const v = videoRef.current; if (v && v.paused && !closing) v.play().catch(() => {}); }}
+          onStalled={() => { setBuffering(true); }}
           onPlaying={() => setBuffering(false)}
           onWaiting={() => setBuffering(true)}
           poster="/sofia-poster.jpg"
