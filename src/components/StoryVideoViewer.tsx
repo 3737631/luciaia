@@ -7,6 +7,7 @@ import { ttsText, getGirlVoice, unlockAudioGesture } from "@/lib/voiceClient";
 const APPLE_SPRING = "cubic-bezier(.32,.72,0,1)";
 
 // Ventanas (segundos del video) en las que Sofía puede hablar
+const SPEAK_LAG = 1.2; // ella dice las frases un pelín más tarde
 const SPEAK_WINDOWS: Array<[number, number]> = [
   [10.96, 14],
   [14.27, 23.75],
@@ -89,6 +90,7 @@ export default function StoryVideoViewer({
   const mountedRef = useRef(true);
   const scrollYRef = useRef(0);
   const replyAudioRef = useRef<HTMLAudioElement | null>(null);
+  const bgmRef = useRef<HTMLAudioElement | null>(null);
   const replyDataRef = useRef<{ text: string; url: string } | null>(null);
   const pendingReplyRef = useRef<string | null>(null);
   const autoUsedRef = useRef<Set<number>>(new Set());
@@ -123,6 +125,23 @@ export default function StoryVideoViewer({
     return () => {
       window.removeEventListener("pointerdown", onFirstTap);
       window.removeEventListener("touchstart", onFirstTap);
+    };
+  }, []);
+
+  // Música ambiental de fondo: suave, en loop, y baja aún más cuando ella habla
+  useEffect(() => {
+    const bp = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+    const b = new Audio(`${bp}/sofia-ambiente.mp3`);
+    b.loop = true;
+    b.volume = 0.14;
+    bgmRef.current = b;
+    const tryPlay = () => { b.play().catch(() => {}); };
+    tryPlay();
+    window.addEventListener("pointerdown", tryPlay);
+    return () => {
+      window.removeEventListener("pointerdown", tryPlay);
+      try { b.pause(); } catch {}
+      bgmRef.current = null;
     };
   }, []);
 
@@ -241,6 +260,10 @@ export default function StoryVideoViewer({
 
   // Reproduce SIEMPRE el nuevo mensaje: corta el anterior.
   // Cadena garantizada: audio TTS amplificado → si el navegador bloquea el play → voz del navegador.
+  const duckBgm = (down: boolean) => {
+    if (bgmRef.current) bgmRef.current.volume = down ? 0.05 : 0.14;
+  };
+
   const synthSpeak = (text: string) => {
     if (!("speechSynthesis" in window)) return;
     window.speechSynthesis.cancel();
@@ -249,9 +272,12 @@ export default function StoryVideoViewer({
     u.rate = 1.05;
     u.pitch = 1.1;
     u.volume = 1;
+    u.onend = () => { duckBgm(false); };
+    u.onerror = () => { duckBgm(false); };
     const voices = window.speechSynthesis.getVoices();
     const female = voices.find((vv) => vv.lang.startsWith("es") && /femenin|female|paulina|monica|elena|conchita/i.test(vv.name)) || voices.find((vv) => vv.lang.startsWith("es"));
     if (female) u.voice = female;
+    duckBgm(true);
     window.speechSynthesis.speak(u);
   };
 
@@ -275,8 +301,9 @@ export default function StoryVideoViewer({
         g.ctx.resume().catch(() => {});
       }
       let started = false;
-      au.onended = () => { replyAudioRef.current = null; };
-      au.onerror = () => { replyAudioRef.current = null; };
+      au.onended = () => { replyAudioRef.current = null; duckBgm(false); };
+      au.onerror = () => { replyAudioRef.current = null; duckBgm(false); };
+      duckBgm(true);
       replyAudioRef.current = au;
       au.play().then(() => { started = true; }).catch(() => {});
       // Si en 1.5s no ha empezado (autoplay bloqueado), voz del navegador como red de seguridad
@@ -304,7 +331,7 @@ export default function StoryVideoViewer({
       if (t < lastT - 1) autoUsedRef.current.clear(); // el video dió la vuelta
       lastT = t;
 
-      const idx = SPEAK_WINDOWS.findIndex(([a, b]) => t >= a - 0.08 && t <= b);
+      const idx = SPEAK_WINDOWS.findIndex(([a, b]) => t >= a - 0.08 + SPEAK_LAG && t <= b + SPEAK_LAG);
       if (idx >= 0 && !autoUsedRef.current.has(idx)) {
         autoUsedRef.current.add(idx);
         const pendingText = pendingReplyRef.current;
@@ -348,7 +375,7 @@ export default function StoryVideoViewer({
     let win: [number, number] | null = null;
     for (let i = 0; i < SPEAK_WINDOWS.length; i++) {
       const w = SPEAK_WINDOWS[i];
-      if (w[0] > now + 0.2 && !autoUsedRef.current.has(i)) { win = w; break; }
+      if (w[0] + SPEAK_LAG > now + 0.2 && !autoUsedRef.current.has(i)) { win = w; break; }
     }
     if (!win) {
       // siguiente vuelta del bucle: libera todas las ventanas
