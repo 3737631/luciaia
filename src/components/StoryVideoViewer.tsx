@@ -89,7 +89,7 @@ export default function StoryVideoViewer({
   const mountedRef = useRef(true);
   const scrollYRef = useRef(0);
   const replyAudioRef = useRef<HTMLAudioElement | null>(null);
-  const replyDataRef = useRef<string | null>(null);
+  const replyDataRef = useRef<{ text: string; url: string } | null>(null);
   const pendingReplyRef = useRef<string | null>(null);
   const autoUsedRef = useRef<Set<number>>(new Set());
   const ttsCtxRef = useRef<AudioContext | null>(null);
@@ -114,6 +114,9 @@ export default function StoryVideoViewer({
     if (!v) return;
     v.muted = true;
     v.play().catch(() => {});
+    const rs = () => { if (ttsCtxRef.current && ttsCtxRef.current.state === "suspended") ttsCtxRef.current.resume().catch(() => {}); };
+    window.addEventListener("pointerdown", rs);
+    return () => window.removeEventListener("pointerdown", rs);
   }, []);
 
   useEffect(() => {
@@ -193,6 +196,14 @@ export default function StoryVideoViewer({
 
   const duckVideo = () => {};
 
+  const stopPrevVoice = () => {
+    if (replyAudioRef.current) {
+      try { replyAudioRef.current.pause(); } catch {}
+      replyAudioRef.current = null;
+    }
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+  };
+
   const ensureAudioGain = (): { ctx: AudioContext | null; gain: GainNode | null } => {
     try {
       if (!ttsCtxRef.current) {
@@ -203,45 +214,62 @@ export default function StoryVideoViewer({
         ttsGainRef.current.gain.value = 2.5; // voz EN ALTO
         ttsGainRef.current.connect(ttsCtxRef.current.destination);
       }
-      if (ttsCtxRef.current.state === "suspended") ttsCtxRef.current.resume().catch(() => {});
       return { ctx: ttsCtxRef.current, gain: ttsGainRef.current };
     } catch {
       return { ctx: null, gain: null };
     }
   };
 
+  // Reproduce SIEMPRE el nuevo mensaje: corta el anterior.
+  // Si el AudioContext está suspendido (móvil sin gesto aún), reproduce sin ganancia para que nunca quede mudo.
   const playReplyAudio = (text: string) => {
-    const data = replyDataRef.current;
+    const entry = replyDataRef.current;
     replyDataRef.current = null;
+    const data = entry && entry.text === text ? entry.url : null;
     duckVideo();
-    if (data && replyAudioRef.current === null) {
+    stopPrevVoice();
+    if (data) {
       try {
         const au = new Audio(data);
         au.volume = 1;
+        let wired = false;
         const g = ensureAudioGain();
-        if (g.ctx && g.gain) {
+        if (g.ctx && g.gain && g.ctx.state === "running") {
           try {
             const src = g.ctx.createMediaElementSource(au);
             src.connect(g.gain);
+            wired = true;
           } catch {}
         }
+        const kick = () => {
+          if (g.ctx && g.ctx.state === "suspended") g.ctx.resume().catch(() => {});
+          au.play().catch(() => {});
+        };
         au.onended = () => { replyAudioRef.current = null; };
         au.onerror = () => { replyAudioRef.current = null; };
         replyAudioRef.current = au;
-        au.play().catch(() => {});
+        kick();
+        // si tras 600ms sigue sin sonar y estaba cableado, reintenta plano
+        setTimeout(() => {
+          if (replyAudioRef.current === au && au.paused && wired) {
+            try { au.load(); } catch {}
+            au.play().catch(() => {});
+          }
+        }, 600);
       } catch {}
-    } else if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = "es-ES";
-      u.rate = 1.05;
-      u.pitch = 1.1;
-      u.volume = 1;
-      u.onend = () => {};
-      const voices = window.speechSynthesis.getVoices();
-      const female = voices.find((vv) => vv.lang.startsWith("es") && /femenin|female|paulina|monica|elena|conchita/i.test(vv.name)) || voices.find((vv) => vv.lang.startsWith("es"));
-      if (female) u.voice = female;
-      window.speechSynthesis.speak(u);
+    }
+    if (!data || replyAudioRef.current === null) {
+      if ("speechSynthesis" in window) {
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = "es-ES";
+        u.rate = 1.05;
+        u.pitch = 1.1;
+        u.volume = 1;
+        const voices = window.speechSynthesis.getVoices();
+        const female = voices.find((vv) => vv.lang.startsWith("es") && /femenin|female|paulina|monica|elena|conchita/i.test(vv.name)) || voices.find((vv) => vv.lang.startsWith("es"));
+        if (female) u.voice = female;
+        window.speechSynthesis.speak(u);
+      }
     }
   };
 
@@ -271,7 +299,7 @@ export default function StoryVideoViewer({
           showSofiaReply(line);
           // TTS en caliente: pide y reproduce en cuanto llegue
           ttsText(line, getGirlVoice(girlId || "luna"))
-            .then((r) => { replyDataRef.current = `data:audio/mp3;base64,${r.audio}`; playReplyAudio(line); })
+            .then((r) => { replyDataRef.current = { text: line, url: `data:audio/mp3;base64,${r.audio}` }; playReplyAudio(line); })
             .catch(() => { playReplyAudio(line); });
         }
       }
@@ -303,7 +331,7 @@ export default function StoryVideoViewer({
     replyAudioRef.current = null;
     replyDataRef.current = null;
     ttsText(replyText, getGirlVoice(girlId || "luna"))
-      .then((r) => { replyDataRef.current = `data:audio/mp3;base64,${r.audio}`; })
+      .then((r) => { replyDataRef.current = { text: replyText, url: `data:audio/mp3;base64,${r.audio}` }; })
       .catch(() => { replyDataRef.current = null; });
     pendingReplyRef.current = replyText;
   };
@@ -400,8 +428,9 @@ export default function StoryVideoViewer({
             transition: "filter 1.5s ease",
           }}
         >
-          {/* HEVC a resolución completa 1440x2560 (calidad máxima) con respaldo H.264 */}
+          {/* HEVC 1440p (Safari/móviles con HEVC) → VP9 1440p (Chrome/Android/Firefox) → H.264 respaldo */}
           <source src={videoSrc.replace(/\.mp4$/, "-hevc.mp4")} type='video/mp4; codecs="hvc1"' />
+          <source src={videoSrc.replace(/\.mp4$/, "-vp9.webm")} type="video/webm" />
           <source src={videoSrc} type="video/mp4" />
         </video>
 
