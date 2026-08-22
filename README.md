@@ -4,6 +4,8 @@ Demo de chat y videollamada con chicas IA ficticias con contexto real de convers
 
 ## Arquitectura
 
+Último cambio: deploy video y chat
+
 ```
 GitHub Pages (frontend estático)
   → Supabase Edge Function
