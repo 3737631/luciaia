@@ -92,6 +92,8 @@ export default function StoryVideoViewer({
   const replyDataRef = useRef<string | null>(null);
   const pendingReplyRef = useRef<string | null>(null);
   const autoUsedRef = useRef<Set<number>>(new Set());
+  const ttsCtxRef = useRef<AudioContext | null>(null);
+  const ttsGainRef = useRef<GainNode | null>(null);
 
   const [closing, setClosing] = useState(false);
   const [likes, setLikes] = useState(3421);
@@ -105,19 +107,13 @@ export default function StoryVideoViewer({
   const [sofiaComments, setSofiaComments] = useState<{ id: number; text: string }[]>([]);
   const [showChat, setShowChat] = useState(true);
   const [buffering, setBuffering] = useState(true);
-  const [soundOn, setSoundOn] = useState(false);
 
-  // El video arranca MUDO (para que se oiga solo lo que dice ella).
-  // El botón de altavoz permite activar el audio original si se quiere.
+  // El video va SIN audio (solo se oye la voz TTS de ella, amplificada).
   useEffect(() => {
-    const tryPlay = () => {
-      const v = videoRef.current;
-      if (!v) return;
-      v.muted = true;
-      setSoundOn(false);
-      v.play().catch(() => {});
-    };
-    tryPlay();
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = true;
+    v.play().catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -195,10 +191,23 @@ export default function StoryVideoViewer({
     }, 7000);
   };
 
-  const duckVideo = () => {
-    const v = videoRef.current;
-    if (v && !v.muted) v.volume = 0.12;
-    setTimeout(() => { const vv = videoRef.current; if (vv) vv.volume = 1; }, 16000);
+  const duckVideo = () => {};
+
+  const ensureAudioGain = (): { ctx: AudioContext | null; gain: GainNode | null } => {
+    try {
+      if (!ttsCtxRef.current) {
+        const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        if (!Ctx) return { ctx: null, gain: null };
+        ttsCtxRef.current = new Ctx();
+        ttsGainRef.current = ttsCtxRef.current.createGain();
+        ttsGainRef.current.gain.value = 2.5; // voz EN ALTO
+        ttsGainRef.current.connect(ttsCtxRef.current.destination);
+      }
+      if (ttsCtxRef.current.state === "suspended") ttsCtxRef.current.resume().catch(() => {});
+      return { ctx: ttsCtxRef.current, gain: ttsGainRef.current };
+    } catch {
+      return { ctx: null, gain: null };
+    }
   };
 
   const playReplyAudio = (text: string) => {
@@ -208,8 +217,16 @@ export default function StoryVideoViewer({
     if (data && replyAudioRef.current === null) {
       try {
         const au = new Audio(data);
-        au.onended = () => { replyAudioRef.current = null; const v = videoRef.current; if (v) v.volume = 1; };
-        au.onerror = () => { replyAudioRef.current = null; const v = videoRef.current; if (v) v.volume = 1; };
+        au.volume = 1;
+        const g = ensureAudioGain();
+        if (g.ctx && g.gain) {
+          try {
+            const src = g.ctx.createMediaElementSource(au);
+            src.connect(g.gain);
+          } catch {}
+        }
+        au.onended = () => { replyAudioRef.current = null; };
+        au.onerror = () => { replyAudioRef.current = null; };
         replyAudioRef.current = au;
         au.play().catch(() => {});
       } catch {}
@@ -219,7 +236,8 @@ export default function StoryVideoViewer({
       u.lang = "es-ES";
       u.rate = 1.05;
       u.pitch = 1.1;
-      u.onend = () => { const v = videoRef.current; if (v) v.volume = 1; };
+      u.volume = 1;
+      u.onend = () => {};
       const voices = window.speechSynthesis.getVoices();
       const female = voices.find((vv) => vv.lang.startsWith("es") && /femenin|female|paulina|monica|elena|conchita/i.test(vv.name)) || voices.find((vv) => vv.lang.startsWith("es"));
       if (female) u.voice = female;
@@ -450,38 +468,6 @@ export default function StoryVideoViewer({
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
           </svg>
-        </button>
-
-        {/* Sonido */}
-        <button
-          aria-label={soundOn ? "Silenciar" : "Activar sonido"}
-          onClick={(e) => {
-            e.stopPropagation();
-            const v = videoRef.current;
-            if (!v) return;
-            v.muted = !v.muted;
-            setSoundOn(!v.muted);
-            if (!v.muted) v.play().catch(() => {});
-          }}
-          style={{
-            position: "absolute", zIndex: 13,
-            top: "calc(env(safe-area-inset-top,0px) + 66px)", right: 10,
-            width: 38, height: 38, display: "grid", placeItems: "center",
-            border: 0, borderRadius: "50%", background: "rgba(22,22,22,.5)",
-            color: "#fff", cursor: "pointer",
-          }}
-        >
-          {soundOn ? (
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none" />
-              <path d="M15.54 8.46a5 5 0 0 1 0 7.07" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-            </svg>
-          ) : (
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none" />
-              <line x1="23" y1="9" x2="17" y2="15" /><line x1="17" y1="9" x2="23" y2="15" />
-            </svg>
-          )}
         </button>
 
         {/* Bottom info - empty for clean look */}
