@@ -94,8 +94,11 @@ export default function StoryVideoViewer({
   const autoUsedRef = useRef<Set<number>>(new Set());
   const ttsCtxRef = useRef<AudioContext | null>(null);
   const ttsGainRef = useRef<GainNode | null>(null);
+  const unlockFnRef = useRef<() => void>(() => {});
+  const prefetchRef = useRef<{ text: string; url: string }[]>([]);
 
   const [closing, setClosing] = useState(false);
+  const [gateOpen, setGateOpen] = useState(false);
   const [likes, setLikes] = useState(3421);
   const [viewers, setViewers] = useState(1247);
   const [hearts, setHearts] = useState<Heart[]>([]);
@@ -114,32 +117,45 @@ export default function StoryVideoViewer({
     if (!v) return;
     v.muted = true;
     v.play().catch(() => {});
-    // Desbloqueo de audio en el primer toque (iOS/Android bloquean play() sin gesto)
-    let unlocked = false;
-    const unlock = () => {
-      if (unlocked) return;
-      unlocked = true;
+    // Desbloqueo REAL de audio (iOS exige play() dentro del gesto del usuario)
+    unlockFnRef.current = () => {
       try {
         const g = ensureAudioGain();
-        if (g.ctx && g.ctx.state === "suspended") g.ctx.resume().catch(() => {});
         if (g.ctx) {
-          const b = g.ctx.createBuffer(1, 1, 22050);
-          const s = g.ctx.createBufferSource();
-          s.buffer = b;
-          s.connect(g.ctx.destination);
-          try { s.start(0); } catch {}
+          if (g.ctx.state === "suspended") g.ctx.resume().catch(() => {});
+          try {
+            const b = g.ctx.createBuffer(1, 1, 22050);
+            const s = g.ctx.createBufferSource();
+            s.buffer = b;
+            s.connect(g.ctx.destination);
+            s.start(0);
+          } catch {}
         }
         const a = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=");
-        a.volume = 0;
-        a.play().then(() => { a.pause(); }).catch(() => {});
+        a.volume = 0.01;
+        const p = a.play();
+        if (p && p.then) p.then(() => { a.pause(); }).catch(() => { a.pause(); });
       } catch {}
     };
-    window.addEventListener("pointerdown", unlock);
-    window.addEventListener("touchstart", unlock);
+    const onFirstTap = () => { unlockFnRef.current(); };
+    window.addEventListener("pointerdown", onFirstTap);
+    window.addEventListener("touchstart", onFirstTap);
     return () => {
-      window.removeEventListener("pointerdown", unlock);
-      window.removeEventListener("touchstart", unlock);
+      window.removeEventListener("pointerdown", onFirstTap);
+      window.removeEventListener("touchstart", onFirstTap);
     };
+  }, []);
+
+  // Precarga de las 5 frases de las ventanas: al abrirse la ventana suenan AL INSTANTE
+  useEffect(() => {
+    let alive = true;
+    SPEAK_WINDOWS.forEach(([a, b], i) => {
+      const line = pickReply(b - a);
+      ttsText(line, getGirlVoice(girlId || "luna"))
+        .then((r) => { if (alive) prefetchRef.current[i] = { text: line, url: `data:audio/mp3;base64,${r.audio}` }; })
+        .catch(() => {});
+    });
+    return () => { alive = false; };
   }, []);
 
   useEffect(() => {
@@ -283,14 +299,14 @@ export default function StoryVideoViewer({
       au.onerror = () => { replyAudioRef.current = null; };
       replyAudioRef.current = au;
       au.play().then(() => { started = true; }).catch(() => {});
-      // Si en 1s no ha empezado (autoplay bloqueado), voz del navegador como red de seguridad
+      // Si en 1.5s no ha empezado (autoplay bloqueado), voz del navegador como red de seguridad
       setTimeout(() => {
         if (!started) {
           try { au.pause(); } catch {}
           if (replyAudioRef.current === au) replyAudioRef.current = null;
           synthSpeak(text);
         }
-      }, 1000);
+      }, 1500);
     } catch {
       synthSpeak(text);
     }
@@ -317,13 +333,22 @@ export default function StoryVideoViewer({
           showSofiaReply(pendingText);
           playReplyAudio(pendingText);
         } else {
-          const [a, b] = SPEAK_WINDOWS[idx];
-          const line = pickReply(b - a);
-          showSofiaReply(line);
-          // TTS en caliente: pide y reproduce en cuanto llegue
-          ttsText(line, getGirlVoice(girlId || "luna"))
-            .then((r) => { replyDataRef.current = { text: line, url: `data:audio/mp3;base64,${r.audio}` }; playReplyAudio(line); })
-            .catch(() => { playReplyAudio(line); });
+          // Frase precargada de esta ventana: suena AL INSTANTE
+          const pre = prefetchRef.current[idx];
+          if (pre) {
+            prefetchRef.current[idx] = null as unknown as { text: string; url: string };
+            showSofiaReply(pre.text);
+            replyDataRef.current = pre;
+            playReplyAudio(pre.text);
+          } else {
+            const [a, b] = SPEAK_WINDOWS[idx];
+            const line = pickReply(b - a);
+            showSofiaReply(line);
+            // TTS en caliente: pide y reproduce en cuanto llegue
+            ttsText(line, getGirlVoice(girlId || "luna"))
+              .then((r) => { replyDataRef.current = { text: line, url: `data:audio/mp3;base64,${r.audio}` }; playReplyAudio(line); })
+              .catch(() => { playReplyAudio(line); });
+          }
         }
       }
       raf = requestAnimationFrame(tick);
@@ -331,6 +356,14 @@ export default function StoryVideoViewer({
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, []);
+
+  // Puerta de entrada: el toque desbloquea el audio (iOS exige gesto) ANTES de cualquier voz
+  const handleGateOpen = () => {
+    unlockFnRef.current();
+    setGateOpen(true);
+    const v = videoRef.current;
+    if (v && v.paused && !closing) v.play().catch(() => {});
+  };
 
   const handleUserComment = () => {
     const text = userComment.trim();
@@ -457,6 +490,36 @@ export default function StoryVideoViewer({
           <source src={videoSrc} type="video/mp4" />
         </video>
 
+        {/* Puerta de entrada: activa el audio con el toque del usuario */}
+        {!gateOpen && (
+          <div
+            onClick={(e) => { e.stopPropagation(); handleGateOpen(); }}
+            style={{
+              position: "absolute", zIndex: 40, inset: 0,
+              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+              background: "rgba(0,0,0,.45)", backdropFilter: "blur(2px)", cursor: "pointer",
+            }}
+          >
+            <div style={{
+              width: 92, height: 92, borderRadius: "50%",
+              border: "3px solid rgba(255,255,255,.9)",
+              background: "rgba(255,45,149,.85)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 0 0 0 rgba(255,45,149,.55)",
+              animation: "ttGatePulse 1.4s ease-out infinite",
+              marginBottom: 18,
+            }}>
+              <svg width="38" height="38" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z" /></svg>
+            </div>
+            <div style={{ color: "#fff", fontWeight: 700, fontSize: 17, textShadow: "0 2px 8px rgba(0,0,0,.6)" }}>
+              Toca para entrar al directo
+            </div>
+            <div style={{ color: "rgba(255,255,255,.75)", fontSize: 13, marginTop: 6, textShadow: "0 1px 6px rgba(0,0,0,.6)" }}>
+              y oír la voz de {name}
+            </div>
+          </div>
+        )}
+
         {/* Corazón de carga (igual que el de "Creando") */}
         {buffering && (
           <div style={{
@@ -479,7 +542,7 @@ export default function StoryVideoViewer({
           </div>
         )}
 
-        <style>{`@keyframes ttCreateBeat{0%,100%{transform:scale(1)}50%{transform:scale(1.22)}}@keyframes ttCreateGlow{0%,100%{opacity:.35;transform:scale(.85)}50%{opacity:.75;transform:scale(1.15)}}`}</style>
+        <style>{`@keyframes ttCreateBeat{0%,100%{transform:scale(1)}50%{transform:scale(1.22)}}@keyframes ttCreateGlow{0%,100%{opacity:.35;transform:scale(.85)}50%{opacity:.75;transform:scale(1.15)}}@keyframes ttGatePulse{0%{box-shadow:0 0 0 0 rgba(255,45,149,.55)}70%{box-shadow:0 0 0 26px rgba(255,45,149,0)}100%{box-shadow:0 0 0 0 rgba(255,45,149,0)}}`}</style>
 
         {/* Gradients */}
         <div style={{
@@ -510,7 +573,7 @@ export default function StoryVideoViewer({
           aria-label="Cerrar"
           onClick={(e) => { e.stopPropagation(); handleClose(); }}
           style={{
-            position: "absolute", zIndex: 13,
+            position: "absolute", zIndex: 45,
             top: "calc(env(safe-area-inset-top,0px) + 20px)", right: 10,
             width: 38, height: 38, display: "grid", placeItems: "center",
             border: 0, borderRadius: "50%", background: "rgba(22,22,22,.5)",
