@@ -276,15 +276,6 @@ export default function StoryVideoViewer({
           <span style={{ color: "#fff", fontSize: 13, fontWeight: 700, textShadow: "0 1px 2px rgba(0,0,0,.5)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             @{handle}
           </span>
-          <button
-            style={{
-              marginLeft: 2, background: "#e2183b", color: "#fff", border: 0,
-              borderRadius: 14, padding: "5px 14px", fontSize: 12, fontWeight: 700,
-              cursor: "pointer", flex: "0 0 auto",
-            }}
-          >
-            SEGUIR
-          </button>
         </div>
 
         {/* Close */}
@@ -364,19 +355,6 @@ export default function StoryVideoViewer({
               </svg>
             </span>
             <span style={{ fontSize: 11, fontWeight: 600, color: "#fff", textShadow: "0 1px 2px rgba(0,0,0,.5)" }}>Regalar</span>
-          </button>
-
-          <button
-            aria-label="Compartir"
-            onClick={(e) => e.stopPropagation()}
-            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, border: 0, background: "transparent", cursor: "pointer", padding: 0 }}
-          >
-            <span style={{ width: 40, height: 40, display: "grid", placeItems: "center", borderRadius: "50%", background: "rgba(22,22,22,.45)", color: "#fff" }}>
-              <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" />
-              </svg>
-            </span>
-            <span style={{ fontSize: 11, fontWeight: 600, color: "#fff", textShadow: "0 1px 2px rgba(0,0,0,.5)" }}>Compartir</span>
           </button>
 
           <img src={avatar} alt="" style={{ width: 42, height: 42, borderRadius: "50%", objectFit: "cover", border: "1.5px solid #fff", marginTop: 2 }} />
