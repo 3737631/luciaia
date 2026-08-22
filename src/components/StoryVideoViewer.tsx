@@ -105,6 +105,37 @@ export default function StoryVideoViewer({
   const [sofiaComments, setSofiaComments] = useState<{ id: number; text: string }[]>([]);
   const [showChat, setShowChat] = useState(true);
   const [buffering, setBuffering] = useState(true);
+  const [soundOn, setSoundOn] = useState(false);
+
+  // Intenta reproducir con sonido; si el navegador lo bloquea, arranca mudo
+  // y se activa el audio en cuanto el usuario toca la pantalla.
+  useEffect(() => {
+    const tryPlay = (withSound: boolean) => {
+      const v = videoRef.current;
+      if (!v) return;
+      v.muted = !withSound;
+      const p = v.play();
+      if (p) {
+        p.then(() => { setSoundOn(withSound); }).catch(() => {
+          if (withSound) {
+            tryPlay(false);
+            setSoundOn(false);
+          }
+        });
+      }
+    };
+    tryPlay(true);
+    const un = () => {
+      const v = videoRef.current;
+      if (v && v.muted) {
+        v.muted = false;
+        setSoundOn(true);
+        v.play().catch(() => {});
+      }
+    };
+    window.addEventListener("pointerdown", un);
+    return () => window.removeEventListener("pointerdown", un);
+  }, []);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -181,14 +212,22 @@ export default function StoryVideoViewer({
     }, 7000);
   };
 
+  const duckVideo = () => {
+    const v = videoRef.current;
+    if (v && !v.muted) v.volume = 0.12;
+    setTimeout(() => { const vv = videoRef.current; if (vv) vv.volume = 1; }, 16000);
+  };
+
   const playReplyAudio = (text: string) => {
     const data = replyDataRef.current;
     replyDataRef.current = null;
+    duckVideo();
     if (data && replyAudioRef.current === null) {
       try {
         const au = new Audio(data);
+        au.onended = () => { replyAudioRef.current = null; const v = videoRef.current; if (v) v.volume = 1; };
+        au.onerror = () => { replyAudioRef.current = null; const v = videoRef.current; if (v) v.volume = 1; };
         replyAudioRef.current = au;
-        au.onended = () => { replyAudioRef.current = null; };
         au.play().catch(() => {});
       } catch {}
     } else if ("speechSynthesis" in window) {
@@ -197,6 +236,7 @@ export default function StoryVideoViewer({
       u.lang = "es-ES";
       u.rate = 1.05;
       u.pitch = 1.1;
+      u.onend = () => { const v = videoRef.current; if (v) v.volume = 1; };
       const voices = window.speechSynthesis.getVoices();
       const female = voices.find((vv) => vv.lang.startsWith("es") && /femenin|female|paulina|monica|elena|conchita/i.test(vv.name)) || voices.find((vv) => vv.lang.startsWith("es"));
       if (female) u.voice = female;
@@ -337,9 +377,7 @@ export default function StoryVideoViewer({
       >
         <video
           ref={videoRef}
-          src={videoSrc}
           autoPlay
-          muted
           loop
           playsInline
           preload="auto"
@@ -360,7 +398,11 @@ export default function StoryVideoViewer({
             filter: warmFilter ? "sepia(0.28) saturate(1.4) brightness(1.06) hue-rotate(-8deg)" : "none",
             transition: "filter 1.5s ease",
           }}
-        />
+        >
+          {/* HEVC a resolución completa 1440x2560 (calidad máxima) con respaldo H.264 */}
+          <source src={videoSrc.replace(/\.mp4$/, "-hevc.mp4")} type='video/mp4; codecs="hvc1"' />
+          <source src={videoSrc} type="video/mp4" />
+        </video>
 
         {/* Corazón de carga (igual que el de "Creando") */}
         {buffering && (
@@ -425,6 +467,38 @@ export default function StoryVideoViewer({
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
           </svg>
+        </button>
+
+        {/* Sonido */}
+        <button
+          aria-label={soundOn ? "Silenciar" : "Activar sonido"}
+          onClick={(e) => {
+            e.stopPropagation();
+            const v = videoRef.current;
+            if (!v) return;
+            v.muted = !v.muted;
+            setSoundOn(!v.muted);
+            if (!v.muted) v.play().catch(() => {});
+          }}
+          style={{
+            position: "absolute", zIndex: 13,
+            top: "calc(env(safe-area-inset-top,0px) + 50px)", right: 10,
+            width: 38, height: 38, display: "grid", placeItems: "center",
+            border: 0, borderRadius: "50%", background: "rgba(22,22,22,.5)",
+            color: "#fff", cursor: "pointer",
+          }}
+        >
+          {soundOn ? (
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none" />
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none" />
+              <line x1="23" y1="9" x2="17" y2="15" /><line x1="17" y1="9" x2="23" y2="15" />
+            </svg>
+          )}
         </button>
 
         {/* Bottom info - empty for clean look */}
