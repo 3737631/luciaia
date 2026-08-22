@@ -107,34 +107,17 @@ export default function StoryVideoViewer({
   const [buffering, setBuffering] = useState(true);
   const [soundOn, setSoundOn] = useState(false);
 
-  // Intenta reproducir con sonido; si el navegador lo bloquea, arranca mudo
-  // y se activa el audio en cuanto el usuario toca la pantalla.
+  // El video arranca MUDO (para que se oiga solo lo que dice ella).
+  // El botón de altavoz permite activar el audio original si se quiere.
   useEffect(() => {
-    const tryPlay = (withSound: boolean) => {
+    const tryPlay = () => {
       const v = videoRef.current;
       if (!v) return;
-      v.muted = !withSound;
-      const p = v.play();
-      if (p) {
-        p.then(() => { setSoundOn(withSound); }).catch(() => {
-          if (withSound) {
-            tryPlay(false);
-            setSoundOn(false);
-          }
-        });
-      }
+      v.muted = true;
+      setSoundOn(false);
+      v.play().catch(() => {});
     };
-    tryPlay(true);
-    const un = () => {
-      const v = videoRef.current;
-      if (v && v.muted) {
-        v.muted = false;
-        setSoundOn(true);
-        v.play().catch(() => {});
-      }
-    };
-    window.addEventListener("pointerdown", un);
-    return () => window.removeEventListener("pointerdown", un);
+    tryPlay();
   }, []);
 
   useEffect(() => {
