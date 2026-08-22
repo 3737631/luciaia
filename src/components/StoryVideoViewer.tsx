@@ -133,13 +133,15 @@ export default function StoryVideoViewer({
     const bp = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
     const b = new Audio(`${bp}/sofia-ambiente.mp3`);
     b.loop = true;
-    b.volume = 0.14;
+    b.volume = 0.25;
     bgmRef.current = b;
-    const tryPlay = () => { b.play().catch(() => {}); };
+    const tryPlay = () => { if (b.paused) b.play().catch(() => {}); };
     tryPlay();
     window.addEventListener("pointerdown", tryPlay);
+    window.addEventListener("touchstart", tryPlay);
     return () => {
       window.removeEventListener("pointerdown", tryPlay);
+      window.removeEventListener("touchstart", tryPlay);
       try { b.pause(); } catch {}
       bgmRef.current = null;
     };
@@ -261,7 +263,7 @@ export default function StoryVideoViewer({
   // Reproduce SIEMPRE el nuevo mensaje: corta el anterior.
   // Cadena garantizada: audio TTS amplificado → si el navegador bloquea el play → voz del navegador.
   const duckBgm = (down: boolean) => {
-    if (bgmRef.current) bgmRef.current.volume = down ? 0.05 : 0.14;
+    if (bgmRef.current) bgmRef.current.volume = down ? 0.1 : 0.25;
   };
 
   const synthSpeak = (text: string) => {
