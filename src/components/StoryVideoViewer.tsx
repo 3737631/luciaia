@@ -114,9 +114,32 @@ export default function StoryVideoViewer({
     if (!v) return;
     v.muted = true;
     v.play().catch(() => {});
-    const rs = () => { if (ttsCtxRef.current && ttsCtxRef.current.state === "suspended") ttsCtxRef.current.resume().catch(() => {}); };
-    window.addEventListener("pointerdown", rs);
-    return () => window.removeEventListener("pointerdown", rs);
+    // Desbloqueo de audio en el primer toque (iOS/Android bloquean play() sin gesto)
+    let unlocked = false;
+    const unlock = () => {
+      if (unlocked) return;
+      unlocked = true;
+      try {
+        const g = ensureAudioGain();
+        if (g.ctx && g.ctx.state === "suspended") g.ctx.resume().catch(() => {});
+        if (g.ctx) {
+          const b = g.ctx.createBuffer(1, 1, 22050);
+          const s = g.ctx.createBufferSource();
+          s.buffer = b;
+          s.connect(g.ctx.destination);
+          try { s.start(0); } catch {}
+        }
+        const a = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=");
+        a.volume = 0;
+        a.play().then(() => { a.pause(); }).catch(() => {});
+      } catch {}
+    };
+    window.addEventListener("pointerdown", unlock);
+    window.addEventListener("touchstart", unlock);
+    return () => {
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("touchstart", unlock);
+    };
   }, []);
 
   useEffect(() => {
@@ -221,55 +244,55 @@ export default function StoryVideoViewer({
   };
 
   // Reproduce SIEMPRE el nuevo mensaje: corta el anterior.
-  // Si el AudioContext está suspendido (móvil sin gesto aún), reproduce sin ganancia para que nunca quede mudo.
+  // Cadena garantizada: audio TTS amplificado → si el navegador bloquea el play → voz del navegador.
+  const synthSpeak = (text: string) => {
+    if (!("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "es-ES";
+    u.rate = 1.05;
+    u.pitch = 1.1;
+    u.volume = 1;
+    const voices = window.speechSynthesis.getVoices();
+    const female = voices.find((vv) => vv.lang.startsWith("es") && /femenin|female|paulina|monica|elena|conchita/i.test(vv.name)) || voices.find((vv) => vv.lang.startsWith("es"));
+    if (female) u.voice = female;
+    window.speechSynthesis.speak(u);
+  };
+
   const playReplyAudio = (text: string) => {
     const entry = replyDataRef.current;
     replyDataRef.current = null;
     const data = entry && entry.text === text ? entry.url : null;
     duckVideo();
     stopPrevVoice();
-    if (data) {
-      try {
-        const au = new Audio(data);
-        au.volume = 1;
-        let wired = false;
-        const g = ensureAudioGain();
-        if (g.ctx && g.gain && g.ctx.state === "running") {
-          try {
-            const src = g.ctx.createMediaElementSource(au);
-            src.connect(g.gain);
-            wired = true;
-          } catch {}
-        }
-        const kick = () => {
-          if (g.ctx && g.ctx.state === "suspended") g.ctx.resume().catch(() => {});
-          au.play().catch(() => {});
-        };
-        au.onended = () => { replyAudioRef.current = null; };
-        au.onerror = () => { replyAudioRef.current = null; };
-        replyAudioRef.current = au;
-        kick();
-        // si tras 600ms sigue sin sonar y estaba cableado, reintenta plano
-        setTimeout(() => {
-          if (replyAudioRef.current === au && au.paused && wired) {
-            try { au.load(); } catch {}
-            au.play().catch(() => {});
-          }
-        }, 600);
-      } catch {}
-    }
-    if (!data || replyAudioRef.current === null) {
-      if ("speechSynthesis" in window) {
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = "es-ES";
-        u.rate = 1.05;
-        u.pitch = 1.1;
-        u.volume = 1;
-        const voices = window.speechSynthesis.getVoices();
-        const female = voices.find((vv) => vv.lang.startsWith("es") && /femenin|female|paulina|monica|elena|conchita/i.test(vv.name)) || voices.find((vv) => vv.lang.startsWith("es"));
-        if (female) u.voice = female;
-        window.speechSynthesis.speak(u);
+    if (!data) { synthSpeak(text); return; }
+    try {
+      const au = new Audio(data);
+      au.volume = 1;
+      const g = ensureAudioGain();
+      if (g.ctx && g.gain && g.ctx.state === "running") {
+        try {
+          const src = g.ctx.createMediaElementSource(au);
+          src.connect(g.gain);
+        } catch {}
+      } else if (g.ctx && g.ctx.state === "suspended") {
+        g.ctx.resume().catch(() => {});
       }
+      let started = false;
+      au.onended = () => { replyAudioRef.current = null; };
+      au.onerror = () => { replyAudioRef.current = null; };
+      replyAudioRef.current = au;
+      au.play().then(() => { started = true; }).catch(() => {});
+      // Si en 1s no ha empezado (autoplay bloqueado), voz del navegador como red de seguridad
+      setTimeout(() => {
+        if (!started) {
+          try { au.pause(); } catch {}
+          if (replyAudioRef.current === au) replyAudioRef.current = null;
+          synthSpeak(text);
+        }
+      }, 1000);
+    } catch {
+      synthSpeak(text);
     }
   };
 
