@@ -26,6 +26,29 @@ export function getCustomGirlVoice(customId: string): string {
   }
 }
 
+// Debe llamarse DENTRO de un gesto del usuario (click/touch): habilita
+// la reproducción programática de audio en iOS/Safari y Android estricto.
+export function unlockAudioGesture(): void {
+  try {
+    const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (Ctx) {
+      const ctx = new Ctx();
+      if (ctx.state === "suspended") ctx.resume().catch(() => {});
+      try {
+        const b = ctx.createBuffer(1, 1, 22050);
+        const s = ctx.createBufferSource();
+        s.buffer = b;
+        s.connect(ctx.destination);
+        s.start(0);
+      } catch {}
+    }
+    const a = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=");
+    a.volume = 0.01;
+    const p = a.play();
+    if (p && p.then) p.then(() => { a.pause(); }).catch(() => {});
+  } catch {}
+}
+
 export async function sttAudio(audioBlob: Blob): Promise<string> {
   const endpoint =
     process.env.NEXT_PUBLIC_SUPABASE_FUNCTION_URL?.replace(/\/+$/, "") ||

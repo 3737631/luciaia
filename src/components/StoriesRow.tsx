@@ -7,6 +7,7 @@ import { getDailyStorySelection } from "@/lib/getDailyStoryIndex";
 import { getSeenStories, markStorySeen } from "@/lib/storySeenService";
 import { preloadImage } from "@/lib/preloadImage";
 import type { Girl } from "@/data/girls";
+import { unlockAudioGesture } from "@/lib/voiceClient";
 import StoryViewer from "./StoryViewer";
 import StoryVideoViewer from "./StoryVideoViewer";
 
@@ -103,6 +104,7 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
   // ── Open stories (synchronous — no async, no await) ──
   const openStories = useCallback((girl: Girl) => {
     if (girl.storyVideo) {
+      unlockAudioGesture(); // el toque que abre el directo habilita su voz automáticamente
       setStoryVideo({
         src: `${basePath}${girl.storyVideo}`,
         avatar: girl.cloudinaryImage ?? getGirlImage(girl.id, null, null, null, girl.cloudinaryImage),

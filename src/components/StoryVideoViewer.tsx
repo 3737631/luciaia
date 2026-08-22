@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ttsText, getGirlVoice } from "@/lib/voiceClient";
+import { ttsText, getGirlVoice, unlockAudioGesture } from "@/lib/voiceClient";
 
 const APPLE_SPRING = "cubic-bezier(.32,.72,0,1)";
 
@@ -94,11 +94,9 @@ export default function StoryVideoViewer({
   const autoUsedRef = useRef<Set<number>>(new Set());
   const ttsCtxRef = useRef<AudioContext | null>(null);
   const ttsGainRef = useRef<GainNode | null>(null);
-  const unlockFnRef = useRef<() => void>(() => {});
   const prefetchRef = useRef<{ text: string; url: string }[]>([]);
 
   const [closing, setClosing] = useState(false);
-  const [gateOpen, setGateOpen] = useState(false);
   const [likes, setLikes] = useState(3421);
   const [viewers, setViewers] = useState(1247);
   const [hearts, setHearts] = useState<Heart[]>([]);
@@ -112,32 +110,14 @@ export default function StoryVideoViewer({
   const [buffering, setBuffering] = useState(true);
 
   // El video va SIN audio (solo se oye la voz TTS de ella, amplificada).
+  // El audio de la página ya quedó desbloqueado por el toque que abrió el directo
+  // (unlockAudioGesture en StoriesRow). Esto es solo respaldo por si entró directo.
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
     v.muted = true;
     v.play().catch(() => {});
-    // Desbloqueo REAL de audio (iOS exige play() dentro del gesto del usuario)
-    unlockFnRef.current = () => {
-      try {
-        const g = ensureAudioGain();
-        if (g.ctx) {
-          if (g.ctx.state === "suspended") g.ctx.resume().catch(() => {});
-          try {
-            const b = g.ctx.createBuffer(1, 1, 22050);
-            const s = g.ctx.createBufferSource();
-            s.buffer = b;
-            s.connect(g.ctx.destination);
-            s.start(0);
-          } catch {}
-        }
-        const a = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=");
-        a.volume = 0.01;
-        const p = a.play();
-        if (p && p.then) p.then(() => { a.pause(); }).catch(() => { a.pause(); });
-      } catch {}
-    };
-    const onFirstTap = () => { unlockFnRef.current(); };
+    const onFirstTap = () => { unlockAudioGesture(); };
     window.addEventListener("pointerdown", onFirstTap);
     window.addEventListener("touchstart", onFirstTap);
     return () => {
@@ -357,14 +337,6 @@ export default function StoryVideoViewer({
     return () => cancelAnimationFrame(raf);
   }, []);
 
-  // Puerta de entrada: el toque desbloquea el audio (iOS exige gesto) ANTES de cualquier voz
-  const handleGateOpen = () => {
-    unlockFnRef.current();
-    setGateOpen(true);
-    const v = videoRef.current;
-    if (v && v.paused && !closing) v.play().catch(() => {});
-  };
-
   const handleUserComment = () => {
     const text = userComment.trim();
     if (!text) return;
@@ -489,36 +461,6 @@ export default function StoryVideoViewer({
           <source src={videoSrc.replace(/\.mp4$/, "-vp9.webm")} type="video/webm" />
           <source src={videoSrc} type="video/mp4" />
         </video>
-
-        {/* Puerta de entrada: activa el audio con el toque del usuario */}
-        {!gateOpen && (
-          <div
-            onClick={(e) => { e.stopPropagation(); handleGateOpen(); }}
-            style={{
-              position: "absolute", zIndex: 40, inset: 0,
-              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-              background: "rgba(0,0,0,.45)", backdropFilter: "blur(2px)", cursor: "pointer",
-            }}
-          >
-            <div style={{
-              width: 92, height: 92, borderRadius: "50%",
-              border: "3px solid rgba(255,255,255,.9)",
-              background: "rgba(255,45,149,.85)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: "0 0 0 0 rgba(255,45,149,.55)",
-              animation: "ttGatePulse 1.4s ease-out infinite",
-              marginBottom: 18,
-            }}>
-              <svg width="38" height="38" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z" /></svg>
-            </div>
-            <div style={{ color: "#fff", fontWeight: 700, fontSize: 17, textShadow: "0 2px 8px rgba(0,0,0,.6)" }}>
-              Toca para entrar al directo
-            </div>
-            <div style={{ color: "rgba(255,255,255,.75)", fontSize: 13, marginTop: 6, textShadow: "0 1px 6px rgba(0,0,0,.6)" }}>
-              y oír la voz de {name}
-            </div>
-          </div>
-        )}
 
         {/* Corazón de carga (igual que el de "Creando") */}
         {buffering && (
