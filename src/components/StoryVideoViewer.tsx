@@ -458,7 +458,7 @@ export default function StoryVideoViewer({
           onClick={(e) => { e.stopPropagation(); handleClose(); }}
           style={{
             position: "absolute", zIndex: 13,
-            top: "calc(env(safe-area-inset-top,0px) + 4px)", right: 10,
+            top: "calc(env(safe-area-inset-top,0px) + 20px)", right: 10,
             width: 38, height: 38, display: "grid", placeItems: "center",
             border: 0, borderRadius: "50%", background: "rgba(22,22,22,.5)",
             color: "#fff", cursor: "pointer",
@@ -482,7 +482,7 @@ export default function StoryVideoViewer({
           }}
           style={{
             position: "absolute", zIndex: 13,
-            top: "calc(env(safe-area-inset-top,0px) + 50px)", right: 10,
+            top: "calc(env(safe-area-inset-top,0px) + 66px)", right: 10,
             width: 38, height: 38, display: "grid", placeItems: "center",
             border: 0, borderRadius: "50%", background: "rgba(22,22,22,.5)",
             color: "#fff", cursor: "pointer",
@@ -554,6 +554,21 @@ export default function StoryVideoViewer({
           <img src={avatar} alt="" style={{ width: 42, height: 42, borderRadius: "50%", objectFit: "cover", border: "1.5px solid #fff", marginTop: 2 }} />
         </div>
 
+        {/* Comentarios de Sofía: siempre visibles, aunque el chat esté oculto */}
+        <div style={{
+          position: "absolute", zIndex: 12, left: 14, right: 84, bottom: 132,
+          display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 8,
+        }} data-story-interactive>
+          {sofiaComments.map((c) => (
+            <div key={c.id} className="tt-comment" style={{ display: "flex", alignItems: "center", gap: 7, maxWidth: "100%" }}>
+              <img src={avatar} alt="" style={{ width: 24, height: 24, borderRadius: "50%", objectFit: "cover", border: "1.5px solid #fff", flex: "0 0 auto" }} />
+              <span style={{ background: "rgba(254,44,85,.6)", padding: "6px 12px", borderRadius: 16, fontSize: 13, color: "#fff", lineHeight: 1.35, backdropFilter: "blur(4px)", textShadow: "0 1px 1px rgba(0,0,0,.25)" }}>
+                <b style={{ fontWeight: 700 }}>{name}</b>&nbsp; {c.text}
+              </span>
+            </div>
+          ))}
+        </div>
+
         {/* Comments */}
         <div style={{
           position: "absolute", zIndex: 11, left: 14, right: 84, bottom: 80,
@@ -587,14 +602,6 @@ export default function StoryVideoViewer({
               </span>
               <span style={{ background: "rgba(22,22,22,.45)", padding: "5px 11px", borderRadius: 16, fontSize: 12.5, color: "#fff", lineHeight: 1.35, backdropFilter: "blur(4px)" }}>
                 <b style={{ fontWeight: 600 }}>Tú</b>&nbsp; {c.text}
-              </span>
-            </div>
-          ))}
-          {sofiaComments.map((c) => (
-            <div key={c.id} className="tt-comment" style={{ display: "flex", alignItems: "center", gap: 7, maxWidth: "100%" }}>
-              <img src={avatar} alt="" style={{ width: 22, height: 22, borderRadius: "50%", objectFit: "cover", border: "1.5px solid #fff", flex: "0 0 auto" }} />
-              <span style={{ background: "rgba(254,44,85,.55)", padding: "5px 11px", borderRadius: 16, fontSize: 12.5, color: "#fff", lineHeight: 1.35, backdropFilter: "blur(4px)" }}>
-                <b style={{ fontWeight: 600 }}>{name}</b>&nbsp; {c.text}
               </span>
             </div>
           ))}
