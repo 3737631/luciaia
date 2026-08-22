@@ -15,34 +15,34 @@ const SPEAK_WINDOWS: Array<[number, number]> = [
   [55.67, 56.16],
 ];
 
-const REPLIES_TINY = ["Hola...", "Sí...", "Guapo...", "Mmm... dale", "Aquí estoy", "Te veo"];
+const REPLIES_TINY = ["Uff sí...", "Dale, papi...", "Qué rico...", "Mmm guapo...", "No pares...", "Sí, sígue"];
 const REPLIES_SHORT = [
-  "Hola cariño, qué alegría verte",
-  "Me encanta que me escribas",
-  "¿Qué tal guapo? Me haces sonreír",
-  "Estoy aquí pensando en ti",
+  "Me encantas, no dejo de pensarte",
+  "Si estuvieras aquí no te dejaba ir",
+  "Tu mensaje me ha puesto malpensada",
+  "Hablar contigo me pone a mil",
 ];
 const REPLIES_MED = [
-  "Hola precioso... sabes que escribirte mientras estoy en directo me pone muy contenta",
-  "Qué bien que hayas entrado... estaba deseando que alguien como tú me escribiera",
-  "Me pones nerviosa buena cuando me hablas así... no pares",
+  "Me encanta que me hables así... si ahora mismo estuvieras aquí te haría cosas muy malas",
+  "Estoy sola en casa y tú me dices eso... qué quieres que haga yo contigo",
+  "Cada vez que me escribes siento un cosquilleo... no sabes lo que me provocas",
 ];
 const REPLIES_LONG = [
-  "Hola cariño... la verdad es que me hace muchísima ilusión que me escribas en directo, me encantaría que te quedaras un rato conmigo",
-  "Sabes que cuando me escribes así se me dibuja una sonrisa imposible... cuéntame más sobre ti, quiero saberlo todo",
+  "Uff cariño... me encanta cuando me hablas así, me pongo tan caliente que tengo que morderme el labio... sigue y verás qué hago después en privado",
+  "Sabes que eres peligroso para mí... me dices esas cosas y ya estoy imaginando esta noche contigo, sin ropa y sin prisa... cuéntame más",
 ];
 
 const FAKE_USERS: Array<[string, string]> = [
-  ["carlos_87", "Hola Sofía!! ❤️"],
-  ["Luna", "Qué hermosa eres 😍"],
-  ["edu", "En vivooo 🔥"],
-  ["ana2026", "Saludos desde Colombia 🇨🇴"],
-  ["Mari 🧡", "Te quiero muchísimo 💕"],
-  ["tiktok_fan", "Eres increíble 🌟"],
-  ["marco10", "Besitos desde México 🇲🇽"],
-  ["sofiafans", "Ese look te queda 💜"],
-  ["julian", "Primera vez en tu live 🔥"],
-  ["valen_", "Eres mi favorita 🌸"],
+  ["carlos_87", "Ese cuerpo me vuelve loco 😈"],
+  ["Luna", "Qué rica estás 🔥"],
+  ["edu", "Me pones a mil ❤️‍🔥"],
+  ["ana2026", "Quiero hacer cosas contigo 😈"],
+  ["Mari 🧡", "La más sexy que he visto 🥵"],
+  ["tiktok_fan", "Ese outfit es pura tentación 🔥"],
+  ["marco10", "Vente a México y nos divertimos 😏"],
+  ["sofiafans", "Modo caliente activado 😏🔥"],
+  ["julian", "Entré a tu live y no puedo dejar de mirarte 🥵"],
+  ["valen_", "Eres pura tentación 🌸😈"],
 ];
 
 const HEART_EMOJIS = ["❤️", "💖", "💕", "🥰", "💗"];
@@ -90,6 +90,8 @@ export default function StoryVideoViewer({
   const scrollYRef = useRef(0);
   const replyAudioRef = useRef<HTMLAudioElement | null>(null);
   const replyDataRef = useRef<string | null>(null);
+  const pendingReplyRef = useRef<string | null>(null);
+  const autoUsedRef = useRef<Set<number>>(new Set());
 
   const [closing, setClosing] = useState(false);
   const [likes, setLikes] = useState(3421);
@@ -103,7 +105,6 @@ export default function StoryVideoViewer({
   const [sofiaComments, setSofiaComments] = useState<{ id: number; text: string }[]>([]);
   const [showChat, setShowChat] = useState(true);
   const [buffering, setBuffering] = useState(true);
-  const [pendingReply, setPendingReply] = useState<{ text: string } | null>(null);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -180,47 +181,64 @@ export default function StoryVideoViewer({
     }, 7000);
   };
 
-  // Cuando hay respuesta pendiente, espera con rAF a que el video entre en una ventana y habla entonces
+  const playReplyAudio = (text: string) => {
+    const data = replyDataRef.current;
+    replyDataRef.current = null;
+    if (data && replyAudioRef.current === null) {
+      try {
+        const au = new Audio(data);
+        replyAudioRef.current = au;
+        au.onended = () => { replyAudioRef.current = null; };
+        au.play().catch(() => {});
+      } catch {}
+    } else if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "es-ES";
+      u.rate = 1.05;
+      u.pitch = 1.1;
+      const voices = window.speechSynthesis.getVoices();
+      const female = voices.find((vv) => vv.lang.startsWith("es") && /femenin|female|paulina|monica|elena|conchita/i.test(vv.name)) || voices.find((vv) => vv.lang.startsWith("es"));
+      if (female) u.voice = female;
+      window.speechSynthesis.speak(u);
+    }
+  };
+
+  // Motor único: en cada ventana del video Sofía dice algo.
+  // Si hay respuesta pendiente del usuario, esa tiene prioridad; si no, frase caliente automática.
   useEffect(() => {
-    if (!pendingReply) return;
     let raf = 0;
-    let fired = false;
+    let lastT = -1;
     const tick = () => {
       const v = videoRef.current;
-      if (!v || !mountedRef.current || fired) return;
+      if (!v || !mountedRef.current) return;
       const t = v.currentTime;
-      const win = SPEAK_WINDOWS.find(([a, b]) => t >= a - 0.08 && t <= b);
-      if (win) {
-        fired = true;
-        setPendingReply(null);
-        const text = pendingReply.text;
-        showSofiaReply(text);
-        const data = replyDataRef.current;
-        if (data && replyAudioRef.current === null) {
-          try {
-            const au = new Audio(data);
-            replyAudioRef.current = au;
-            au.onended = () => { replyAudioRef.current = null; };
-            au.play().catch(() => {});
-          } catch {}
-        } else if ("speechSynthesis" in window) {
-          window.speechSynthesis.cancel();
-          const u = new SpeechSynthesisUtterance(text);
-          u.lang = "es-ES";
-          u.rate = 1.05;
-          u.pitch = 1.1;
-          const voices = window.speechSynthesis.getVoices();
-          const female = voices.find((vv) => vv.lang.startsWith("es") && /femenin|female|paulina|monica|elena|conchita/i.test(vv.name)) || voices.find((vv) => vv.lang.startsWith("es"));
-          if (female) u.voice = female;
-          window.speechSynthesis.speak(u);
+      if (t < lastT - 1) autoUsedRef.current.clear(); // el video dió la vuelta
+      lastT = t;
+
+      const idx = SPEAK_WINDOWS.findIndex(([a, b]) => t >= a - 0.08 && t <= b);
+      if (idx >= 0 && !autoUsedRef.current.has(idx)) {
+        autoUsedRef.current.add(idx);
+        const pendingText = pendingReplyRef.current;
+        if (pendingText) {
+          pendingReplyRef.current = null;
+          showSofiaReply(pendingText);
+          playReplyAudio(pendingText);
+        } else {
+          const [a, b] = SPEAK_WINDOWS[idx];
+          const line = pickReply(b - a);
+          showSofiaReply(line);
+          // TTS en caliente: pide y reproduce en cuanto llegue
+          ttsText(line, getGirlVoice(girlId || "luna"))
+            .then((r) => { replyDataRef.current = `data:audio/mp3;base64,${r.audio}`; playReplyAudio(line); })
+            .catch(() => { playReplyAudio(line); });
         }
-        return;
       }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [pendingReply]);
+  }, []);
 
   const handleUserComment = () => {
     const text = userComment.trim();
@@ -231,17 +249,22 @@ export default function StoryVideoViewer({
     const v = videoRef.current;
     const now = v ? v.currentTime : 0;
     let win: [number, number] | null = null;
-    for (const w of SPEAK_WINDOWS) {
-      if (w[0] > now + 0.2) { win = w; break; }
+    for (let i = 0; i < SPEAK_WINDOWS.length; i++) {
+      const w = SPEAK_WINDOWS[i];
+      if (w[0] > now + 0.2 && !autoUsedRef.current.has(i)) { win = w; break; }
     }
-    if (!win) win = SPEAK_WINDOWS[0]; // siguiente vuelta del bucle
+    if (!win) {
+      // siguiente vuelta del bucle: libera todas las ventanas
+      autoUsedRef.current.clear();
+      win = SPEAK_WINDOWS[0];
+    }
     const replyText = pickReply(win[1] - win[0]);
     replyAudioRef.current = null;
     replyDataRef.current = null;
     ttsText(replyText, getGirlVoice(girlId || "luna"))
       .then((r) => { replyDataRef.current = `data:audio/mp3;base64,${r.audio}`; })
       .catch(() => { replyDataRef.current = null; });
-    setPendingReply({ text: replyText });
+    pendingReplyRef.current = replyText;
   };
 
   const spawnHearts = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -332,26 +355,34 @@ export default function StoryVideoViewer({
             objectFit: "cover",
             display: "block",
             pointerEvents: "none",
-            filter: warmFilter ? "sepia(0.18) saturate(1.25) brightness(1.05) hue-rotate(-5deg)" : "none",
+            filter: warmFilter ? "sepia(0.28) saturate(1.4) brightness(1.06) hue-rotate(-8deg)" : "none",
             transition: "filter 1.5s ease",
           }}
         />
 
-        {/* Corazón parpadeante mientras carga */}
+        {/* Corazón de carga (igual que el de "Creando") */}
         {buffering && (
           <div style={{
             position: "absolute", zIndex: 14, inset: 0,
             display: "grid", placeItems: "center", pointerEvents: "none",
           }}>
-            <span style={{
-              fontSize: 46, lineHeight: 1,
-              animation: "ttHeartPulse 1s ease-in-out infinite",
-              filter: "drop-shadow(0 2px 14px rgba(254,44,85,.7))",
-            }}>❤️</span>
+            <div style={{ position: "relative", width: 96, height: 96, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <span style={{
+                position: "absolute", inset: 0, borderRadius: "50%",
+                background: "rgba(255,87,152,.15)", filter: "blur(24px)",
+                animation: "ttCreateGlow 2.6s ease-in-out infinite",
+              }} />
+              <svg
+                width="40" height="40" viewBox="0 0 24 24" fill="#FF5798"
+                style={{ animation: "ttCreateBeat 1.1s ease-in-out infinite", transformOrigin: "50% 50%" }}
+              >
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+              </svg>
+            </div>
           </div>
         )}
 
-        <style>{`@keyframes ttHeartPulse { 0%,100% { transform: scale(1); opacity:.55 } 50% { transform: scale(1.28); opacity:1 } }`}</style>
+        <style>{`@keyframes ttCreateBeat{0%,100%{transform:scale(1)}50%{transform:scale(1.22)}}@keyframes ttCreateGlow{0%,100%{opacity:.35;transform:scale(.85)}50%{opacity:.75;transform:scale(1.15)}}`}</style>
 
         {/* Gradients */}
         <div style={{
@@ -412,19 +443,6 @@ export default function StoryVideoViewer({
               </svg>
             </span>
             <span style={{ fontSize: 11, fontWeight: 600, color: "#fff", textShadow: "0 1px 2px rgba(0,0,0,.5)" }}>{fmt(likes)}</span>
-          </button>
-
-          <button
-            aria-label="Comentarios"
-            onClick={(e) => e.stopPropagation()}
-            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, border: 0, background: "transparent", cursor: "pointer", padding: 0 }}
-          >
-            <span style={{ width: 40, height: 40, display: "grid", placeItems: "center", borderRadius: "50%", background: "rgba(22,22,22,.45)", color: "#fff" }}>
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-              </svg>
-            </span>
-            <span style={{ fontSize: 11, fontWeight: 600, color: "#fff", textShadow: "0 1px 2px rgba(0,0,0,.5)" }}>{fmt(1204)}</span>
           </button>
 
           {/* Botón chat (mismo icono que en videollamada): oculta/muestra el chat */}
@@ -522,7 +540,7 @@ export default function StoryVideoViewer({
               value={userComment}
               onChange={(e) => setUserComment(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleUserComment(); } }}
-              placeholder="Escribe a Sofía..."
+              placeholder="Escribe algo caliente a Sofía..."
               onClick={(e) => e.stopPropagation()}
               style={{
                 flex: 1, background: "transparent", border: 0, outline: "none",
