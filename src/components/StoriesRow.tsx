@@ -20,7 +20,7 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
     startCharIndex: number;
     ready: boolean;
   } | null>(null);
-  const [storyVideo, setStoryVideo] = useState<{ src: string; avatar: string; name: string } | null>(null);
+  const [storyVideo, setStoryVideo] = useState<{ src: string; avatar: string; name: string; girlId: string } | null>(null);
   const [criticalStoriesReady, setCriticalStoriesReady] = useState(false);
 
   // ── Build URL lists for preload ──
@@ -107,6 +107,7 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
         src: `${basePath}${girl.storyVideo}`,
         avatar: girl.cloudinaryImage ?? getGirlImage(girl.id, null, null, null, girl.cloudinaryImage),
         name: girl.name,
+        girlId: girl.id,
       });
       return;
     }
@@ -137,6 +138,7 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
           videoSrc={storyVideo.src}
           avatar={storyVideo.avatar}
           name={storyVideo.name}
+          girlId={storyVideo.girlId}
           onClose={() => setStoryVideo(null)}
         />
       )}

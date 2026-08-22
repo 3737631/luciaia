@@ -2,8 +2,35 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { ttsText, getGirlVoice } from "@/lib/voiceClient";
 
 const APPLE_SPRING = "cubic-bezier(.32,.72,0,1)";
+
+// Ventanas (segundos del video) en las que Sofía puede hablar
+const SPEAK_WINDOWS: Array<[number, number]> = [
+  [10.96, 14],
+  [14.27, 23.75],
+  [30.61, 31.85],
+  [40.67, 42.3],
+  [55.67, 56.16],
+];
+
+const REPLIES_TINY = ["Hola...", "Sí...", "Guapo...", "Mmm... dale", "Aquí estoy", "Te veo"];
+const REPLIES_SHORT = [
+  "Hola cariño, qué alegría verte",
+  "Me encanta que me escribas",
+  "¿Qué tal guapo? Me haces sonreír",
+  "Estoy aquí pensando en ti",
+];
+const REPLIES_MED = [
+  "Hola precioso... sabes que escribirte mientras estoy en directo me pone muy contenta",
+  "Qué bien que hayas entrado... estaba deseando que alguien como tú me escribiera",
+  "Me pones nerviosa buena cuando me hablas así... no pares",
+];
+const REPLIES_LONG = [
+  "Hola cariño... la verdad es que me hace muchísima ilusión que me escribas en directo, me encantaría que te quedaras un rato conmigo",
+  "Sabes que cuando me escribes así se me dibuja una sonrisa imposible... cuéntame más sobre ti, quiero saberlo todo",
+];
 
 const FAKE_USERS: Array<[string, string]> = [
   ["carlos_87", "Hola Sofía!! ❤️"],
@@ -48,17 +75,21 @@ export default function StoryVideoViewer({
   videoSrc,
   avatar,
   name,
+  girlId,
   onClose,
 }: {
   videoSrc: string;
   avatar: string;
   name: string;
+  girlId?: string;
   onClose: () => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef(true);
   const scrollYRef = useRef(0);
+  const replyAudioRef = useRef<HTMLAudioElement | null>(null);
+  const replyDataRef = useRef<string | null>(null);
 
   const [closing, setClosing] = useState(false);
   const [likes, setLikes] = useState(3421);
@@ -69,7 +100,10 @@ export default function StoryVideoViewer({
   const [warmFilter, setWarmFilter] = useState(false);
   const [userComment, setUserComment] = useState("");
   const [userComments, setUserComments] = useState<{ id: number; text: string }[]>([]);
+  const [sofiaComments, setSofiaComments] = useState<{ id: number; text: string }[]>([]);
   const [showChat, setShowChat] = useState(true);
+  const [buffering, setBuffering] = useState(true);
+  const [pendingReply, setPendingReply] = useState<{ text: string } | null>(null);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -102,26 +136,11 @@ export default function StoryVideoViewer({
         if (mountedRef.current) setComments((c) => c.filter((k) => k.id !== id));
       }, 6800);
     };
-    const spawnGift = () => {
-      if (!mountedRef.current) return;
-      const id = nextId();
-      const g: GiftPop = {
-        id,
-        emoji: GIFT_EMOJIS[Math.floor(Math.random() * GIFT_EMOJIS.length)],
-        x: 14 + Math.random() * 52,
-      };
-      setGifts((gs) => [...gs.slice(-4), g]);
-      setTimeout(() => {
-        if (mountedRef.current) setGifts((gs) => gs.filter((k) => k.id !== id));
-      }, 2500);
-    };
     const t1 = setInterval(spawnComment, 2100);
-    const t2 = setInterval(spawnGift, 7000);
     const t3 = setInterval(() => setViewers((v) => v + (Math.random() < 0.5 ? -1 : 1)), 4000);
     spawnComment();
     return () => {
       clearInterval(t1);
-      clearInterval(t2);
       clearInterval(t3);
     };
   }, []);
@@ -131,6 +150,10 @@ export default function StoryVideoViewer({
     setClosing(true);
     videoRef.current?.pause();
     if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    if (replyAudioRef.current) {
+      replyAudioRef.current.pause();
+      replyAudioRef.current = null;
+    }
     setTimeout(onClose, 280);
   };
 
@@ -139,24 +162,86 @@ export default function StoryVideoViewer({
     if (v && v.currentTime >= 10 && !warmFilter) setWarmFilter(true);
   };
 
+  const pickReply = (availSecs: number): string => {
+    const budget = Math.floor(availSecs * 13);
+    const pools = [REPLIES_LONG, REPLIES_MED, REPLIES_SHORT, REPLIES_TINY];
+    for (const pool of pools) {
+      const fits = pool.filter((t) => t.length <= budget);
+      if (fits.length) return fits[Math.floor(Math.random() * fits.length)];
+    }
+    return "Hola";
+  };
+
+  const showSofiaReply = (text: string) => {
+    const id = nextId();
+    setSofiaComments((prev) => [...prev.slice(-4), { id, text }]);
+    setTimeout(() => {
+      if (mountedRef.current) setSofiaComments((prev) => prev.filter((c) => c.id !== id));
+    }, 7000);
+  };
+
+  // Cuando hay respuesta pendiente, espera con rAF a que el video entre en una ventana y habla entonces
+  useEffect(() => {
+    if (!pendingReply) return;
+    let raf = 0;
+    let fired = false;
+    const tick = () => {
+      const v = videoRef.current;
+      if (!v || !mountedRef.current || fired) return;
+      const t = v.currentTime;
+      const win = SPEAK_WINDOWS.find(([a, b]) => t >= a - 0.08 && t <= b);
+      if (win) {
+        fired = true;
+        setPendingReply(null);
+        const text = pendingReply.text;
+        showSofiaReply(text);
+        const data = replyDataRef.current;
+        if (data && replyAudioRef.current === null) {
+          try {
+            const au = new Audio(data);
+            replyAudioRef.current = au;
+            au.onended = () => { replyAudioRef.current = null; };
+            au.play().catch(() => {});
+          } catch {}
+        } else if ("speechSynthesis" in window) {
+          window.speechSynthesis.cancel();
+          const u = new SpeechSynthesisUtterance(text);
+          u.lang = "es-ES";
+          u.rate = 1.05;
+          u.pitch = 1.1;
+          const voices = window.speechSynthesis.getVoices();
+          const female = voices.find((vv) => vv.lang.startsWith("es") && /femenin|female|paulina|monica|elena|conchita/i.test(vv.name)) || voices.find((vv) => vv.lang.startsWith("es"));
+          if (female) u.voice = female;
+          window.speechSynthesis.speak(u);
+        }
+        return;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [pendingReply]);
+
   const handleUserComment = () => {
     const text = userComment.trim();
     if (!text) return;
     const id = nextId();
     setUserComments((prev) => [...prev.slice(-4), { id, text }]);
     setUserComment("");
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = "es-ES";
-      u.rate = 1.05;
-      u.pitch = 1.1;
-      const voices = window.speechSynthesis.getVoices();
-      const female = voices.find((v) => v.lang.startsWith("es") && /femenin|female|paulina|monica|elena|conchita/i.test(v.name)) || voices.find((v) => v.lang.startsWith("es"));
-      if (female) u.voice = female;
-      window.speechSynthesis.speak(u);
+    const v = videoRef.current;
+    const now = v ? v.currentTime : 0;
+    let win: [number, number] | null = null;
+    for (const w of SPEAK_WINDOWS) {
+      if (w[0] > now + 0.2) { win = w; break; }
     }
-    setTimeout(() => setUserComments((prev) => prev.filter((c) => c.id !== id)), 8000);
+    if (!win) win = SPEAK_WINDOWS[0]; // siguiente vuelta del bucle
+    const replyText = pickReply(win[1] - win[0]);
+    replyAudioRef.current = null;
+    replyDataRef.current = null;
+    ttsText(replyText, getGirlVoice(girlId || "luna"))
+      .then((r) => { replyDataRef.current = `data:audio/mp3;base64,${r.audio}`; })
+      .catch(() => { replyDataRef.current = null; });
+    setPendingReply({ text: replyText });
   };
 
   const spawnHearts = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -185,8 +270,6 @@ export default function StoryVideoViewer({
     setGifts((gs) => [...gs.slice(-4), g]);
     setTimeout(() => setGifts((gs) => gs.filter((k) => k.id !== g.id)), 2500);
   };
-
-  const handle = name.trim().toLowerCase().replace(/[^a-z0-9_.]/g, "").slice(0, 14) || "sofia";
 
   const frame = (
     <div
@@ -238,6 +321,9 @@ export default function StoryVideoViewer({
           playsInline
           preload="auto"
           onTimeUpdate={handleTimeUpdate}
+          onCanPlay={() => setBuffering(false)}
+          onPlaying={() => setBuffering(false)}
+          onWaiting={() => setBuffering(true)}
           poster="/sofia-poster.jpg"
           className="story-video-media"
           style={{
@@ -251,6 +337,22 @@ export default function StoryVideoViewer({
           }}
         />
 
+        {/* Corazón parpadeante mientras carga */}
+        {buffering && (
+          <div style={{
+            position: "absolute", zIndex: 14, inset: 0,
+            display: "grid", placeItems: "center", pointerEvents: "none",
+          }}>
+            <span style={{
+              fontSize: 46, lineHeight: 1,
+              animation: "ttHeartPulse 1s ease-in-out infinite",
+              filter: "drop-shadow(0 2px 14px rgba(254,44,85,.7))",
+            }}>❤️</span>
+          </div>
+        )}
+
+        <style>{`@keyframes ttHeartPulse { 0%,100% { transform: scale(1); opacity:.55 } 50% { transform: scale(1.28); opacity:1 } }`}</style>
+
         {/* Gradients */}
         <div style={{
           position: "absolute", zIndex: 5, inset: "0 0 auto", height: 165,
@@ -263,18 +365,15 @@ export default function StoryVideoViewer({
           pointerEvents: "none",
         }} />
 
-        {/* Avatar + user + follow */}
+        {/* Avatar de perfil (sin @nombre) */}
         <div style={{
           position: "absolute", zIndex: 12,
-          top: "calc(env(safe-area-inset-top,0px) + 52px)", left: 12,
-          display: "flex", alignItems: "center", gap: 8, maxWidth: "calc(100% - 90px)",
+          top: "calc(env(safe-area-inset-top,0px) + 10px)", left: 12,
+          display: "flex", alignItems: "center",
         }} data-story-interactive>
           <span style={{ position: "relative", display: "flex", flex: "0 0 auto" }}>
             <span style={{ position: "absolute", inset: -2, borderRadius: "50%", background: "linear-gradient(135deg,#fe2c55,#ff8a00)" }} />
-            <img src={avatar} alt="" style={{ position: "relative", width: 30, height: 30, borderRadius: "50%", objectFit: "cover", border: "2px solid #000" }} />
-          </span>
-          <span style={{ color: "#fff", fontSize: 13, fontWeight: 700, textShadow: "0 1px 2px rgba(0,0,0,.5)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-            @{handle}
+            <img src={avatar} alt="" style={{ position: "relative", width: 34, height: 34, borderRadius: "50%", objectFit: "cover", border: "2px solid #000" }} />
           </span>
         </div>
 
@@ -292,22 +391,6 @@ export default function StoryVideoViewer({
         >
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
-
-        {/* Chat toggle */}
-        <button
-          onClick={() => setShowChat((v) => !v)}
-          style={{
-            position: "absolute", zIndex: 13,
-            top: "calc(env(safe-area-inset-top,0px) + 80px)", right: 10,
-            width: 38, height: 38, display: "grid", placeItems: "center",
-            border: 0, borderRadius: "50%", background: "rgba(22,22,22,.5)",
-            color: "#fff", cursor: "pointer",
-          }}
-        >
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <path d="M8 12l4 4L16 8" />
           </svg>
         </button>
 
@@ -342,6 +425,23 @@ export default function StoryVideoViewer({
               </svg>
             </span>
             <span style={{ fontSize: 11, fontWeight: 600, color: "#fff", textShadow: "0 1px 2px rgba(0,0,0,.5)" }}>{fmt(1204)}</span>
+          </button>
+
+          {/* Botón chat (mismo icono que en videollamada): oculta/muestra el chat */}
+          <button
+            aria-label={showChat ? "Ocultar chat" : "Mostrar chat"}
+            onClick={(e) => { e.stopPropagation(); setShowChat((v) => !v); }}
+            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, border: 0, background: "transparent", cursor: "pointer", padding: 0 }}
+          >
+            <span style={{
+              width: 40, height: 40, display: "grid", placeItems: "center", borderRadius: "50%",
+              background: showChat ? "#e2183b" : "rgba(22,22,22,.45)", color: "#fff",
+            }}>
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+            </span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: "#fff", textShadow: "0 1px 2px rgba(0,0,0,.5)" }}>Chat</span>
           </button>
 
           <button
@@ -393,6 +493,14 @@ export default function StoryVideoViewer({
               </span>
               <span style={{ background: "rgba(22,22,22,.45)", padding: "5px 11px", borderRadius: 16, fontSize: 12.5, color: "#fff", lineHeight: 1.35, backdropFilter: "blur(4px)" }}>
                 <b style={{ fontWeight: 600 }}>Tú</b>&nbsp; {c.text}
+              </span>
+            </div>
+          ))}
+          {sofiaComments.map((c) => (
+            <div key={c.id} className="tt-comment" style={{ display: "flex", alignItems: "center", gap: 7, maxWidth: "100%" }}>
+              <img src={avatar} alt="" style={{ width: 22, height: 22, borderRadius: "50%", objectFit: "cover", border: "1.5px solid #fff", flex: "0 0 auto" }} />
+              <span style={{ background: "rgba(254,44,85,.55)", padding: "5px 11px", borderRadius: 16, fontSize: 12.5, color: "#fff", lineHeight: 1.35, backdropFilter: "blur(4px)" }}>
+                <b style={{ fontWeight: 600 }}>{name}</b>&nbsp; {c.text}
               </span>
             </div>
           ))}
