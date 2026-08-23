@@ -8,12 +8,19 @@ const APPLE_SPRING = "cubic-bezier(.32,.72,0,1)";
 
 // Ventanas (segundos del video) en las que Sofía puede hablar
 const SPEAK_LAG = 1.2; // ella dice las frases un pelín más tarde
-const SPEAK_WINDOWS: Array<[number, number]> = [
+const SOFIA_WINDOWS: Array<[number, number]> = [
   [10.96, 14],
   [14.27, 23.75],
   [30.61, 31.85],
   [40.67, 42.3],
   [55.67, 56.16],
+];
+const KIRA_WINDOWS: Array<[number, number]> = [
+  [8, 11.5],
+  [17.5, 21],
+  [27.5, 30.5],
+  [40.5, 43.5],
+  [52, 55],
 ];
 
 const REPLIES_TINY = ["Uff sí...", "Dale, papi...", "Qué rico...", "Mmm guapo...", "No pares...", "Sí, sígue"];
@@ -147,10 +154,13 @@ export default function StoryVideoViewer({
     };
   }, []);
 
+  // Ventanas de habla según la chica del directo
+  const speakWindows = girlId === "kira" ? KIRA_WINDOWS : SOFIA_WINDOWS;
+
   // Precarga de las 5 frases de las ventanas: al abrirse la ventana suenan AL INSTANTE
   useEffect(() => {
     let alive = true;
-    SPEAK_WINDOWS.forEach(([a, b], i) => {
+    speakWindows.forEach(([a, b], i) => {
       const line = pickReply(b - a);
       ttsText(line, getGirlVoice(girlId || "luna"))
         .then((r) => { if (alive) prefetchRef.current[i] = { text: line, url: `data:audio/mp3;base64,${r.audio}` }; })
@@ -333,7 +343,7 @@ export default function StoryVideoViewer({
       if (t < lastT - 1) autoUsedRef.current.clear(); // el video dió la vuelta
       lastT = t;
 
-      const idx = SPEAK_WINDOWS.findIndex(([a, b]) => t >= a - 0.08 + SPEAK_LAG && t <= b + SPEAK_LAG);
+      const idx = speakWindows.findIndex(([a, b]) => t >= a - 0.08 + SPEAK_LAG && t <= b + SPEAK_LAG);
       if (idx >= 0 && !autoUsedRef.current.has(idx)) {
         autoUsedRef.current.add(idx);
         const pendingText = pendingReplyRef.current;
@@ -350,7 +360,7 @@ export default function StoryVideoViewer({
             replyDataRef.current = pre;
             playReplyAudio(pre.text);
           } else {
-            const [a, b] = SPEAK_WINDOWS[idx];
+            const [a, b] = speakWindows[idx];
             const line = pickReply(b - a);
             showSofiaReply(line);
             // TTS en caliente: pide y reproduce en cuanto llegue
@@ -375,14 +385,14 @@ export default function StoryVideoViewer({
     const v = videoRef.current;
     const now = v ? v.currentTime : 0;
     let win: [number, number] | null = null;
-    for (let i = 0; i < SPEAK_WINDOWS.length; i++) {
-      const w = SPEAK_WINDOWS[i];
+    for (let i = 0; i < speakWindows.length; i++) {
+      const w = speakWindows[i];
       if (w[0] + SPEAK_LAG > now + 0.2 && !autoUsedRef.current.has(i)) { win = w; break; }
     }
     if (!win) {
       // siguiente vuelta del bucle: libera todas las ventanas
       autoUsedRef.current.clear();
-      win = SPEAK_WINDOWS[0];
+      win = speakWindows[0];
     }
     const replyText = pickReply(win[1] - win[0]);
     replyAudioRef.current = null;
@@ -473,7 +483,7 @@ export default function StoryVideoViewer({
           onStalled={() => { setBuffering(true); }}
           onPlaying={() => setBuffering(false)}
           onWaiting={() => setBuffering(true)}
-          poster="/sofia-poster.jpg"
+          poster={videoSrc.replace(/\.mp4$/, "-poster.jpg")}
           className="story-video-media"
           style={{
             width: "100%",

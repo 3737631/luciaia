@@ -164,6 +164,7 @@ export const girls: Girl[] = [
       "El sol se está poniendo. Justo a tiempo.",
     ],
     cloudinaryImage: "https://res.cloudinary.com/dmuxgamms/image/upload/v1783787856/photo_2026-07-11_18-36-06_akrzjw.jpg",
+    storyVideo: "/kira-directo.mp4",
   },
   {
     id: "maya",
