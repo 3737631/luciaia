@@ -469,10 +469,8 @@ export default function StoryVideoViewer({
             transition: "filter 1.5s ease",
           }}
         >
-          {/* HEVC (iPhone/móviles con HEVC) → H.264 max calidad → VP9 */}
-          <source src={videoSrc.replace(/\.mp4$/, "-hevc.mp4")} type='video/mp4; codecs="hvc1"' />
+          {/* UNA sola fuente: el stream original bit-exacto. Sin HEVC ni VP9 intermedios. */}
           <source src={videoSrc} type="video/mp4" />
-          <source src={videoSrc.replace(/\.mp4$/, "-vp9.webm")} type="video/webm" />
         </video>
 
         {/* Corazón de carga (igual que el de "Creando") */}
