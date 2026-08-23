@@ -16,11 +16,12 @@ const SOFIA_WINDOWS: Array<[number, number]> = [
   [55.67, 56.16],
 ];
 const KIRA_WINDOWS: Array<[number, number]> = [
-  [8, 11.5],
-  [17.5, 21],
-  [27.5, 30.5],
-  [40.5, 43.5],
-  [52, 55],
+  [1, 7.5],
+  [13.2, 17.4],
+  [23.1, 26.3],
+  [33.4, 36.2],
+  [41.1, 43.3],
+  [51.5, 55.8],
 ];
 
 const REPLIES_TINY = ["Uff sí...", "Dale, papi...", "Qué rico...", "Mmm guapo...", "No pares...", "Sí, sígue"];
@@ -154,8 +155,9 @@ export default function StoryVideoViewer({
     };
   }, []);
 
-  // Ventanas de habla según la chica del directo
+  // Ventanas de habla según la chica del directo (Kira: segundos exactos de sus labios, sin retraso)
   const speakWindows = girlId === "kira" ? KIRA_WINDOWS : SOFIA_WINDOWS;
+  const speakLag = girlId === "kira" ? 0 : SPEAK_LAG;
 
   // Precarga de las 5 frases de las ventanas: al abrirse la ventana suenan AL INSTANTE
   useEffect(() => {
@@ -343,7 +345,7 @@ export default function StoryVideoViewer({
       if (t < lastT - 1) autoUsedRef.current.clear(); // el video dió la vuelta
       lastT = t;
 
-      const idx = speakWindows.findIndex(([a, b]) => t >= a - 0.08 + SPEAK_LAG && t <= b + SPEAK_LAG);
+      const idx = speakWindows.findIndex(([a, b]) => t >= a - 0.08 + speakLag && t <= b + speakLag);
       if (idx >= 0 && !autoUsedRef.current.has(idx)) {
         autoUsedRef.current.add(idx);
         const pendingText = pendingReplyRef.current;
@@ -387,7 +389,7 @@ export default function StoryVideoViewer({
     let win: [number, number] | null = null;
     for (let i = 0; i < speakWindows.length; i++) {
       const w = speakWindows[i];
-      if (w[0] + SPEAK_LAG > now + 0.2 && !autoUsedRef.current.has(i)) { win = w; break; }
+      if (w[0] + speakLag > now + 0.2 && !autoUsedRef.current.has(i)) { win = w; break; }
     }
     if (!win) {
       // siguiente vuelta del bucle: libera todas las ventanas
