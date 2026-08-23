@@ -98,7 +98,6 @@ export default function StoryVideoViewer({
   const mountedRef = useRef(true);
   const scrollYRef = useRef(0);
   const replyAudioRef = useRef<HTMLAudioElement | null>(null);
-  const bgmRef = useRef<HTMLAudioElement | null>(null);
   const replyDataRef = useRef<{ text: string; url: string } | null>(null);
   const pendingReplyRef = useRef<string | null>(null);
   const autoUsedRef = useRef<Set<number>>(new Set());
@@ -133,25 +132,6 @@ export default function StoryVideoViewer({
     return () => {
       window.removeEventListener("pointerdown", onFirstTap);
       window.removeEventListener("touchstart", onFirstTap);
-    };
-  }, []);
-
-  // Música ambiental de fondo: suave, en loop, y baja aún más cuando ella habla
-  useEffect(() => {
-    const bp = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
-    const b = new Audio(`${bp}/sofia-ambiente.mp3`);
-    b.loop = true;
-    b.volume = 0.25;
-    bgmRef.current = b;
-    const tryPlay = () => { if (b.paused) b.play().catch(() => {}); };
-    tryPlay();
-    window.addEventListener("pointerdown", tryPlay);
-    window.addEventListener("touchstart", tryPlay);
-    return () => {
-      window.removeEventListener("pointerdown", tryPlay);
-      window.removeEventListener("touchstart", tryPlay);
-      try { b.pause(); } catch {}
-      bgmRef.current = null;
     };
   }, []);
 
@@ -274,10 +254,6 @@ export default function StoryVideoViewer({
 
   // Reproduce SIEMPRE el nuevo mensaje: corta el anterior.
   // Cadena garantizada: audio TTS amplificado → si el navegador bloquea el play → voz del navegador.
-  const duckBgm = (down: boolean) => {
-    if (bgmRef.current) bgmRef.current.volume = down ? 0.1 : 0.25;
-  };
-
   const synthSpeak = (text: string) => {
     if (!("speechSynthesis" in window)) return;
     window.speechSynthesis.cancel();
@@ -286,12 +262,9 @@ export default function StoryVideoViewer({
     u.rate = 1.05;
     u.pitch = 1.1;
     u.volume = 1;
-    u.onend = () => { duckBgm(false); };
-    u.onerror = () => { duckBgm(false); };
     const voices = window.speechSynthesis.getVoices();
     const female = voices.find((vv) => vv.lang.startsWith("es") && /femenin|female|paulina|monica|elena|conchita/i.test(vv.name)) || voices.find((vv) => vv.lang.startsWith("es"));
     if (female) u.voice = female;
-    duckBgm(true);
     window.speechSynthesis.speak(u);
   };
 
@@ -315,9 +288,8 @@ export default function StoryVideoViewer({
         g.ctx.resume().catch(() => {});
       }
       let started = false;
-      au.onended = () => { replyAudioRef.current = null; duckBgm(false); };
-      au.onerror = () => { replyAudioRef.current = null; duckBgm(false); };
-      duckBgm(true);
+      au.onended = () => { replyAudioRef.current = null; };
+      au.onerror = () => { replyAudioRef.current = null; };
       replyAudioRef.current = au;
       au.play().then(() => { started = true; }).catch(() => {});
       // Si en 1.5s no ha empezado (autoplay bloqueado), voz del navegador como red de seguridad
@@ -497,10 +469,10 @@ export default function StoryVideoViewer({
             transition: "filter 1.5s ease",
           }}
         >
-          {/* HEVC 1440p (Safari/móviles con HEVC) → VP9 1440p (Chrome/Android/Firefox) → H.264 respaldo */}
+          {/* HEVC (iPhone/móviles con HEVC) → H.264 max calidad → VP9 */}
           <source src={videoSrc.replace(/\.mp4$/, "-hevc.mp4")} type='video/mp4; codecs="hvc1"' />
-          <source src={videoSrc.replace(/\.mp4$/, "-vp9.webm")} type="video/webm" />
           <source src={videoSrc} type="video/mp4" />
+          <source src={videoSrc.replace(/\.mp4$/, "-vp9.webm")} type="video/webm" />
         </video>
 
         {/* Corazón de carga (igual que el de "Creando") */}
