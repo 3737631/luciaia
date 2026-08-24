@@ -28,6 +28,8 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: touch out/.nojekyll
+      - name: Verificar build
+        run: test -d out/_next && echo "BUILD OK" || (echo "BUILD FALLO" && exit 1)
       - uses: actions/upload-pages-artifact@v3
         with:
           path: out
