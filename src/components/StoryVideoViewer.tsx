@@ -463,7 +463,7 @@ export default function StoryVideoViewer({
           style={{
             width: "100%",
             height: "100%",
-            objectFit: "cover",
+            objectFit: "contain",
             display: "block",
             pointerEvents: "none",
             filter: warmFilter ? "sepia(0.28) saturate(1.4) brightness(1.06) hue-rotate(-8deg)" : "none",
