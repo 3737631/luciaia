@@ -50,7 +50,7 @@ export const girls: Girl[] = [
       "¿Te quedas? la noche acaba de empezar.",
     ],
     cloudinaryImage: "https://res.cloudinary.com/dmuxgamms/image/upload/v1783787897/photo_2026-07-11_18-35-00_klplnn.jpg",
-    storyVideo: "/sofia-web.mp4",
+    storyVideo: "/sofia-q.mp4",
   },
   {
     id: "nia",
@@ -164,7 +164,7 @@ export const girls: Girl[] = [
       "El sol se está poniendo. Justo a tiempo.",
     ],
     cloudinaryImage: "https://res.cloudinary.com/dmuxgamms/image/upload/v1783787856/photo_2026-07-11_18-36-06_akrzjw.jpg",
-    storyVideo: "/kira-web.mp4",
+    storyVideo: "/kira-q.mp4",
   },
   {
     id: "maya",

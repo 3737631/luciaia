@@ -449,6 +449,7 @@ export default function StoryVideoViewer({
           ref={videoRef}
           autoPlay
           loop
+          muted
           playsInline
           preload="auto"
           onTimeUpdate={handleTimeUpdate}
