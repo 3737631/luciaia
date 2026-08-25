@@ -431,9 +431,11 @@ export default function StoryVideoViewer({
         className="story-video-frame"
         style={{
           position: "relative",
-          width: "min(430px, calc(100vw - 0px))",
+          width: "min(430px, 100vw)",
           height: "100dvh",
           minHeight: "100dvh",
+          aspectRatio: "9 / 16",
+          maxHeight: "100dvh",
           overflow: "hidden",
           background: "#000",
           borderRadius: 0,
@@ -461,8 +463,11 @@ export default function StoryVideoViewer({
           poster={videoSrc.replace(/\.mp4$/, "-poster.jpg")}
           className="story-video-media"
           style={{
-            width: "100%",
-            height: "100%",
+            width: "auto",
+            height: "auto",
+            maxWidth: "100%",
+            maxHeight: "100%",
+            aspectRatio: "9 / 16",
             objectFit: "contain",
             display: "block",
             pointerEvents: "none",
