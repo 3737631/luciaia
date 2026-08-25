@@ -107,7 +107,7 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
       unlockAudioGesture(); // el toque que abre el directo habilita su voz automáticamente
       const raw = `${basePath}${girl.storyVideo}`;
       setStoryVideo({
-        src: `${raw}${raw.includes("?") ? "&" : "?"}v=1440`,
+        src: `${raw}${raw.includes("?") ? "&" : "?"}v=1440-6`,
         avatar: girl.cloudinaryImage ?? getGirlImage(girl.id, null, null, null, girl.cloudinaryImage),
         name: girl.name,
         girlId: girl.id,
