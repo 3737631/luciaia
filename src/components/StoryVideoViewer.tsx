@@ -458,7 +458,7 @@ export default function StoryVideoViewer({
           onStalled={() => { setBuffering(true); }}
           onPlaying={() => setBuffering(false)}
           onWaiting={() => setBuffering(true)}
-          poster={videoSrc.split("?")[0].replace(/\.mp4$/, "-poster.jpg") + "?v=1440-6"}
+          poster={videoSrc.split("?")[0].replace(/\.mp4$/, "-poster.jpg") + "?v=1440-7"}
           className="story-video-media"
           style={{
             width: "100%",
@@ -466,9 +466,10 @@ export default function StoryVideoViewer({
             objectFit: "contain",
             display: "block",
             pointerEvents: "none",
-            filter: warmFilter ? "sepia(0.28) saturate(1.4) brightness(1.06) hue-rotate(-8deg)" : "none",
-            transition: "filter 1.5s ease",
-          }}
+            filter: "none",
+            imageRendering: "high-quality" as any,
+            transform: "translateZ(0)",
+          } as React.CSSProperties}
         >
           {/* UNA sola fuente: el stream original bit-exacto. Sin HEVC ni VP9 intermedios. */}
           <source src={videoSrc} type="video/mp4" />
@@ -497,6 +498,7 @@ export default function StoryVideoViewer({
         )}
 
         <style>{`@keyframes ttCreateBeat{0%,100%{transform:scale(1)}50%{transform:scale(1.22)}}@keyframes ttCreateGlow{0%,100%{opacity:.35;transform:scale(.85)}50%{opacity:.75;transform:scale(1.15)}}@keyframes ttGatePulse{0%{box-shadow:0 0 0 0 rgba(255,45,149,.55)}70%{box-shadow:0 0 0 26px rgba(255,45,149,0)}100%{box-shadow:0 0 0 0 rgba(255,45,149,0)}}`}</style>
+        <style>{`@supports (-webkit-touch-callout: none){.story-video-frame{height:100vh !important;height:-webkit-fill-available !important;min-height:-webkit-fill-available !important}.story-video-media{object-fit:contain !important;-webkit-object-fit:contain !important;image-rendering:-webkit-optimize-contrast !important;transform:translate3d(0,0,0) !important}}`}</style>
 
         {/* Gradients */}
         <div style={{
