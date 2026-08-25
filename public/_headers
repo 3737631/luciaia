@@ -5,7 +5,3 @@
   Cache-Control: no-cache, no-store, must-revalidate
 /*.css
   Cache-Control: no-cache, no-store, must-revalidate
-/*.mp4
-  Cache-Control: no-cache, no-store, must-revalidate
-/*.jpg
-  Cache-Control: no-cache, no-store, must-revalidate

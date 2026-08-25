@@ -25,16 +25,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <head>
-        <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-        <meta httpEquiv="Pragma" content="no-cache" />
-        <meta httpEquiv="Expires" content="0" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){var V="v1440-8";try{var cur=localStorage.getItem("app_version_v2");if(cur!==V){if('caches' in window){caches.keys().then(function(n){n.forEach(function(c){caches.delete(c)})})}try{sessionStorage.clear()}catch(e){}localStorage.setItem("app_version_v2",V);if(cur!==null) location.reload()}fetch("/luciaia/version.json",{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(j&&j.v&&j.v!==V&&j.v!==cur){localStorage.setItem("app_version_v2",j.v);location.reload()}}).catch(function(){});var last=localStorage.getItem("last_cache_clear");var now=Date.now();if(!last||now-parseInt(last,10)>86400000){localStorage.setItem("last_cache_clear",String(now));if('caches' in window){caches.keys().then(function(n){n.forEach(function(c){caches.delete(c)})})}}}catch(e){}})();`,
-          }}
-        />
-      </head>
       <body className={`${jakarta.className} min-h-screen bg-bg text-ink antialiased`}>
         <ErrorBoundary>
           <AnimatedBackground />

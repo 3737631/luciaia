@@ -453,12 +453,12 @@ export default function StoryVideoViewer({
           playsInline
           preload="auto"
           onTimeUpdate={handleTimeUpdate}
-          onCanPlay={() => { setBuffering(false); const v = videoRef.current; if (v && v.paused && !closing) v.play().catch(() => {}); }}
-          onLoadedMetadata={() => { const v = videoRef.current; if (v && v.paused && !closing) v.play().catch(() => {}); }}
+          onCanPlay={() => { setBuffering(false); const v = videoRef.current; if (v) console.log(`[video] canPlay videoWidth=${v.videoWidth} videoHeight=${v.videoHeight} client=${v.clientWidth}x${v.clientHeight} DPR=${window.devicePixelRatio} src=${v.currentSrc}`); if (v && v.paused && !closing) v.play().catch(() => {}); }}
+          onLoadedMetadata={() => { const v = videoRef.current; if (v) console.log(`[video] loadedMetadata videoWidth=${v.videoWidth} videoHeight=${v.videoHeight} DPR=${window.devicePixelRatio} objectFit=${getComputedStyle(v).objectFit} src=${v.currentSrc}`); if (v && v.paused && !closing) v.play().catch(() => {}); }}
           onStalled={() => { setBuffering(true); }}
           onPlaying={() => setBuffering(false)}
           onWaiting={() => setBuffering(true)}
-          poster={videoSrc.split("?")[0].replace(/\.mp4$/, "-poster.jpg") + "?v=1440-8"}
+          poster={videoSrc.replace(/\.mp4$/, "-poster.jpg")}
           className="story-video-media"
           style={{
             width: "100%",
