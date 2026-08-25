@@ -458,7 +458,7 @@ export default function StoryVideoViewer({
           onStalled={() => { setBuffering(true); }}
           onPlaying={() => setBuffering(false)}
           onWaiting={() => setBuffering(true)}
-          poster={videoSrc.replace(/\.mp4$/, "-poster.jpg")}
+          poster={videoSrc.split("?")[0].replace(/\.mp4$/, "-poster.jpg") + "?v=1440"}
           className="story-video-media"
           style={{
             width: "100%",
