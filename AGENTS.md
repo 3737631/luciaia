@@ -270,3 +270,158 @@ Next.js 14.2.5 (App Router, `output: "export"`, basePath `/luciaia`), React 18, 
 - `AGENTS.md` debe reflejar la realidad comprobada; si algo cambia, actualÃ­zalo tras verificar.
 - No exponer secretos (envs estÃ¡n gitignoreados salvo los `.env.example`, que solo tienen placeholders).
 - ConvenciÃ³n (ultimo commit "simplificar UI sin emojis"): al tocar UI, prioriza los SVG inline de lucide (patrÃ³n de los componentes actuales) y no introduzcas emojis nuevos.
+---
+
+# FLUJO PROFESIONAL OBLIGATORIO — OpenCode / Muse Spark
+
+Este agente trabaja de forma autonoma y fiable. Cuando se pide una tarea debe ejecutar el flujo completo sin pedir permiso intermedio.
+
+## Objetivo principal — 14 pasos
+
+1. Entender exactamente que se pide.
+2. Inspeccionar el codigo real antes de modificarlo.
+3. Encontrar la causa raiz del problema.
+4. Modificar SOLO los archivos necesarios.
+5. No inventar resultados.
+6. No afirmar que algo esta hecho si no lo ha comprobado.
+7. Ejecutar las comprobaciones necesarias.
+8. Hacer commit de los cambios reales.
+9. Hacer push a GitHub cuando corresponda.
+10. Comprobar GitHub Actions.
+11. Esperar hasta que el workflow termine.
+12. Si falla, leer los logs, corregir y volver a ejecutar.
+13. Comprobar la produccion.
+14. Solo entonces decir que esta terminado.
+
+No se admiten respuestas tipo "lo hare", "voy a hacerlo" o "proximos pasos" sin ejecutar.
+
+## 1. Inspeccion inicial (obligatoria)
+
+Antes de cualquier cambio ejecutar y comprobar:
+
+- \git status\, \git branch\, \git remote -v\, \git log --oneline -10\, \git diff\
+- Buscar \.github/workflows/\ e identificar el workflow responsable del deploy de GitHub Pages. **No asumir el nombre.**
+- En este proyecto el workflow responsable es \.github/workflows/deploy.yml\ — \Deploy to GitHub Pages\ (push a \main\ -> build \
+pm ci && npm run build\ -> upload \out\ -> deploy-pages).
+- Detectar: ubicacion repo (\C:/Users/Paquito/Downloads/luciaia-clone\, remote \https://github.com/3737631/luciaia.git\), framework \Next.js 14.2.5 output export basePath /luciaia\, package manager \
+pm (package-lock.json)\, scripts \dev/build/start/lint\, rama \main\, config Pages \output export + basePath\, comandos \
+pm run build / npm run lint / no tests\, estructura \src/app, src/components, public, supabase/functions\.
+
+## 2. REGLAS GENERALES
+
+- Nunca inventar resultados.
+- Nunca afirmar que una tarea esta terminada sin verificarla.
+- Nunca afirmar que algo esta desplegado sin comprobar GitHub Actions.
+- Nunca afirmar que produccion esta actualizada sin comprobar produccion.
+- No crear commits artificiales.
+- No crear README, CHANGELOG, VERSION, comentarios o archivos falsos solo para provocar un deploy.
+- No hacer commits vacios.
+- No modificar codigo no relacionado con la tarea.
+- No hacer refactors innecesarios.
+- No cambiar arquitectura sin necesidad.
+- No eliminar funcionalidades existentes.
+- No cambiar estilos o comportamiento no relacionado.
+- Mantener compatibilidad con el codigo existente.
+
+## 3. ANTES DE MODIFICAR
+
+1. Lee los archivos relevantes.
+2. Busca todas las referencias a la funcionalidad.
+3. Comprende como funciona actualmente.
+4. Identifica la causa raiz.
+5. Comprueba si existe ya una implementacion parcial.
+6. Comprueba \git diff\.
+7. Comprueba el estado actual de git.
+
+No modificar por intuicion.
+
+## 4. DURANTE LA MODIFICACION
+
+Haz el cambio minimo necesario.
+
+Conserva: APIs, componentes, estilos, rutas, comportamiento, compatibilidad movil, compatibilidad Safari/iPhone, funcionalidades no relacionadas.
+
+Si una modificacion puede romper otra funcionalidad, compruebala.
+
+## 5. DESPUES DE MODIFICAR
+
+Ejecuta como minimo cuando aplique: \	ypecheck\, \lint\ (\
+pm run lint\), \	ests\ (no hay), \uild\ (\
+pm run build\).
+
+Despues revisa \git diff\ y \git status\. Comprueba que los cambios realmente solucionan el problema.
+
+## 6. REGLA ESPECIAL PARA ESTE PROYECTO
+
+Debe funcionar en Chrome, Safari, iPhone/iOS, Android, escritorio. Atencion especial a Safari, iOS, MediaRecorder, canvas, audio, video, blobs, fetch, CORS, WebAssembly, viewport/safe areas, rendimiento movil.
+
+No asumir que algo que funciona en Chrome funciona igual en Safari.
+
+## 7. GIT
+
+Si existen cambios reales:
+
+\git status\ / \git diff\ -> \git add <archivos-reales>\ -> commit descriptivo (\ix: ...\) -> \git push origin main\.
+
+No crear commits artificiales para generar actividad. No modificar README para generar deploy.
+
+## 8. GITHUB ACTIONS
+
+Despues del push identificar el workflow correcto en \.github/workflows/\ y comprobar **realmente** el run:
+
+- commit SHA, estado (\queued/in_progress/completed\), conclusion (\success/failure/cancelled\).
+
+No decir "deploy realizado" mientras este \queued\ o \in_progress\.
+
+Si falla: abrir logs -> identificar causa -> corregir -> commit -> push -> volver a comprobar hasta SUCCESS.
+
+## 9. SI LOS CAMBIOS YA ESTAN EN MAIN
+
+Si los cambios reales ya estan en main no crear commit artificial.
+
+- Si el workflow soporta \workflow_dispatch\, ejecutarlo sobre el commit correcto.
+- Si no, determinar el metodo correcto para re-desplegar.
+- Nunca hacer commit vacio solo para activar Actions.
+
+## 10. PRODUCCION
+
+Cuando Actions sea SUCCESS, comprobar la URL real de produccion (\https://3737631.github.io/luciaia/\):
+
+- Abrir URL, comprobar HTML/JS generado, recursos y comportamiento relevante.
+- No basta con que Actions este verde.
+
+## 11. REGLA PARA DEPLOYS
+
+Flujo obligatorio completo:
+
+CAMBIO -> TEST -> BUILD -> GIT -> PUSH -> GITHUB ACTIONS -> SUCCESS -> PRODUCCION -> VERIFICACION
+
+No detenerse a mitad.
+
+## 12. SI YO DIGO "ARREGLALO"
+
+No preguntar "Quieres que continue?". Hazlo. Si tu propio cambio provoca otro error, corrigelo automaticamente.
+
+## 13. SI NO PUEDES HACER ALGO
+
+No inventes que lo hiciste. Explica que comando intentaste, que error aparecio, que falta y que necesitas. Pero antes intenta todas las soluciones razonables.
+
+## 14. RESPUESTA FINAL
+
+Cuando TODO este terminado:
+
+SOLUCIONADO Y DESPLEGADO
+
+- Cambios: <resumen>
+- Commit: <SHA>
+- GitHub Actions: SUCCESS
+- Produccion: VERIFICADA
+
+Si algo no esta terminado no usar esa frase e indicar que falta.
+
+## 15. CONTEXTO Y MEMORIA + EVITAR BLOQUEOS
+
+La fuente de verdad es codigo actual, git, Actions y produccion, no mensajes anteriores.
+
+Para tareas grandes dividir en FASES: inspeccion, diagnostico, implementacion, verificacion, git, deploy, produccion. No empezar tarea distinta antes de terminar la actual. Priorizar acciones sobre explicaciones. No compensar limitaciones generando respuestas enormes: hacer acciones una por una.
+
