@@ -431,11 +431,11 @@ export default function StoryVideoViewer({
         className="story-video-frame"
         style={{
           position: "relative",
-          width: "min(430px, 100vw)",
+          width: "min(410px, 96vw)",
           height: "100dvh",
           minHeight: "100dvh",
           aspectRatio: "9 / 16",
-          maxHeight: "100dvh",
+          maxHeight: "96dvh",
           overflow: "hidden",
           background: "#000",
           borderRadius: 0,
@@ -465,8 +465,8 @@ export default function StoryVideoViewer({
           style={{
             width: "auto",
             height: "auto",
-            maxWidth: "100%",
-            maxHeight: "100%",
+            maxWidth: "96%",
+            maxHeight: "96%",
             aspectRatio: "9 / 16",
             objectFit: "contain",
             display: "block",
