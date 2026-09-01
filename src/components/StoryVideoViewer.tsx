@@ -519,7 +519,7 @@ export default function StoryVideoViewer({
         {/* Avatar de perfil + @nombre + EN VIVO */}
         <div style={{
           position: "absolute", zIndex: 12,
-          top: "calc(env(safe-area-inset-top,0px) + 10px)", left: 12, right: 58,
+          top: "calc(env(safe-area-inset-top,0px) + 16px)", left: 12, right: 58,
           display: "flex", alignItems: "center", gap: 10,
         }} data-story-interactive>
           <span style={{ position: "relative", display: "flex", flex: "0 0 auto" }}>
@@ -669,7 +669,7 @@ export default function StoryVideoViewer({
         {/* Input bar */}
         <div style={{
           position: "absolute", zIndex: 13, left: 14, right: 10,
-          bottom: "max(12px, env(safe-area-inset-bottom,0px))",
+          bottom: "max(16px, env(safe-area-inset-bottom,0px))",
           display: "flex", alignItems: "center", gap: 8,
         }} data-story-interactive>
           <div style={{
