@@ -431,10 +431,9 @@ export default function StoryVideoViewer({
         className="story-video-frame"
         style={{
           position: "relative",
-          width: "min(410px, 96vw)",
-          height: "100dvh",
-          minHeight: "100dvh",
+          width: "min(410px, 96vw, calc(96dvh * 9 / 16))",
           aspectRatio: "9 / 16",
+          maxWidth: "100vw",
           maxHeight: "96dvh",
           overflow: "hidden",
           background: "#000",
@@ -503,7 +502,7 @@ export default function StoryVideoViewer({
         )}
 
         <style>{`@keyframes ttCreateBeat{0%,100%{transform:scale(1)}50%{transform:scale(1.22)}}@keyframes ttCreateGlow{0%,100%{opacity:.35;transform:scale(.85)}50%{opacity:.75;transform:scale(1.15)}}@keyframes ttGatePulse{0%{box-shadow:0 0 0 0 rgba(255,45,149,.55)}70%{box-shadow:0 0 0 26px rgba(255,45,149,0)}100%{box-shadow:0 0 0 0 rgba(255,45,149,0)}}`}</style>
-        <style>{`@supports (-webkit-touch-callout: none){.story-video-frame{height:100vh !important;height:-webkit-fill-available !important;min-height:-webkit-fill-available !important}.story-video-media{object-fit:contain !important;-webkit-object-fit:contain !important;image-rendering:-webkit-optimize-contrast !important;transform:translate3d(0,0,0) !important}}`}</style>
+        <style>{`@supports (-webkit-touch-callout: none){.story-video-frame{width:min(410px,96vw,calc(96 * 1vh * 9 / 16)) !important;height:auto !important;min-height:0 !important;max-height:96vh !important;aspect-ratio:9/16 !important}.story-video-media{object-fit:contain !important;-webkit-object-fit:contain !important;image-rendering:-webkit-optimize-contrast !important;transform:translate3d(0,0,0) !important}}`}</style>
 
         {/* Gradients */}
         <div style={{
@@ -517,15 +516,29 @@ export default function StoryVideoViewer({
           pointerEvents: "none",
         }} />
 
-        {/* Avatar de perfil (sin @nombre) */}
+        {/* Avatar de perfil + @nombre + EN VIVO */}
         <div style={{
           position: "absolute", zIndex: 12,
-          top: "calc(env(safe-area-inset-top,0px) + 10px)", left: 12,
-          display: "flex", alignItems: "center",
+          top: "calc(env(safe-area-inset-top,0px) + 10px)", left: 12, right: 58,
+          display: "flex", alignItems: "center", gap: 10,
         }} data-story-interactive>
           <span style={{ position: "relative", display: "flex", flex: "0 0 auto" }}>
             <span style={{ position: "absolute", inset: -2, borderRadius: "50%", background: "linear-gradient(135deg,#fe2c55,#ff8a00)" }} />
             <img src={avatar} alt="" style={{ position: "relative", width: 34, height: 34, borderRadius: "50%", objectFit: "cover", border: "2px solid #000" }} />
+          </span>
+          <span style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
+            <span style={{ fontSize: 15, fontWeight: 700, color: "#fff", lineHeight: 1, textShadow: "0 1px 3px rgba(0,0,0,.6)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {name}
+            </span>
+            <span style={{
+              alignSelf: "flex-start",
+              display: "inline-flex", alignItems: "center", gap: 5,
+              padding: "3px 7px", borderRadius: 999,
+              background: "rgba(254,44,85,.92)",
+            }}>
+              <span className="tt-live-dot" style={{ width: 6, height: 6, borderRadius: "50%", background: "#fff", display: "inline-block" }} />
+              <span style={{ fontSize: 10.5, fontWeight: 800, color: "#fff", letterSpacing: ".06em" }}>EN VIVO</span>
+            </span>
           </span>
         </div>
 
@@ -551,15 +564,15 @@ export default function StoryVideoViewer({
         {/* Action rail */}
         <div style={{
           position: "absolute", zIndex: 12, right: 8, bottom: 96,
-          display: "flex", flexDirection: "column", alignItems: "center", gap: 15,
+          display: "flex", flexDirection: "column", alignItems: "center", gap: 16,
         }} data-story-interactive>
           <button
             aria-label="Me gusta"
             onClick={(e) => { e.stopPropagation(); spawnHearts({ clientX: e.clientX } as React.MouseEvent<HTMLDivElement>); }}
             style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, border: 0, background: "transparent", cursor: "pointer", padding: 0 }}
           >
-            <span style={{ width: 40, height: 40, display: "grid", placeItems: "center", borderRadius: "50%", background: "rgba(22,22,22,.45)", color: "#fff" }}>
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="#fff">
+            <span style={{ width: 44, height: 44, display: "grid", placeItems: "center", borderRadius: "50%", background: "rgba(22,22,22,.5)", color: "#fff", border: "1px solid rgba(255,255,255,.12)" }}>
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="#fff">
                 <path d="M12 21s-6.7-4.35-9.33-8.11C.9 10.35 1.6 6.5 4.6 5.2 6.7 4.27 9 5.1 10.2 7l1.8 2.7L13.8 7c1.2-1.9 3.5-2.73 5.6-1.8 3 1.3 3.7 5.15 1.93 7.69C18.7 16.65 12 21 12 21z" />
               </svg>
             </span>
@@ -573,10 +586,11 @@ export default function StoryVideoViewer({
             style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, border: 0, background: "transparent", cursor: "pointer", padding: 0 }}
           >
             <span style={{
-              width: 40, height: 40, display: "grid", placeItems: "center", borderRadius: "50%",
-              background: showChat ? "#e2183b" : "rgba(22,22,22,.45)", color: "#fff",
+              width: 44, height: 44, display: "grid", placeItems: "center", borderRadius: "50%",
+              background: showChat ? "#e2183b" : "rgba(22,22,22,.5)", color: "#fff",
+              border: "1px solid rgba(255,255,255,.12)",
             }}>
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
               </svg>
             </span>
@@ -588,8 +602,8 @@ export default function StoryVideoViewer({
             onClick={(e) => spawnGift(e)}
             style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, border: 0, background: "transparent", cursor: "pointer", padding: 0 }}
           >
-            <span style={{ width: 40, height: 40, display: "grid", placeItems: "center", borderRadius: "50%", background: "rgba(22,22,22,.45)", color: "#fff" }}>
-              <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+            <span style={{ width: 44, height: 44, display: "grid", placeItems: "center", borderRadius: "50%", background: "rgba(22,22,22,.5)", color: "#fff", border: "1px solid rgba(255,255,255,.12)" }}>
+              <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="8" width="18" height="4" rx="1" /><path d="M12 8v13" /><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7" /><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5" />
               </svg>
             </span>
@@ -661,7 +675,7 @@ export default function StoryVideoViewer({
           <div style={{
             flex: 1, display: "flex", alignItems: "center", gap: 7,
             background: "rgba(255,255,255,.16)", border: "1px solid rgba(255,255,255,.28)",
-            borderRadius: 22, padding: "8px 13px", color: "rgba(255,255,255,.88)",
+            borderRadius: 24, padding: "9px 14px", color: "rgba(255,255,255,.88)",
             fontSize: 13, backdropFilter: "blur(8px)",
           }}>
             <input
@@ -679,9 +693,9 @@ export default function StoryVideoViewer({
           <button
             aria-label="Enviar"
             onClick={(e) => { e.stopPropagation(); handleUserComment(); }}
-            style={{ width: 36, height: 36, flex: "0 0 auto", display: "grid", placeItems: "center", border: 0, borderRadius: "50%", background: "#e2183b", color: "#fff", cursor: "pointer" }}
+            style={{ width: 38, height: 38, flex: "0 0 auto", display: "grid", placeItems: "center", border: 0, borderRadius: "50%", background: "#e2183b", color: "#fff", cursor: "pointer", boxShadow: "0 2px 10px rgba(226,24,59,.45)" }}
           >
-            <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" style={{ transform: "rotate(15deg)" }}>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style={{ transform: "rotate(15deg)" }}>
               <path d="M3.4 20.4l17.45-7.48a1 1 0 0 0 0-1.84L3.4 3.6a.993.993 0 0 0-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z" />
             </svg>
           </button>
