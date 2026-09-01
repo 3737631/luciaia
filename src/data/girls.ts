@@ -475,6 +475,7 @@ export const girls: Girl[] = [
       "¿Prefieres estudiar o... distraerte un rato?",
     ],
     cloudinaryImage: "https://res.cloudinary.com/dmuxgamms/image/upload/v1783787855/photo_2026-07-11_18-35-44_uyl768.jpg",
+    storyVideo: "/athena-q.mp4",
   },
   {
     id: "eva",
