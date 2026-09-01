@@ -532,14 +532,44 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
 
 /* ═══ Stories Row ═══ */
 
+.stories-row-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.stories-scroll-btn {
+  display: none;
+  flex: 0 0 auto;
+  width: 36px;
+  height: 44px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  transition: background 0.15s ease;
+}
+.stories-scroll-btn:hover { background: rgba(255,255,255,0.2); }
+.stories-scroll-prev { order: 1; }
+.stories-scroll-next { order: 3; }
+
 .stories-row {
   display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
   align-items: flex-start;
   gap: 16px;
   overflow-x: auto;
   padding: 12px 4px 8px;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+  order: 2;
 }
 
 .stories-row::-webkit-scrollbar {
@@ -613,6 +643,7 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   .story-item { width: 88px; gap: 7px; }
   .story-ring { width: 88px; height: 88px; padding: 3.5px; }
   .story-name { font-size: 13px; }
+  .stories-scroll-btn { display: flex; }
 }
 
 .nuvia-fantasy-cta {

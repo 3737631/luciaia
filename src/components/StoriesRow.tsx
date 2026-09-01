@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useRef } from "react";
 import { getGirlImage } from "@/lib/images";
 import { getDailyStorySelection } from "@/lib/getDailyStoryIndex";
 import { getSeenStories, markStorySeen } from "@/lib/storySeenService";
@@ -23,6 +24,13 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
   } | null>(null);
   const [storyVideo, setStoryVideo] = useState<{ src: string; avatar: string; name: string; girlId: string } | null>(null);
   const [criticalStoriesReady, setCriticalStoriesReady] = useState(false);
+  const rowRef = useRef<HTMLDivElement | null>(null);
+
+  const scrollRow = useCallback((dir: 1 | -1) => {
+    const el = rowRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir * el.clientWidth * 0.8, behavior: "smooth" });
+  }, []);
 
   // ── Build URL lists for preload ──
   const avatarUrls = useMemo(
@@ -153,7 +161,14 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
           onMarkSeen={(id) => { const g = girls.find((x) => x.id === id); const sig = g ? storySignature(g) : ""; setSeen((prev) => { const next = { ...prev }; next[id] = sig; return next; }); markStorySeen(id, sig); }}
         />
       )}
-      <div className="stories-row">
+      <div className="stories-row-wrap">
+      <button
+        type="button"
+        aria-label="Historias anteriores"
+        className="stories-scroll-btn stories-scroll-prev"
+        onClick={() => scrollRow(-1)}
+      >&#8249;</button>
+      <div className="stories-row" ref={rowRef}>
       {girls.map((girl) => {
         const isSeen = isStorySeen(girl);
         const hasStory = (girl.storyImages?.length ?? 0) > 0 || !!girl.storyVideo;
@@ -180,6 +195,13 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
           </div>
         );
       })}
+    </div>
+      <button
+        type="button"
+        aria-label="Más historias"
+        className="stories-scroll-btn stories-scroll-next"
+        onClick={() => scrollRow(1)}
+      >&#8250;</button>
     </div>
     </>
   );
