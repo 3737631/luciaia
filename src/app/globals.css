@@ -571,6 +571,17 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   z-index: 2;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  will-change: transform;
+}
+
+.story-item:hover {
+  transform: translateY(-2px);
+}
+
+.story-item:active {
+  transform: scale(0.96);
+  opacity: 0.85;
 }
 
 .story-ring {
@@ -583,6 +594,7 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
+  transition: background 0.25s ease;
 }
 
 .story-ring.is-seen {

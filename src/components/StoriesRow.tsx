@@ -24,6 +24,7 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
   const [storyVideo, setStoryVideo] = useState<{ src: string; avatar: string; name: string; girlId: string } | null>(null);
   const [criticalStoriesReady, setCriticalStoriesReady] = useState(false);
   const rowRef = useRef<HTMLDivElement | null>(null);
+  const suppressClick = useRef(false);
   const dragState = useRef<{ down: boolean; startX: number; startScroll: number; moved: boolean }>({
     down: false, startX: 0, startScroll: 0, moved: false,
   });
@@ -47,15 +48,25 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
     e.preventDefault();
   };
 
-  const endDrag = (e: React.MouseEvent<HTMLDivElement>) => {
+  const endDrag = () => {
     const d = dragState.current;
     const el = rowRef.current;
     dragState.current.down = false;
     if (el) el.classList.remove("dragging");
-    if (!d.moved) return;
-    d.moved = false;
-    e.preventDefault();
-    e.stopPropagation();
+    if (d.moved) {
+      suppressClick.current = true;
+      d.moved = false;
+    }
+    window.setTimeout(() => { suppressClick.current = false; }, 0);
+  };
+
+  const handleStoryClick = (girl: Girl) => {
+    if (suppressClick.current) return;
+    if (girl.storyVideo || (girl.storyImages?.length ?? 0) > 0) {
+      openStories(girl);
+    } else {
+      router.push(`/chat/${girl.id}?picker=1`);
+    }
   };
 
   // ── Build URL lists for preload ──
@@ -197,12 +208,11 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
       >
       {girls.map((girl) => {
         const isSeen = isStorySeen(girl);
-        const hasStory = (girl.storyImages?.length ?? 0) > 0 || !!girl.storyVideo;
         return (
           <div
             key={girl.id}
             className="story-item"
-            onClick={() => { if (hasStory) openStories(girl); else router.push(`/chat/${girl.id}?picker=1`); }}
+            onClick={() => handleStoryClick(girl)}
           >
             <div className={"story-ring" + (isSeen ? " is-seen" : "")}>
               <div className="story-avatar">
