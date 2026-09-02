@@ -85,7 +85,7 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
   const [ringScale, setRingScale] = useState(1);
   const [ringOpacity, setRingOpacity] = useState(0.3);
   const [processingLock, setProcessingLock] = useState(false);
-  const [subtitlesOn, setSubtitlesOn] = useState(false);
+  const [subtitlesOn, setSubtitlesOn] = useState(true);
   const [subtitleText, setSubtitleText] = useState("");
   const subtitleTimerRef = useRef<any>(null);
   const [videoOn, setVideoOn] = useState(false);
@@ -119,6 +119,7 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const ringbackRef = useRef<{ ctx: AudioContext; osc: OscillatorNode; gain: GainNode } | null>(null);
   const turnIdRef = useRef(0);
+  const greetingWatchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const processingRef = useRef(false);
   const listenTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -505,7 +506,7 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
         if (!sanitized) return;
         const result = await ttsText(sanitized, (activeCustom ? getCustomGirlVoice(activeCustom.id) : voiceIdMap[girl.id] || `female-${girl.id}`));
         if (!mountedRef.current || tid !== turnIdRef.current) return;
-        el.volume = (muted || !audioOn) ? 0 : 1;
+el.volume = !audioOn ? 0 : 1;
         await new Promise<void>((resolve, reject) => {
           const timeout = setTimeout(() => reject(new Error("timeout")), 30000);
           el.onplaying = () => {
@@ -1022,6 +1023,35 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
     }).catch(() => {});
 
 const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
+      // Watchdog: si seguimos en "Llamando..." a los 8s, rescatamos con voz del navegador
+      // para no quedarnos jamás en dialing (el TTS remoto es el punto más frágil).
+      let rescued = false;
+      greetingWatchdogRef.current = setTimeout(() => {
+        if (callStateRef.current !== "dialing") return;
+        rescued = true;
+        greetingWatchdogRef.current = null;
+        if (dotTimerRef.current) { clearInterval(dotTimerRef.current); dotTimerRef.current = null; }
+        setCS("greeting");
+        stopRingback();
+        startFreqAnimation();
+        if (!durTimerRef.current) {
+          durTimerRef.current = setInterval(() => setCallDuration(d => d + 1), 1000);
+        }
+        silentPingsRef.current = 0;
+        setSubtitleWords(greeting);
+        speakWithBrowserVoice(sanitizeForTTS(greeting) || greeting)
+          .then(() => {
+            if (abort.signal.aborted || !mountedRef.current) return;
+            if (callStateRef.current !== "ended" && callStateRef.current !== "error") {
+              startListening();
+            }
+          })
+          .catch(() => {
+            if (abort.signal.aborted || !mountedRef.current) return;
+            setErrorMsg("No se pudo iniciar la llamada.");
+            setCS("error");
+          });
+      }, 8000);
       // El saludo no debe tardar: si el TTS tarda más de 12s, cambiamos a voz del navegador.
       const greetingRace = await Promise.race([
         (async () => {
@@ -1041,7 +1071,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
         new Promise<null>((resolve) => setTimeout(() => resolve(null), 14000)),
       ]);
 
-      if (abort.signal.aborted || !mountedRef.current) return;
+      if (abort.signal.aborted || !mountedRef.current || rescued) return;
       if (greetingRace === null) {
         // TTS lento: voz del navegador al instante para no dejar "Llamando..." para siempre.
         if (dotTimerRef.current) { clearInterval(dotTimerRef.current); dotTimerRef.current = null; }
@@ -1053,6 +1083,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
         }
         
         silentPingsRef.current = 0;
+        setSubtitleWords(greeting);
         await speakWithBrowserVoice(sanitizeForTTS(greeting) || greeting);
         if (abort.signal.aborted || !mountedRef.current) return;
         if (callStateRef.current !== "ended" && callStateRef.current !== "error") {
@@ -1062,6 +1093,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
       }
 
       try {
+      setSubtitleWords(greeting);
       audioEl.onplaying = () => {
         if (dotTimerRef.current) { clearInterval(dotTimerRef.current); dotTimerRef.current = null; }
         setCS("greeting");
@@ -1097,7 +1129,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
       }
     } catch (err) {
       console.warn("[CALL] greeting prep failed", err);
-      if (abort.signal.aborted || !mountedRef.current) return;
+      if (abort.signal.aborted || !mountedRef.current || rescued) return;
       try {
         const sanitized = sanitizeForTTS(greeting);
         if (!sanitized) throw new Error("empty");
@@ -1105,6 +1137,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
         if (abort.signal.aborted || !mountedRef.current) return;
         audioEl.volume = 1;
         audioEl.src = `data:${result.contentType};base64,${result.audio}`;
+        setSubtitleWords(greeting);
         audioEl.onplaying = () => {
           if (dotTimerRef.current) { clearInterval(dotTimerRef.current); dotTimerRef.current = null; }
           setCS("greeting");
@@ -1124,7 +1157,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
         await playGuarded(audioEl);
       } catch (err) {
         console.warn("[CALL] greeting TTS failed, usando voz del navegador", err);
-        if (abort.signal.aborted || !mountedRef.current) return;
+        if (abort.signal.aborted || !mountedRef.current || rescued) return;
         try {
           if (dotTimerRef.current) { clearInterval(dotTimerRef.current); dotTimerRef.current = null; }
           setCS("greeting");
@@ -1133,6 +1166,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
           if (!durTimerRef.current) {
             durTimerRef.current = setInterval(() => setCallDuration(d => d + 1), 1000);
           }
+          setSubtitleWords(greeting);
           await speakWithBrowserVoice(sanitizeForTTS(greeting) || greeting);
           if (abort.signal.aborted || !mountedRef.current) return;
           if (callStateRef.current !== "ended" && callStateRef.current !== "error") {
@@ -1142,7 +1176,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
           }
         } catch (browserErr) {
           console.error("[CALL] browser greeting also failed", browserErr);
-          if (abort.signal.aborted || !mountedRef.current) return;
+          if (abort.signal.aborted || !mountedRef.current || rescued) return;
           setErrorType("tts_generation_error");
           setErrorMsg("No se pudo iniciar la llamada.");
           setCS("error");
@@ -1208,6 +1242,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
     abortSpeechRec("call-ended");
     cleanupMediaRec();
     stopRecorder();
+    if (greetingWatchdogRef.current) { clearTimeout(greetingWatchdogRef.current); greetingWatchdogRef.current = null; }
     if (micStreamRef.current) {
       micStreamRef.current.getTracks().forEach(t => t.stop());
       micStreamRef.current = null;
@@ -1370,7 +1405,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
     setAudioOn(on);
     if (on) {
       const el = audioElRef.current;
-      if (el) el.volume = muted ? 0 : 1;
+      if (el) el.volume = 1;
     } else {
       const el = audioElRef.current;
       if (el) { el.pause(); el.src = ""; el.load(); }
@@ -1587,21 +1622,25 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
               .toString()
               .padStart(2, "0")}
             :{(callDuration % 60).toString().padStart(2, "0")}
-            {subtitlesOn && isConnected && subtitleText && (
-              <div
-                style={{
-                  position: "absolute", top: "calc(100% + 10px)",
-                  left: "50%", transform: "translateX(-50%)",
-                  width: "max-content", maxWidth: "min(330px, calc(100vw - 60px))",
-                  fontSize: 13, fontWeight: 400,
-                  color: "rgba(255,255,255,0.82)",
-                  textAlign: "center", lineHeight: 1.35,
-                }}
-              >
-                {subtitleText}
-              </div>
-            )}
           </div>
+          {subtitlesOn && isConnected && (
+            <div
+              aria-live="polite"
+              style={{
+                marginTop: 12,
+                maxWidth: "min(340px, calc(100vw - 60px))",
+                minHeight: 46,
+                fontSize: 14, fontWeight: 500, lineHeight: 1.45,
+                color: "rgba(255,255,255,0.9)",
+                textAlign: "center",
+                textShadow: "0 1px 4px rgba(0,0,0,0.55)",
+                display: "flex", alignItems: "flex-start", justifyContent: "center",
+                padding: "0 12px",
+              }}
+            >
+              {subtitleText}
+            </div>
+          )}
         </div>
 
         <div

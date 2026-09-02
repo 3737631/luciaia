@@ -214,7 +214,8 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
             className="story-item"
             onClick={() => handleStoryClick(girl)}
           >
-            <div className={"story-ring" + (isSeen ? " is-seen" : "")}>
+            {girl.storyVideo ? <span className="story-live-badge">LIVE</span> : null}
+            <div className={"story-ring" + (isSeen ? " is-seen" : "") + (girl.storyVideo ? " is-live" : "")}>
               <div className="story-avatar">
                 <img
                   src={getGirlImage(girl.id, null, null, null, girl.cloudinaryImage)}

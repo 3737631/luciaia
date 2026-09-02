@@ -642,6 +642,34 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   background: rgba(255,255,255,0.12);
 }
 
+.story-ring.is-live {
+  background: linear-gradient(135deg, #FF2D55, #B3133B);
+}
+
+.story-live-badge {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #FF1F43;
+  color: #fff;
+  font-size: 7.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 1.5px 6px;
+  border-radius: 999px;
+  z-index: 4;
+  line-height: 1.3;
+  box-shadow: 0 0 8px rgba(255, 31, 67, 0.55);
+  pointer-events: none;
+  animation: liveBadgePulse 1.8s ease-in-out infinite;
+}
+
+@keyframes liveBadgePulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(255, 31, 67, 0.55); }
+  50% { box-shadow: 0 0 14px rgba(255, 31, 67, 0.9); }
+}
+
 @media (hover: hover) {
   .story-item:hover .story-ring {
     transform: scale(1.06);
