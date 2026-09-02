@@ -85,7 +85,7 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
   const [ringScale, setRingScale] = useState(1);
   const [ringOpacity, setRingOpacity] = useState(0.3);
   const [processingLock, setProcessingLock] = useState(false);
-  const [subtitlesOn, setSubtitlesOn] = useState(true);
+  const [subtitlesOn, setSubtitlesOn] = useState(false);
   const [subtitleText, setSubtitleText] = useState("");
   const subtitleTimerRef = useRef<any>(null);
   const [videoOn, setVideoOn] = useState(false);
@@ -1590,7 +1590,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
           </div>
           <div
             style={{
-              marginTop: 22,
+              marginTop: 26,
               fontSize: "clamp(36px, 9vw, 42px)", fontWeight: 650,
               lineHeight: 1, color: "rgba(255,255,255,0.97)",
               textAlign: "center",
@@ -1600,7 +1600,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
           </div>
           <div
             style={{
-              marginTop: 13, fontSize: 17, fontWeight: 400,
+              marginTop: 16, fontSize: 17, fontWeight: 400,
               color: "rgba(255,255,255,0.68)",
               textAlign: "center", lineHeight: 1.25, height: 22,
               transition: "opacity 0.18s ease",
@@ -1610,7 +1610,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
           </div>
           <div
             style={{
-              marginTop: 3, fontSize: 14, fontWeight: 400,
+              marginTop: 6, fontSize: 14, fontWeight: 400,
               color: "rgba(255,255,255,0.42)",
               fontVariantNumeric: "tabular-nums",
               textAlign: "center", lineHeight: 1.2, height: 18,
@@ -1627,7 +1627,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
             <div
               aria-live="polite"
               style={{
-                marginTop: 12,
+                marginTop: 14,
                 maxWidth: "min(340px, calc(100vw - 60px))",
                 minHeight: 46,
                 fontSize: 14, fontWeight: 500, lineHeight: 1.45,
@@ -1651,10 +1651,10 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
             gridTemplateColumns: "repeat(3, 1fr)",
             rowGap: 24, columnGap: 16,
             justifyItems: "center", alignItems: "start",
-            zIndex: 2, paddingTop: 56,
+            zIndex: 2, paddingTop: 40,
             paddingBottom: isStandalone
               ? "calc(env(safe-area-inset-bottom) + 24px)"
-              : "max(calc(env(safe-area-inset-bottom) + 24px), 60px)",
+              : "max(calc(env(safe-area-inset-bottom) + 24px), 72px)",
           }}
         >
           {isDialing ? (
@@ -1962,7 +1962,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
             style={{
               position: "fixed",
               top: "calc(env(safe-area-inset-top) + 72px)",
-              right: 16, width: 92, height: 126,
+              right: "max(16px, env(safe-area-inset-right))", width: 92, height: 126,
               borderRadius: 18, overflow: "hidden",
               zIndex: 10, background: "#000",
               border: "1px solid rgba(255,255,255,0.12)",
