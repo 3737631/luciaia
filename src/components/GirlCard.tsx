@@ -78,8 +78,8 @@ export default function GirlCard({ girl, index = 0 }: { girl: Girl; index?: numb
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate(chatPath(girl.id)); } }}
       style={{
         opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0)" : "translateY(16px)",
-        transition: `opacity 0.4s ease ${index * 0.05}s, transform 0.4s ease ${index * 0.05}s`,
+        transform: visible ? "translateY(0) scale(1)" : "translateY(24px) scale(0.97)",
+        transition: `opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${index * 0.05}s, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${index * 0.05}s`,
       }}
     >
       {failed ? (

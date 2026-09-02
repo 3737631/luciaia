@@ -140,12 +140,14 @@ export default function GirlsPage() {
       <main style={{ minHeight: "100vh", maxWidth: 1200, margin: "0 auto", padding: "0 var(--container-padding)" }}>
         <StoriesRow girls={femaleGirls} />
 
-        <FantasyCTA mode="girls" onCreate={() => setCreateOpen(true)} onView={() => setViewOpen(true)} />
+        <div className="section-reveal">
+          <FantasyCTA mode="girls" onCreate={() => setCreateOpen(true)} onView={() => setViewOpen(true)} />
+        </div>
         <CreateYourGirl open={createOpen} onClose={() => setCreateOpen(false)} editGirl={editGirl} />
         <TusChicas open={viewOpen} onClose={() => setViewOpen(false)} onEdit={(g) => { setViewOpen(false); setEditGirl(g); setCreateOpen(true); }} onCreate={() => { setViewOpen(false); setEditGirl(null); setCreateOpen(true); }} />
 
         <section id="characters">
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+          <div className="section-reveal" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
             <h2 style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.03em", margin: 0, color: "#fff" }}>
               Personajes
             </h2>

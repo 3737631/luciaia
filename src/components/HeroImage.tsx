@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function HeroImage({ src, pos, alt = "" }: { src: string; pos: string; alt?: string }) {
   const [ready, setReady] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
     let alive = true;
@@ -16,8 +18,34 @@ export default function HeroImage({ src, pos, alt = "" }: { src: string; pos: st
     return () => { alive = false; };
   }, [src]);
 
+  // Parallax + fundido del hero al hacer scroll (solo escritorio, composited)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.matchMedia("(hover: none)").matches) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let raf = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const wrap = wrapRef.current;
+        const img = imgRef.current;
+        if (!wrap || !img) return;
+        const y = window.scrollY;
+        if (y < window.innerHeight) {
+          wrap.style.opacity = String(Math.max(0.35, 1 - y / (window.innerHeight * 0.55)));
+          img.style.transform = `translateY(${y * 0.16}px)`;
+        }
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
   return (
-    <div style={{ position: "relative", width: "100%", overflow: "hidden", background: "#0B0B0F" }}>
+    <div ref={wrapRef} style={{ position: "relative", width: "100%", overflow: "hidden", background: "#0B0B0F", willChange: "opacity" }}>
       <div
         aria-hidden="true"
         style={{
@@ -48,6 +76,7 @@ export default function HeroImage({ src, pos, alt = "" }: { src: string; pos: st
         }}
       />
       <img
+        ref={imgRef}
         src={src}
         alt={alt}
         draggable={false}
@@ -55,7 +84,7 @@ export default function HeroImage({ src, pos, alt = "" }: { src: string; pos: st
         loading="eager"
         fetchPriority="high"
         decoding="sync"
-        className="hero-img"
+        className="hero-img kenburns"
         style={{
           position: "relative",
           width: "100%",
@@ -68,6 +97,7 @@ export default function HeroImage({ src, pos, alt = "" }: { src: string; pos: st
           userSelect: "none",
           WebkitUserSelect: "none",
           pointerEvents: "none",
+          willChange: "transform",
         }}
       />
     </div>

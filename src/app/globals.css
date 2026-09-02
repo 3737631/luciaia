@@ -108,6 +108,19 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
 }
 .fade-in { animation: fadeUp 0.5s ease-out both; }
 
+/* Reveal al hacer scroll (desktop moderno): la sección entra suavemente al cruzarla */
+@keyframes revealUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@supports (animation-timeline: view()) {
+  .section-reveal {
+    animation: revealUp 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 55%;
+  }
+}
+
 /* Navegación de la cabecera: oculta siempre (hamburger visible en todas las pantallas) */
 .header-nav-desktop { display: none !important; }
 
@@ -124,12 +137,12 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   }
 }
 
-/* Transición de página tipo app: fundido al navegar entre pestañas */
+/* Transición de página tipo app: fundido + subida suave al navegar entre pestañas */
 @keyframes pageFade {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from { opacity: 0; transform: translateY(12px) scale(0.995); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
-.page-enter { animation: pageFade 240ms cubic-bezier(0.25, 0.1, 0.25, 1) both; }
+.page-enter { animation: pageFade 380ms cubic-bezier(0.16, 1, 0.3, 1) both; }
 
 /* Entrada escalonada de listas (solo animación, sin cambios visuales) */
 @keyframes itemIn {
@@ -150,7 +163,14 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
 
 /* Pulsación táctil: feedback al pinchar (no cambia el aspecto en reposo) */
 .press { -webkit-tap-highlight-color: transparent; }
-.press:active { transform: scale(0.96); }
+.press:active { transform: scale(0.96); transition: transform 120ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+/* Entrada de banners del hero (Ken Burns): fundido + zoom sutil al cambiar foto */
+@keyframes heroIn {
+  from { opacity: 0; transform: scale(1.045); }
+  to { opacity: 1; transform: scale(1); }
+}
+.hero-img.kenburns { animation: heroIn 760ms cubic-bezier(0.16, 1, 0.3, 1); }
 
 @keyframes breathe {
   0%, 100% { opacity: 0.3; transform: scale(1); }
@@ -170,16 +190,6 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 24px;
 }
-.person-grid > * { animation: itemIn 420ms cubic-bezier(0.16, 1, 0.3, 1) both; }
-.person-grid > *:nth-child(2) { animation-delay: 40ms; }
-.person-grid > *:nth-child(3) { animation-delay: 80ms; }
-.person-grid > *:nth-child(4) { animation-delay: 120ms; }
-.person-grid > *:nth-child(5) { animation-delay: 160ms; }
-.person-grid > *:nth-child(6) { animation-delay: 200ms; }
-.person-grid > *:nth-child(7) { animation-delay: 240ms; }
-.person-grid > *:nth-child(8) { animation-delay: 280ms; }
-.person-grid > *:nth-child(9) { animation-delay: 320ms; }
-.person-grid > *:nth-child(n+10) { animation-delay: 360ms; }
 @media (max-width: 1050px) {
   .person-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
@@ -200,14 +210,23 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   cursor: pointer;
   isolation: isolate;
   touch-action: manipulation;
-  transition: transform 180ms ease, box-shadow 180ms ease;
+  transition: transform 240ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 320ms ease;
 }
 .person-card img {
   width: 100%;
   height: 100%;
   display: block;
   object-fit: cover;
-  transition: transform 400ms ease;
+  transition: transform 450ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.person-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 32%, rgba(255,255,255,0.16) 46%, rgba(255,255,255,0.04) 52%, transparent 64%);
+  transform: translateX(-130%) skewX(-8deg);
 }
 .person-card::after {
   content: "";
@@ -219,11 +238,18 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
 }
 @media (hover: hover) {
   .person-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 18px 40px rgba(0,0,0,0.35);
+    transform: translateY(-5px);
+    box-shadow: 0 24px 48px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,87,152,0.18), 0 0 28px rgba(255,87,152,0.1);
   }
   .person-card:hover img {
-    transform: scale(1.035);
+    transform: scale(1.06);
+  }
+  .person-card:hover::before {
+    transform: translateX(130%) skewX(-8deg);
+    transition: transform 900ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  .person-card:active {
+    transform: translateY(-2px) scale(0.98);
   }
 }
 
@@ -338,7 +364,7 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   -webkit-touch-callout: none;
   text-decoration: none;
   box-shadow: 0 4px 14px rgba(255,87,152,0.15);
-  transition: transform 160ms ease, filter 160ms ease;
+  transition: transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1), filter 160ms ease, box-shadow 200ms ease;
   -webkit-tap-highlight-color: transparent;
 }
 .person-action:active {
@@ -346,11 +372,12 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
 }
 @media (hover: hover) {
   .person-action:hover {
-    transform: scale(1.03);
+    transform: scale(1.04);
     filter: brightness(1.08);
+    box-shadow: 0 8px 24px rgba(255,87,152,0.5);
   }
   .person-action:active {
-    transform: scale(0.94);
+    transform: scale(0.93);
     filter: brightness(1.18);
   }
 }
@@ -408,7 +435,7 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
   text-decoration: none;
-  transition: background 160ms ease;
+  transition: background 180ms ease, transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1), border-color 200ms ease;
   -webkit-tap-highlight-color: transparent;
 }
 .quick-action-button:active {
@@ -416,10 +443,12 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
 }
 @media (hover: hover) {
   .quick-action-button:hover {
-    background: rgba(255,255,255,0.12);
+    background: rgba(255,87,152,0.18);
+    border-color: rgba(255,87,152,0.5);
+    transform: translateY(-2px);
   }
   .quick-action-button:active {
-    transform: scale(0.82);
+    transform: scale(0.8);
     background: rgba(255,87,152,0.35);
   }
 }
@@ -594,11 +623,24 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  transition: background 0.25s ease;
+  transition: transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1), background 0.25s ease, box-shadow 0.3s ease;
 }
 
 .story-ring.is-seen {
   background: rgba(255,255,255,0.12);
+}
+
+@media (hover: hover) {
+  .story-item:hover .story-ring {
+    transform: scale(1.06);
+    box-shadow: 0 8px 22px rgba(0,0,0,0.45), 0 0 0 6px rgba(255,87,152,0.12);
+  }
+  .story-item:hover .story-name {
+    color: #fff;
+  }
+  .story-item:hover .story-name.is-seen {
+    color: rgba(255,255,255,0.65);
+  }
 }
 
 .story-avatar {
