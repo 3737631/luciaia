@@ -13,9 +13,9 @@ export const viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "NuviaChat — Chica IA ficticia por chat y videollamada",
+  title: "NuviaChat — Chatea y llama con tus personajes",
   description:
-    "Prueba una experiencia +18 con personajes IA ficticios. Chat, voz y videollamada simulada. Sin registro y sin anuncios.",
+    "Experiencia +18 de compañía. Chat, voz y videollamada simulada. Sin registro y sin anuncios.",
 };
 
 export default function RootLayout({

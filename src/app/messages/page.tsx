@@ -277,16 +277,16 @@ function MessagesContent() {
         </div>
 
         {rows.length === 0 ? (
-          <div className="min-h-[calc(100dvh-114px)] flex-col items-center justify-center text-center">
+          <div className="flex min-h-[calc(100dvh-114px)] flex-col items-center justify-center text-center">
             <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl glass">
               <svg viewBox="0 0 24 24" className="h-7 w-7 text-muted/50" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H8l-4 4V5a1 1 0 0 1 1-1z" /></svg>
             </div>
             <p className="text-lg font-semibold tracking-tight">No tienes mensajes todavía</p>
             <p className="mt-2 text-sm text-muted/70 max-w-xs">
-              Cuando contestes a una historia y la chica te responda, aparecerá aquí.
+              Tus conversaciones aparecerán aquí.
             </p>
             <Link href="/girls" className="mt-8 rounded-xl gradient-btn px-6 py-3 text-sm font-semibold shadow-lg shadow-pink-500/25">
-              Ir a chicas IA
+              Ver chicas
             </Link>
           </div>
         ) : (

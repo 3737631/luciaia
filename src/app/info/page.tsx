@@ -7,14 +7,14 @@ const features = [
   { icon: "mail", title: "Sin registro", desc: "Empieza al momento sin crear cuenta." },
   { icon: "x", title: "Sin anuncios", desc: "Experiencia limpia, sin interrupciones." },
   { icon: "edit", title: "Personalizable", desc: "Ajusta personalidad, tono y estilo." },
-  { icon: "chat", title: "Chat con IA", desc: "Respuestas naturales con contexto real." },
+  { icon: "chat", title: "Chat fluido", desc: "Respuestas naturales con contexto." },
   { icon: "lock", title: "+18", desc: "Solo para mayores de edad." },
-  { icon: "cpu", title: "Personajes IA", desc: "Todos los personajes son generados por IA." },
+  { icon: "cpu", title: "Creación libre", desc: "Crea y personaliza tus propios personajes." },
 ];
 
 const steps = [
   "Confirma que eres +18",
-  "Elige una chica ficticia",
+  "Elige una chica",
   "Personalízala",
   "Chatea o llama sin límites",
 ];
@@ -29,10 +29,10 @@ export default function InfoPage() {
             NuviaChat
           </h1>
           <p className="mx-auto mt-5 max-w-lg text-base text-muted/80 leading-relaxed">
-            Habla con personajes IA en segundos. Elige, personaliza y chatea o llama sin límites.
+            Habla con tus personajes en segundos. Elige, personaliza y chatea o llama sin límites.
           </p>
           <p className="mt-3 text-xs text-muted/60">
-            Personajes ficticios &middot; +18 &middot; Sin registro
+            +18 &middot; Sin registro
           </p>
           <div className="mt-10">
             <Link href="/girls">
@@ -81,7 +81,7 @@ export default function InfoPage() {
             <p className="mb-2 text-sm text-pink font-semibold tracking-wide uppercase">Demo gratuita</p>
             <p className="mb-4 text-5xl font-extrabold gradient-text">Sin límites</p>
             <p className="mb-8 text-sm text-muted/70 leading-relaxed">
-              Chat con IA real, llamada simulada, personalización. Todo gratis, sin registro.
+              Chat y llamada simulada, personalización. Todo gratis, sin registro.
             </p>
             <Link href="/girls">
               <NeonButton>Empezar ahora</NeonButton>

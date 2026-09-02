@@ -11,10 +11,10 @@ export function FantasyCTA({ mode, onCreate, onView }: FantasyCTAProps) {
   const creationsLabel = isBoys ? "ver tus chicos" : mode === "anime" ? "ver tus creaciones" : "ver tus chicas";
 
   const description = isBoys
-    ? "Diseña tu chico ideal y pásalo bien con él."
+    ? "Crea tu chico ideal a tu gusto y empieza a hablar con él."
     : mode === "anime"
-      ? "Diseña tu personaje anime ideal y pásalo bien con él."
-      : "Diseña tu chica ideal y pásalo bien con ella.";
+      ? "Crea tu personaje anime ideal a tu gusto y empieza a hablar con él."
+      : "Crea tu chica ideal a tu gusto y empieza a hablar con ella.";
 
   const handleView = () => {
     if (onView) onView();

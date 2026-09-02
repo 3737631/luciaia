@@ -405,7 +405,7 @@ function HistoryContent() {
             )}
           </div>
         ) : rows.length === 0 ? (
-          <div className="min-h-[calc(100dvh-114px)] flex-col items-center justify-center text-center">
+          <div className="flex min-h-[calc(100dvh-114px)] flex-col items-center justify-center text-center">
             <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl glass">
               <svg viewBox="0 0 24 24" className="h-7 w-7 text-muted/50" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
             </div>
@@ -414,7 +414,7 @@ function HistoryContent() {
               Cuando hables con una chica, tus conversaciones aparecerán aquí.
             </p>
             <Link href="/girls" className="mt-8 rounded-xl gradient-btn px-6 py-3 text-sm font-semibold shadow-lg shadow-pink-500/25">
-              Ir a chicas IA
+              Ver chicas
             </Link>
           </div>
         ) : (

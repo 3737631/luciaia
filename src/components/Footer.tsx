@@ -12,7 +12,7 @@ export default function Footer() {
           <div>
             <h4 style={{ fontSize: "0.4rem", fontWeight: 600, letterSpacing: "0.08em", margin: "0 0 8px", color: "rgba(255,255,255,0.2)" }}>NUVIA</h4>
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 4 }}>
-              {["Características", "Chat IA", "Crear imagen", "Crear personaje"].map((t) => (
+              {["Características", "Chat", "Crear imagen", "Crear personaje"].map((t) => (
                 <li key={t}><Link href="/girls" style={linkStyle}>{t}</Link></li>
               ))}
             </ul>
@@ -46,7 +46,7 @@ export default function Footer() {
             <span style={{ fontSize: "0.5rem", fontWeight: 600, letterSpacing: "-0.03em" }}>NuviaChat</span>
           </div>
           <p style={{ fontSize: "0.4rem", color: "rgba(255,255,255,0.2)", textAlign: "center", margin: 0 }}>
-            Personajes ficticios generados por IA. Contenido para adultos +18.
+            Contenido para adultos +18.
           </p>
         </div>
       </div>
