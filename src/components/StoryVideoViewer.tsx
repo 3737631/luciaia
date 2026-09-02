@@ -439,9 +439,6 @@ export default function StoryVideoViewer({
           background: "#000",
           borderRadius: 0,
           boxShadow: "0 20px 70px rgba(0,0,0,.55)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
           cursor: "pointer",
         }}
         onClick={spawnHearts}
@@ -462,12 +459,11 @@ export default function StoryVideoViewer({
           poster={videoSrc.replace(/\.mp4$/, "-poster.jpg")}
           className="story-video-media"
           style={{
-            width: "auto",
-            height: "auto",
-            maxWidth: "96%",
-            maxHeight: "96%",
-            aspectRatio: "9 / 16",
-            objectFit: "contain",
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
             display: "block",
             pointerEvents: "none",
             filter: "none",
@@ -502,7 +498,7 @@ export default function StoryVideoViewer({
         )}
 
         <style>{`@keyframes ttCreateBeat{0%,100%{transform:scale(1)}50%{transform:scale(1.22)}}@keyframes ttCreateGlow{0%,100%{opacity:.35;transform:scale(.85)}50%{opacity:.75;transform:scale(1.15)}}@keyframes ttGatePulse{0%{box-shadow:0 0 0 0 rgba(255,45,149,.55)}70%{box-shadow:0 0 0 26px rgba(255,45,149,0)}100%{box-shadow:0 0 0 0 rgba(255,45,149,0)}}`}</style>
-        <style>{`@supports (-webkit-touch-callout: none){.story-video-frame{width:min(410px,96vw,calc(96 * 1vh * 9 / 16)) !important;height:auto !important;min-height:0 !important;max-height:96vh !important;aspect-ratio:9/16 !important}.story-video-media{object-fit:contain !important;-webkit-object-fit:contain !important;image-rendering:-webkit-optimize-contrast !important;transform:translate3d(0,0,0) !important}}`}</style>
+        <style>{`@supports (-webkit-touch-callout: none){.story-video-frame{width:min(410px,96vw,calc(96 * 1vh * 9 / 16)) !important;height:auto !important;min-height:0 !important;max-height:96vh !important;aspect-ratio:9/16 !important}.story-video-media{object-fit:cover !important;-webkit-object-fit:cover !important;image-rendering:-webkit-optimize-contrast !important;transform:translate3d(0,0,0) !important}}`}</style>
 
         {/* Gradients */}
         <div style={{
@@ -519,7 +515,7 @@ export default function StoryVideoViewer({
         {/* Avatar de perfil + @nombre + EN VIVO */}
         <div style={{
           position: "absolute", zIndex: 12,
-          top: "calc(env(safe-area-inset-top,0px) + 16px)", left: 12, right: 58,
+          top: "calc(env(safe-area-inset-top,0px) + 16px)", left: 16, right: 58,
           display: "flex", alignItems: "center", gap: 10,
         }} data-story-interactive>
           <span style={{ position: "relative", display: "flex", flex: "0 0 auto" }}>
@@ -548,7 +544,7 @@ export default function StoryVideoViewer({
           onClick={(e) => { e.stopPropagation(); handleClose(); }}
           style={{
             position: "absolute", zIndex: 45,
-            top: "calc(env(safe-area-inset-top,0px) + 20px)", right: 10,
+            top: "calc(env(safe-area-inset-top,0px) + 20px)", right: 14,
             width: 38, height: 38, display: "grid", placeItems: "center",
             border: 0, borderRadius: "50%", background: "rgba(22,22,22,.5)",
             color: "#fff", cursor: "pointer",
@@ -563,7 +559,7 @@ export default function StoryVideoViewer({
 
         {/* Action rail */}
         <div style={{
-          position: "absolute", zIndex: 12, right: 8, bottom: 96,
+          position: "absolute", zIndex: 12, right: 10, bottom: 96,
           display: "flex", flexDirection: "column", alignItems: "center", gap: 16,
         }} data-story-interactive>
           <button
@@ -615,7 +611,7 @@ export default function StoryVideoViewer({
 
         {/* Comentarios de Sofía: siempre visibles, aunque el chat esté oculto */}
         <div style={{
-          position: "absolute", zIndex: 12, left: 14, right: 84, bottom: 132,
+          position: "absolute", zIndex: 12, left: 16, right: 84, bottom: 132,
           display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 8,
         }} data-story-interactive>
           {sofiaComments.map((c) => (
@@ -630,7 +626,7 @@ export default function StoryVideoViewer({
 
         {/* Comments */}
         <div style={{
-          position: "absolute", zIndex: 11, left: 14, right: 84, bottom: 80,
+          position: "absolute", zIndex: 11, left: 16, right: 84, bottom: 80,
           display: showChat ? "flex" : "none",
           flexDirection: "column", alignItems: "flex-start", gap: 8,
         }} data-story-interactive>
@@ -668,7 +664,7 @@ export default function StoryVideoViewer({
 
         {/* Input bar */}
         <div style={{
-          position: "absolute", zIndex: 13, left: 14, right: 10,
+          position: "absolute", zIndex: 13, left: 16, right: 12,
           bottom: "max(16px, env(safe-area-inset-bottom,0px))",
           display: "flex", alignItems: "center", gap: 8,
         }} data-story-interactive>
