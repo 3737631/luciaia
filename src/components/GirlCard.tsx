@@ -68,7 +68,7 @@ export default function GirlCard({ girl, index = 0 }: { girl: Girl; index?: numb
   return (
     <div
       ref={ref}
-      className="person-card"
+      className={visible ? "person-card is-in" : "person-card"}
       role="button"
       tabIndex={0}
       aria-label={`${girl.name}, ${girl.age} años`}
@@ -77,9 +77,7 @@ export default function GirlCard({ girl, index = 0 }: { girl: Girl; index?: numb
       onPointerUp={(e) => handlePointerUp(e, chatPath(girl.id))}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate(chatPath(girl.id)); } }}
       style={{
-        opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0) scale(1)" : "translateY(24px) scale(0.97)",
-        transition: `opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${index * 0.05}s, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${index * 0.05}s`,
+        transition: `opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${index * 0.05}s, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${index * 0.05}s, box-shadow 320ms ease ${index * 0.05}s`,
       }}
     >
       {failed ? (

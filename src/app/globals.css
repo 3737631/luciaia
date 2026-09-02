@@ -210,7 +210,15 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   cursor: pointer;
   isolation: isolate;
   touch-action: manipulation;
-  transition: transform 240ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 320ms ease;
+  opacity: 0;
+  transform: translateY(24px) scale(0.97);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 320ms ease;
+}
+.person-card.is-in {
+  opacity: 1;
+  transform: translateY(0) scale(1);
 }
 .person-card img {
   width: 100%;
@@ -237,19 +245,23 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   background: linear-gradient(to bottom, rgba(0,0,0,0) 40%, rgba(0,0,0,0.18) 58%, rgba(0,0,0,0.82) 100%);
 }
 @media (hover: hover) {
-  .person-card:hover {
-    transform: translateY(-5px);
+  .person-card.is-in:hover {
+    transform: translateY(-5px) scale(1);
     box-shadow: 0 24px 48px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,87,152,0.18), 0 0 28px rgba(255,87,152,0.1);
+    transition: transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 320ms ease !important;
+    transition-delay: 0s !important;
   }
-  .person-card:hover img {
+  .person-card.is-in:hover img {
     transform: scale(1.06);
   }
-  .person-card:hover::before {
+  .person-card.is-in:hover::before {
     transform: translateX(130%) skewX(-8deg);
     transition: transform 900ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
-  .person-card:active {
+  .person-card.is-in:hover:active {
     transform: translateY(-2px) scale(0.98);
+    transition: transform 120ms cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    transition-delay: 0s !important;
   }
 }
 
