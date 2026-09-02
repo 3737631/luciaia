@@ -1023,7 +1023,7 @@ el.volume = !audioOn ? 0 : 1;
     }).catch(() => {});
 
 const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
-      // Watchdog: si seguimos en "Llamando..." a los 8s, rescatamos con voz del navegador
+      // Watchdog: si seguimos en "Llamando..." a los 6s, rescatamos con voz del navegador
       // para no quedarnos jamás en dialing (el TTS remoto es el punto más frágil).
       let rescued = false;
       greetingWatchdogRef.current = setTimeout(() => {
@@ -1051,7 +1051,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
             setErrorMsg("No se pudo iniciar la llamada.");
             setCS("error");
           });
-      }, 8000);
+      }, 6000);
       // El saludo no debe tardar: si el TTS tarda más de 12s, cambiamos a voz del navegador.
       const greetingRace = await Promise.race([
         (async () => {
@@ -1123,7 +1123,11 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
         if (!durTimerRef.current) {
           durTimerRef.current = setInterval(() => setCallDuration(d => d + 1), 1000);
         }
-        
+        // El audio remoto no arrancó: que hable con voz del navegador para que
+        // siempre se la oiga desde el primer momento de la llamada.
+        setSubtitleWords(greeting);
+        await speakWithBrowserVoice(sanitizeForTTS(greeting) || greeting);
+        if (abort.signal.aborted || !mountedRef.current) return;
         silentPingsRef.current = 0;
         startListening();
       }

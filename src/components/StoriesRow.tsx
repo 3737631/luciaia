@@ -60,6 +60,25 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
     window.setTimeout(() => { suppressClick.current = false; }, 0);
   };
 
+  // Los círculos de los directos se colocan así: Athena donde estaba Sofia,
+  // Sofia donde estaba Kira, Kira donde estaba Athena (cada círculo mantiene
+  // su propio vídeo; solo se mueve la posición del círculo en la fila).
+  const displayGirls = useMemo(() => {
+    const arr = girls.slice();
+    const pos = (id: string) => arr.findIndex((g) => g.id === id);
+    const li = pos("luna");
+    const ki = pos("kira");
+    const ai = pos("athena");
+    if (li === -1 || ki === -1 || ai === -1) return girls;
+    const luna = arr[li];
+    const kira = arr[ki];
+    const athena = arr[ai];
+    arr[li] = athena;
+    arr[ki] = luna;
+    arr[ai] = kira;
+    return arr;
+  }, [girls]);
+
   const handleStoryClick = (girl: Girl) => {
     if (suppressClick.current) return;
     if (girl.storyVideo || (girl.storyImages?.length ?? 0) > 0) {
@@ -206,7 +225,7 @@ export default function StoriesRow({ girls }: { girls: Girl[] }) {
         onMouseUp={endDrag}
         onMouseLeave={endDrag}
       >
-      {girls.map((girl) => {
+      {displayGirls.map((girl) => {
         const isSeen = isStorySeen(girl);
         return (
           <div
