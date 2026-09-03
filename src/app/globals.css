@@ -466,21 +466,17 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
 }
 .quick-action-lock {
   position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  background: rgba(10,10,10,0.82);
-  border: 1px solid rgba(255,255,255,0.14);
+  top: -4px;
+  right: -4px;
   display: grid;
   place-items: center;
   pointer-events: none;
   z-index: 3;
+  transform: rotate(-20deg);
 }
 .quick-action-lock svg {
-  width: 7px !important;
-  height: 7px !important;
+  width: 9px !important;
+  height: 9px !important;
   color: #FF8FB3;
 }
 

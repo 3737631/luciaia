@@ -1825,13 +1825,12 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
                   {videoLockedOnce && (
                     <span
                       style={{
-                        position: "absolute", top: 2, right: 2, zIndex: 6,
-                        width: 17, height: 17, borderRadius: "50%",
-                        background: "rgba(10,10,10,0.82)", border: "1px solid rgba(255,255,255,0.16)",
+                        position: "absolute", top: 3, right: 3, zIndex: 6,
                         display: "grid", placeItems: "center",
+                        transform: "rotate(-20deg)",
                       }}
                     >
-                      <LockIcon size={8} stroke="#FF8FB3" />
+                      <LockIcon size={12} stroke="#FF8FB3" />
                     </span>
                   )}
                 </button>
@@ -2115,15 +2114,13 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
             {videoLockedOnce && (
               <span
                 style={{
-                  position: "absolute", top: 4, right: 4, zIndex: 11,
-                  width: 19, height: 19, borderRadius: "50%",
-                  background: "rgba(10,10,10,0.82)",
+                  position: "absolute", top: 3, right: 3, zIndex: 11,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  border: "1px solid rgba(255,255,255,0.16)",
+                  transform: "rotate(-20deg)",
                 }}
                 aria-label="Vídeo Premium"
               >
-                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="#FF8FB3" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#FF8FB3" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                   <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                 </svg>
