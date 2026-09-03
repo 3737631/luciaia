@@ -1,22 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 export default function HeroImage({ src, pos, alt = "" }: { src: string; pos: string; alt?: string }) {
-  const [ready, setReady] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
-
-  useEffect(() => {
-    let alive = true;
-    const img = new Image();
-    img.onload = () => {
-      img.decode().then(() => alive && setReady(true)).catch(() => alive && setReady(true));
-    };
-    img.onerror = () => alive && setReady(true);
-    img.src = src;
-    return () => { alive = false; };
-  }, [src]);
 
   // Parallax + fundido del hero al hacer scroll (solo escritorio, composited)
   useEffect(() => {
@@ -59,8 +47,7 @@ export default function HeroImage({ src, pos, alt = "" }: { src: string; pos: st
           backgroundPosition: pos,
           filter: "blur(20px) brightness(0.65) saturate(1.05)",
           transform: "scale(1.04)",
-          opacity: ready ? 0.6 : 0,
-          transition: "opacity 0.2s ease",
+          opacity: 1,
         }}
       />
       <div
@@ -71,8 +58,7 @@ export default function HeroImage({ src, pos, alt = "" }: { src: string; pos: st
           inset: 0,
           background:
             "linear-gradient(to right, #0B0B0F 0%, rgba(11,11,15,0) 14%, rgba(11,11,15,0) 86%, #0B0B0F 100%)",
-          opacity: ready ? 1 : 0,
-          transition: "opacity 0.2s ease",
+          opacity: 1,
         }}
       />
       <img
@@ -92,8 +78,7 @@ export default function HeroImage({ src, pos, alt = "" }: { src: string; pos: st
           minHeight: "25vh",
           objectFit: "cover",
           objectPosition: pos,
-          opacity: ready ? 1 : 0,
-          transition: "opacity 0.2s ease",
+          opacity: 1,
           userSelect: "none",
           WebkitUserSelect: "none",
           pointerEvents: "none",
