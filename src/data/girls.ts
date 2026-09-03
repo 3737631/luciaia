@@ -527,6 +527,10 @@ export const girls: Girl[] = [
       "¿Sabes? contigo hasta los lunes son buenos.",
     ],
     cloudinaryImage: "https://res.cloudinary.com/dmuxgamms/image/upload/v1783787855/photo_2026-07-11_18-35-47_mafaak.jpg",
+    storyImages: Array.from({ length: 8 }, (_, i) => {
+      const n = i + 1;
+      return `/cora_stories/cora_story_${n}.jpg`;
+    }),
   },
   {
     id: "mira",
@@ -631,6 +635,10 @@ export const girls: Girl[] = [
       "No tengo sueño. ¿tú?",
     ],
     cloudinaryImage: "https://res.cloudinary.com/dmuxgamms/image/upload/v1783787855/photo_2026-07-11_18-35-27_rdlcgd.jpg",
+    storyImages: Array.from({ length: 8 }, (_, i) => {
+      const n = i + 1;
+      return `/sky_stories/sky_story_${n}.jpg`;
+    }),
   },
   {
     id: "jade",
@@ -732,6 +740,10 @@ export const girls: Girl[] = [
       "Ven, siéntate... que te haga una foto a ti.",
     ],
     cloudinaryImage: "https://res.cloudinary.com/dmuxgamms/image/upload/v1783787854/photo_2026-07-11_18-35-03_tv39nc.jpg",
+    storyImages: Array.from({ length: 9 }, (_, i) => {
+      const n = i + 1;
+      return `/lena_stories/lena_story_${n}.jpg`;
+    }),
   },
 ];
 
