@@ -466,10 +466,10 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
 }
 .quick-action-lock {
   position: absolute;
-  top: -5px;
-  right: -5px;
-  width: 18px;
-  height: 18px;
+  top: -1px;
+  right: -1px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: #100710;
   border: 1.5px solid #FF5798;
