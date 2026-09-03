@@ -7,6 +7,7 @@ import { Girl } from "@/data/girls";
 import { getGirlImage } from "@/lib/images";
 import { getCustomization } from "@/lib/storage";
 import { isFeatureLocked } from "@/lib/premium";
+import LockIcon from "./LockIcon";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const chatPath = (id: string) => `/chat/${id}?picker=1`;
@@ -27,7 +28,6 @@ export default function GirlCard({ girl, index = 0 }: { girl: Girl; index?: numb
       : getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground, girl.cloudinaryImage);
 
   const [videoLocked] = useState(() => typeof window !== "undefined" && isFeatureLocked("video"));
-  const [liveLocked] = useState(() => typeof window !== "undefined" && isFeatureLocked("live"));
 
   const startRef = useRef<{ x: number; y: number } | null>(null);
   const handledRef = useRef(false);
@@ -114,48 +114,37 @@ export default function GirlCard({ girl, index = 0 }: { girl: Girl; index?: numb
       </Link>
 
       <div className="person-quick-actions">
-        <div style={{ position: "relative", display: "inline-flex" }}>
-          {liveLocked && (
-            <svg viewBox="0 0 24 24" width="8" height="8" fill="none" stroke="#FF5798" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" style={{ position: "absolute", top: -3, right: -3, zIndex: 5 }}>
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-            </svg>
-          )}
-          <Link
-            href={`/call/${girl.id}`}
-            className="quick-action-button"
-            title="Llamada"
-            aria-label={`Llamar a ${girl.name}`}
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/call/${girl.id}`); }}
-            onPointerDown={(e) => { e.stopPropagation(); handlePointerDown(e); }}
-            onPointerUp={(e) => { e.stopPropagation(); handlePointerUp(e, `/call/${girl.id}`); }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-            </svg>
-          </Link>
-        </div>
-        <div style={{ position: "relative", display: "inline-flex" }}>
+        <Link
+          href={`/call/${girl.id}`}
+          className="quick-action-button"
+          title="Llamada"
+          aria-label={`Llamar a ${girl.name}`}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/call/${girl.id}`); }}
+          onPointerDown={(e) => { e.stopPropagation(); handlePointerDown(e); }}
+          onPointerUp={(e) => { e.stopPropagation(); handlePointerUp(e, `/call/${girl.id}`); }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+          </svg>
+        </Link>
+        <Link
+          href={`/call/${girl.id}`}
+          className="quick-action-button quick-action-locked"
+          title={videoLocked ? "Videollamada (Premium)" : "Videollamada"}
+          aria-label={`Videollamada con ${girl.name}`}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/call/${girl.id}`); }}
+          onPointerDown={(e) => { e.stopPropagation(); handlePointerDown(e); }}
+          onPointerUp={(e) => { e.stopPropagation(); handlePointerUp(e, `/call/${girl.id}`); }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+          </svg>
           {videoLocked && (
-            <svg viewBox="0 0 24 24" width="8" height="8" fill="none" stroke="#FF5798" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" style={{ position: "absolute", top: -3, right: -3, zIndex: 5 }}>
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-            </svg>
+            <span className="quick-action-lock">
+              <LockIcon size={8} />
+            </span>
           )}
-          <Link
-            href={`/call/${girl.id}`}
-            className="quick-action-button"
-            title="Videollamada"
-            aria-label={`Videollamada con ${girl.name}`}
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/call/${girl.id}`); }}
-            onPointerDown={(e) => { e.stopPropagation(); handlePointerDown(e); }}
-            onPointerUp={(e) => { e.stopPropagation(); handlePointerUp(e, `/call/${girl.id}`); }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-              <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
-            </svg>
-          </Link>
-        </div>
+        </Link>
       </div>
     </div>
   );

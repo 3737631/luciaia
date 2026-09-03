@@ -22,6 +22,7 @@ import {
 import { getGirlImage } from "@/lib/images";
 import { detectGender } from "@/lib/gender";
 import { isFeatureLocked, getPlan, getFreeSecondsLeftToday, recordCallSeconds, isFreeCallLimitReached, FREE_CALL_SECONDS_PER_DAY } from "@/lib/premium";
+import LockIcon from "./LockIcon";
 import { Girl } from "@/data/girls";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
@@ -1785,22 +1786,18 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
               </div>
 
               {/* Video */}
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, position: "relative" }}>
-                {videoLockedOnce && (
-                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#FF5798" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" style={{ position: "absolute", top: 0, right: 8, zIndex: 6 }}>
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                  </svg>
-                )}
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
                 <button
                   onClick={toggleVideo}
-                  aria-label={videoOn ? "Cerrar video" : "Activar video"}
+                  aria-label={videoLockedOnce ? "Video (Premium)" : videoOn ? "Cerrar video" : "Activar video"}
                   aria-pressed={videoOn}
                   style={{
                     width: 68, height: 68, borderRadius: "50%",
                     background: videoOn ? "rgba(255,255,255,0.86)" : "rgba(255,255,255,0.09)",
-                    border: "1px solid rgba(255,255,255,0.10)",
+                    border: videoLockedOnce ? "1.5px solid rgba(255,87,152,0.6)" : "1px solid rgba(255,255,255,0.10)",
+                    boxShadow: videoLockedOnce ? "0 0 16px rgba(255,87,152,0.28)" : "none",
                     cursor: "pointer",
+                    position: "relative",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     color: videoOn ? "rgba(20,16,22,0.96)" : "rgba(255,255,255,0.92)",
                     backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
@@ -1825,6 +1822,18 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
                       </>
                     )}
                   </svg>
+                  {videoLockedOnce && (
+                    <span
+                      style={{
+                        position: "absolute", top: 4, right: 4, zIndex: 6,
+                        width: 18, height: 18, borderRadius: "50%",
+                        background: "#100710", border: "1px solid rgba(255,87,152,0.8)",
+                        display: "grid", placeItems: "center",
+                      }}
+                    >
+                      <LockIcon size={9} />
+                    </span>
+                  )}
                 </button>
                 <span style={{ fontSize: 13, fontWeight: 450, color: "rgba(255,255,255,0.70)", lineHeight: 1 }}>
                   {videoOn ? "Cerrar video" : "Video"}

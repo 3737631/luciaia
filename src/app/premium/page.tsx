@@ -7,6 +7,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import NeonButton from "@/components/NeonButton";
 import { setPlan, resetFreeCallSeconds, resetTrial } from "@/lib/premium";
+import UnlockOverlay from "@/components/UnlockOverlay";
 
 type Billing = "monthly" | "annual";
 
@@ -69,18 +70,23 @@ const plans = [
 export default function PremiumPage() {
   const router = useRouter();
   const [billing, setBilling] = useState<Billing>("monthly");
+  const [unlock, setUnlock] = useState<"premium" | "premium_plus" | null>(null);
 
   function choosePlan(planId: "free" | "premium" | "premium_plus") {
     if (planId === "free") {
       resetFreeCallSeconds();
       resetTrial();
+      setPlan(planId);
+      router.push("/girls");
+      return;
     }
     setPlan(planId);
-    router.push("/girls");
+    setUnlock(planId);
   }
 
   return (
     <>
+      {unlock && <UnlockOverlay plan={unlock} onDone={() => router.push("/girls")} />}
       <Header />
       <main className="mx-auto max-w-6xl overflow-x-hidden px-4 pb-24 sm:px-5">
         <section className="py-16 text-center sm:py-20">

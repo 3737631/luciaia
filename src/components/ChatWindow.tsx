@@ -75,6 +75,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   const [chatMenu, setChatMenu] = useState(false);
   const [confirmDeleteChat, setConfirmDeleteChat] = useState(false);
   const [premiumPrompt, setPremiumPrompt] = useState<string | null>(null);
+  const isFree = typeof window !== "undefined" && getPlan() === "free";
   const scrollRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef(true);
   const messagesRef = useRef(messages);
@@ -805,12 +806,18 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
             className={`${styles.actionBtn} ${recording ? styles.recordingBtn : ""}`}
             onClick={toggleRecording}
             disabled={blocked || (typing && !recording)}
-            title={recording ? "Detener grabación" : "Nota de voz"}
+            title={recording ? "Detener grabación" : isFree ? "Nota de voz (Premium)" : "Nota de voz"}
+            style={isFree ? { position: "relative" } : undefined}
           >
             {recording ? (
               <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
             ) : (
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+            )}
+            {isFree && (
+              <span style={{ position: "absolute", top: -3, right: -3, width: 15, height: 15, borderRadius: "50%", background: "#100710", border: "1px solid rgba(255,87,152,0.7)", display: "grid", placeItems: "center", boxShadow: "0 0 6px rgba(255,87,152,0.5)" }}>
+                <svg viewBox="0 0 24 24" width="8" height="8" fill="none" stroke="#FF5798" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </span>
             )}
           </button>
           <div className={styles.composerInputWrap}>
@@ -828,8 +835,13 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
               </span>
             )}
           </div>
-          <button className={styles.actionBtn} onClick={() => fileRef.current?.click()} disabled={blocked || typing} title="Enviar una foto">
+          <button className={styles.actionBtn} onClick={() => fileRef.current?.click()} disabled={blocked || typing} title={isFree ? "Enviar una foto (Premium)" : "Enviar una foto"} style={isFree ? { position: "relative" } : undefined}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            {isFree && (
+              <span style={{ position: "absolute", top: -3, right: -3, width: 15, height: 15, borderRadius: "50%", background: "#100710", border: "1px solid rgba(255,87,152,0.7)", display: "grid", placeItems: "center", boxShadow: "0 0 6px rgba(255,87,152,0.5)" }}>
+                <svg viewBox="0 0 24 24" width="8" height="8" fill="none" stroke="#FF5798" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </span>
+            )}
           </button>
           <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={onPickPhoto} />
           <button className={styles.sendBtn} onClick={send} disabled={blocked || typing || !input.trim() || recording}>
