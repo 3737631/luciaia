@@ -1853,65 +1853,6 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
                 <span style={{ fontSize: 13, fontWeight: 450, color: "rgba(255,255,255,0.70)", lineHeight: 1 }}>Subtítulos</span>
               </div>
 
-              {/* Texto (panel de mensajes) */}
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-                <button
-                  onClick={() => { if (callStateRef.current === "ended") return; setShowTextPanel(v => !v); }}
-                  aria-label={showTextPanel ? "Cerrar chat de texto" : "Abrir chat de texto"}
-                  aria-pressed={showTextPanel}
-                  style={{
-                    width: 68, height: 68, borderRadius: "50%",
-                    background: showTextPanel ? "rgba(255,255,255,0.86)" : "rgba(255,255,255,0.09)",
-                    border: "1px solid rgba(255,255,255,0.10)",
-                    cursor: "pointer",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    color: showTextPanel ? "rgba(20,16,22,0.96)" : "rgba(255,255,255,0.92)",
-                    backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
-                    transition: "transform 140ms ease, background-color 160ms ease, color 160ms ease",
-                    WebkitTapHighlightColor: "transparent",
-                  }}
-                  onPointerDown={e => { e.currentTarget.style.transform = "scale(0.94)"; }}
-                  onPointerUp={e => { e.currentTarget.style.transform = "scale(1)"; }}
-                  onPointerLeave={e => { e.currentTarget.style.transform = "scale(1)"; }}
-                >
-                  <svg viewBox="0 0 24 24" width="27" height="27" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                    <line x1="8" y1="10" x2="16" y2="10" />
-                    <line x1="8" y1="14" x2="13" y2="14" />
-                  </svg>
-                </button>
-                <span style={{ fontSize: 13, fontWeight: 450, color: "rgba(255,255,255,0.70)", lineHeight: 1 }}>Texto</span>
-              </div>
-
-              {/* Dispositivo (micrófono / altavoz) */}
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-                <button
-                  onClick={() => { if (callStateRef.current === "ended") return; setShowDevicePanel(v => !v); }}
-                  aria-label={showDevicePanel ? "Cerrar audio de la llamada" : "Abrir audio de la llamada"}
-                  aria-pressed={showDevicePanel}
-                  style={{
-                    width: 68, height: 68, borderRadius: "50%",
-                    background: showDevicePanel ? "rgba(255,255,255,0.86)" : "rgba(255,255,255,0.09)",
-                    border: "1px solid rgba(255,255,255,0.10)",
-                    cursor: "pointer",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    color: showDevicePanel ? "rgba(20,16,22,0.96)" : "rgba(255,255,255,0.92)",
-                    backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
-                    transition: "transform 140ms ease, background-color 160ms ease, color 160ms ease",
-                    WebkitTapHighlightColor: "transparent",
-                  }}
-                  onPointerDown={e => { e.currentTarget.style.transform = "scale(0.94)"; }}
-                  onPointerUp={e => { e.currentTarget.style.transform = "scale(1)"; }}
-                  onPointerLeave={e => { e.currentTarget.style.transform = "scale(1)"; }}
-                >
-                  <svg viewBox="0 0 24 24" width="27" height="27" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 1l1.75 6.36a1 1 0 0 0 .5.6l2.5 1.44a1 1 0 0 1 .28 1.72l-1.4 1.4a13.5 13.5 0 0 0 5.85 5.85l1.4-1.4a1 1 0 0 1 1.72.28l1.44 2.5a1 1 0 0 0 .6.5L23 3" />
-                    <path d="M7 1h10" />
-                  </svg>
-                </button>
-                <span style={{ fontSize: 13, fontWeight: 450, color: "rgba(255,255,255,0.70)", lineHeight: 1 }}>Dispositivo</span>
-              </div>
-
               {/* Finalizar */}
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
                 <button
@@ -1980,51 +1921,6 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
             </>
           )}
         </div>
-
-        {/* Text input panel */}
-        {showTextPanel && (
-          <div
-            style={{
-              position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 20,
-              padding: "12px 16px",
-              paddingBottom: "calc(env(safe-area-inset-bottom) + 12px)",
-              background: "rgba(12,9,14,0.92)",
-              backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
-              borderTop: "1px solid rgba(255,255,255,0.06)",
-            }}
-          >
-            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-              <input
-                value={textInput}
-                onChange={e => setTextInput(e.target.value)}
-                onKeyDown={e => { if (e.key === "Enter") sendTextMessage(); }}
-                placeholder="Escribe un mensaje..."
-                style={{
-                  flex: 1, height: 44, borderRadius: 12,
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  background: "rgba(255,255,255,0.06)",
-                  color: "#fff", fontSize: 16, padding: "0 14px",
-                  outline: "none", fontFamily: "inherit",
-                }}
-              />
-              <button
-                onClick={sendTextMessage}
-                style={{
-                  width: 44, height: 44, borderRadius: 12, border: 0,
-                  background: "#ff2d95", color: "#fff",
-                  cursor: "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  flexShrink: 0,
-                }}
-              >
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="22" y1="2" x2="11" y2="13" />
-                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* Video preview */}
         {videoOn && (
