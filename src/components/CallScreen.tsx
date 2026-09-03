@@ -92,6 +92,8 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
   const [subtitleText, setSubtitleText] = useState("");
   const subtitleTimerRef = useRef<any>(null);
   const [videoOn, setVideoOn] = useState(false);
+  const [videoLockedOnce] = useState(() => typeof window !== "undefined" && isFeatureLocked("video"));
+  const [videoBlurred, setVideoBlurred] = useState(false);
   const [audioOn, setAudioOn] = useState(true);
   const [showTextPanel, setShowTextPanel] = useState(false);
   const [textInput, setTextInput] = useState("");
@@ -113,6 +115,7 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
   const audioCtxRef = useRef<AudioContext | null>(null);
   const micStreamRef = useRef<MediaStream | null>(null);
   const videoStreamRef = useRef<MediaStream | null>(null);
+  const videoGateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const micAnalyserRef = useRef<AnalyserNode | null>(null);
   const micSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const speakerAnalyserRef = useRef<AnalyserNode | null>(null);
@@ -1216,11 +1219,13 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (new URLSearchParams(window.location.search).get("mode") === "video") {
-      if (isFeatureLocked("video")) {
-        window.location.replace(`${basePath ?? ""}/premium`);
-        return;
-      }
       toggleVideo();
+      if (videoLockedOnce) {
+        const t = setTimeout(() => {
+          if (mountedRef.current) setVideoBlurred(true);
+        }, 5000);
+        videoGateTimerRef.current = t;
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -1250,6 +1255,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
 
   function cleanup() {
     processingRef.current = false;
+    if (videoGateTimerRef.current) { clearTimeout(videoGateTimerRef.current); videoGateTimerRef.current = null; }
     abortSpeechRec("call-ended");
     cleanupMediaRec();
     stopRecorder();
@@ -1584,6 +1590,8 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
                   width: "100%", height: "100%", borderRadius: "50%",
                   objectFit: "cover", objectPosition: "center",
                   border: "1px solid rgba(255,255,255,0.14)",
+                  filter: videoBlurred ? "blur(28px) brightness(0.45) saturate(0.7)" : "none",
+                  transition: "filter 600ms ease",
                 }}
               />
             ) : (
@@ -1921,6 +1929,43 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
             </>
           )}
         </div>
+
+        {/* Overlay Premium para videollamada (5s para gratis) */}
+        {videoBlurred && (
+          <div
+            style={{
+              position: "fixed", inset: 0, zIndex: 5000,
+              display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center",
+              gap: 14, padding: "0 32px", textAlign: "center",
+              background: "rgba(8,4,10,0.32)",
+            }}
+          >
+            <svg viewBox="0 0 24 24" width="54" height="54" fill="none" stroke="#FF5798" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.95 }}>
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            <span style={{ fontSize: 21, fontWeight: 800, color: "#fff", letterSpacing: "-0.01em", textShadow: "0 2px 10px rgba(0,0,0,.5)" }}>
+              Continuar la videollamada
+            </span>
+            <span style={{ fontSize: 13, lineHeight: 1.45, color: "rgba(255,255,255,.78)", textShadow: "0 1px 6px rgba(0,0,0,.5)" }}>
+              La videollamada completa es exclusiva de Premium.
+            </span>
+            <button
+              onClick={() => router.push("/premium")}
+              style={{
+                marginTop: 6, padding: "13px 30px", borderRadius: 999,
+                border: 0, cursor: "pointer",
+                background: "linear-gradient(135deg,#FF5798,#FF6AA5)",
+                color: "#fff", fontWeight: 700, fontSize: 15,
+                boxShadow: "0 8px 28px rgba(255,87,152,.45)",
+                fontFamily: "inherit",
+              }}
+            >
+              Hazte Premium
+            </button>
+          </div>
+        )}
 
         {/* Video preview */}
         {videoOn && (

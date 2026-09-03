@@ -10,7 +10,7 @@ import { getFallbackResponse } from "@/lib/ai";
 import { goBack } from "@/lib/nav";
 import { sendChatMessage } from "@/lib/chatClient";
 import { sttAudio, ttsText, getGirlVoice, getCustomGirlVoice } from "@/lib/voiceClient";
-import { isFeatureLocked, consumeTrial } from "@/lib/premium";
+import { consumeTrial } from "@/lib/premium";
 import {
   saveConversationHistory,
   getConversationHistory,
@@ -658,7 +658,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
           </div>
           <svg className={styles.optionChevron} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
-        <button className={styles.optionCard} onClick={() => { if (isFeatureLocked("video")) { router.push("/premium"); return; } router.push(`/call/${girl.id}?mode=video`); }}>
+        <button className={styles.optionCard} onClick={() => router.push(`/call/${girl.id}?mode=video`)}>
           <div className={styles.iconGreenWrap}>
             <svg className={styles.iconGreen} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
           </div>
