@@ -15,11 +15,15 @@ import { getDeviceId } from "@/lib/deviceId";
  * configurado, cae con elegancia al trial local.
  */
 
-export const PREMIUM_FEATURES = ["video"] as const;
+export const PREMIUM_FEATURES = ["video", "live", "create"] as const;
 export type PremiumFeature = (typeof PREMIUM_FEATURES)[number];
+
+export type Plan = "free" | "premium" | "premium_plus";
 
 const TRIAL_START_KEY = "nuvia_trial_start_v1";
 const PREMIUM_KEY = "nuvia_premium_v1";
+const PLAN_KEY = "nuvia_plan_v1";
+const CREATE_LAST_KEY = "nuvia_create_last_v1";
 const TRIAL_HOURS = 24;
 const TRIAL_MS = TRIAL_HOURS * 60 * 60 * 1000;
 
@@ -46,11 +50,99 @@ export function getLocalPremium(): boolean {
 
 export function setLocalPremium(value: boolean): void {
   try {
-    if (value) localStorage.setItem(PREMIUM_KEY, "1");
-    else localStorage.removeItem(PREMIUM_KEY);
+    if (value) {
+      localStorage.setItem(PREMIUM_KEY, "1");
+      localStorage.setItem(PLAN_KEY, "premium");
+    } else {
+      localStorage.removeItem(PREMIUM_KEY);
+      localStorage.removeItem(PLAN_KEY);
+    }
   } catch {
     /* noop */
   }
+}
+
+/**
+ * Plan suscrito del dispositivo. "premium_plus" y "premium" desbloquean todo;
+ * "free" aplica los candados (directos con blur, crear 1/día, etc.).
+ * La prueba de 24h se comporta como premium temporal hasta que se conecte el pago.
+ */
+export function getPlan(): Plan {
+  try {
+    const p = localStorage.getItem(PLAN_KEY);
+    if (p === "premium" || p === "premium_plus") return p;
+  } catch {
+    /* noop */
+  }
+  return "free";
+}
+
+/**
+ * Activa un plan de pago (para cuando se conecte la pasarela).
+ * NO depende del trial; persiste el plan y lo considera premium ilimitado.
+ */
+export function setPlan(plan: Plan): void {
+  try {
+    if (plan === "free") {
+      localStorage.removeItem(PREMIUM_KEY);
+      localStorage.removeItem(PLAN_KEY);
+    } else {
+      localStorage.setItem(PREMIUM_KEY, "1");
+      localStorage.setItem(PLAN_KEY, plan);
+    }
+  } catch {
+    /* noop */
+  }
+}
+
+/** Desbloquea/revoca el premium por depuración o por la pasarela de pago. */
+export function clearPremium(locked: boolean): boolean {
+  try {
+    if (locked) {
+      localStorage.removeItem(PREMIUM_KEY);
+      localStorage.removeItem(PLAN_KEY);
+      localStorage.removeItem(TRIAL_START_KEY);
+      return true;
+    }
+  } catch {
+    /* noop */
+  }
+  return false;
+}
+
+/** Fecha local "yyyy-mm-dd" del día actual. */
+function todayKey(): string {
+  const d = new Date();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${m}-${day}`;
+}
+
+/** Número de chicas creadas hoy (a efectos del límite de 1/día para gratis). */
+export function getCreatedToday(): number {
+  try {
+    const raw = localStorage.getItem(CREATE_LAST_KEY);
+    if (!raw) return 0;
+    const data = JSON.parse(raw) as { day: string; count: number };
+    return data && data.day === todayKey() ? data.count : 0;
+  } catch {
+    return 0;
+  }
+}
+
+/** Registra una creación de chica (incrementa el contador diario). */
+export function recordGirlCreation(): void {
+  try {
+    localStorage.setItem(CREATE_LAST_KEY, JSON.stringify({ day: todayKey(), count: getCreatedToday() + 1 }));
+  } catch {
+    /* noop */
+  }
+}
+
+/** True si el usuario gratis puede crear otra chica hoy (limite 1/día). */
+export function canCreateGirl(failReason?: { dayLimit: number }): boolean {
+  const created = getCreatedToday();
+  return created < 1;
 }
 
 export function getTrialStart(): number | null {

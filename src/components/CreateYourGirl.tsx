@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { saveCustomGirl, CustomGirlData } from "@/lib/storage";
 import { generateGirlImage } from "@/lib/chatClient";
+import { isFeatureLocked, canCreateGirl, recordGirlCreation } from "@/lib/premium";
 
 const MINOR_WORDS = [
   "niño", "niña", "niños", "niñas", "menor", "menores", "pequeño", "pequeña",
@@ -328,6 +329,7 @@ export default function CreateYourGirl({ open, onClose, onCreated, editGirl }: {
   const [girlDesc, setGirlDesc] = useState("");
   const [roleplayDesc, setRoleplayDesc] = useState("");
   const [error, setError] = useState("");
+  const [premiumPrompt, setPremiumPrompt] = useState(false);
   const [step, setStep] = useState<WizardStep>("describe");
   const [selectedPersonality, setSelectedPersonality] = useState("");
   const [currentName, setCurrentName] = useState("");
@@ -351,7 +353,7 @@ export default function CreateYourGirl({ open, onClose, onCreated, editGirl }: {
 
   useEffect(() => {
     if (!open) {
-setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSelectedPersonality(""); setCurrentName(""); setGenError(""); setRefImage(null); setOpenSection(null);
+setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSelectedPersonality(""); setCurrentName(""); setGenError(""); setRefImage(null); setOpenSection(null); setPremiumPrompt(false);
     } else if (editGirl) {
       setGirlDesc(editGirl.girlDesc || "");
       setRoleplayDesc(editGirl.roleplayDesc || "");
@@ -527,6 +529,18 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
   }
 
 async function handlePersonalityNext() {
+    // Límite gratis: 1 chica nueva al día. Editar una existente no cuenta.
+    if (!editGirl?.id) {
+      const locked = isFeatureLocked("create");
+      const canCreate = canCreateGirl();
+      if (locked && !canCreate) {
+        setGenError("");
+        setError("Solo puedes crear 1 chica al día. Hazte Premium para crear sin límites.");
+        setStep("personality");
+        setPremiumPrompt(true);
+        return;
+      }
+    }
     setGenError("");
     setStep("generating");
     const id = editGirl?.id || generateId();
@@ -558,6 +572,7 @@ async function handlePersonalityNext() {
       }
     }
     saveCustomGirl(newGirl);
+    if (!editGirl) recordGirlCreation();
     setStep("done");
 
     if (editGirl) {
@@ -719,6 +734,18 @@ async function handlePersonalityNext() {
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
                         Atrás
                       </button>
+
+                      {premiumPrompt && (
+                        <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-[#FF5798]/30 bg-[#FF5798]/10 px-4 py-3">
+                          <div className="min-w-0">
+                            <p className="text-sm font-bold text-white">Has llegado al límite del plan gratis</p>
+                            <p className="text-xs text-white/60">Con Premium crearás chicas sin límites.</p>
+                          </div>
+                          <button onClick={() => router.push("/premium")} className="shrink-0 rounded-full bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] px-4 py-2 text-xs font-bold text-white transition hover:brightness-110 active:scale-95">
+                            Hazte Premium
+                          </button>
+                        </div>
+                      )}
 
                       <div className="mt-2">
                         {[

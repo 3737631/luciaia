@@ -2,9 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import Link from "next/link";
 import { ttsText, getGirlVoice, unlockAudioGesture } from "@/lib/voiceClient";
+import { isFeatureLocked } from "@/lib/premium";
 
 const APPLE_SPRING = "cubic-bezier(.32,.72,0,1)";
+
+// Segundos de vista previa del directo para usuarios gratis antes de que salga el blur.
+const PREVIEW_SECONDS = 5;
 
 // Ventanas (segundos del video) en las que Sofía puede hablar
 const SPEAK_LAG = 1.2; // ella dice las frases un pelín más tarde
@@ -118,6 +123,11 @@ export default function StoryVideoViewer({
   const [showChat, setShowChat] = useState(true);
   const [buffering, setBuffering] = useState(true);
 
+  // Gating del directo: los usuarios gratis ven 5 segundos y después el vídeo
+  // de fondo se emborrona con un cartel de "Hazte Premium".
+  const [liveLocked] = useState(() => isFeatureLocked("live"));
+  const [blurred, setBlurred] = useState(false);
+
   // El video va SIN audio (solo se oye la voz TTS de ella, amplificada).
   // El audio de la página ya quedó desbloqueado por el toque que abrió el directo
   // (unlockAudioGesture en StoriesRow). Esto es solo respaldo por si entró directo.
@@ -171,6 +181,15 @@ export default function StoryVideoViewer({
       window.scrollTo(0, scrollYRef.current);
     };
   }, []);
+
+  // Vista previa del directo: después de PREVIEW_SECONDS, blur intenso para gratis.
+  useEffect(() => {
+    if (!liveLocked) return;
+    const t = setTimeout(() => {
+      if (mountedRef.current) setBlurred(true);
+    }, PREVIEW_SECONDS * 1000);
+    return () => clearTimeout(t);
+  }, [liveLocked]);
 
   useEffect(() => {
     const spawnComment = () => {
@@ -466,7 +485,8 @@ export default function StoryVideoViewer({
             objectFit: "cover",
             display: "block",
             pointerEvents: "none",
-            filter: "none",
+            filter: blurred ? "blur(28px) brightness(0.5) saturate(0.7)" : "none",
+            transition: "filter 600ms ease",
             imageRendering: "high-quality" as any,
             transform: "translateZ(0)",
           } as React.CSSProperties}
@@ -714,6 +734,38 @@ export default function StoryVideoViewer({
             {g.emoji}
           </span>
         ))}
+
+        {/* Overlay Premium para directos */}
+        {blurred && (
+          <div style={{
+            position: "absolute", zIndex: 50, inset: 0,
+            display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center",
+            gap: 14, padding: "0 32px", textAlign: "center",
+            background: "rgba(8,4,10,0.28)",
+            pointerEvents: "auto",
+          }}>
+            <svg viewBox="0 0 24 24" width="54" height="54" fill="none" stroke="#FF5798" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.95 }}>
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            <span style={{ fontSize: 21, fontWeight: 800, color: "#fff", letterSpacing: "-0.01em", textShadow: "0 2px 10px rgba(0,0,0,.5)" }}>
+              Continuar en vivo
+            </span>
+            <span style={{ fontSize: 13, lineHeight: 1.45, color: "rgba(255,255,255,.78)", textShadow: "0 1px 6px rgba(0,0,0,.5)" }}>
+              El directo completo es exclusivo de Premium.
+            </span>
+            <Link href="/premium" onClick={(e) => e.stopPropagation()} style={{
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+              marginTop: 6, padding: "13px 30px", borderRadius: 999,
+              background: "linear-gradient(135deg,#FF5798,#FF6AA5)",
+              color: "#fff", fontWeight: 700, fontSize: 15, textDecoration: "none",
+              boxShadow: "0 8px 28px rgba(255,87,152,.45)", cursor: "pointer",
+            }}>
+              Hazte Premium
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );
