@@ -1659,15 +1659,27 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
           </div>
           <div
             style={{
-              marginTop: 6, fontSize: 14, fontWeight: 600,
-              color: "#FF3B82",
+              marginTop: 6, fontSize: 14, fontWeight: 400,
+              color: "rgba(255,255,255,0.42)",
               fontVariantNumeric: "tabular-nums",
               textAlign: "center", lineHeight: 1.2, minHeight: 18,
               visibility: isConnected ? "visible" : "hidden",
               position: "relative",
             }}
           >
-            {callDuration}s
+            {Math.floor(callDuration / 60).toString().padStart(2, "0")}
+            :{(callDuration % 60).toString().padStart(2, "0")}
+            {isFreeUser && isConnected && !callLocked && (
+              <div
+                style={{
+                  marginTop: 4, fontSize: 12, fontWeight: 600,
+                  color: freeSecondsLeft <= 10 ? "#ff4466" : "#FF3B82",
+                  fontVariantNumeric: "tabular-nums",
+                }}
+              >
+                {freeSecondsLeft}s restantes hoy
+              </div>
+            )}
           </div>
           {subtitlesOn && isConnected && (
             <div
@@ -1773,7 +1785,13 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
               </div>
 
               {/* Video */}
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, position: "relative" }}>
+                {videoLockedOnce && (
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#FF5798" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" style={{ position: "absolute", top: 0, right: 8, zIndex: 6 }}>
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                )}
                 <button
                   onClick={toggleVideo}
                   aria-label={videoOn ? "Cerrar video" : "Activar video"}
