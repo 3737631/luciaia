@@ -175,11 +175,18 @@ export function getTrialStatus(): TrialStatus {
   };
 }
 
-/** True si una función está bloqueada para este dispositivo. */
+/**
+ * True si una función está bloqueada para este dispositivo.
+ *
+ * El candado depende SOLO del plan de pago real (getPlan). Mientras no se
+ * conecte la pasarela de pago, getPlan() devuelve "free" y los candados
+ * premium se activan de verdad (directos con blur, crear 1/día, videollamada
+ * -> /premium). El trial de 24h NO desbloquea: así las funciones premium
+ * siempre son visibles/bloqueadas hasta que exista una suscripción.
+ */
 export function isFeatureLocked(feature: PremiumFeature): boolean {
   if (!PREMIUM_FEATURES.includes(feature)) return false;
-  const s = getTrialStatus();
-  return !s.premium && !s.trialActive;
+  return getPlan() === "free";
 }
 
 /**
