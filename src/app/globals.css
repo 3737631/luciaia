@@ -460,24 +460,24 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   }
 }
 
-/* Botón videollamada premium: integra el candado en el borde del icono */
+/* Botón videollamada premium: candado pequeño bien alineado en la esquina superior derecha */
 .quick-action-button {
   position: relative;
 }
 .quick-action-lock {
   position: absolute;
-  top: 0;
-  right: 0;
-  transform: translate(22%, -22%);
-  width: 14px;
-  height: 14px;
+  top: -5px;
+  right: -5px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   background: #100710;
-  border: 1px solid rgba(255,87,152,0.7);
-  box-shadow: 0 0 6px rgba(255,87,152,0.5);
+  border: 1.5px solid #FF5798;
+  box-shadow: 0 1px 5px rgba(255,87,152,0.8);
   display: grid;
   place-items: center;
   pointer-events: none;
+  z-index: 3;
 }
 
 .featured-row {

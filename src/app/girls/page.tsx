@@ -12,6 +12,7 @@ import { girls } from "@/data/girls";
 import { getGirlImage } from "@/lib/images";
 import { getDailyStorySelection } from "@/lib/getDailyStoryIndex";
 import { CustomGirlData } from "@/lib/storage";
+import { isFeatureLocked, canCreateGirl } from "@/lib/premium";
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 const femaleIds = new Set([
@@ -141,7 +142,7 @@ export default function GirlsPage() {
         <StoriesRow girls={femaleGirls} />
 
         <div className="section-reveal">
-          <FantasyCTA mode="girls" onCreate={() => setCreateOpen(true)} onView={() => setViewOpen(true)} />
+          <FantasyCTA mode="girls" onCreate={() => setCreateOpen(true)} onView={() => setViewOpen(true)} locked={typeof window !== "undefined" && isFeatureLocked("create") && !canCreateGirl()} />
         </div>
         <CreateYourGirl open={createOpen} onClose={() => setCreateOpen(false)} editGirl={editGirl} />
         <TusChicas open={viewOpen} onClose={() => setViewOpen(false)} onEdit={(g) => { setViewOpen(false); setEditGirl(g); setCreateOpen(true); }} onCreate={() => { setViewOpen(false); setEditGirl(null); setCreateOpen(true); }} />
