@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Girl } from "@/data/girls";
@@ -14,26 +14,9 @@ function shouldBeOnline(): boolean {
   return Math.random() < 0.55;
 }
 
-function useOnScreen(ref: React.RefObject<HTMLDivElement>) {
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect(); } },
-      { rootMargin: "2500px" }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [ref]);
-  return visible;
-}
-
 export default function GirlCard({ girl, index = 0 }: { girl: Girl; index?: number }) {
   const [failed, setFailed] = useState(false);
   const [online] = useState(shouldBeOnline);
-  const ref = useRef<HTMLDivElement>(null!);
-  const visible = useOnScreen(ref);
   const router = useRouter();
   const custom = getCustomization(girl.id);
   const src = failed
@@ -67,8 +50,7 @@ export default function GirlCard({ girl, index = 0 }: { girl: Girl; index?: numb
 
   return (
     <div
-      ref={ref}
-      className={visible ? "person-card is-in" : "person-card"}
+      className="person-card is-in"
       role="button"
       tabIndex={0}
       aria-label={`${girl.name}, ${girl.age} años`}
@@ -76,9 +58,6 @@ export default function GirlCard({ girl, index = 0 }: { girl: Girl; index?: numb
       onPointerDown={handlePointerDown}
       onPointerUp={(e) => handlePointerUp(e, chatPath(girl.id))}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate(chatPath(girl.id)); } }}
-      style={{
-        transition: `opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${index * 0.05}s, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${index * 0.05}s, box-shadow 320ms ease ${index * 0.05}s`,
-      }}
     >
       {failed ? (
         <div
