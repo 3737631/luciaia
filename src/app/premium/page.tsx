@@ -6,7 +6,7 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import NeonButton from "@/components/NeonButton";
-import { setPlan, resetFreeCallSeconds } from "@/lib/premium";
+import { setPlan, resetFreeCallSeconds, resetTrial } from "@/lib/premium";
 
 type Billing = "monthly" | "annual";
 
@@ -71,7 +71,10 @@ export default function PremiumPage() {
   const [billing, setBilling] = useState<Billing>("monthly");
 
   function choosePlan(planId: "free" | "premium" | "premium_plus") {
-    if (planId === "free") resetFreeCallSeconds();
+    if (planId === "free") {
+      resetFreeCallSeconds();
+      resetTrial();
+    }
     setPlan(planId);
     router.push("/girls");
   }

@@ -1671,11 +1671,22 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
               .toString()
               .padStart(2, "0")}
             :{(callDuration % 60).toString().padStart(2, "0")}
-            {isFreeUser && isConnected && !callLocked && (
+            {isConnected && (
               <div
                 style={{
                   marginTop: 4, fontSize: 12, fontWeight: 600,
-                  color: freeSecondsLeft <= 10 ? "#ff4466" : "rgba(255,255,255,0.55)",
+                  color: "rgba(255,255,255,0.55)",
+                  fontVariantNumeric: "tabular-nums",
+                }}
+              >
+                {callDuration}s
+              </div>
+            )}
+            {isFreeUser && isConnected && !callLocked && (
+              <div
+                style={{
+                  marginTop: 2, fontSize: 11, fontWeight: 500,
+                  color: freeSecondsLeft <= 10 ? "#ff4466" : "rgba(255,255,255,0.4)",
                   fontVariantNumeric: "tabular-nums",
                 }}
               >
