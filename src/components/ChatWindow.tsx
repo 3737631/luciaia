@@ -785,25 +785,6 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         )}
         {error && <p style={{ textAlign: "center", fontSize: 12, color: "hsla(240,7%,97%,.3)", padding: 8 }}>{error}</p>}
       </div>
-      {!messages.some((m) => m.from === "user") && (girl.roleplayGreetings?.length ?? 0) > 0 && (
-        <div style={{ display: "flex", gap: 8, overflowX: "auto", padding: "10px 16px 0", scrollbarWidth: "none", flexShrink: 0 }}>
-          {girl.roleplayGreetings.slice(0, 4).map((s) => (
-            <button
-              key={s}
-              onClick={() => { setInput(s); }}
-              style={{
-                flexShrink: 0, maxWidth: 220, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-                border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.05)",
-                color: "rgba(255,255,255,0.82)", fontSize: 13, fontWeight: 500,
-                borderRadius: 999, padding: "8px 14px", cursor: "pointer",
-                WebkitTapHighlightColor: "transparent",
-              }}
-            >
-              {s.length > 26 ? s.slice(0, 26) + "..." : s}
-            </button>
-          ))}
-        </div>
-      )}
       <div className={styles.composer}>
         <div className={styles.composerRow}>
           <button
