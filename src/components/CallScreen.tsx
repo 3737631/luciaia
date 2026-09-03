@@ -21,7 +21,7 @@ import {
 } from "@/lib/memory";
 import { getGirlImage } from "@/lib/images";
 import { detectGender } from "@/lib/gender";
-import { isFeatureLocked, getPlan, getFreeSecondsLeftToday, recordCallSeconds, FREE_CALL_SECONDS_PER_DAY } from "@/lib/premium";
+import { isFeatureLocked, getPlan, getFreeSecondsLeftToday, recordCallSeconds, isFreeCallLimitReached, FREE_CALL_SECONDS_PER_DAY } from "@/lib/premium";
 import { Girl } from "@/data/girls";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
@@ -1245,7 +1245,11 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
       }
     }, 30000);
 
-    initCall();
+    if (typeof window !== "undefined" && getPlan() === "free" && isFreeCallLimitReached()) {
+      setCallLocked(true);
+    } else {
+      initCall();
+    }
 
     return () => {
       clearTimeout(timeout);
@@ -2011,7 +2015,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
         )}
 
         {/* Aviso de tiempo gratis de llamada restante */}
-        {isFreeUser && !callLocked && isConnected && freeSecondsLeft <= 12 && (
+        {isFreeUser && !callLocked && isConnected && (
           <div
             style={{
               position: "fixed", left: 0, right: 0,
