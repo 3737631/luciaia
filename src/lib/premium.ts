@@ -24,8 +24,12 @@ const TRIAL_START_KEY = "nuvia_trial_start_v1";
 const PREMIUM_KEY = "nuvia_premium_v1";
 const PLAN_KEY = "nuvia_plan_v1";
 const CREATE_LAST_KEY = "nuvia_create_last_v1";
+const CALL_SECONDS_KEY = "nuvia_call_seconds_v1";
 const TRIAL_HOURS = 24;
 const TRIAL_MS = TRIAL_HOURS * 60 * 60 * 1000;
+
+/** Segundos de llamada gratis al día (1 minuto en total entre todas las chicas). */
+export const FREE_CALL_SECONDS_PER_DAY = 60;
 
 // Endpoint opcional de respaldo del servidor. Si no está definido, se usa solo local.
 const TRIAL_ENDPOINT =
@@ -143,6 +147,38 @@ export function recordGirlCreation(): void {
 export function canCreateGirl(failReason?: { dayLimit: number }): boolean {
   const created = getCreatedToday();
   return created < 1;
+}
+
+/** Segundos de llamada (voz/vídeo) ya consumidos hoy por los usuarios gratis. */
+export function getFreeSecondsUsedToday(): number {
+  try {
+    const raw = localStorage.getItem(CALL_SECONDS_KEY);
+    if (!raw) return 0;
+    const data = JSON.parse(raw) as { day: string; seconds: number };
+    return data && data.day === todayKey() ? Math.max(0, Math.floor(data.seconds)) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+/** Segundos de llamada gratis que quedan hoy (max FREE_CALL_SECONDS_PER_DAY). */
+export function getFreeSecondsLeftToday(): number {
+  return Math.max(0, FREE_CALL_SECONDS_PER_DAY - getFreeSecondsUsedToday());
+}
+
+/** Registra segundos consumidos de llamada hoy (acumulable entre chicas). */
+export function recordCallSeconds(seconds: number): void {
+  try {
+    const used = getFreeSecondsUsedToday();
+    localStorage.setItem(CALL_SECONDS_KEY, JSON.stringify({ day: todayKey(), seconds: used + Math.max(0, seconds) }));
+  } catch {
+    /* noop */
+  }
+}
+
+/** True si el usuario gratis ya se ha gastado todos sus segundos de llamada de hoy. */
+export function isFreeCallLimitReached(): boolean {
+  return getFreeSecondsLeftToday() <= 0;
 }
 
 export function getTrialStart(): number | null {

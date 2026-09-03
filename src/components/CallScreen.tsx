@@ -21,7 +21,7 @@ import {
 } from "@/lib/memory";
 import { getGirlImage } from "@/lib/images";
 import { detectGender } from "@/lib/gender";
-import { isFeatureLocked } from "@/lib/premium";
+import { isFeatureLocked, getPlan, getFreeSecondsLeftToday, recordCallSeconds, FREE_CALL_SECONDS_PER_DAY } from "@/lib/premium";
 import { Girl } from "@/data/girls";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
@@ -94,6 +94,9 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
   const [videoOn, setVideoOn] = useState(false);
   const [videoLockedOnce] = useState(() => typeof window !== "undefined" && isFeatureLocked("video"));
   const [videoBlurred, setVideoBlurred] = useState(false);
+  const isFreeUser = typeof window !== "undefined" && getPlan() === "free";
+  const [freeSecondsLeft, setFreeSecondsLeft] = useState(() => (typeof window !== "undefined" && getPlan() === "free" ? getFreeSecondsLeftToday() : FREE_CALL_SECONDS_PER_DAY));
+  const [callLocked, setCallLocked] = useState(false);
   const [audioOn, setAudioOn] = useState(true);
   const [showTextPanel, setShowTextPanel] = useState(false);
   const [textInput, setTextInput] = useState("");
@@ -1496,6 +1499,29 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
 
   const isConnected = callState === "listening" || callState === "processing" || callState === "speaking" || callState === "greeting";
   const isDialing = callState === "dialing";
+
+  // Límite diario de llamada gratis (1 minuto al día, compartido entre todas las chicas).
+  useEffect(() => {
+    if (!isFreeUser || callLocked) return;
+    if (!isConnected || isDialing) return;
+    const interval = setInterval(() => {
+      const left = getFreeSecondsLeftToday();
+      if (left <= 0) {
+        clearInterval(interval);
+        setFreeSecondsLeft(0);
+        setCallLocked(true);
+        try { abortSpeechRec("free-limit"); } catch {}
+        try { if (audioElRef.current) { audioElRef.current.pause(); } } catch {}
+        try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch {}
+        return;
+      }
+      recordCallSeconds(1);
+      setFreeSecondsLeft(getFreeSecondsLeftToday());
+    }, 1000);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFreeUser, callLocked, isConnected, isDialing]);
+
   const statusText = isDialing
     ? "Llamando" + ".".repeat(dotCount)
     : callState === "greeting" || callState === "speaking"
@@ -1938,9 +1964,26 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
               display: "flex", flexDirection: "column",
               alignItems: "center", justifyContent: "center",
               gap: 14, padding: "0 32px", textAlign: "center",
-              background: "rgba(8,4,10,0.32)",
+              background: "rgba(8,4,10,0.34)",
+              backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
             }}
           >
+            <button
+              onClick={hangUp}
+              aria-label="Salir de la llamada"
+              style={{
+                position: "absolute", top: "calc(env(safe-area-inset-top) + 56px)", left: 16,
+                width: 44, height: 44, borderRadius: "50%",
+                background: "rgba(255,255,255,0.10)", border: "1px solid rgba(255,255,255,0.18)",
+                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
+                zIndex: 5001, color: "#fff",
+              }}
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
             <svg viewBox="0 0 24 24" width="54" height="54" fill="none" stroke="#FF5798" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.95 }}>
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
               <path d="M7 11V7a5 5 0 0 1 10 0v4" />
@@ -1950,6 +1993,84 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
             </span>
             <span style={{ fontSize: 13, lineHeight: 1.45, color: "rgba(255,255,255,.78)", textShadow: "0 1px 6px rgba(0,0,0,.5)" }}>
               La videollamada completa es exclusiva de Premium.
+            </span>
+            <button
+              onClick={() => router.push("/premium")}
+              style={{
+                marginTop: 6, padding: "13px 30px", borderRadius: 999,
+                border: 0, cursor: "pointer",
+                background: "linear-gradient(135deg,#FF5798,#FF6AA5)",
+                color: "#fff", fontWeight: 700, fontSize: 15,
+                boxShadow: "0 8px 28px rgba(255,87,152,.45)",
+                fontFamily: "inherit",
+              }}
+            >
+              Hazte Premium
+            </button>
+          </div>
+        )}
+
+        {/* Aviso de tiempo gratis de llamada restante */}
+        {isFreeUser && !callLocked && isConnected && freeSecondsLeft <= 12 && (
+          <div
+            style={{
+              position: "fixed", left: 0, right: 0,
+              bottom: "calc(env(safe-area-inset-bottom) + 110px)", zIndex: 4000,
+              display: "flex", justifyContent: "center", pointerEvents: "none",
+            }}
+          >
+            <div
+              style={{
+                padding: "8px 16px", borderRadius: 999,
+                background: "rgba(8,4,10,0.72)", backdropFilter: "blur(12px)",
+                WebkitBackdropFilter: "blur(12px)",
+                border: "1px solid rgba(255,87,152,0.35)",
+                fontSize: 13, fontWeight: 700, color: "#fff",
+                textAlign: "center",
+              }}
+            >
+              Te quedan {freeSecondsLeft}s gratis de llamada hoy
+            </div>
+          </div>
+        )}
+
+        {/* Overlay límite diario de llamada gratis agotado */}
+        {callLocked && (
+          <div
+            style={{
+              position: "fixed", inset: 0, zIndex: 5000,
+              display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center",
+              gap: 14, padding: "0 32px", textAlign: "center",
+              background: "rgba(8,4,10,0.86)",
+              backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
+            }}
+          >
+            <button
+              onClick={hangUp}
+              aria-label="Salir de la llamada"
+              style={{
+                position: "absolute", top: "calc(env(safe-area-inset-top) + 56px)", left: 16,
+                width: 44, height: 44, borderRadius: "50%",
+                background: "rgba(255,255,255,0.10)", border: "1px solid rgba(255,255,255,0.18)",
+                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
+                zIndex: 5001, color: "#fff",
+              }}
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+            <svg viewBox="0 0 24 24" width="54" height="54" fill="none" stroke="#FF5798" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.95 }}>
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            <span style={{ fontSize: 21, fontWeight: 800, color: "#fff", letterSpacing: "-0.01em", textShadow: "0 2px 10px rgba(0,0,0,.5)" }}>
+              Se acabó tu tiempo gratis de hoy
+            </span>
+            <span style={{ fontSize: 13, lineHeight: 1.45, color: "rgba(255,255,255,.78)", textShadow: "0 1px 6px rgba(0,0,0,.5)" }}>
+              Tienes 1 minuto de llamada gratis al día. Hazte Premium para llamar sin límites.
             </span>
             <button
               onClick={() => router.push("/premium")}
@@ -1985,8 +2106,25 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
               autoPlay
               playsInline
               muted
-              style={{ width: "100%", height: "100%", objectFit: "cover", transform: "scaleX(-1)" }}
+              style={{ width: "100%", height: "100%", objectFit: "cover", transform: "scaleX(-1)", filter: videoBlurred ? "blur(6px)" : "none" }}
             />
+            {videoLockedOnce && (
+              <span
+                style={{
+                  position: "absolute", top: 4, right: 4, zIndex: 11,
+                  width: 22, height: 22, borderRadius: "50%",
+                  background: "rgba(8,4,10,0.85)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  border: "1px solid rgba(255,255,255,0.22)",
+                }}
+                aria-label="Vídeo Premium"
+              >
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#FF5798" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+              </span>
+            )}
           </div>
         )}
 

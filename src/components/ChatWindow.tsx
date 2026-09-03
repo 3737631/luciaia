@@ -10,7 +10,7 @@ import { getFallbackResponse } from "@/lib/ai";
 import { goBack } from "@/lib/nav";
 import { sendChatMessage } from "@/lib/chatClient";
 import { sttAudio, ttsText, getGirlVoice, getCustomGirlVoice } from "@/lib/voiceClient";
-import { consumeTrial } from "@/lib/premium";
+import { consumeTrial, getPlan } from "@/lib/premium";
 import {
   saveConversationHistory,
   getConversationHistory,
@@ -74,6 +74,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [chatMenu, setChatMenu] = useState(false);
   const [confirmDeleteChat, setConfirmDeleteChat] = useState(false);
+  const [premiumPrompt, setPremiumPrompt] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef(true);
   const messagesRef = useRef(messages);
@@ -461,6 +462,10 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   }
 
   async function toggleRecording() {
+    if (typeof window !== "undefined" && getPlan() === "free") {
+      setPremiumPrompt("Las notas de voz son una función Premium. Hazte Premium para enviar notas de voz ilimitadas.");
+      return;
+    }
     if (recording) {
       recorderRef.current?.stop();
       return;
@@ -529,6 +534,11 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   function onPickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (typeof window !== "undefined" && getPlan() === "free") {
+      setPremiumPrompt("Enviar fotos es una función Premium. Hazte Premium para enviar y recibir fotos privadas.");
+      e.target.value = "";
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () => {
       const img = new Image();
@@ -872,6 +882,25 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
               </button>
               <button onClick={deleteChatForever} className="h-12 flex-1 rounded-2xl bg-[#ff2f78] text-sm font-bold text-white transition hover:brightness-110 active:scale-[0.98]">
                 Borrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {premiumPrompt && (
+        <div className="fixed inset-0 z-[96] flex items-center justify-center overflow-y-auto bg-black/80 px-6 backdrop-blur-md" onClick={() => setPremiumPrompt(null)}>
+          <div className="my-auto w-full max-w-[340px] rounded-3xl border border-[#ff5f8f]/25 bg-[#15151a]/95 p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#ff2f78]/15 text-[#ff5f8f]">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+            </div>
+            <h3 className="mt-4 text-lg font-bold tracking-tight text-white">Función Premium</h3>
+            <p className="mt-2 text-sm leading-relaxed text-white/60">{premiumPrompt}</p>
+            <div className="mt-6 flex gap-2.5">
+              <button onClick={() => setPremiumPrompt(null)} className="h-12 flex-1 rounded-2xl bg-white/[0.06] text-sm font-bold text-white/80 transition hover:bg-white/[0.1] active:scale-[0.98]">
+                Ahora no
+              </button>
+              <button onClick={() => router.push("/premium")} className="h-12 flex-1 rounded-2xl bg-gradient-to-r from-[#ff2f78] to-[#a833ff] text-sm font-bold text-white transition hover:brightness-110 active:scale-[0.98]">
+                Hazte Premium
               </button>
             </div>
           </div>
