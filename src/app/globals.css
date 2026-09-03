@@ -1180,3 +1180,4 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   90% { opacity: 1; }
   100% { opacity: 0; }
 }
+.lock-relative { position: relative; }

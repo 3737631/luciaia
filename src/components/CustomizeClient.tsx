@@ -10,6 +10,7 @@ import NeonButton from "@/components/NeonButton";
 import { OptionGroup } from "@/components/CustomizationPanel";
 import { Girl } from "@/data/girls";
 import { Customization, getCustomization, saveCustomization } from "@/lib/storage";
+import { getPlan } from "@/lib/premium";
 
 const maleIds = new Set(["axel", "liam"]);
 const animeIds = new Set(["sakura", "yumi", "rin"]);
@@ -183,7 +184,11 @@ export default function CustomizeClient({ girl }: { girl: Girl }) {
             variant="secondary"
             onClick={() => router.push(`/call/${girl.id}`)}
             fullWidth
+            className="flex items-center justify-center gap-2"
           >
+            {getPlan() === "free" && (
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#FF5798" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            )}
             Probar videollamada
           </NeonButton>
           <Link href={isAnime ? "/anime" : isMale ? "/chicos" : "/girls"} className="text-center text-sm text-muted hover:text-ink mt-2">

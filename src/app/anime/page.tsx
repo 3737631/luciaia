@@ -13,6 +13,7 @@ import { girls } from "@/data/girls";
 import { getGirlImage } from "@/lib/images";
 import { getDailyStorySelection } from "@/lib/getDailyStoryIndex";
 import { CustomGirlData } from "@/lib/storage";
+import { isFeatureLocked, canCreateGirl } from "@/lib/premium";
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 const animeIds = new Set(["maya", "iris", "yuki"]);
@@ -138,7 +139,7 @@ export default function AnimePage() {
       <main style={{ minHeight: "100vh", maxWidth: 1200, margin: "0 auto", padding: "0 var(--container-padding)" }}>
         <StoriesRow girls={animeChars} />
 
-        <FantasyCTA mode="anime" onCreate={() => setCreateOpen(true)} onView={() => setViewOpen(true)} />
+          <FantasyCTA mode="anime" onCreate={() => setCreateOpen(true)} onView={() => setViewOpen(true)} locked={typeof window !== "undefined" && isFeatureLocked("create") && !canCreateGirl()} />
         <CreateYourGirl open={createOpen} onClose={() => setCreateOpen(false)} editGirl={editGirl} />
         <TusChicas open={viewOpen} onClose={() => setViewOpen(false)} onEdit={(g) => { setViewOpen(false); setEditGirl(g); setCreateOpen(true); }} onCreate={() => { setViewOpen(false); setEditGirl(null); setCreateOpen(true); }} />
 
