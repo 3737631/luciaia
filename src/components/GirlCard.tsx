@@ -141,7 +141,7 @@ export default function GirlCard({ girl, index = 0 }: { girl: Girl; index?: numb
           </svg>
           {videoLocked && (
             <span className="quick-action-lock">
-              <LockIcon size={8} />
+              <LockIcon size={6} />
             </span>
           )}
         </Link>

@@ -1825,14 +1825,14 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
                   {videoLockedOnce && (
                     <span
                       style={{
-                        position: "absolute", top: 3, right: 3, zIndex: 6,
-                        width: 24, height: 24, borderRadius: "50%",
-                        background: "#100710", border: "2px solid #FF5798",
-                        boxShadow: "0 1px 6px rgba(255,87,152,0.9)",
+                        position: "absolute", top: 2, right: 2, zIndex: 6,
+                        width: 18, height: 18, borderRadius: "50%",
+                        background: "#100710", border: "1.5px solid #FF5798",
+                        boxShadow: "0 0 4px rgba(255,87,152,0.55)",
                         display: "grid", placeItems: "center",
                       }}
                     >
-                      <LockIcon size={12} />
+                      <LockIcon size={9} />
                     </span>
                   )}
                 </button>
@@ -2117,14 +2117,14 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
               <span
                 style={{
                   position: "absolute", top: 4, right: 4, zIndex: 11,
-                  width: 22, height: 22, borderRadius: "50%",
+                  width: 20, height: 20, borderRadius: "50%",
                   background: "rgba(8,4,10,0.85)",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  border: "1px solid rgba(255,255,255,0.22)",
+                  border: "1.5px solid #FF5798",
                 }}
                 aria-label="Vídeo Premium"
               >
-                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#FF5798" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#FF5798" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                   <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                 </svg>

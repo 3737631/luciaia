@@ -733,7 +733,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
           <button className={`${styles.chatHeaderIcon} ${styles.video} ${isFree ? "lock-relative" : ""}`} title={isFree ? "Videollamada (Premium)" : "Videollamada"} onClick={() => { router.push(`/call/${girl.id}?mode=video${activeCustom ? `&custom=${activeCustom.id}` : ""}`); }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
             {isFree && (
-              <span className="quick-action-lock"><LockIcon size={8} /></span>
+              <span className="quick-action-lock"><LockIcon size={6} /></span>
             )}
           </button>
           <button className={`${styles.chatHeaderIcon} ${styles.video}`} title="Llamada de voz" onClick={() => { router.push(`/call/${girl.id}?mode=voice${activeCustom ? `&custom=${activeCustom.id}` : ""}`); }}>
@@ -818,7 +818,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
             )}
             {isFree && !recording && (
-              <span className="quick-action-lock"><LockIcon size={8} /></span>
+              <span className="quick-action-lock"><LockIcon size={6} /></span>
             )}
           </button>
           <div className={styles.composerInputWrap}>
@@ -839,7 +839,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
           <button className={`${styles.actionBtn} ${isFree ? "lock-relative" : ""}`} onClick={() => fileRef.current?.click()} disabled={blocked || typing} title={isFree ? "Enviar una foto (Premium)" : "Enviar una foto"}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
             {isFree && (
-              <span className="quick-action-lock"><LockIcon size={8} /></span>
+              <span className="quick-action-lock"><LockIcon size={6} /></span>
             )}
           </button>
           <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={onPickPhoto} />
