@@ -108,18 +108,9 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
 }
 .fade-in { animation: fadeUp 0.5s ease-out both; }
 
-/* Reveal al hacer scroll (desktop moderno): la sección entra suavemente al cruzarla */
-@keyframes revealUp {
-  from { opacity: 0; transform: translateY(28px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@supports (animation-timeline: view()) {
-  .section-reveal {
-    animation: revealUp 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
-    animation-timeline: view();
-    animation-range: entry 0% entry 55%;
-  }
-}
+/* Reveal al hacer scroll: se eliminó el scroll-timeline (animation-timeline: view())
+   porque al subir/bajar rápido invertía la animación y dejaba secciones invisibles
+   (se veía el fondo). Ahora las secciones se muestran siempre visibles. */
 
 /* Navegación de la cabecera: oculta siempre (hamburger visible en todas las pantallas) */
 .header-nav-desktop { display: none !important; }
