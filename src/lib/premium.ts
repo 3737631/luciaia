@@ -181,6 +181,15 @@ export function isFreeCallLimitReached(): boolean {
   return getFreeSecondsLeftToday() <= 0;
 }
 
+/** Reinicia el contador de llamada gratis de hoy (para probar el límite diario). */
+export function resetFreeCallSeconds(): void {
+  try {
+    localStorage.setItem(CALL_SECONDS_KEY, JSON.stringify({ day: todayKey(), seconds: 0 }));
+  } catch {
+    /* noop */
+  }
+}
+
 export function getTrialStart(): number | null {
   try {
     const raw = localStorage.getItem(TRIAL_START_KEY);

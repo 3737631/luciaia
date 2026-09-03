@@ -1662,7 +1662,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
               marginTop: 6, fontSize: 14, fontWeight: 400,
               color: "rgba(255,255,255,0.42)",
               fontVariantNumeric: "tabular-nums",
-              textAlign: "center", lineHeight: 1.2, height: 18,
+              textAlign: "center", lineHeight: 1.2, minHeight: 18,
               visibility: isConnected ? "visible" : "hidden",
               position: "relative",
             }}
@@ -1671,6 +1671,17 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
               .toString()
               .padStart(2, "0")}
             :{(callDuration % 60).toString().padStart(2, "0")}
+            {isFreeUser && isConnected && !callLocked && (
+              <div
+                style={{
+                  marginTop: 4, fontSize: 12, fontWeight: 600,
+                  color: freeSecondsLeft <= 10 ? "#ff4466" : "rgba(255,255,255,0.55)",
+                  fontVariantNumeric: "tabular-nums",
+                }}
+              >
+                {freeSecondsLeft}s restantes hoy
+              </div>
+            )}
           </div>
           {subtitlesOn && isConnected && (
             <div

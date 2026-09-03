@@ -1,16 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import NeonButton from "@/components/NeonButton";
+import { setPlan, resetFreeCallSeconds } from "@/lib/premium";
 
 type Billing = "monthly" | "annual";
 
 const plans = [
   {
     name: "Gratis",
+    planId: "free" as const,
     price: "0€",
     period: "para siempre",
     highlight: false,
@@ -27,6 +30,7 @@ const plans = [
   },
   {
     name: "Premium",
+    planId: "premium" as const,
     monthly: "7,99€",
     annual: "5,99€",
     annualHint: "71,88€/año · ahorras un 25%",
@@ -44,6 +48,7 @@ const plans = [
   },
   {
     name: "Premium+",
+    planId: "premium_plus" as const,
     monthly: "15,99€",
     annual: "11,99€",
     annualHint: "143,88€/año · ahorras un 25%",
@@ -62,7 +67,14 @@ const plans = [
 ];
 
 export default function PremiumPage() {
+  const router = useRouter();
   const [billing, setBilling] = useState<Billing>("monthly");
+
+  function choosePlan(planId: "free" | "premium" | "premium_plus") {
+    if (planId === "free") resetFreeCallSeconds();
+    setPlan(planId);
+    router.push("/girls");
+  }
 
   return (
     <>
@@ -134,9 +146,9 @@ export default function PremiumPage() {
                     </li>
                   ))}
                 </ul>
-                <Link href={p.href}>
+                <button type="button" onClick={() => choosePlan(p.planId)} className="w-full">
                   {p.highlight ? <NeonButton>{p.cta}</NeonButton> : <span className="inline-flex items-center justify-center rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-muted transition hover:bg-white/5">{p.cta}</span>}
-                </Link>
+                </button>
               </div>
             );
           })}
