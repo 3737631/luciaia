@@ -467,16 +467,16 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
 .quick-action-lock {
   position: absolute;
   top: -4px;
-  right: -4px;
+  left: -4px;
   display: grid;
   place-items: center;
   pointer-events: none;
   z-index: 3;
-  transform: rotate(-20deg);
+  transform: rotate(20deg);
 }
 .quick-action-lock svg {
-  width: 9px !important;
-  height: 9px !important;
+  width: 10px !important;
+  height: 10px !important;
   color: #FF8FB3;
 }
 
