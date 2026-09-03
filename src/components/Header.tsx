@@ -9,9 +9,9 @@ const navItems = [
   { label: "Inicio", href: "/" },
   { label: "Explorar", href: "/girls" },
   { label: "Mensajes", href: "/messages" },
-  { label: "Crear", href: "#crear" },
+  { label: "Crear", href: "/customize" },
   { label: "Chat", href: "/chat/luna?picker=1" },
-  { label: "Premium", href: "#premium" },
+  { label: "Premium", href: "/premium" },
 ];
 
 const categoryLinks = [
