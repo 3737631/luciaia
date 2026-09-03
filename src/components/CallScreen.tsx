@@ -1659,40 +1659,15 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
           </div>
           <div
             style={{
-              marginTop: 6, fontSize: 14, fontWeight: 400,
-              color: "rgba(255,255,255,0.42)",
+              marginTop: 6, fontSize: 14, fontWeight: 600,
+              color: "#FF3B82",
               fontVariantNumeric: "tabular-nums",
               textAlign: "center", lineHeight: 1.2, minHeight: 18,
               visibility: isConnected ? "visible" : "hidden",
               position: "relative",
             }}
           >
-            {Math.floor(callDuration / 60)
-              .toString()
-              .padStart(2, "0")}
-            :{(callDuration % 60).toString().padStart(2, "0")}
-            {isConnected && (
-              <div
-                style={{
-                  marginTop: 4, fontSize: 12, fontWeight: 600,
-                  color: "rgba(255,255,255,0.55)",
-                  fontVariantNumeric: "tabular-nums",
-                }}
-              >
-                {callDuration}s
-              </div>
-            )}
-            {isFreeUser && isConnected && !callLocked && (
-              <div
-                style={{
-                  marginTop: 2, fontSize: 11, fontWeight: 500,
-                  color: freeSecondsLeft <= 10 ? "#ff4466" : "rgba(255,255,255,0.4)",
-                  fontVariantNumeric: "tabular-nums",
-                }}
-              >
-                {freeSecondsLeft}s restantes hoy
-              </div>
-            )}
+            {callDuration}s
           </div>
           {subtitlesOn && isConnected && (
             <div
@@ -2033,30 +2008,6 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
             >
               Hazte Premium
             </button>
-          </div>
-        )}
-
-        {/* Aviso de tiempo gratis de llamada restante */}
-        {isFreeUser && !callLocked && isConnected && (
-          <div
-            style={{
-              position: "fixed", left: 0, right: 0,
-              bottom: "calc(env(safe-area-inset-bottom) + 110px)", zIndex: 4000,
-              display: "flex", justifyContent: "center", pointerEvents: "none",
-            }}
-          >
-            <div
-              style={{
-                padding: "8px 16px", borderRadius: 999,
-                background: "rgba(8,4,10,0.72)", backdropFilter: "blur(12px)",
-                WebkitBackdropFilter: "blur(12px)",
-                border: "1px solid rgba(255,87,152,0.35)",
-                fontSize: 13, fontWeight: 700, color: "#fff",
-                textAlign: "center",
-              }}
-            >
-              Te quedan {freeSecondsLeft}s gratis de llamada hoy
-            </div>
           </div>
         )}
 

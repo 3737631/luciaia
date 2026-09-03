@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Girl } from "@/data/girls";
 import { getGirlImage } from "@/lib/images";
 import { getCustomization } from "@/lib/storage";
+import { isFeatureLocked } from "@/lib/premium";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const chatPath = (id: string) => `/chat/${id}?picker=1`;
@@ -59,6 +60,24 @@ export default function GirlCard({ girl, index = 0 }: { girl: Girl; index?: numb
       onPointerUp={(e) => handlePointerUp(e, chatPath(girl.id))}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate(chatPath(girl.id)); } }}
     >
+      {isFeatureLocked("live") && (
+        <span
+          style={{
+            position: "absolute", top: -6, left: "50%", transform: "translateX(-50%)",
+            zIndex: 4, background: "rgba(8,4,10,0.85)", borderRadius: 999,
+            padding: "1.5px 7px", display: "flex", alignItems: "center", gap: 3,
+            border: "1px solid rgba(255,255,255,0.15)",
+            fontSize: 7.5, fontWeight: 800, color: "rgba(255,255,255,0.7)", letterSpacing: "0.06em",
+            lineHeight: 1.3, pointerEvents: "none",
+          }}
+        >
+          <svg viewBox="0 0 24 24" width="8" height="8" fill="none" stroke="#FF5798" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+          PREMIUM
+        </span>
+      )}
       {failed ? (
         <div
           style={{
