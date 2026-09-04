@@ -1825,12 +1825,12 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
                   {videoLockedOnce && (
                     <span
                       style={{
-                        position: "absolute", top: 4, left: 4, zIndex: 6,
+                        position: "absolute", bottom: 4, right: 4, zIndex: 6,
                         display: "grid", placeItems: "center",
                         transform: "rotate(20deg)",
                       }}
                     >
-                      <LockIcon size={14} stroke="#FF8FB3" />
+                      <LockIcon size={15} stroke="#FF8FB3" />
                     </span>
                   )}
                 </button>
@@ -2114,7 +2114,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
             {videoLockedOnce && (
               <span
                 style={{
-                  position: "absolute", top: 3, left: 3, zIndex: 11,
+                  position: "absolute", bottom: 3, right: 3, zIndex: 11,
                   display: "flex", alignItems: "center", justifyContent: "center",
                   transform: "rotate(20deg)",
                 }}

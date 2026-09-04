@@ -466,8 +466,8 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
 }
 .quick-action-lock {
   position: absolute;
-  top: -4px;
-  left: -4px;
+  bottom: -4px;
+  right: -4px;
   display: grid;
   place-items: center;
   pointer-events: none;
@@ -475,8 +475,8 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   transform: rotate(20deg);
 }
 .quick-action-lock svg {
-  width: 10px !important;
-  height: 10px !important;
+  width: 12px !important;
+  height: 12px !important;
   color: #FF8FB3;
 }
 
