@@ -8,6 +8,7 @@ import { getGirlImage } from "@/lib/images";
 import { getCustomization } from "@/lib/storage";
 import { isFeatureLocked } from "@/lib/premium";
 import LockIcon from "./LockIcon";
+import PremiumOverlay from "./PremiumOverlay";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const chatPath = (id: string) => `/chat/${id}?picker=1`;
@@ -28,6 +29,7 @@ export default function GirlCard({ girl, index = 0 }: { girl: Girl; index?: numb
       : getGirlImage(girl.id, girl.defaultHair, girl.defaultPose, girl.defaultBackground, girl.cloudinaryImage);
 
   const [videoLocked] = useState(() => typeof window !== "undefined" && isFeatureLocked("video"));
+  const [showPremiumOverlay, setShowPremiumOverlay] = useState(false);
 
   const startRef = useRef<{ x: number; y: number } | null>(null);
   const handledRef = useRef(false);
@@ -132,9 +134,9 @@ export default function GirlCard({ girl, index = 0 }: { girl: Girl; index?: numb
           className="quick-action-button quick-action-locked"
           title={videoLocked ? "Videollamada (Premium)" : "Videollamada"}
           aria-label={`Videollamada con ${girl.name}`}
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/call/${girl.id}`); }}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (videoLocked) { setShowPremiumOverlay(true); return; } navigate(`/call/${girl.id}`); }}
           onPointerDown={(e) => { e.stopPropagation(); handlePointerDown(e); }}
-          onPointerUp={(e) => { e.stopPropagation(); handlePointerUp(e, `/call/${girl.id}`); }}
+          onPointerUp={(e) => { e.stopPropagation(); if (!videoLocked) handlePointerUp(e, `/call/${girl.id}`); }}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
             <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
@@ -146,6 +148,13 @@ export default function GirlCard({ girl, index = 0 }: { girl: Girl; index?: numb
           )}
         </Link>
       </div>
+      {showPremiumOverlay && (
+        <PremiumOverlay
+          title="Videollamada Premium"
+          subtitle="La videollamada es exclusiva de Premium. Hazte Premium para llamar cara a cara."
+          onClose={() => setShowPremiumOverlay(false)}
+        />
+      )}
     </div>
   );
 }

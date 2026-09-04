@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { saveCustomGirl, CustomGirlData } from "@/lib/storage";
 import { generateGirlImage } from "@/lib/chatClient";
 import { isFeatureLocked, canCreateGirl, recordGirlCreation } from "@/lib/premium";
+import PremiumOverlay from "@/components/PremiumOverlay";
 
 const MINOR_WORDS = [
   "niño", "niña", "niños", "niñas", "menor", "menores", "pequeño", "pequeña",
@@ -741,16 +742,8 @@ async function handlePersonalityNext() {
                         Atrás
                       </button>
 
-                      {(premiumPrompt || limitReached) && (
-                        <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-[#FF5798]/30 bg-[#FF5798]/10 px-4 py-3">
-                          <div className="min-w-0">
-                            <p className="text-sm font-bold text-white">Has llegado al límite del plan gratis</p>
-                            <p className="text-xs text-white/60">Con Premium crearás chicas sin límites.</p>
-                          </div>
-                          <button onClick={() => router.push("/premium")} className="shrink-0 rounded-full bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] px-4 py-2 text-xs font-bold text-white transition hover:brightness-110 active:scale-95">
-                            Hazte Premium
-                          </button>
-                        </div>
+                      {premiumPrompt && (
+                        <PremiumOverlay title="Crea chicas sin límites" subtitle="Solo puedes crear 1 chica al día en el plan gratis. Hazte Premium para crear sin límites." onClose={() => setPremiumPrompt(false)} />
                       )}
 
                       <div className="mt-2">
@@ -779,20 +772,20 @@ async function handlePersonalityNext() {
                       </div>
 
                       <div className="mt-8 flex flex-col items-center gap-4">
-                        <div className={`relative w-full max-w-[320px] ${limitReached ? "pointer-events-none select-none" : ""}`}>
+                        <div className={`relative w-full max-w-[320px] ${limitReached ? "select-none" : ""}`}>
                           {limitReached && (
-                            <div className="absolute inset-0 z-10 rounded-full bg-black/50 backdrop-filter backdrop-blur-md" aria-hidden="true" />
+                            <div className="pointer-events-none absolute inset-0 z-10 rounded-full bg-black/50 backdrop-filter backdrop-blur-md" aria-hidden="true" />
                           )}
                           <button onClick={handlePersonalityNext} className="relative h-12 w-full rounded-full bg-gradient-to-r from-[#ff2f78] to-[#ff4c91] text-[0.95rem] font-bold text-white transition hover:brightness-110 active:scale-[0.99]">
                             Continuar →
                           </button>
                           {limitReached && (
-                            <span className="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 text-[#ff8fb0]">
+                            <span className="pointer-events-none absolute z-20 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[#ff8fb0]">
                               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
                             </span>
                           )}
                         </div>
-                        <button onClick={handlePersonalityNext} className={`text-xs font-medium transition active:scale-95 ${limitReached ? "pointer-events-none select-none text-white/20" : "text-white/40 hover:text-white/70"}`}>
+                        <button onClick={handlePersonalityNext} className={`text-xs font-medium transition active:scale-95 ${limitReached ? "select-none text-white/30" : "text-white/40 hover:text-white/70"}`}>
                           Sin personalidad
                         </button>
                       </div>

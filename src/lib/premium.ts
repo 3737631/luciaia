@@ -25,11 +25,15 @@ const PREMIUM_KEY = "nuvia_premium_v1";
 const PLAN_KEY = "nuvia_plan_v1";
 const CREATE_LAST_KEY = "nuvia_create_last_v1";
 const CALL_SECONDS_KEY = "nuvia_call_seconds_v1";
+const MESSAGE_COUNT_KEY = "nuvia_message_count_v1";
 const TRIAL_HOURS = 24;
 const TRIAL_MS = TRIAL_HOURS * 60 * 60 * 1000;
 
 /** Segundos de llamada gratis al día (1 minuto en total entre todas las chicas). */
 export const FREE_CALL_SECONDS_PER_DAY = 60;
+
+/** Mensajes de chat gratis al día para usuarios free. */
+export const FREE_DAILY_MESSAGES = 20;
 
 // Endpoint opcional de respaldo del servidor. Si no está definido, se usa solo local.
 const TRIAL_ENDPOINT =
@@ -188,6 +192,40 @@ export function resetFreeCallSeconds(): void {
   } catch {
     /* noop */
   }
+}
+
+/** Mensajes (texto) de chat ya enviados hoy por los usuarios gratis. */
+export function getFreeMessagesUsedToday(): number {
+  try {
+    const raw = localStorage.getItem(MESSAGE_COUNT_KEY);
+    if (!raw) return 0;
+    const data = JSON.parse(raw) as { day: string; count: number };
+    return data && data.day === todayKey() ? Math.max(0, Math.floor(data.count)) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+/** Mensajes de chat gratis que quedan hoy (max FREE_DAILY_MESSAGES). */
+export function getFreeMessagesLeftToday(): number {
+  return Math.max(0, FREE_DAILY_MESSAGES - getFreeMessagesUsedToday());
+}
+
+/** Registra un mensaje de texto enviado hoy (acumulable entre chicas). */
+export function recordFreeMessage(): void {
+  try {
+    localStorage.setItem(
+      MESSAGE_COUNT_KEY,
+      JSON.stringify({ day: todayKey(), count: getFreeMessagesUsedToday() + 1 })
+    );
+  } catch {
+    /* noop */
+  }
+}
+
+/** True si el usuario gratis ya ha enviado todos sus mensajes de hoy. */
+export function isFreeMessageLimitReached(): boolean {
+  return getFreeMessagesLeftToday() <= 0;
 }
 
 export function getTrialStart(): number | null {

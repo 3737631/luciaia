@@ -1,3 +1,6 @@
+import { useState } from "react";
+import PremiumOverlay from "./PremiumOverlay";
+
 type FantasyCTAProps = {
   mode: "girls" | "boys" | "anime";
   onCreate: () => void;
@@ -8,6 +11,7 @@ type FantasyCTAProps = {
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export function FantasyCTA({ mode, onCreate, onView, locked }: FantasyCTAProps) {
+  const [showOverlay, setShowOverlay] = useState(false);
   const isBoys = mode === "boys";
   const creationsLabel = isBoys ? "ver tus chicos" : mode === "anime" ? "ver tus creaciones" : "ver tus chicas";
 
@@ -65,7 +69,7 @@ export function FantasyCTA({ mode, onCreate, onView, locked }: FantasyCTAProps) 
       <button
         type="button"
         className="nuvia-fantasy-cta__button"
-        onClick={onCreate}
+        onClick={() => { if (locked) { setShowOverlay(true); return; } onCreate(); }}
       >
         <span>Crear</span>
         <span
@@ -92,6 +96,9 @@ export function FantasyCTA({ mode, onCreate, onView, locked }: FantasyCTAProps) 
           </svg>
         )}
       </button>
+      {showOverlay && (
+        <PremiumOverlay title="Crea tu chica ideal" subtitle="Crear personajes personalizados es una función Premium. Hazte Premium para crear tu fantasía sin límites." onClose={() => setShowOverlay(false)} />
+      )}
     </section>
   );
 }

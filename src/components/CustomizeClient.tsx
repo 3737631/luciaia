@@ -11,6 +11,7 @@ import { OptionGroup } from "@/components/CustomizationPanel";
 import { Girl } from "@/data/girls";
 import { Customization, getCustomization, saveCustomization } from "@/lib/storage";
 import { getPlan } from "@/lib/premium";
+import PremiumOverlay from "@/components/PremiumOverlay";
 
 const maleIds = new Set(["axel", "liam"]);
 const animeIds = new Set(["sakura", "yumi", "rin"]);
@@ -120,6 +121,7 @@ export default function CustomizeClient({ girl }: { girl: Girl }) {
     personality: girl.personality,
   });
   const [imgKey, setImgKey] = useState(0);
+  const [showVideoOverlay, setShowVideoOverlay] = useState(false);
 
   useEffect(() => {
     const existing = getCustomization(girl.id);
@@ -182,7 +184,7 @@ export default function CustomizeClient({ girl }: { girl: Girl }) {
           </NeonButton>
           <NeonButton
             variant="secondary"
-            onClick={() => router.push(`/call/${girl.id}`)}
+            onClick={() => { if (getPlan() === "free") { setShowVideoOverlay(true); return; } router.push(`/call/${girl.id}`); }}
             fullWidth
             className="flex items-center justify-center gap-2"
           >
@@ -197,6 +199,9 @@ export default function CustomizeClient({ girl }: { girl: Girl }) {
         </div>
       </main>
       <Footer />
+      {showVideoOverlay && (
+        <PremiumOverlay title="Videollamada Premium" subtitle="Las videollamadas son una función exclusiva de Premium. Hazte Premium para llamar cara a cara ilimitadamente." onClose={() => setShowVideoOverlay(false)} />
+      )}
     </>
   );
 }

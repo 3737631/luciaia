@@ -10,8 +10,9 @@ import { getFallbackResponse } from "@/lib/ai";
 import { goBack } from "@/lib/nav";
 import { sendChatMessage } from "@/lib/chatClient";
 import { sttAudio, ttsText, getGirlVoice, getCustomGirlVoice } from "@/lib/voiceClient";
-import { consumeTrial, getPlan } from "@/lib/premium";
+import { consumeTrial, getPlan, isFreeMessageLimitReached, recordFreeMessage, getFreeMessagesLeftToday } from "@/lib/premium";
 import LockIcon from "./LockIcon";
+import PremiumOverlay from "./PremiumOverlay";
 import {
   saveConversationHistory,
   getConversationHistory,
@@ -388,6 +389,11 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     if (!text) return;
     setError(null);
 
+    if (typeof window !== "undefined" && getPlan() === "free" && (isFreeMessageLimitReached() || getFreeMessagesLeftToday() <= 0)) {
+      setPremiumPrompt("Has agotado tus 20 mensajes diarios. Vuelve mañana para chatear gratis más, o hazte Premium para chatear sin límites.");
+      return;
+    }
+
     if (MINOR_KEYWORDS.some((k) => text.toLowerCase().includes(k))) {
       interactedRef.current = true;
       setMessages((m) => [
@@ -405,6 +411,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     setTyping(true);
     try {
       await runReply(text);
+      if (typeof window !== "undefined" && getPlan() === "free") recordFreeMessage();
     } finally {
       setTyping(false);
     }
@@ -817,7 +824,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
               </span>
             )}
           </div>
-          <button className={`${styles.actionBtn} ${isFree ? "lock-relative" : ""}`} onClick={() => fileRef.current?.click()} disabled={blocked || typing} title={isFree ? "Enviar una foto (Premium)" : "Enviar una foto"}>
+          <button className={`${styles.actionBtn} ${isFree ? "lock-relative" : ""}`} onClick={() => { if (isFree) { setPremiumPrompt("Enviar fotos es una función Premium. Hazte Premium para enviar y recibir fotos privadas."); return; } fileRef.current?.click(); }} disabled={blocked || typing} title={isFree ? "Enviar una foto (Premium)" : "Enviar una foto"}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
             {isFree && (
               <span className="quick-action-lock"><LockIcon size={6} /></span>
@@ -880,23 +887,11 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         </div>
       )}
       {premiumPrompt && (
-        <div className="fixed inset-0 z-[96] flex items-center justify-center overflow-y-auto bg-black/80 px-6 backdrop-blur-md" onClick={() => setPremiumPrompt(null)}>
-          <div className="my-auto w-full max-w-[340px] rounded-3xl border border-[#ff5f8f]/25 bg-[#15151a]/95 p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#ff2f78]/15 text-[#ff5f8f]">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
-            </div>
-            <h3 className="mt-4 text-lg font-bold tracking-tight text-white">Función Premium</h3>
-            <p className="mt-2 text-sm leading-relaxed text-white/60">{premiumPrompt}</p>
-            <div className="mt-6 flex gap-2.5">
-              <button onClick={() => setPremiumPrompt(null)} className="h-12 flex-1 rounded-2xl bg-white/[0.06] text-sm font-bold text-white/80 transition hover:bg-white/[0.1] active:scale-[0.98]">
-                Ahora no
-              </button>
-              <button onClick={() => router.push("/premium")} className="h-12 flex-1 rounded-2xl bg-gradient-to-r from-[#ff2f78] to-[#a833ff] text-sm font-bold text-white transition hover:brightness-110 active:scale-[0.98]">
-                Hazte Premium
-              </button>
-            </div>
-          </div>
-        </div>
+        <PremiumOverlay
+          title="Función Premium"
+          subtitle={premiumPrompt}
+          onClose={() => setPremiumPrompt(null)}
+        />
       )}
     </div>
   );

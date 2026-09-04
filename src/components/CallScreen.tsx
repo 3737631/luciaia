@@ -23,6 +23,7 @@ import { getGirlImage } from "@/lib/images";
 import { detectGender } from "@/lib/gender";
 import { isFeatureLocked, getPlan, getFreeSecondsLeftToday, recordCallSeconds, isFreeCallLimitReached, FREE_CALL_SECONDS_PER_DAY } from "@/lib/premium";
 import LockIcon from "./LockIcon";
+import PremiumOverlay from "./PremiumOverlay";
 import { Girl } from "@/data/girls";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
@@ -1227,7 +1228,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
       if (videoLockedOnce) {
         const t = setTimeout(() => {
           if (mountedRef.current) setVideoBlurred(true);
-        }, 5000);
+        }, 2000);
         videoGateTimerRef.current = t;
       }
     }
@@ -1788,7 +1789,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
               {/* Video */}
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
                 <button
-                  onClick={toggleVideo}
+                  onClick={() => { if (videoLockedOnce && !videoOn) { setVideoBlurred(true); return; } toggleVideo(); }}
                   aria-label={videoLockedOnce ? "Video (Premium)" : videoOn ? "Cerrar video" : "Activar video"}
                   aria-pressed={videoOn}
                   style={{
@@ -1983,7 +1984,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
           )}
         </div>
 
-        {/* Overlay Premium para videollamada (5s para gratis) */}
+        {/* Overlay Premium para videollamada (2s para gratis) */}
         {videoBlurred && (
           <div
             style={{
