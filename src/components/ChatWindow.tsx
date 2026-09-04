@@ -670,7 +670,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
           </div>
           <svg className={styles.optionChevron} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
-        <button className={styles.optionCard} onClick={() => router.push(`/call/${girl.id}?mode=video`)}>
+        <button className={styles.optionCard} onClick={() => { if (isFree) { setPremiumPrompt("Las videollamadas son una función Premium. Hazte Premium para llamar cara a cara ilimitadamente."); return; } router.push(`/call/${girl.id}?mode=video`); }}>
           <div className={styles.iconGreenWrap}>
             <svg className={styles.iconGreen} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
           </div>
@@ -691,11 +691,11 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
             { icon: "camera", label: "Selfies personalizadas", svg: <><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></> },
             { icon: "file-text", label: "Respuestas más largas", svg: <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></> },
           ].map((item) => (
-            <div key={item.label} className={styles.premiumCard} aria-label={item.label}>
+            <button key={item.label} className={styles.premiumCard} aria-label={item.label} onClick={() => { if (isFree) { setPremiumPrompt("Esta función es Premium. Hazte Premium para desbloquear " + item.label.toLowerCase() + " y mucho más."); return; } }}>
               <div className={styles.premiumLock}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
               <svg className={styles.premiumIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{item.svg}</svg>
               <span className={styles.premiumCardText}>{item.label}</span>
-            </div>
+            </button>
           ))}
         </div>
         <button className={styles.premiumCta} onClick={() => router.push("/premium")}>
@@ -730,7 +730,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
               <span className={styles.chatStatusText}>En línea</span>
             </div>
           </div>
-          <button className={`${styles.chatHeaderIcon} ${styles.video} ${isFree ? "lock-relative" : ""}`} title={isFree ? "Videollamada (Premium)" : "Videollamada"} onClick={() => { router.push(`/call/${girl.id}?mode=video${activeCustom ? `&custom=${activeCustom.id}` : ""}`); }}>
+          <button className={`${styles.chatHeaderIcon} ${styles.video} ${isFree ? "lock-relative" : ""}`} title={isFree ? "Videollamada (Premium)" : "Videollamada"} onClick={() => { if (isFree) { setPremiumPrompt("Las videollamadas son una función Premium. Hazte Premium para llamar cara a cara ilimitadamente."); return; } router.push(`/call/${girl.id}?mode=video${activeCustom ? `&custom=${activeCustom.id}` : ""}`); }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
             {isFree && (
               <span className="quick-action-lock"><LockIcon size={6} /></span>
