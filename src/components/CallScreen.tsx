@@ -1825,7 +1825,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
                   {videoLockedOnce && (
                     <span
                       style={{
-                        position: "absolute", bottom: 4, right: 4, zIndex: 6,
+                        position: "absolute", top: 4, right: 4, zIndex: 6,
                         display: "grid", placeItems: "center",
                         transform: "rotate(20deg)",
                       }}
@@ -2114,7 +2114,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
             {videoLockedOnce && (
               <span
                 style={{
-                  position: "absolute", bottom: 3, right: 3, zIndex: 11,
+                  position: "absolute", top: 3, right: 3, zIndex: 11,
                   display: "flex", alignItems: "center", justifyContent: "center",
                   transform: "rotate(20deg)",
                 }}
