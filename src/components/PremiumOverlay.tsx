@@ -30,10 +30,19 @@ export default function PremiumOverlay({
         backdropFilter: "blur(16px)",
         WebkitBackdropFilter: "blur(16px)",
       }}
-      onClick={onClose}
+      onPointerDown={(e) => e.stopPropagation()}
+      onPointerUp={(e) => e.stopPropagation()}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (e.target === e.currentTarget) onClose();
+      }}
+      onKeyDown={(e) => e.stopPropagation()}
     >
       <button
-        onClick={onClose}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClose();
+        }}
         aria-label="Cerrar"
         style={{
           position: "absolute",
