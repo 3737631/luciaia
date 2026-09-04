@@ -1794,7 +1794,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
                   style={{
                     width: 68, height: 68, borderRadius: "50%",
                     background: videoOn ? "rgba(255,255,255,0.86)" : "rgba(255,255,255,0.09)",
-                    border: videoLockedOnce ? "1px solid rgba(255,143,179,0.4)" : "1px solid rgba(255,255,255,0.10)",
+                    border: "1px solid rgba(255,255,255,0.10)",
                     boxShadow: "none",
                     cursor: "pointer",
                     position: "relative",
