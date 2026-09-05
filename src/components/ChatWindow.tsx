@@ -10,7 +10,7 @@ import { getFallbackResponse } from "@/lib/ai";
 import { goBack } from "@/lib/nav";
 import { sendChatMessage } from "@/lib/chatClient";
 import { sttAudio, ttsText, getGirlVoice, getCustomGirlVoice } from "@/lib/voiceClient";
-import { consumeTrial, getPlan, isFreeMessageLimitReached, recordFreeMessage, getFreeMessagesLeftToday } from "@/lib/premium";
+import { consumeTrial, getPlan, isFreeMessageLimitReached, recordFreeMessage, getFreeMessagesLeftToday, FREE_DAILY_MESSAGES } from "@/lib/premium";
 import LockIcon from "./LockIcon";
 import PremiumOverlay from "./PremiumOverlay";
 import {
@@ -78,6 +78,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   const [confirmDeleteChat, setConfirmDeleteChat] = useState(false);
   const [premiumPrompt, setPremiumPrompt] = useState<string | null>(null);
   const isFree = typeof window !== "undefined" && getPlan() === "free";
+  const [messagesLeft, setMessagesLeft] = useState(() => (typeof window !== "undefined" && isFree) ? getFreeMessagesLeftToday() : FREE_DAILY_MESSAGES);
   const scrollRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef(true);
   const messagesRef = useRef(messages);
@@ -411,7 +412,10 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     setTyping(true);
     try {
       await runReply(text);
-      if (typeof window !== "undefined" && getPlan() === "free") recordFreeMessage();
+      if (typeof window !== "undefined" && getPlan() === "free") {
+        recordFreeMessage();
+        setMessagesLeft(getFreeMessagesLeftToday());
+      }
     } finally {
       setTyping(false);
     }
@@ -793,6 +797,45 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         {error && <p style={{ textAlign: "center", fontSize: 12, color: "hsla(240,7%,97%,.3)", padding: 8 }}>{error}</p>}
       </div>
       <div className={styles.composer}>
+        {isFree && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 8,
+              padding: "8px 16px",
+              marginBottom: 6,
+              borderRadius: 16,
+              background: "rgba(255,87,152,0.08)",
+              border: "1px solid rgba(255,87,152,0.20)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+              <span style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", width: 26, height: 26, borderRadius: "50%", background: "rgba(255,87,152,0.14)" }}>
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#FF5798" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </span>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#FF5798", letterSpacing: "-0.01em" }}>
+                  {messagesLeft > 0 ? `${messagesLeft} mensajes gratis hoy` : "Sin mensajes gratis"}
+                </div>
+                <div style={{ fontSize: 10, lineHeight: 1.3, color: "rgba(255,255,255,0.45)" }}>
+                  {messagesLeft > 0
+                    ? `${messagesLeft} de ${FREE_DAILY_MESSAGES} en todos los chats`
+                    : `${FREE_DAILY_MESSAGES}/20 usados · vuelve mañana o hazte Premium`}
+                </div>
+              </div>
+            </div>
+            {messagesLeft > 0 && (
+              <button
+                onClick={() => router.push("/premium")}
+                style={{ flexShrink: 0, marginLeft: 4, padding: "7px 12px", borderRadius: 999, border: 0, cursor: "pointer", background: "linear-gradient(135deg,#FF5798,#FF6AA5)", color: "#fff", fontWeight: 700, fontSize: 11, boxShadow: "0 4px 14px rgba(255,87,152,.35)", fontFamily: "inherit" }}
+              >
+                Premium
+              </button>
+            )}
+          </div>
+        )}
         <div className={styles.composerRow}>
           <button
             className={`${styles.actionBtn} ${recording ? styles.recordingBtn : ""} ${isFree && !recording ? "lock-relative" : ""}`}

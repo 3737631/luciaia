@@ -745,6 +745,22 @@ export default function StoryVideoViewer({
             background: "rgba(8,4,10,0.28)",
             pointerEvents: "auto",
           }}>
+            <button
+              onClick={handleClose}
+              aria-label="Cerrar"
+              style={{
+                position: "absolute", top: "calc(env(safe-area-inset-top) + 16px)", right: 16,
+                width: 44, height: 44, borderRadius: "50%",
+                background: "rgba(255,255,255,0.10)", border: "1px solid rgba(255,255,255,0.18)",
+                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
+                zIndex: 51, color: "#fff",
+              }}
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
             <svg viewBox="0 0 24 24" width="54" height="54" fill="none" stroke="#FF5798" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.95 }}>
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
               <path d="M7 11V7a5 5 0 0 1 10 0v4" />
