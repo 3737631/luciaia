@@ -137,6 +137,7 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
   const turnIdRef = useRef(0);
   const greetingWatchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const processingRef = useRef(false);
+  const sttActiveRef = useRef(false);
   const listenTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const speakTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -617,7 +618,7 @@ el.volume = !audioOn ? 0 : 1;
   }
 
   function startSpeechRec() {
-    if (processingRef.current || !micStreamRef.current || !mountedRef.current) return;
+    if (processingRef.current || sttActiveRef.current || !micStreamRef.current || !mountedRef.current) return;
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) { startMediaRec(); return; }
 
@@ -629,7 +630,7 @@ el.volume = !audioOn ? 0 : 1;
       rec.maxAlternatives = 1;
 
       rec.onstart = () => {
-        processingRef.current = true;
+        sttActiveRef.current = true;
         setRecDriver("sr");
         recordingDriverRef.current = "sr";
       };
@@ -669,6 +670,7 @@ el.volume = !audioOn ? 0 : 1;
       };
 
       rec.onend = () => {
+        sttActiveRef.current = false;
         processingRef.current = false;
         setRecDriver("none");
         recordingDriverRef.current = "none";
@@ -681,6 +683,7 @@ el.volume = !audioOn ? 0 : 1;
       };
 
       rec.onerror = (e: any) => {
+        sttActiveRef.current = false;
         processingRef.current = false;
         setRecDriver("none");
         recordingDriverRef.current = "none";
@@ -706,6 +709,7 @@ el.volume = !audioOn ? 0 : 1;
 
   function abortSpeechRec(reason = "restart") {
     recordingDriverRef.current = reason as any;
+    sttActiveRef.current = false;
     processingRef.current = false;
     if (speechRecRef.current) {
       try { speechRecRef.current.abort(); } catch {}
@@ -969,7 +973,7 @@ el.volume = !audioOn ? 0 : 1;
 
       if (speakTimerRef.current) clearTimeout(speakTimerRef.current);
       speakTimerRef.current = setTimeout(() => {
-        if (!mountedRef.current || callStateRef.current !== "listening" || processingRef.current || silentPingsRef.current >= 3) return;
+        if (!mountedRef.current || callStateRef.current !== "listening" || processingRef.current || sttActiveRef.current || silentPingsRef.current >= 3) return;
         const pings = ["¿Hola? ¿Estás ahí?", "¿Me escuchas?", "¿Sigues ahí?"];
         const msg = pings[Math.min(silentPingsRef.current, pings.length - 1)];
         silentPingsRef.current += 1;
