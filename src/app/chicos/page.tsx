@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import GirlCard from "@/components/GirlCard";
 import StoriesRow from "@/components/StoriesRow";
 import CreateYourGirl from "@/components/CreateYourGirl";
@@ -185,6 +186,7 @@ export default function ChicosPage() {
         <div style={{ height: 32 }} />
       </main>
 
+      <Footer />
     </>
   );
 }
