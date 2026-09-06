@@ -742,7 +742,8 @@ export default function StoryVideoViewer({
             display: "flex", flexDirection: "column",
             alignItems: "center", justifyContent: "center",
             gap: 14, padding: "0 32px", textAlign: "center",
-            background: "rgba(8,4,10,0.28)",
+            background: "rgba(8,4,10,0.34)",
+            backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
             pointerEvents: "auto",
           }}>
             <button
