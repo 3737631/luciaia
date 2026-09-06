@@ -84,22 +84,13 @@ export default function Footer() {
             </a>
             <div
               style={{
-                marginTop: 14,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "6px 12px",
-                borderRadius: 999,
-                background: "rgba(255,87,152,0.10)",
-                border: "1px solid rgba(255,87,152,0.20)",
-                fontSize: 11,
-                fontWeight: 600,
-                color: "#ff5f8f",
-                whiteSpace: "nowrap",
+                marginTop: 12,
+                fontSize: 11.5,
+                color: "rgba(255,255,255,0.28)",
+                letterSpacing: "-0.01em",
               }}
             >
-              <svg viewBox="0 0 24 24" style={{ width: 11, height: 11, fill: "currentColor" }}><path d="M12 2l2.4 7.2L22 9.6l-5.6 4.8 1.6 7.6L12 18l-6 4 1.6-7.6L2 9.6l7.6-.4z" /></svg>
-              Generado por IA
+              Contenido generado por IA.
             </div>
           </div>
         </div>
