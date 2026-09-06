@@ -13,6 +13,10 @@ export default function PremiumOverlay({
 }) {
   const router = useRouter();
 
+  const lockSize = "clamp(42px, 12vw, 54px)";
+  const titleSize = "clamp(18px, 5vw, 21px)";
+  const subSize = "clamp(12.5px, 3.6vw, 13.5px)";
+
   return (
     <div
       style={{
@@ -23,8 +27,8 @@ export default function PremiumOverlay({
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        gap: 14,
-        padding: "0 32px",
+        gap: "clamp(10px, 3vw, 14px)",
+        padding: "0 clamp(20px, 9vw, 32px)",
         textAlign: "center",
         background: "rgba(8,4,10,0.34)",
         backdropFilter: "blur(16px)",
@@ -71,8 +75,8 @@ export default function PremiumOverlay({
 
       <svg
         viewBox="0 0 24 24"
-        width="54"
-        height="54"
+        width={lockSize}
+        height={lockSize}
         fill="none"
         stroke="#FF5798"
         strokeWidth="1.6"
@@ -86,7 +90,7 @@ export default function PremiumOverlay({
 
       <span
         style={{
-          fontSize: 21,
+          fontSize: titleSize,
           fontWeight: 800,
           color: "#fff",
           letterSpacing: "-0.01em",
@@ -98,11 +102,11 @@ export default function PremiumOverlay({
 
       <span
         style={{
-          fontSize: 13,
+          fontSize: subSize,
           lineHeight: 1.45,
           color: "rgba(255,255,255,.78)",
           textShadow: "0 1px 6px rgba(0,0,0,.5)",
-          maxWidth: 280,
+          maxWidth: "min(300px, 84vw)",
         }}
       >
         {subtitle}
@@ -115,16 +119,19 @@ export default function PremiumOverlay({
         }}
         style={{
           marginTop: 6,
-          padding: "13px 30px",
+          padding: "clamp(11px 22px, 3vw, 13px 30px)",
           borderRadius: 999,
           border: 0,
           cursor: "pointer",
           background: "linear-gradient(135deg,#FF5798,#FF6AA5)",
           color: "#fff",
           fontWeight: 700,
-          fontSize: 15,
+          fontSize: "clamp(14px, 4vw, 15px)",
           boxShadow: "0 8px 28px rgba(255,87,152,.45)",
           fontFamily: "inherit",
+          whiteSpace: "nowrap",
+          alignSelf: "center",
+          maxWidth: "84vw",
         }}
       >
         Hazte Premium
