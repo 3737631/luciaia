@@ -129,7 +129,6 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
   const micAnalyserRef = useRef<AnalyserNode | null>(null);
   const micSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const speakerAnalyserRef = useRef<AnalyserNode | null>(null);
-  const audioElementSourceRef = useRef<MediaElementAudioSourceNode | null>(null);
   const audioElRef = useRef<HTMLAudioElement | null>(null);
   const speechRecRef = useRef<SpeechRecognition | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -181,10 +180,33 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
         ringbackRef.current.osc.stop();
         ringbackRef.current.osc.disconnect();
         ringbackRef.current.gain.disconnect();
-        if (ringbackRef.current.ctx.state !== "closed") ringbackRef.current.ctx.close();
       } catch {}
       ringbackRef.current = null;
     }
+  }
+
+  function startRingback() {
+    try {
+      if (!audioCtxRef.current || ringbackRef.current) return;
+      if (audioCtxRef.current.state === "suspended") audioCtxRef.current.resume().catch(() => {});
+      const ctx = audioCtxRef.current;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = 440;
+      gain.gain.value = 0;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      const now = ctx.currentTime;
+      for (let i = 0; i < 4; i++) {
+        const t = 1.5 * i;
+        gain.gain.setValueAtTime(0.09, now + t);
+        gain.gain.setValueAtTime(0, now + t + 0.65);
+      }
+      osc.stop(now + 1.5 * 4 + 0.1);
+      ringbackRef.current = { ctx, osc, gain };
+    } catch {}
   }
 
   function startFreqAnimation() {
@@ -259,30 +281,11 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
       micAnalyserRef.current.disconnect();
       micAnalyserRef.current = null;
     }
-    if (audioElementSourceRef.current) {
-      try { audioElementSourceRef.current.disconnect(); } catch {}
-      audioElementSourceRef.current = null;
-    }
     if (speakerAnalyserRef.current) {
       try { speakerAnalyserRef.current.disconnect(); } catch {}
       speakerAnalyserRef.current = null;
     }
     raActiveRef.current = false;
-  }
-
-  function setupSpeakerAnalyser() {
-    if (!audioCtxRef.current || !audioElRef.current || audioElementSourceRef.current) return;
-    try {
-      const src = audioCtxRef.current.createMediaElementSource(audioElRef.current);
-      const an = audioCtxRef.current.createAnalyser();
-      an.fftSize = 512;
-      an.smoothingTimeConstant = 0.68;
-      src.connect(an);
-      an.connect(audioCtxRef.current.destination);
-      audioElementSourceRef.current = src;
-      speakerAnalyserRef.current = an;
-      raActiveRef.current = true;
-    } catch {}
   }
 
   function startRingAnimation() {
@@ -1005,25 +1008,8 @@ el.volume = !audioOn ? 0 : 1;
     queuedHandlers.forEach(h => { try { h(); } catch {} });
     if (audioCtxRef.current.state === "suspended") await audioCtxRef.current.resume();
     await connectMicAnalyser(stream);
-    setupSpeakerAnalyser();
     startRingAnimation();
-
-    const ringCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const osc = ringCtx.createOscillator();
-    const gain = ringCtx.createGain();
-    osc.type = "sine";
-    osc.frequency.value = 440;
-    gain.gain.value = 0;
-    osc.connect(gain);
-    gain.connect(ringCtx.destination);
-    osc.start();
-    const now = ringCtx.currentTime;
-    for (let i = 0; i < 16; i++) {
-      const t = 3.5 * i;
-      gain.gain.setValueAtTime(0.08, now + t);
-      gain.gain.setValueAtTime(0, now + t + 1.4);
-    }
-    ringbackRef.current = { ctx: ringCtx, osc, gain };
+    startRingback();
 
     navigator.mediaDevices.enumerateDevices().then(devices => {
       const mics = devices.filter(d => d.kind === "audioinput" && d.deviceId && d.label);
@@ -1237,13 +1223,26 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (new URLSearchParams(window.location.search).get("mode") === "video") {
-      toggleVideo();
+      const retryCam = () => {
+        if (mountedRef.current && !videoOn && !videoStreamRef.current && !videoLockedOnce) toggleVideo();
+      };
+      const t1 = setTimeout(retryCam, 1200);
+      const t2 = setTimeout(retryCam, 3000);
+      const onGest = () => retryCam();
+      window.addEventListener("pointerdown", onGest, { once: true, passive: true });
+      window.addEventListener("touchstart", onGest, { once: true, passive: true });
       if (videoLockedOnce) {
-        const t = setTimeout(() => {
+        const t3 = setTimeout(() => {
           if (mountedRef.current) setVideoBlurred(true);
         }, 2000);
-        videoGateTimerRef.current = t;
+        videoGateTimerRef.current = t3;
       }
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+        window.removeEventListener("pointerdown", onGest);
+        window.removeEventListener("touchstart", onGest);
+      };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

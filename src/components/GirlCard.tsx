@@ -130,13 +130,13 @@ export default function GirlCard({ girl, index = 0 }: { girl: Girl; index?: numb
           </svg>
         </Link>
         <Link
-          href={`/call/${girl.id}`}
+          href={`/call/${girl.id}?mode=video`}
           className="quick-action-button quick-action-locked"
           title={videoLocked ? "Videollamada (Premium)" : "Videollamada"}
           aria-label={`Videollamada con ${girl.name}`}
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (videoLocked) { setShowPremiumOverlay(true); return; } navigate(`/call/${girl.id}`); }}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (videoLocked) { setShowPremiumOverlay(true); return; } navigate(`/call/${girl.id}?mode=video`); }}
           onPointerDown={(e) => { e.stopPropagation(); handlePointerDown(e); }}
-          onPointerUp={(e) => { e.stopPropagation(); if (!videoLocked) handlePointerUp(e, `/call/${girl.id}`); }}
+          onPointerUp={(e) => { e.stopPropagation(); if (!videoLocked) handlePointerUp(e, `/call/${girl.id}?mode=video`); }}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
             <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
