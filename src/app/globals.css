@@ -91,6 +91,14 @@ img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   color: transparent;
 }
 
+.footer-link { transition: color 200ms ease; }
+.footer-link:hover { color: #ff5f8f; }
+
+@media (max-width: 1023px) {
+  .footer-grid { grid-template-columns: 1fr 1fr !important; }
+  .footer-grid > div:first-child { grid-column: 1 / -1; }
+}
+
 .nuvia-modal-scroll {
   max-height: calc(100vh - 32px);
   overscroll-behavior: contain;
