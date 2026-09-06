@@ -18,8 +18,6 @@ export default function LegalPageRoute() {
           title: "Identificación del titular",
           list: [
             "Titular: Francisco Ortuño Payseo (persona física, independiente).",
-            "NIF/DNI: [TU NIF/DNI].",
-            "Domicilio: [TU DIRECCIÓN].",
             "Correo de contacto: fortpay107@gmail.com.",
             "Actividad: servicio de entretenimiento de compañía virtual para mayores de 18 años (chat, voz y vídeo con personajes ficticios generados por IA).",
           ],

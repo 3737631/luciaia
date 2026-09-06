@@ -19,7 +19,6 @@ export default function PrivacyPageRoute() {
           paragraphs: [
             "Responsable: Francisco Ortuño Payseo (persona física, independiente).",
             "Correo de contacto: fortpay107@gmail.com.",
-            "Datos identificativos: NIF/DNI [TU NIF/DNI], domicilio [TU DIRECCIÓN].",
           ],
         },
         {
