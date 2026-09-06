@@ -10,7 +10,7 @@ import { getFallbackResponse } from "@/lib/ai";
 import { goBack } from "@/lib/nav";
 import { sendChatMessage } from "@/lib/chatClient";
 import { sttAudio, ttsText, getGirlVoice, getCustomGirlVoice } from "@/lib/voiceClient";
-import { consumeTrial, getPlan, isFreeMessageLimitReached, recordFreeMessage, getFreeMessagesLeftToday, FREE_DAILY_MESSAGES } from "@/lib/premium";
+import { consumeTrial, getPlan, isMessageLimitReached, getMessagesLeftToday, recordFreeMessage, FREE_DAILY_MESSAGES, PREMIUM_DAILY_MESSAGES } from "@/lib/premium";
 import LockIcon from "./LockIcon";
 import PremiumOverlay from "./PremiumOverlay";
 import {
@@ -78,7 +78,9 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
   const [confirmDeleteChat, setConfirmDeleteChat] = useState(false);
   const [premiumPrompt, setPremiumPrompt] = useState<string | null>(null);
   const isFree = typeof window !== "undefined" && getPlan() === "free";
-  const [messagesLeft, setMessagesLeft] = useState(() => (typeof window !== "undefined" && isFree) ? getFreeMessagesLeftToday() : FREE_DAILY_MESSAGES);
+  const [messagesLeft, setMessagesLeft] = useState<number>(() =>
+    typeof window !== "undefined" && getPlan() !== "premium_plus" ? getMessagesLeftToday() : Infinity
+  );
   const scrollRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef(true);
   const messagesRef = useRef(messages);
@@ -390,9 +392,16 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     if (!text) return;
     setError(null);
 
-    if (typeof window !== "undefined" && getPlan() === "free" && (isFreeMessageLimitReached() || getFreeMessagesLeftToday() <= 0)) {
-      setPremiumPrompt("Has agotado tus 20 mensajes diarios. Vuelve mañana para chatear gratis más, o hazte Premium para chatear sin límites.");
-      return;
+    if (typeof window !== "undefined") {
+      const plan = getPlan();
+      if (plan !== "premium_plus" && isMessageLimitReached()) {
+        setPremiumPrompt(
+          plan === "free"
+            ? "Has agotado tus 20 mensajes diarios. Vuelve mañana para chatear gratis más, o hazte Premium para chatear sin límites."
+            : "Has agotado tus 200 mensajes de hoy. Vuelve mañana o hazte Premium+ para chatear sin límite."
+        );
+        return;
+      }
     }
 
     if (MINOR_KEYWORDS.some((k) => text.toLowerCase().includes(k))) {
@@ -412,9 +421,9 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     setTyping(true);
     try {
       await runReply(text);
-      if (typeof window !== "undefined" && getPlan() === "free") {
+      if (typeof window !== "undefined" && getPlan() !== "premium_plus") {
         recordFreeMessage();
-        setMessagesLeft(getFreeMessagesLeftToday());
+        setMessagesLeft(getMessagesLeftToday());
       }
     } finally {
       setTyping(false);
@@ -797,7 +806,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
         {error && <p style={{ textAlign: "center", fontSize: 12, color: "hsla(240,7%,97%,.3)", padding: 8 }}>{error}</p>}
       </div>
       <div className={styles.composer}>
-        {isFree && (
+        {isFree && Number.isFinite(messagesLeft) && (
           <div
             style={{
               display: "flex",
@@ -834,6 +843,13 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
                 Premium
               </button>
             )}
+          </div>
+        )}
+        {!isFree && Number.isFinite(messagesLeft) && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 6, padding: "0 6px 8px" }}>
+            <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: "-0.01em", color: "rgba(255,255,255,0.30)" }}>
+              <span style={{ color: "rgba(255,255,255,0.55)" }}>{messagesLeft}</span> de {PREMIUM_DAILY_MESSAGES} mensajes hoy
+            </span>
           </div>
         )}
         <div className={styles.composerRow}>

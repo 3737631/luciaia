@@ -35,6 +35,50 @@ export const FREE_CALL_SECONDS_PER_DAY = 60;
 /** Mensajes de chat gratis al día para usuarios free. */
 export const FREE_DAILY_MESSAGES = 20;
 
+/** Mensajes de chat al día para el plan Premium (Premium+ no tiene límite). */
+export const PREMIUM_DAILY_MESSAGES = 200;
+
+/** Chicas nuevas al día según el plan. */
+export const FREE_DAILY_GIRLS = 1;
+export const PREMIUM_DAILY_GIRLS = 5;
+
+/** Límite de mensajes/día según el plan actual (Infinity = sin límite). */
+export function getDailyMessageLimit(): number {
+  const plan = getPlan();
+  if (plan === "free") return FREE_DAILY_MESSAGES;
+  if (plan === "premium") return PREMIUM_DAILY_MESSAGES;
+  return Infinity;
+}
+
+/** Mensajes que quedan hoy según el plan actual (Infinity = sin límite). */
+export function getMessagesLeftToday(): number {
+  const limit = getDailyMessageLimit();
+  if (!Number.isFinite(limit)) return Infinity;
+  return Math.max(0, limit - getFreeMessagesUsedToday());
+}
+
+/** True si el plan actual ya ha agotado sus mensajes de hoy. */
+export function isMessageLimitReached(): boolean {
+  const limit = getDailyMessageLimit();
+  if (!Number.isFinite(limit)) return false;
+  return getFreeMessagesUsedToday() >= limit;
+}
+
+/** Límite de chicas nuevas/día según el plan actual (Infinity = sin límite). */
+export function getDailyCreateLimit(): number {
+  const plan = getPlan();
+  if (plan === "free") return FREE_DAILY_GIRLS;
+  if (plan === "premium") return PREMIUM_DAILY_GIRLS;
+  return Infinity;
+}
+
+/** Chicas nuevas que quedan hoy según el plan actual (Infinity = sin límite). */
+export function getGirlCreationsLeftToday(): number {
+  const limit = getDailyCreateLimit();
+  if (!Number.isFinite(limit)) return Infinity;
+  return Math.max(0, limit - getCreatedToday());
+}
+
 // Endpoint opcional de respaldo del servidor. Si no está definido, se usa solo local.
 const TRIAL_ENDPOINT =
   typeof process !== "undefined" && process.env.NEXT_PUBLIC_TRIAL_ENDPOINT
@@ -147,10 +191,13 @@ export function recordGirlCreation(): void {
   }
 }
 
-/** True si el usuario gratis puede crear otra chica hoy (limite 1/día). */
+/** True si el usuario puede crear otra chica nueva hoy según su plan. */
 export function canCreateGirl(failReason?: { dayLimit: number }): boolean {
   const created = getCreatedToday();
-  return created < 1;
+  const limit = getDailyCreateLimit();
+  if (!Number.isFinite(limit)) return true;
+  if (failReason) failReason.dayLimit = limit;
+  return created < limit;
 }
 
 /** Segundos de llamada (voz/vídeo) ya consumidos hoy por los usuarios gratis. */

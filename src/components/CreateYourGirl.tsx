@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { saveCustomGirl, CustomGirlData } from "@/lib/storage";
 import { generateGirlImage } from "@/lib/chatClient";
-import { isFeatureLocked, canCreateGirl, recordGirlCreation } from "@/lib/premium";
+import { canCreateGirl, recordGirlCreation, getPlan, getGirlCreationsLeftToday, getDailyCreateLimit } from "@/lib/premium";
 import PremiumOverlay from "@/components/PremiumOverlay";
 
 const MINOR_WORDS = [
@@ -529,20 +529,27 @@ setGirlDesc(""); setRoleplayDesc(""); setError(""); setStep("describe"); setSele
     if (pointers.current.size < 2) pinchDistRef.current = 0;
   }
 
+const plan = typeof window !== "undefined" ? getPlan() : "free";
+const isFreePlan = plan === "free";
+const creationsLeft = typeof window !== "undefined" ? getGirlCreationsLeftToday() : 0;
+const dailyCreateLimit = typeof window !== "undefined" ? getDailyCreateLimit() : 1;
+
 const limitReached =
   typeof window !== "undefined" &&
   !editGirl?.id &&
-  isFeatureLocked("create") &&
   !canCreateGirl();
 
 async function handlePersonalityNext() {
-    // Límite gratis: 1 chica nueva al día. Editar una existente no cuenta.
+    // Límite diario de creaciones (1 gratis, 5 premium). Editar una existente no cuenta.
     if (!editGirl?.id) {
-      const locked = isFeatureLocked("create");
       const canCreate = canCreateGirl();
-      if (locked && !canCreate) {
+      if (!canCreate) {
         setGenError("");
-        setError("Solo puedes crear 1 chica al día. Hazte Premium para crear sin límites.");
+        setError(
+          plan === "free"
+            ? "Solo puedes crear 1 chica al día. Hazte Premium para crear sin límites."
+            : "Has creado las 5 chicas de hoy. Vuelve mañana o hazte Premium+ para crear sin límites."
+        );
         setStep("personality");
         setPremiumPrompt(true);
         return;
@@ -631,6 +638,11 @@ async function handlePersonalityNext() {
                    step === "personality" ? "Elige personalidad" :
                    step === "generating" ? "Creando..." : "¡Creada!"}
                 </h3>
+                {!editGirl?.id && Number.isFinite(dailyCreateLimit) && (
+                  <div style={{ marginTop: 8, fontSize: 10.5, fontWeight: 600, letterSpacing: "-0.01em", color: "rgba(255,255,255,0.28)" }}>
+                    Quedan <span style={{ color: "rgba(255,87,152,0.85)" }}>{creationsLeft}</span> de {dailyCreateLimit} creaciones hoy
+                  </div>
+                )}
 
                 {/* Progress line */}
                 <div className="mt-5 h-0.5 w-full overflow-hidden rounded-full bg-white/[0.07]">
@@ -743,7 +755,15 @@ async function handlePersonalityNext() {
                       </button>
 
                       {premiumPrompt && (
-                        <PremiumOverlay title="Crea chicas sin límites" subtitle="Solo puedes crear 1 chica al día en el plan gratis. Hazte Premium para crear sin límites." onClose={() => setPremiumPrompt(false)} />
+                        <PremiumOverlay
+                        title={plan === "free" ? "Crea chicas sin límites" : "Crea chicas sin límites"}
+                        subtitle={
+                          plan === "free"
+                            ? "Solo puedes crear 1 chica al día en el plan gratis. Hazte Premium para crear sin límites."
+                            : "Ya has creado las 5 chicas permitidas hoy. Vuelve mañana o hazte Premium+ para crear sin límites."
+                        }
+                        onClose={() => setPremiumPrompt(false)}
+                      />
                       )}
 
                       <div className="mt-2">
