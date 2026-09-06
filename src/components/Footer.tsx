@@ -21,20 +21,18 @@ export default function Footer() {
           <div>
             <h4 style={{ fontSize: "0.4rem", fontWeight: 600, letterSpacing: "0.08em", margin: "0 0 8px", color: "rgba(255,255,255,0.2)" }}>LEGAL</h4>
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 4 }}>
+              <li><Link href="/legal" style={linkStyle}>Aviso Legal</Link></li>
               <li><Link href="/terms" style={linkStyle}>Términos</Link></li>
               <li><Link href="/privacy" style={linkStyle}>Privacidad</Link></li>
               <li><Link href="/age-notice" style={linkStyle}>Aviso +18</Link></li>
             </ul>
           </div>
           <div>
-            <h4 style={{ fontSize: "0.4rem", fontWeight: 600, letterSpacing: "0.08em", margin: "0 0 8px", color: "rgba(255,255,255,0.2)" }}>PAGO</h4>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-              {["Visa", "MC", "PayPal", "Crypto"].map((t) => (
-                <span key={t} style={{ fontSize: "0.4rem", fontWeight: 500, padding: "2px 6px", borderRadius: 4, background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.3)", border: "0.5px solid rgba(255,255,255,0.06)" }}>
-                  {t}
-                </span>
-              ))}
-            </div>
+            <h4 style={{ fontSize: "0.4rem", fontWeight: 600, letterSpacing: "0.08em", margin: "0 0 8px", color: "rgba(255,255,255,0.2)" }}>CONTACTO</h4>
+            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 4 }}>
+              <li><a href="mailto:fortpay107@gmail.com" style={linkStyle}>fortpay107@gmail.com</a></li>
+              <li><span style={linkStyle}>Contenido generado por IA</span></li>
+            </ul>
           </div>
         </div>
 

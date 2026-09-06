@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { hasAgeAccepted } from "@/lib/storage";
 
-const ALLOWED = ["/age", "/terms", "/privacy", "/age-notice"];
+const ALLOWED = ["/age", "/legal", "/terms", "/privacy", "/age-notice"];
 
 function getRelPath() {
   if (typeof window === "undefined") return "/";

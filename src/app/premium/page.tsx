@@ -174,6 +174,15 @@ export default function PremiumPage() {
           })}
         </section>
 
+        <p className="mx-auto mt-6 max-w-2xl pb-4 text-center text-[11px] leading-relaxed text-muted/50">
+          Al hacerte Premium aceptas los{" "}
+          <Link href="/terms" className="underline text-muted/70">Términos del Servicio</Link> y la{" "}
+          <Link href="/privacy" className="underline text-muted/70">Política de Privacidad</Link>.
+          El pago se activará próximamente mediante pasarela segura; hasta entonces el plan se activa
+          sin coste. Derecho de desistimiento de 14 días: en el contenido digital de entrega inmediata
+          se pierde al aceptar expresamente el inicio del servicio y reconocer esta pérdida.
+        </p>
+
         <section className="py-16 sm:py-20">
           <div className="mx-auto max-w-lg rounded-xl3 glass p-6 text-center shadow-glow sm:p-10">
             <p className="mb-2 text-sm text-pink font-semibold tracking-wide uppercase">Empieza sin compromiso</p>

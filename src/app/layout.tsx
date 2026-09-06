@@ -16,6 +16,9 @@ export const metadata: Metadata = {
   title: "NuviaChat — Chatea y llama con tus personajes",
   description:
     "Experiencia +18 de compañía. Chat, voz y videollamada simulada. Sin registro y sin anuncios.",
+  other: {
+    rating: "adult",
+  },
 };
 
 export default function RootLayout({

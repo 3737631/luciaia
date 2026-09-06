@@ -96,6 +96,7 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
   const [videoOn, setVideoOn] = useState(false);
   const [videoLockedOnce] = useState(() => typeof window !== "undefined" && isFeatureLocked("video"));
   const [videoBlurred, setVideoBlurred] = useState(false);
+  const [showCamConsent, setShowCamConsent] = useState(false);
   const isFreeUser = typeof window !== "undefined" && getPlan() === "free";
   const [freeSecondsLeft, setFreeSecondsLeft] = useState(() => (typeof window !== "undefined" && getPlan() === "free" ? getFreeSecondsLeftToday() : FREE_CALL_SECONDS_PER_DAY));
   const [callLocked, setCallLocked] = useState(false);
@@ -1224,7 +1225,10 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
     if (typeof window === "undefined") return;
     if (new URLSearchParams(window.location.search).get("mode") === "video") {
       const retryCam = () => {
-        if (mountedRef.current && !videoOn && !videoStreamRef.current && !videoLockedOnce) toggleVideo();
+        if (
+          mountedRef.current && !videoOn && !videoStreamRef.current && !videoLockedOnce &&
+          (!window.sessionStorage.getItem("nuvia_cam_consent_declined_v1") || window.localStorage.getItem("nuvia_cam_consent_v1"))
+        ) toggleVideo();
       };
       const t1 = setTimeout(retryCam, 1200);
       const t2 = setTimeout(retryCam, 3000);
@@ -1411,6 +1415,14 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
       stopCameraReactions();
       setVideoOn(false);
     } else {
+      if (
+        typeof window !== "undefined" &&
+        !window.localStorage.getItem("nuvia_cam_consent_v1") &&
+        !window.sessionStorage.getItem("nuvia_cam_consent_declined_v1")
+      ) {
+        setShowCamConsent(true);
+        return;
+      }
       navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false })
         .then(stream => {
           if (!mountedRef.current) { stream.getTracks().forEach(t => t.stop()); return; }
@@ -2098,6 +2110,92 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
             </>
           )}
         </div>
+
+        {/* Consentimiento de cámara (RGPD): primera videollamada */}
+        {showCamConsent && (
+          <div
+            style={{
+              position: "fixed", inset: 0, zIndex: 6000,
+              display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center",
+              gap: 16, padding: "0 32px", textAlign: "center",
+              background: "rgba(8,4,10,0.55)",
+              backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
+            }}
+          >
+            <div
+              style={{
+                width: "min(420px, 100%)",
+                borderRadius: 24,
+                background: "rgba(20,16,22,0.96)",
+                border: "1px solid rgba(255,255,255,0.12)",
+                padding: "28px 24px",
+                display: "flex", flexDirection: "column", alignItems: "center", gap: 14,
+                boxShadow: "0 24px 60px rgba(0,0,0,0.5)",
+              }}
+            >
+              <div
+                style={{
+                  width: 64, height: 64, borderRadius: "50%",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  background: "rgba(255,87,152,0.14)",
+                }}
+              >
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#FF5798" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="6" width="14" height="12" rx="2" />
+                  <path d="M16 10l6-3v10l-6-3" />
+                </svg>
+              </div>
+              <span style={{ fontSize: 20, fontWeight: 800, color: "#fff", letterSpacing: "-0.01em" }}>
+                Uso de tu cámara
+              </span>
+              <span style={{ fontSize: 13.5, fontWeight: 400, lineHeight: 1.5, color: "rgba(255,255,255,0.72)" }}>
+                Para que tu pareja de IA reaccione a lo que haces en videollamada, se capturarán
+                imágenes de tu cámara y se enviarán a un servidor externo de IA. Puedes rechazar:
+                la llamada seguirá funcionando sin cámara.
+              </span>
+              <a
+                href="/privacy"
+                style={{
+                  fontSize: 12, fontWeight: 600, color: "#FF5798", textDecoration: "underline",
+                }}
+              >
+                Ver la Política de Privacidad
+              </a>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, width: "100%", marginTop: 6 }}>
+                <button
+                  onClick={() => {
+                    try { window.localStorage.setItem("nuvia_cam_consent_v1", "1"); } catch {}
+                    setShowCamConsent(false);
+                    toggleVideo();
+                  }}
+                  style={{
+                    width: "100%", padding: "14px 20px", borderRadius: 999,
+                    border: "none", cursor: "pointer",
+                    background: "linear-gradient(135deg, #FF5798, #FF6AA5)",
+                    color: "#fff", fontSize: 15, fontWeight: 700, letterSpacing: "-0.01em",
+                  }}
+                >
+                  Aceptar y activar cámara
+                </button>
+                <button
+                  onClick={() => {
+                    try { window.sessionStorage.setItem("nuvia_cam_consent_declined_v1", "1"); } catch {}
+                    setShowCamConsent(false);
+                  }}
+                  style={{
+                    width: "100%", padding: "14px 20px", borderRadius: 999,
+                    border: "1px solid rgba(255,255,255,0.18)", cursor: "pointer",
+                    background: "rgba(255,255,255,0.06)",
+                    color: "rgba(255,255,255,0.85)", fontSize: 15, fontWeight: 600,
+                  }}
+                >
+                  Rechazar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Overlay Premium para videollamada (2s para gratis) */}
         {videoBlurred && (
