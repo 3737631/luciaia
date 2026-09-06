@@ -121,6 +121,11 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
   const micStreamRef = useRef<MediaStream | null>(null);
   const videoStreamRef = useRef<MediaStream | null>(null);
   const videoGateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const videoElRef = useRef<HTMLVideoElement | null>(null);
+  const camReactTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const camLastReactRef = useRef(0);
+  const videoBlurredRef = useRef(false);
+  const mutedRef = useRef(false);
   const micAnalyserRef = useRef<AnalyserNode | null>(null);
   const micSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const speakerAnalyserRef = useRef<AnalyserNode | null>(null);
@@ -1218,6 +1223,14 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
   }
 
   useEffect(() => {
+    videoBlurredRef.current = videoBlurred;
+  }, [videoBlurred]);
+
+  useEffect(() => {
+    mutedRef.current = muted;
+  }, [muted]);
+
+  useEffect(() => {
     setIsStandalone(window.matchMedia("(display-mode: standalone)").matches || !!(navigator as any).standalone);
   }, []);
 
@@ -1277,6 +1290,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
       videoStreamRef.current.getTracks().forEach(t => t.stop());
       videoStreamRef.current = null;
     }
+    stopCameraReactions();
     disconnectMicAnalyser();
     stopFreqAnimation();
     stopRingback();
@@ -1395,6 +1409,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
         videoStreamRef.current.getTracks().forEach(t => t.stop());
         videoStreamRef.current = null;
       }
+      stopCameraReactions();
       setVideoOn(false);
     } else {
       navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false })
@@ -1404,9 +1419,110 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
           if (!track || track.readyState === "ended") { stream.getTracks().forEach(t => t.stop()); return; }
           videoStreamRef.current = stream;
           setVideoOn(true);
+          startCameraReactions();
         })
         .catch(() => {});
     }
+  }
+
+  function captureVideoFrame(): string | null {
+    const el = videoElRef.current;
+    if (!el || !el.videoWidth || !el.videoHeight) return null;
+    const maxW = 448;
+    const scale = Math.min(1, maxW / el.videoWidth);
+    const w = Math.max(2, Math.round(el.videoWidth * scale));
+    const h = Math.max(2, Math.round(el.videoHeight * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    try {
+      ctx.drawImage(el, 0, 0, w, h);
+      return canvas.toDataURL("image/jpeg", 0.72);
+    } catch {
+      return null;
+    }
+  }
+
+  async function reactToCamera() {
+    if (processingRef.current) return;
+    const frame = captureVideoFrame();
+    if (!frame) return;
+    const now = Date.now();
+    if (now - camLastReactRef.current < 6000) return;
+    camLastReactRef.current = now;
+    processingRef.current = true;
+    setCS("processing");
+    abortSpeechRec("camera-reaction");
+    cleanupMediaRec();
+    stopRecorder();
+    if (debounceTimerRef.current) { clearTimeout(debounceTimerRef.current); debounceTimerRef.current = null; }
+    if (backoffTimerRef.current) { clearTimeout(backoffTimerRef.current); backoffTimerRef.current = null; }
+    if (speakTimerRef.current) { clearTimeout(speakTimerRef.current); speakTimerRef.current = null; }
+    finalBufferRef.current = "";
+    interimBufferRef.current = "";
+    lastResultIndexRef.current = -1;
+    try {
+      const storageId = activeCustom?.id ?? girl.id;
+      const history = getConversationHistory(storageId);
+      const memory = getUserMemory(storageId);
+      const summary = getConversationSummary(storageId);
+      const customScenario = activeCustom
+        ? `Chica: ${activeCustom.girlDesc}\nRoleplay: ${activeCustom.roleplayDesc}`
+        : "";
+      const reply = await sendChatMessage({
+        message: `Estamos en videollamada y te acabo de mandar una captura de mi cámara en vivo. Obsérvala y reacciona de forma natural, breve y hablada a lo que ves (mi expresión, mis gestos, lo que hago). Máximo una o dos frases cortas, con tu forma de hablar. Si no hay nada relevante que comentar, responde exactamente: NADA`,
+        girlId: activeCustom?.id ?? girl.id,
+        girlName: activeCustom?.name ?? girl.name,
+        girlStyle: activeCustom?.girlDesc ?? girl.style,
+        girlPersonality: activeCustom?.personality ?? custom?.personality ?? girl.personality,
+        customization: (custom || {}) as Record<string, unknown>,
+        history,
+        memory,
+        summary,
+        mode: activeCustom?.roleplayDesc ? "actions" : "text",
+        userGender: (localStorage.getItem("lunacall_gender") || "hombre") as "hombre" | "mujer",
+        characterGender: detectGender(activeCustom?.name ?? girl.name),
+        customScenario: customScenario || undefined,
+        image: frame,
+      });
+      if (!mountedRef.current) return;
+      const clean = reply.replace(/\s+/g, " ").trim();
+      if (!clean || /^nada$/i.test(clean)) {
+        processingRef.current = false;
+        startListening();
+        return;
+      }
+      setSubtitleWords(reply);
+      await speakTTS(reply, false);
+      if (!mountedRef.current) return;
+      processingRef.current = false;
+      startListening();
+    } catch (err) {
+      console.warn("[CALL] camera reaction error:", err);
+      if (!mountedRef.current) return;
+      processingRef.current = false;
+      startListening();
+    }
+  }
+
+  function startCameraReactions() {
+    if (typeof window === "undefined") return;
+    if (camReactTimerRef.current) return;
+    camLastReactRef.current = Date.now();
+    camReactTimerRef.current = setInterval(() => {
+      if (!mountedRef.current) return;
+      if (callStateRef.current !== "listening") return;
+      if (processingRef.current) return;
+      if (videoBlurredRef.current) return;
+      if (mutedRef.current) return;
+      reactToCamera();
+    }, 2500);
+  }
+
+  function stopCameraReactions() {
+    if (camReactTimerRef.current) { clearInterval(camReactTimerRef.current); camReactTimerRef.current = null; }
   }
 
   function toggleMute() {
@@ -2098,7 +2214,7 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
             style={{
               position: "fixed",
               top: "calc(env(safe-area-inset-top) + 72px)",
-              right: "max(16px, env(safe-area-inset-right))", width: 92, height: 126,
+              right: "max(16px, env(safe-area-inset-right))", width: 128, height: 172,
               borderRadius: 18, overflow: "hidden",
               zIndex: 10, background: "#000",
               border: "1px solid rgba(255,255,255,0.12)",
@@ -2106,7 +2222,10 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
             }}
           >
             <video
-              ref={el => { if (el && videoStreamRef.current && !el.srcObject) { el.srcObject = videoStreamRef.current; el.play().catch(() => {}); } }}
+              ref={el => {
+                videoElRef.current = el;
+                if (el && videoStreamRef.current && !el.srcObject) { el.srcObject = videoStreamRef.current; el.play().catch(() => {}); }
+              }}
               autoPlay
               playsInline
               muted
