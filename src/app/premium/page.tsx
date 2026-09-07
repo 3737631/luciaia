@@ -158,7 +158,7 @@ export default function PremiumPage() {
       />
       <PurchaseDialog
         plan={purchasePlan ?? "premium"}
-        open={purchasePlan !== null}
+        open={purchasePlan !== null && !accountOpen}
         onClose={() => setPurchasePlan(null)}
         onPaid={(info) => {
           applyServerPlan({ plan: info.plan, active: true, expiresAt: info.expiresAt });
