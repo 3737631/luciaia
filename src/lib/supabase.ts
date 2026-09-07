@@ -4,11 +4,11 @@ import { createClient } from "@supabase/supabase-js";
 
 const SUPABASE_URL =
   process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/+$/, "") ||
-  "https://grfajwttfddwbtxhwikf.supabase.co";
+  "https://rebviqktyvzwwqqmvtsi.supabase.co";
 
 const SUPABASE_ANON_KEY =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdyZmFqd3R0ZmRkd2J0eGh3aWtmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NzQwMTcsImV4cCI6MjEwNDM1MDAxN30.ztKXsQv7esJyv3sFN5ZoQWQle-hSpgUxwmrSQCksPQw";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJlYnZpcWt0eXZ6d3dxcW12dHNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyODIyNjUsImV4cCI6MjA5ODg1ODI2NX0.esk2mjcfpLtVrRHBjBUnLs9v2GKVohZN9HciwyxHokg";
 
 export const SUPABASE_FUNCTION_URL =
   process.env.NEXT_PUBLIC_SUPABASE_FUNCTION_URL?.replace(/\/+$/, "") ||
