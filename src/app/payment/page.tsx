@@ -84,6 +84,19 @@ function PaymentInner() {
         setState("cancel");
       }
     } catch (err) {
+      try {
+        const st = await payments.status();
+        if (st.active && st.plan) {
+          applyServerPlan({ plan: st.plan, active: true, expiresAt: st.expiresAt });
+          if (typeof sessionStorage !== "undefined") {
+            sessionStorage.setItem("nuvia_unlock_pending", "1");
+          }
+          setState("ok");
+          return;
+        }
+      } catch {
+        /* el fallback de estado no está disponible */
+      }
       setState("error");
       setMessage(err instanceof Error ? err.message : "No se pudo confirmar el pago");
     }
