@@ -92,6 +92,9 @@ export default function PremiumPage() {
   const [server, setServer] = useState<ServerStatus | null>(null);
   const [cancelling, setCancelling] = useState(false);
 
+  const activePlan: "premium" | "premium_plus" | null =
+    server?.active && (server.plan === "premium" || server.plan === "premium_plus") ? server.plan : null;
+
   useEffect(() => {
     let mounted = true;
     supabase.auth.getSession().then(({ data }) => {
@@ -111,6 +114,16 @@ export default function PremiumPage() {
         if (!mounted) return;
         setServer(st);
         applyServerPlan(st);
+        if (st.active && st.plan) {
+          try {
+            if (sessionStorage.getItem("nuvia_unlock_pending") === "1") {
+              sessionStorage.removeItem("nuvia_unlock_pending");
+              setUnlock(st.plan);
+            }
+          } catch {
+            /* noop */
+          }
+        }
       })
       .catch(() => {});
     return () => { mounted = false; };
@@ -204,16 +217,31 @@ export default function PremiumPage() {
         <section className="grid grid-cols-1 gap-5 md:grid-cols-3">
           {plans.map((p) => {
             const isPaid = p.monthly !== undefined;
+            const isCurrent = p.planId !== "free" && activePlan === p.planId;
+            const isFreeLocked = p.planId === "free" && activePlan !== null;
             const price = isPaid ? (billing === "monthly" ? p.monthly : p.annual) : p.price;
             return (
               <div
                 key={p.name}
                 className={
-                  "glass rounded-xl3 p-6 text-center " +
-                  (p.highlight ? "ring-2 ring-pink shadow-glow md:-mt-3 md:mb-3" : "glass-hover")
+                  "glass rounded-xl3 p-6 text-center transition-all " +
+                  (isCurrent && p.highlight
+                    ? "ring-2 ring-green-300 shadow-glow md:-mt-3 md:mb-3"
+                    : p.highlight
+                      ? "ring-2 ring-pink shadow-glow md:-mt-3 md:mb-3"
+                      : "glass-hover") +
+                  (isFreeLocked ? " opacity-50" : "")
                 }
               >
-                <p className={"mb-3 text-sm font-semibold tracking-wide uppercase " + (p.highlight ? "text-pink" : "text-muted")}>
+                {isCurrent && (
+                  <span className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-green-300/40 bg-green-500/10 px-3 py-1 text-[11px] font-bold text-green-300">
+                    <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 6L9 17l-5-5" />
+                    </svg>
+                    TU PLAN ACTUAL
+                  </span>
+                )}
+                <p className={"mb-3 text-sm font-semibold tracking-wide uppercase " + (p.highlight ? (isCurrent ? "text-green-300" : "text-pink") : "text-muted")}>
                   {p.name}
                 </p>
                 <div className="mb-1">
@@ -233,7 +261,15 @@ export default function PremiumPage() {
                     </li>
                   ))}
                 </ul>
-                {p.highlight ? (
+                {isCurrent ? (
+                  <NeonButton fullWidth disabled>
+                    Plan activo
+                  </NeonButton>
+                ) : isFreeLocked ? (
+                  <NeonButton fullWidth disabled>
+                    Ya tienes un plan
+                  </NeonButton>
+                ) : p.highlight ? (
                   <NeonButton onClick={() => choosePlan(p.planId)} fullWidth>
                     {p.cta}
                   </NeonButton>

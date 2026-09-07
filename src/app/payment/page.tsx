@@ -43,6 +43,9 @@ function PaymentInner() {
       if (token) {
         const r = await payments.captureOrder(token);
         applyServerPlan({ plan: r.plan, active: true, expiresAt: r.expiresAt });
+        if (typeof sessionStorage !== "undefined") {
+          sessionStorage.setItem("nuvia_unlock_pending", "1");
+        }
         setState("ok");
         return;
       }
@@ -58,6 +61,9 @@ function PaymentInner() {
           if (st.active && st.plan) {
             applyServerPlan({ plan: st.plan, active: true, expiresAt: st.expiresAt });
             sessionStorage.removeItem("nuvia_pending_sub");
+            if (typeof sessionStorage !== "undefined") {
+              sessionStorage.setItem("nuvia_unlock_pending", "1");
+            }
             setState("ok");
             return;
           }
@@ -70,6 +76,9 @@ function PaymentInner() {
       const st = await payments.status();
       if (st.active && st.plan) {
         applyServerPlan({ plan: st.plan, active: true, expiresAt: st.expiresAt });
+        if (typeof sessionStorage !== "undefined") {
+          sessionStorage.setItem("nuvia_unlock_pending", "1");
+        }
         setState("ok");
       } else {
         setState("cancel");
