@@ -218,7 +218,7 @@ export default function PremiumPage() {
                 </p>
                 <div className="mb-1">
                   <span className="text-4xl font-extrabold gradient-text">{price}</span>
-                  <span className="text-sm text-muted/70"> {p.period}</span>
+                  <span className="text-sm text-muted/70">{` ${p.period}`}</span>
                 </div>
                 {isPaid && billing === "annual" && (
                   <p className="text-[11px] font-semibold text-green-300/90">{p.annualHint}</p>
@@ -233,18 +233,22 @@ export default function PremiumPage() {
                     </li>
                   ))}
                 </ul>
-                <button type="button" onClick={() => choosePlan(p.planId)} className="w-full">
-                  {p.highlight ? <NeonButton>{p.cta}</NeonButton> : <span className="inline-flex items-center justify-center rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-muted transition hover:bg-white/5">{p.cta}</span>}
-                </button>
+                {p.highlight ? (
+                  <NeonButton onClick={() => choosePlan(p.planId)} fullWidth>
+                    {p.cta}
+                  </NeonButton>
+                ) : (
+                  <button type="button" onClick={() => choosePlan(p.planId)} className="w-full">
+                    <span className="inline-flex w-full items-center justify-center rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-muted transition hover:bg-white/5">{p.cta}</span>
+                  </button>
+                )}
               </div>
             );
           })}
         </section>
 
         <p className="mx-auto mt-6 max-w-2xl pb-4 text-center text-[11px] leading-relaxed text-muted/50">
-          Al hacerte Premium aceptas los{" "}
-          <Link href="/terms" className="underline text-muted/70">Términos del Servicio</Link> y la{" "}
-          <Link href="/privacy" className="underline text-muted/70">Política de Privacidad</Link>.
+          Al hacerte Premium aceptas los <Link href="/terms" className="underline text-muted/70">Términos del Servicio</Link> y la <Link href="/privacy" className="underline text-muted/70">Política de Privacidad</Link>.
           Pago seguro tramitado por PayPal. Derecho de desistimiento de 14 días: en el contenido digital
           de entrega inmediata se pierde al aceptar expresamente el inicio del servicio y reconocer esta pérdida.
         </p>
@@ -280,9 +284,9 @@ export default function PremiumPage() {
                       {cancelling ? "Cancelando…" : "Cancelar suscripción"}
                     </button>
                   ) : (
-                    <button type="button" onClick={() => setPurchasePlan("premium")} className="w-full">
-                      <NeonButton>Hacerme Premium</NeonButton>
-                    </button>
+                    <NeonButton onClick={() => setPurchasePlan("premium")} fullWidth>
+                      Hacerme Premium
+                    </NeonButton>
                   )}
                   <button
                     type="button"
