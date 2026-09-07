@@ -22,6 +22,8 @@ import { getCustomGirls } from "@/lib/storage";
 import { getGirlImage } from "@/lib/images";
 import { girls } from "@/data/girls";
 import { isDebugMode, getShowSessionIds, setShowSessionIds, onShowSessionIdsChange, sessionShortId } from "@/lib/debug";
+import { useRouter } from "next/navigation";
+import { useSession } from "@/lib/session";
 
 interface MsgRow {
   key: string;
@@ -50,6 +52,8 @@ function MessagesContent() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [confirmDelete, setConfirmDelete] = useState<"all" | MsgRow | null>(null);
   const [menuRow, setMenuRow] = useState<MsgRow | null>(null);
+  const { requireLogin } = useSession();
+  const router = useRouter();
 
   const rebuild = useCallback(() => {
     const pending = getUnreadReplies();
@@ -295,6 +299,7 @@ function MessagesContent() {
               <div key={r.key} className="group relative flex items-center">
                 <Link
                   href={r.href}
+                  onClick={(e) => { if (!requireLogin()) { e.preventDefault(); return; } }}
                   className={`flex w-full items-center gap-3.5 rounded-2xl px-2 py-2.5 pr-14 text-left transition hover:bg-white/[0.04] active:scale-[0.99] ${r.pending ? "bg-[#ff2f78]/[0.07]" : ""}`}
                 >
                   <div className="relative h-[62px] w-[62px] shrink-0">

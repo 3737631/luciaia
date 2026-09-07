@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getCustomization, getCustomGirls, CustomGirlData } from "@/lib/storage";
 import { getFallbackResponse } from "@/lib/ai";
 import { goBack } from "@/lib/nav";
+import { useSession } from "@/lib/session";
 import { sendChatMessage } from "@/lib/chatClient";
 import { splitForTTS, sttAudio, ttsText, voiceIdMap, getCustomGirlVoice } from "@/lib/voiceClient";
 import {
@@ -53,6 +54,7 @@ const supportedMimeTypes = [
 ];
 
 export default function CallScreen({ girl }: { girl: Girl }) {
+  const { requireLogin } = useSession();
   const router = useRouter();
   const custom = getCustomization(girl.id);
   const [activeCustom, setActiveCustom] = useState<CustomGirlData | null>(null);
@@ -985,6 +987,7 @@ el.volume = !audioOn ? 0 : 1;
   }
 
   async function initCall() {
+    if (!requireLogin()) return;
     const abort = new AbortController();
 
     dotTimerRef.current = setInterval(() => {

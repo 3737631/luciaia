@@ -7,6 +7,7 @@ import { Girl } from "@/data/girls";
 import { getGirlImage } from "@/lib/images";
 import { getCustomization } from "@/lib/storage";
 import { isFeatureLocked } from "@/lib/premium";
+import { useSession } from "@/lib/session";
 import LockIcon from "./LockIcon";
 import PremiumOverlay from "./PremiumOverlay";
 
@@ -30,16 +31,18 @@ export default function GirlCard({ girl, index = 0 }: { girl: Girl; index?: numb
 
   const [videoLocked] = useState(() => typeof window !== "undefined" && isFeatureLocked("video"));
   const [showPremiumOverlay, setShowPremiumOverlay] = useState(false);
+  const { requireLogin } = useSession();
 
   const startRef = useRef<{ x: number; y: number } | null>(null);
   const handledRef = useRef(false);
 
   const navigate = useCallback((path: string) => {
     if (handledRef.current) return;
+    if (!requireLogin()) return;
     handledRef.current = true;
     router.push(path);
     window.setTimeout(() => { handledRef.current = false; }, 500);
-  }, [router]);
+  }, [router, requireLogin]);
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     startRef.current = { x: e.clientX, y: e.clientY };

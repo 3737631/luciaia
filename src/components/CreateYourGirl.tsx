@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { saveCustomGirl, CustomGirlData } from "@/lib/storage";
 import { generateGirlImage } from "@/lib/chatClient";
 import { canCreateGirl, recordGirlCreation, getPlan, getGirlCreationsLeftToday, getDailyCreateLimit } from "@/lib/premium";
+import { useSession } from "@/lib/session";
 import PremiumOverlay from "@/components/PremiumOverlay";
 
 const MINOR_WORDS = [
@@ -327,6 +328,7 @@ function buildAvatarPrompt(desc: string): string {
 }
 
 export default function CreateYourGirl({ open, onClose, onCreated, editGirl }: { open: boolean; onClose: () => void; onCreated?: () => void; editGirl?: CustomGirlData | null }) {
+  const { requireLogin } = useSession();
   const [girlDesc, setGirlDesc] = useState("");
   const [roleplayDesc, setRoleplayDesc] = useState("");
   const [error, setError] = useState("");
@@ -540,6 +542,7 @@ const limitReached =
   !canCreateGirl();
 
 async function handlePersonalityNext() {
+    if (!requireLogin()) return;
     // Límite diario de creaciones (1 gratis, 5 premium). Editar una existente no cuenta.
     if (!editGirl?.id) {
       const canCreate = canCreateGirl();

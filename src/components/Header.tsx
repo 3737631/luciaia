@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { hasUnreadReplies, onUnreadChange } from "@/lib/memory";
+import { useSession } from "@/lib/session";
 
 const navItems = [
   { label: "Inicio", href: "/" },
@@ -21,6 +22,7 @@ const categoryLinks = [
 ];
 
 export default function Header() {
+  const { email, openModal } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
   const [hasUnread, setHasUnread] = useState(false);
@@ -206,18 +208,35 @@ export default function Header() {
           )}
         </div>
 
-        {/* Únete ahora */}
-        <button
-          style={{
-            background: "linear-gradient(135deg, #ff5f8f, #ff2b86)",
-            border: 0, borderRadius: 20,
-            padding: "7px 16px", color: "#fff",
-            fontSize: 13, fontWeight: 700,
-            cursor: "pointer", whiteSpace: "nowrap",
-          }}
-        >
-          Únete ahora
-        </button>
+        {/* Únete ahora / cuenta */}
+        {email ? (
+          <button
+            onClick={openModal}
+            style={{
+              background: "rgba(255,255,255,0.08)",
+              border: "1px solid rgba(255,255,255,0.18)",
+              borderRadius: 20,
+              padding: "7px 16px", color: "#fff",
+              fontSize: 13, fontWeight: 700,
+              cursor: "pointer", whiteSpace: "nowrap",
+            }}
+          >
+            {email.split("@")[0]}
+          </button>
+        ) : (
+          <button
+            onClick={openModal}
+            style={{
+              background: "linear-gradient(135deg, #ff5f8f, #ff2b86)",
+              border: 0, borderRadius: 20,
+              padding: "7px 16px", color: "#fff",
+              fontSize: 13, fontWeight: 700,
+              cursor: "pointer", whiteSpace: "nowrap",
+            }}
+          >
+            Únete ahora
+          </button>
+        )}
       </div>
 
       {/* Side menu overlay - full navigation */}

@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { SessionProvider } from "@/lib/session";
 
 const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
@@ -31,7 +32,7 @@ export default function RootLayout({
       <body className={`${jakarta.className} min-h-screen bg-bg text-ink antialiased`}>
         <ErrorBoundary>
           <AnimatedBackground />
-          {children}
+          <SessionProvider>{children}</SessionProvider>
         </ErrorBoundary>
       </body>
     </html>

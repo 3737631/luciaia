@@ -11,6 +11,7 @@ import { goBack } from "@/lib/nav";
 import { sendChatMessage } from "@/lib/chatClient";
 import { sttAudio, ttsText, getGirlVoice, getCustomGirlVoice } from "@/lib/voiceClient";
 import { consumeTrial, getPlan, isMessageLimitReached, getMessagesLeftToday, recordFreeMessage, FREE_DAILY_MESSAGES, PREMIUM_DAILY_MESSAGES } from "@/lib/premium";
+import { useSession } from "@/lib/session";
 import LockIcon from "./LockIcon";
 import PremiumOverlay from "./PremiumOverlay";
 import {
@@ -62,6 +63,7 @@ function barsFrom(seed: string): number[] {
 type ChatMsg = { id: string; from: "user" | "girl"; text: string; audio?: string; image?: string; note?: string };
 
 export default function ChatWindow({ girl }: { girl: Girl }) {
+  const { requireLogin } = useSession();
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
@@ -391,6 +393,8 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
     const text = input.trim();
     if (!text) return;
     setError(null);
+
+    if (!requireLogin()) return;
 
     if (typeof window !== "undefined") {
       const plan = getPlan();
