@@ -1,13 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import NeonButton from "@/components/NeonButton";
-import { setPlan, resetFreeCallSeconds, resetTrial } from "@/lib/premium";
+import { setPlan, resetFreeCallSeconds, resetTrial, applyServerPlan } from "@/lib/premium";
 import UnlockOverlay from "@/components/UnlockOverlay";
+import AccountModal from "@/components/AccountModal";
+import PurchaseDialog from "@/components/PurchaseDialog";
+import { payments, ServerStatus } from "@/lib/payments";
+import { supabase } from "@/lib/supabase";
 
 type Billing = "monthly" | "annual";
 
@@ -82,6 +86,48 @@ export default function PremiumPage() {
   const router = useRouter();
   const [billing, setBilling] = useState<Billing>("monthly");
   const [unlock, setUnlock] = useState<"premium" | "premium_plus" | null>(null);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [purchasePlan, setPurchasePlan] = useState<"premium" | "premium_plus" | null>(null);
+  const [sessionEmail, setSessionEmail] = useState<string | null>(null);
+  const [server, setServer] = useState<ServerStatus | null>(null);
+  const [cancelling, setCancelling] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted) setSessionEmail(data.session?.user?.email ?? null);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      setSessionEmail(s?.user?.email ?? null);
+    });
+    return () => { mounted = false; sub.subscription.unsubscribe(); };
+  }, []);
+
+  useEffect(() => {
+    if (!sessionEmail) { setServer(null); return; }
+    let mounted = true;
+    payments.status()
+      .then((st: ServerStatus) => {
+        if (!mounted) return;
+        setServer(st);
+        applyServerPlan(st);
+      })
+      .catch(() => {});
+    return () => { mounted = false; };
+  }, [sessionEmail]);
+
+  async function cancelSubscription() {
+    if (!server?.subscriptionId) return;
+    setCancelling(true);
+    try {
+      await payments.cancelSubscription(server.subscriptionId);
+      await payments.status().then((st: ServerStatus) => setServer(st));
+    } catch {
+      /* noop */
+    } finally {
+      setCancelling(false);
+    }
+  }
 
   function choosePlan(planId: "free" | "premium" | "premium_plus") {
     if (planId === "free") {
@@ -91,13 +137,34 @@ export default function PremiumPage() {
       router.push("/girls");
       return;
     }
-    setPlan(planId);
-    setUnlock(planId);
+    if (sessionEmail) {
+      setPurchasePlan(planId);
+    } else {
+      setAccountOpen(true);
+      setPurchasePlan(planId);
+    }
   }
 
   return (
     <>
       {unlock && <UnlockOverlay plan={unlock} onDone={() => router.push("/girls")} />}
+      <AccountModal
+        open={accountOpen}
+        onClose={() => { setAccountOpen(false); setPurchasePlan(null); }}
+        onDone={() => {
+          setAccountOpen(false);
+          setPurchasePlan((p) => p);
+        }}
+      />
+      <PurchaseDialog
+        plan={purchasePlan ?? "premium"}
+        open={purchasePlan !== null}
+        onClose={() => setPurchasePlan(null)}
+        onPaid={(info) => {
+          applyServerPlan({ plan: info.plan, active: true, expiresAt: info.expiresAt });
+          setUnlock(info.plan);
+        }}
+      />
       <Header />
       <main className="mx-auto max-w-6xl overflow-x-hidden px-4 pb-24 sm:px-5">
         <section className="py-16 text-center sm:py-20">
@@ -178,21 +245,66 @@ export default function PremiumPage() {
           Al hacerte Premium aceptas los{" "}
           <Link href="/terms" className="underline text-muted/70">Términos del Servicio</Link> y la{" "}
           <Link href="/privacy" className="underline text-muted/70">Política de Privacidad</Link>.
-          El pago se activará próximamente mediante pasarela segura; hasta entonces el plan se activa
-          sin coste. Derecho de desistimiento de 14 días: en el contenido digital de entrega inmediata
-          se pierde al aceptar expresamente el inicio del servicio y reconocer esta pérdida.
+          Pago seguro tramitado por PayPal. Derecho de desistimiento de 14 días: en el contenido digital
+          de entrega inmediata se pierde al aceptar expresamente el inicio del servicio y reconocer esta pérdida.
         </p>
 
         <section className="py-16 sm:py-20">
           <div className="mx-auto max-w-lg rounded-xl3 glass p-6 text-center shadow-glow sm:p-10">
-            <p className="mb-2 text-sm text-pink font-semibold tracking-wide uppercase">Empieza sin compromiso</p>
-            <p className="mb-4 text-5xl font-extrabold gradient-text">Prueba gratis</p>
-            <p className="mb-8 text-sm text-muted/70 leading-relaxed">
-              Explora el chat y las llamadas sin registro. Actualiza a Premium cuando quieras.
-            </p>
-            <Link href="/girls">
-              <NeonButton>Probar ahora</NeonButton>
-            </Link>
+            {sessionEmail ? (
+              <>
+                <p className="mb-2 text-sm text-pink font-semibold tracking-wide uppercase">Mi suscripción</p>
+                <p className="mb-1 text-3xl font-extrabold text-white break-all">{sessionEmail}</p>
+                {server?.active && server.plan ? (
+                  <>
+                    <p className="mt-2 text-sm text-green-300 font-semibold">
+                      {server.plan === "premium_plus" ? "Premium+ activado" : "Premium activado"}
+                    </p>
+                    {server.expiresAt && (
+                      <p className="mb-4 text-xs text-muted/70">
+                        Válido hasta {new Date(server.expiresAt).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" })}
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <p className="mt-2 mb-4 text-sm text-muted/70">Sin suscripción activa.</p>
+                )}
+                <div className="flex flex-wrap justify-center gap-3">
+                  {server?.recurring && server.subscriptionId ? (
+                    <button
+                      type="button"
+                      onClick={cancelSubscription}
+                      disabled={cancelling}
+                      className="rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-muted transition hover:bg-white/5 disabled:opacity-50"
+                    >
+                      {cancelling ? "Cancelando…" : "Cancelar suscripción"}
+                    </button>
+                  ) : (
+                    <button type="button" onClick={() => setPurchasePlan("premium")} className="w-full">
+                      <NeonButton>Hacerme Premium</NeonButton>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={async () => { await supabase.auth.signOut(); }}
+                    className="rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-muted transition hover:bg-white/5"
+                  >
+                    Cerrar sesión
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="mb-2 text-sm text-pink font-semibold tracking-wide uppercase">Empieza sin compromiso</p>
+                <p className="mb-4 text-5xl font-extrabold gradient-text">Prueba gratis</p>
+                <p className="mb-8 text-sm text-muted/70 leading-relaxed">
+                  Explora el chat y las llamadas sin registro. Crea tu cuenta y paga con PayPal cuando quieras.
+                </p>
+                <Link href="/girls">
+                  <NeonButton>Probar ahora</NeonButton>
+                </Link>
+              </>
+            )}
           </div>
         </section>
       </main>

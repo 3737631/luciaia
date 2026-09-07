@@ -23,6 +23,8 @@ export type Plan = "free" | "premium" | "premium_plus";
 const TRIAL_START_KEY = "nuvia_trial_start_v1";
 const PREMIUM_KEY = "nuvia_premium_v1";
 const PLAN_KEY = "nuvia_plan_v1";
+const SERVER_PLAN_KEY = "nuvia_server_plan_v1";
+const SERVER_EXPIRES_KEY = "nuvia_server_expires_v1";
 const CREATE_LAST_KEY = "nuvia_create_last_v1";
 const CALL_SECONDS_KEY = "nuvia_call_seconds_v1";
 const MESSAGE_COUNT_KEY = "nuvia_message_count_v1";
@@ -160,6 +162,44 @@ export function clearPremium(locked: boolean): boolean {
     /* noop */
   }
   return false;
+}
+
+/**
+ * Aplica el estado confirmado por el servidor (pasarela de pago PayPal).
+ * Si hay una suscripción activa activa el plan; si no había plan servidor
+ * previo respeta el estado local (trial/pruebas). Solo rebaja al usuario
+ * cuando previamente recibió premium confirmado por el servidor.
+ */
+export function applyServerPlan(status: {
+  plan?: "premium" | "premium_plus" | null;
+  active?: boolean;
+  expiresAt?: string | null;
+}): void {
+  try {
+    if (status.active && (status.plan === "premium" || status.plan === "premium_plus")) {
+      localStorage.setItem(SERVER_PLAN_KEY, status.plan);
+      if (status.expiresAt) localStorage.setItem(SERVER_EXPIRES_KEY, status.expiresAt);
+      setPlan(status.plan);
+      return;
+    }
+    if (localStorage.getItem(SERVER_PLAN_KEY)) {
+      localStorage.removeItem(SERVER_PLAN_KEY);
+      localStorage.removeItem(SERVER_EXPIRES_KEY);
+      localStorage.removeItem(PREMIUM_KEY);
+      localStorage.removeItem(PLAN_KEY);
+    }
+  } catch {
+    /* noop */
+  }
+}
+
+/** Fecha de expiración guardada del plan confirmado por el servidor. */
+export function getServerExpiry(): string | null {
+  try {
+    return localStorage.getItem(SERVER_EXPIRES_KEY);
+  } catch {
+    return null;
+  }
 }
 
 /** Fecha local "yyyy-mm-dd" del día actual. */
