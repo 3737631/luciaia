@@ -1,4 +1,5 @@
 import { ChatMessage } from "./memory";
+import { SUPABASE_FUNCTION_URL } from "./supabase";
 
 interface ChatPayload {
   message: string;
@@ -18,9 +19,7 @@ interface ChatPayload {
 }
 
 export async function sendChatMessage(payload: ChatPayload): Promise<string> {
-  const endpoint =
-    process.env.NEXT_PUBLIC_SUPABASE_FUNCTION_URL?.replace(/\/+$/, "") ||
-    "http://localhost:54321/functions/v1";
+  const endpoint = SUPABASE_FUNCTION_URL;
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 30000);
@@ -56,9 +55,7 @@ export async function generateGirlImage(payload: {
   jobId?: string;
   avatar?: boolean;
 }): Promise<Blob> {
-  const endpoint =
-    process.env.NEXT_PUBLIC_SUPABASE_FUNCTION_URL?.replace(/\/+$/, "") ||
-    "http://localhost:54321/functions/v1";
+  const endpoint = SUPABASE_FUNCTION_URL;
 
   const res = await fetch(`${endpoint}/imagine`, {
     method: "POST",
@@ -87,9 +84,7 @@ export async function generateGirlImage(payload: {
 }
 
 async function pollGirlImage(jobId: string, source?: string): Promise<Blob> {
-  const endpoint =
-    process.env.NEXT_PUBLIC_SUPABASE_FUNCTION_URL?.replace(/\/+$/, "") ||
-    "http://localhost:54321/functions/v1";
+  const endpoint = SUPABASE_FUNCTION_URL;
 
   const deadline = Date.now() + 6 * 60 * 1000;
   while (Date.now() < deadline) {

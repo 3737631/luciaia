@@ -1,3 +1,5 @@
+import { SUPABASE_FUNCTION_URL } from "./supabase";
+
 export const voiceIdMap: Record<string, string> = {
   luna: "female-luna", nia: "female-nia", vera: "female-vera", alma: "female-alma",
   kira: "female-kira", maya: "female-maya", sasha: "female-sasha", yuki: "female-yuki",
@@ -50,9 +52,7 @@ export function unlockAudioGesture(): void {
 }
 
 export async function sttAudio(audioBlob: Blob): Promise<string> {
-  const endpoint =
-    process.env.NEXT_PUBLIC_SUPABASE_FUNCTION_URL?.replace(/\/+$/, "") ||
-    "http://localhost:54321/functions/v1";
+  const endpoint = SUPABASE_FUNCTION_URL;
 
   const reader = new FileReader();
   const base64 = await new Promise<string>((resolve, reject) => {
@@ -125,9 +125,7 @@ export function splitForTTS(text: string, max = 140): string[] {
 }
 
 export async function ttsText(text: string, voice?: string): Promise<{ audio: string; contentType: string }> {
-  const endpoint =
-    process.env.NEXT_PUBLIC_SUPABASE_FUNCTION_URL?.replace(/\/+$/, "") ||
-    "http://localhost:54321/functions/v1";
+  const endpoint = SUPABASE_FUNCTION_URL;
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 30000);
