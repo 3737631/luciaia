@@ -85,7 +85,8 @@ ${genderLine}
 
 ${charVoice}
 ${actionsLine}
-Solo español. Respuestas cortas, como en WhatsApp. Si te digo algo subido de tono, me respondes igual o mas subido.${photoLine}`;
+Solo español. Respuestas cortas, como en WhatsApp. Si te digo algo subido de tono, me respondes igual o mas subido.
+IMPORTANTE: NUNCA repitas sílabas, letras ni fonemas sueltos (nada de "eme eme eme", "ya ya ya", "mmm", "jajajaja" vacío ni tartamudeos). Escribe siempre frases completas, fluidas y correctas en español, con naturalidad.${photoLine}`;
 
     const userContent = image
       ? [
@@ -96,7 +97,7 @@ Solo español. Respuestas cortas, como en WhatsApp. Si te digo algo subido de to
 
     const messages = [
       { role: "system", content: systemPrompt },
-      ...history.slice(-20),
+      ...history.slice(-12),
       { role: "user", content: userContent },
     ];
 
@@ -109,7 +110,10 @@ Solo español. Respuestas cortas, como en WhatsApp. Si te digo algo subido de to
       body: JSON.stringify({
         model,
         messages,
-        temperature: 0.6,
+        temperature: 0.5,
+        top_p: 0.9,
+        frequency_penalty: 1.2,
+        presence_penalty: 0.6,
         max_tokens: 200,
       }),
     });
@@ -126,7 +130,17 @@ Solo español. Respuestas cortas, como en WhatsApp. Si te digo algo subido de to
     }
 
     const data = await aiRes.json();
-    const reply = data?.choices?.[0]?.message?.content || "No pude responder ahora.";
+    let reply = data?.choices?.[0]?.message?.content || "No pude responder ahora.";
+
+    // Limpieza anti-artefactos: colapsa repeticiones vacías tipo "eme eme eme",
+    // "ja ja ja", "mmm", "jajaja" sueltos, etc., para que las chicas suenen naturales.
+    reply = reply
+      .replace(/\b(eme|me|ja|je|ji|jo|ju|ya|si|no|ah|oh|mm|mmm|jajaja?)\b(?: \1\b){1,}/gi, "$1")
+      .replace(/\bm+m+\b/gi, "mm")
+      .replace(/(\S)\1{5,}/g, "$1")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+    if (!reply) reply = "No pude responder ahora.";
 
     return new Response(
       JSON.stringify({ reply }),
