@@ -34,6 +34,9 @@ export default function PurchaseDialog({ plan, open, onClose, onPaid }: Props) {
     setBusy(kind);
     setError(null);
     try {
+      if (typeof sessionStorage !== "undefined") {
+        sessionStorage.setItem("nuvia_pending_plan", plan);
+      }
       if (kind === "subscription") {
         const r = await payments.createSubscription(plan);
         if (typeof sessionStorage !== "undefined") {

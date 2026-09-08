@@ -15,6 +15,7 @@ export default function AccountModal({ open, onClose, onDone }: Props) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
   const [session, setSession] = useState<{ email?: string } | null>(null);
 
   useEffect(() => {
@@ -29,6 +30,7 @@ export default function AccountModal({ open, onClose, onDone }: Props) {
     if (open) {
       setError(null);
       setBusy(false);
+      setResetSent(false);
     }
   }, [open]);
 
@@ -75,6 +77,23 @@ export default function AccountModal({ open, onClose, onDone }: Props) {
       if (error) setError(error.message);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al conectar con Google");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function resetPassword() {
+    setError(null);
+    if (!email.includes("@")) return setError("Introduce tu email para recuperar la contraseña.");
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/luciaia/reset-password`,
+      });
+      if (error) return setError(error.message);
+      setResetSent(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error de conexión");
     } finally {
       setBusy(false);
     }
@@ -226,6 +245,29 @@ export default function AccountModal({ open, onClose, onDone }: Props) {
                 autoComplete={mode === "login" ? "current-password" : "new-password"}
                 style={input}
               />
+              {mode === "login" && !resetSent && (
+                <button
+                  type="button"
+                  onClick={resetPassword}
+                  style={{
+                    background: "none",
+                    border: 0,
+                    padding: 0,
+                    color: "rgba(255,95,143,0.9)",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    textAlign: "left",
+                  }}
+                >
+                  ¿Olvidaste tu contraseña?
+                </button>
+              )}
+              {resetSent && (
+                <p style={{ margin: 0, fontSize: 13, color: "#4ade80", lineHeight: 1.4 }}>
+                  Te hemos enviado un enlace de recuperación a tu email. Revísalo y sigue las instrucciones.
+                </p>
+              )}
               {error && <p style={{ margin: 0, fontSize: 13, color: "#ff5f8f" }}>{error}</p>}
               <button type="submit" disabled={busy} style={primaryBtn}>
                 {busy ? "Un momento…" : mode === "login" ? "Entrar" : "Crear cuenta"}

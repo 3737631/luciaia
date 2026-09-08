@@ -27,6 +27,10 @@ function PaymentInner() {
     const token = params.get("token");
     const result = params.get("result");
     const subSession = typeof sessionStorage !== "undefined" ? sessionStorage.getItem("nuvia_pending_sub") : null;
+    const expectedPlan =
+      typeof sessionStorage !== "undefined"
+        ? (sessionStorage.getItem("nuvia_pending_plan") as "premium" | "premium_plus" | null)
+        : null;
 
     const { data } = await supabase.auth.getSession();
     const hasSession = Boolean(data.session);
@@ -39,13 +43,27 @@ function PaymentInner() {
       return;
     }
 
+    const acceptPlan = (plan: "premium" | "premium_plus") => !expectedPlan || plan === expectedPlan;
+
     try {
       if (token) {
         const r = await payments.captureOrder(token);
-        applyServerPlan({ plan: r.plan, active: true, expiresAt: r.expiresAt });
-        if (typeof sessionStorage !== "undefined") {
-          sessionStorage.setItem("nuvia_unlock_pending", "1");
+        if (!acceptPlan(r.plan)) {
+          const st = await payments.status();
+          if (st.active && st.plan && acceptPlan(st.plan)) {
+            applyServerPlan({ plan: st.plan, active: true, expiresAt: st.expiresAt });
+            sessionStorage.removeItem("nuvia_pending_plan");
+            sessionStorage.setItem("nuvia_unlock_pending", "1");
+            setState("ok");
+            return;
+          }
+          setState("error");
+          setMessage("El plan que contrataste aún no se ha activado. Puede tardar unos segundos, pulsa Reintentar.");
+          return;
         }
+        applyServerPlan({ plan: r.plan, active: true, expiresAt: r.expiresAt });
+        sessionStorage.removeItem("nuvia_pending_plan");
+        sessionStorage.setItem("nuvia_unlock_pending", "1");
         setState("ok");
         return;
       }
@@ -58,12 +76,11 @@ function PaymentInner() {
         const t0 = Date.now();
         while (Date.now() - t0 < POLL_TIMEOUT_MS) {
           const st = await payments.status();
-          if (st.active && st.plan) {
+          if (st.active && st.plan && acceptPlan(st.plan)) {
             applyServerPlan({ plan: st.plan, active: true, expiresAt: st.expiresAt });
             sessionStorage.removeItem("nuvia_pending_sub");
-            if (typeof sessionStorage !== "undefined") {
-              sessionStorage.setItem("nuvia_unlock_pending", "1");
-            }
+            sessionStorage.removeItem("nuvia_pending_plan");
+            sessionStorage.setItem("nuvia_unlock_pending", "1");
             setState("ok");
             return;
           }
@@ -74,11 +91,10 @@ function PaymentInner() {
         return;
       }
       const st = await payments.status();
-      if (st.active && st.plan) {
+      if (st.active && st.plan && acceptPlan(st.plan)) {
         applyServerPlan({ plan: st.plan, active: true, expiresAt: st.expiresAt });
-        if (typeof sessionStorage !== "undefined") {
-          sessionStorage.setItem("nuvia_unlock_pending", "1");
-        }
+        sessionStorage.removeItem("nuvia_pending_plan");
+        sessionStorage.setItem("nuvia_unlock_pending", "1");
         setState("ok");
       } else {
         setState("cancel");
@@ -86,11 +102,10 @@ function PaymentInner() {
     } catch (err) {
       try {
         const st = await payments.status();
-        if (st.active && st.plan) {
+        if (st.active && st.plan && acceptPlan(st.plan)) {
           applyServerPlan({ plan: st.plan, active: true, expiresAt: st.expiresAt });
-          if (typeof sessionStorage !== "undefined") {
-            sessionStorage.setItem("nuvia_unlock_pending", "1");
-          }
+          sessionStorage.removeItem("nuvia_pending_plan");
+          sessionStorage.setItem("nuvia_unlock_pending", "1");
           setState("ok");
           return;
         }
