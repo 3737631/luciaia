@@ -160,6 +160,10 @@ export default function PremiumPage() {
   }
 
   function choosePlan(planId: "free" | "premium" | "premium_plus") {
+    if (isDev) {
+      devActivatePlan(planId);
+      return;
+    }
     if (planId === "free") {
       resetFreeCallSeconds();
       resetTrial();
@@ -172,6 +176,24 @@ export default function PremiumPage() {
     } else {
       setAccountOpen(true);
       setPurchasePlan(planId);
+    }
+  }
+
+  async function devActivatePlan(planId: "free" | "premium" | "premium_plus") {
+    try {
+      const st = await payments.devSetPlan(planId, billing);
+      setServer(st);
+      applyServerPlan(st);
+      if (planId === "free") {
+        resetFreeCallSeconds();
+        resetTrial();
+        setPlan("free");
+      } else {
+        setUnlock(planId);
+      }
+      payments.adminStats().then((s: AdminStats) => setAdminStats(s)).catch(() => {});
+    } catch {
+      /* noop */
     }
   }
 
@@ -252,8 +274,8 @@ export default function PremiumPage() {
             const isLockedLower =
               activePlan !== null && isPaid && rank[p.planId] < rank[activePlan];
             const isUpgrade = isPaid && !isCurrent && activePlan !== null && rank[p.planId] > rank[activePlan];
-            const isFreeLocked = p.planId === "free" && activePlan !== null;
-            const isDimmed = isLockedLower || isFreeLocked;
+            const isFreeLocked = p.planId === "free" && activePlan !== null && !isDev;
+            const isDimmed = !isDev && (isLockedLower || isFreeLocked);
             const offer = isPaid
               ? computeUpgradeOffer(
                   { plan: activePlan, billing: server?.billing ?? null, expiresAt: server?.expiresAt ?? null },
@@ -311,9 +333,19 @@ export default function PremiumPage() {
                   ))}
                 </ul>
                 {isCurrent ? (
-                  <NeonButton fullWidth disabled>
+                  <NeonButton fullWidth>
                     Plan activo
                   </NeonButton>
+                ) : isDev ? (
+                  p.highlight ? (
+                    <NeonButton onClick={() => choosePlan(p.planId)} fullWidth>
+                      {p.cta}
+                    </NeonButton>
+                  ) : (
+                    <button type="button" onClick={() => choosePlan(p.planId)} className="w-full">
+                      <span className="inline-flex w-full items-center justify-center rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-muted transition hover:bg-white/5">{p.cta}</span>
+                    </button>
+                  )
                 ) : isFreeLocked || isLockedLower ? (
                   <NeonButton fullWidth disabled>
                     Ya tienes un plan

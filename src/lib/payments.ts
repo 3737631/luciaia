@@ -47,6 +47,8 @@ export const payments = {
   status: () => call("status"),
   account: () => call("account"),
   adminStats: () => call("admin-stats"),
+  devSetPlan: (plan: "free" | "premium" | "premium_plus", billing: "monthly" | "annual") =>
+    call("dev-set-plan", { plan, billing }),
 };
 
 export interface AdminStats {
