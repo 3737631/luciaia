@@ -8,6 +8,7 @@ import { goBack } from "@/lib/nav";
 import { useSession } from "@/lib/session";
 import { sendChatMessage } from "@/lib/chatClient";
 import { splitForTTS, sttAudio, ttsText, voiceIdMap, getCustomGirlVoice } from "@/lib/voiceClient";
+import { lipProfiles, isVideoGirl, estimateSpeechMs, pickSpeakSegment } from "@/lib/lipSync";
 import {
   getConversationHistory,
   saveConversationHistory,
@@ -73,6 +74,10 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
     custom?.background || girl.defaultBackground,
     girl.cloudinaryImage,
   );
+  const lipProfile = isVideoGirl(girl.id) ? lipProfiles[girl.id] : undefined;
+  const lipVideoRef = useRef<HTMLVideoElement | null>(null);
+  const lipSegmentEndRef = useRef(0);
+  const lipLastPickRef = useRef(-1);
   const debug = typeof window !== "undefined" && window.location.search.includes("callDebug=1");
 
   const [callState, setCallState] = useState<"dialing" | "greeting" | "speaking" | "listening" | "processing" | "ended" | "error">("dialing");
@@ -466,6 +471,23 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
     try {
       const sanitized = sanitizeForTTS(text);
       if (!sanitized) throw new Error("Texto vacío después de sanitizar");
+      const lipVideo = lipVideoRef.current;
+      if (lipProfile && lipVideo) {
+        const targetMs = estimateSpeechMs(sanitized, lipProfile);
+        const seg = pickSpeakSegment(lipProfile, targetMs, lipLastPickRef.current);
+        lipLastPickRef.current = seg.startMs;
+        lipSegmentEndRef.current = seg.endMs;
+        try {
+          if (lipVideo.readyState >= 1 && lipVideo.duration > 0) {
+            const segStartSec = seg.startMs / 1000;
+            if (Math.abs(lipVideo.currentTime - segStartSec) > 0.35) {
+              lipVideo.currentTime = segStartSec;
+            }
+            const p = lipVideo.play();
+            if (p && p.catch) p.catch(() => {});
+          }
+        } catch {}
+      }
       const chunks = splitForTTS(sanitized);
       const voiceKey = (activeCustom ? getCustomGirlVoice(activeCustom.id) : voiceIdMap[girl.id] || `female-${girl.id}`);
       const results = await Promise.all(
@@ -1758,7 +1780,26 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
                 transition: "transform 0.3s ease, opacity 0.3s ease",
               }}
             />
-            {callGirlImage ? (
+            {lipProfile ? (
+              <video
+                ref={lipVideoRef}
+                src={lipProfile.src}
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="auto"
+                aria-label={`Videollamada con ${callName}`}
+                style={{
+                  width: "100%", height: "100%", borderRadius: "50%",
+                  objectFit: "cover", objectPosition: "center",
+                  border: "1px solid rgba(255,255,255,0.14)",
+                  filter: videoBlurred ? "blur(28px) brightness(0.45) saturate(0.7)" : "none",
+                  transition: "filter 600ms ease",
+                  background: "#0a0609",
+                }}
+              />
+            ) : callGirlImage ? (
               <img
                 src={callGirlImage}
                 alt={callName}
