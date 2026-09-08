@@ -1531,10 +1531,15 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
     camLastReactRef.current = Date.now();
     camReactTimerRef.current = setInterval(() => {
       if (!mountedRef.current) return;
-      if (callStateRef.current !== "listening") return;
+      if (callStateRef.current !== "listening" && callStateRef.current !== "speaking") return;
       if (processingRef.current) return;
       if (videoBlurredRef.current) return;
       if (mutedRef.current) return;
+      if (callStateRef.current === "speaking") {
+        const el = audioElRef.current;
+        const playing = !!el && !el.paused && !el.ended && el.currentTime > 0;
+        if (playing) return;
+      }
       reactToCamera();
     }, 2500);
   }

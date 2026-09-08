@@ -217,8 +217,13 @@ export default function PremiumPage() {
         <section className="grid grid-cols-1 gap-5 md:grid-cols-3">
           {plans.map((p) => {
             const isPaid = p.monthly !== undefined;
-            const isCurrent = p.planId !== "free" && activePlan === p.planId;
+            const rank: Record<string, number> = { free: 0, premium: 1, premium_plus: 2 };
+            const isCurrent = isPaid && activePlan === p.planId;
+            const isLockedLower =
+              activePlan !== null && isPaid && rank[p.planId] < rank[activePlan];
+            const isUpgrade = isPaid && !isCurrent && activePlan !== null && rank[p.planId] > rank[activePlan];
             const isFreeLocked = p.planId === "free" && activePlan !== null;
+            const isDimmed = isLockedLower || isFreeLocked;
             const price = isPaid ? (billing === "monthly" ? p.monthly : p.annual) : p.price;
             return (
               <div
@@ -227,10 +232,10 @@ export default function PremiumPage() {
                   "glass rounded-xl3 p-6 text-center transition-all " +
                   (isCurrent && p.highlight
                     ? "ring-2 ring-green-300 shadow-glow md:-mt-3 md:mb-3"
-                    : p.highlight
+                    : p.highlight && !isLockedLower
                       ? "ring-2 ring-pink shadow-glow md:-mt-3 md:mb-3"
                       : "glass-hover") +
-                  (isFreeLocked ? " opacity-50" : "")
+                  (isDimmed ? " opacity-50" : "")
                 }
               >
                 {isCurrent && (
@@ -265,7 +270,7 @@ export default function PremiumPage() {
                   <NeonButton fullWidth disabled>
                     Plan activo
                   </NeonButton>
-                ) : isFreeLocked ? (
+                ) : isFreeLocked || isLockedLower ? (
                   <NeonButton fullWidth disabled>
                     Ya tienes un plan
                   </NeonButton>
