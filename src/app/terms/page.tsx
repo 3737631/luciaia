@@ -9,7 +9,7 @@ export default function TermsPageRoute() {
   return (
     <LegalPage
       title="Términos del Servicio"
-      updated="6 de septiembre de 2026"
+      updated="8 de septiembre de 2026"
       intro={
         "Al acceder o usar NuviaChat aceptas estos términos. Si no estás de acuerdo con ellos, no utilices el servicio."
       }
@@ -55,16 +55,17 @@ export default function TermsPageRoute() {
           ],
         },
         {
-          title: "6. Suscripciones y pagos",
+          title: "6. Pagos y suscripciones",
           paragraphs: [
-            "Actualmente el plan Premium se activa sin coste (versión demo) y puedes usarla libremente. Cuando se habilite una pasarela de pago real se aplicará lo siguiente:",
+            "El acceso Premium se contratará por el precio publicado en la página de planes en el momento de la contratación, en euros. El pago se realiza a través de la pasarela de pago PayPal; no almacenamos ni gestionamos ningún dato de tarjeta, y cualquier tratamiento de estos datos se realiza exclusivamente conforme a las condiciones de PayPal.",
           ],
           list: [
-            "El precio será el publicado en la página de planes en el momento de la contratación.",
-            "El pago se realizará mediante pasarela segura (Stripe o PayPal) y nunca guardaremos datos de tarjeta nosotros.",
-            "Las suscripciones podrán renovarse automáticamente; podrás cancelar en cualquier momento y el servicio seguirá disponible hasta el final del periodo pagado.",
+            "Pago único: un pago único da acceso durante el periodo contratado (un mes o un año) desde el momento de la activación.",
+            "Suscripción mensual automática: se cobrará el importe correspondiente cada mes y la suscripción se renovará automáticamente hasta que la canceles. Podrás cancelarla en cualquier momento desde tu cuenta o escribiéndonos; el acceso seguirá disponible hasta el final del periodo ya pagado.",
+            "Subida de plan con prorrateo: si ya dispones de un plan activo y contratas un plan superior, se descontará del precio del nuevo plan el valor proporcional del tiempo restante de tu plan actual, cobrándose únicamente la diferencia. En las suscripciones mensuales este descuento se aplica a la primera cuota y las cuotas posteriores se cobran al precio completo. El nuevo plan se activa por un periodo completo desde el momento de la contratación.",
             "Derecho de desistimiento de 14 días: tratándose de contenido digital de entrega inmediata, perderás el derecho de desistimiento cuando aceptes expresamente el inicio del servicio y reconozcas esta pérdida del derecho.",
             "Los periodos, créditos o contenidos ya consumidos no son reembolsables.",
+            "Las anulaciones o devoluciones de pagos por PayPal tramitadas contra este servicio podrán conllevar la suspensión o revocación del acceso.",
           ],
         },
         {

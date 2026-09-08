@@ -9,7 +9,7 @@ export default function PrivacyPageRoute() {
   return (
     <LegalPage
       title="Política de Privacidad"
-      updated="6 de septiembre de 2026"
+      updated="8 de septiembre de 2026"
       intro={
         "En NuviaChat respetamos tu privacidad. Esta política explica qué datos se tratan, para qué, con qué base jurídica y qué derechos puedes ejercer, de acuerdo con el Reglamento (UE) 2016/679 (RGPD) y la Ley Orgánica 3/2018 (LOPDGDD)."
       }
@@ -30,7 +30,7 @@ export default function PrivacyPageRoute() {
             "Personalizaciones de los personajes (cabello, pose, fondo, personalidad) que elijas.",
             "Personajes que creas tú mismo.",
             "Preferencias y estado del plan, guardados en tu navegador (localStorage).",
-            "Actualmente NO se tratan datos bancarios ni de pago: el plan Premium se activa sin coste hasta que se habilite una pasarela de pago.",
+            "Si contratas un plan de pago, PayPal tratará los datos de pago necesarios (nombre, dirección de facturación si procede y datos de la operación) como encargado de tratamiento conforme a sus propias condiciones; no recibimos ni almacenamos datos de tarjeta.",
           ],
         },
         {
@@ -56,7 +56,7 @@ export default function PrivacyPageRoute() {
             "Capturas de cámara → proveedor de IA de visión.",
             "Prompt de creación de personajes → generador de imágenes por IA.",
             "Alojamiento de imágenes y de la web → Cloudinary y GitHub Pages.",
-            "En el futuro, pagos → pasarelas como Stripe o PayPal, que solo recibirán los datos necesarios para cobrar.",
+            "Pagos → PayPal, que solo recibe los datos necesarios para cobrar (encargado de tratamiento, ver sección 2).",
           ],
           paragraphsAfter: [
             "Estos proveedores pueden estar situados fuera de la Unión Europea (por ejemplo, en Estados Unidos). Las transferencias internacionales se realizan con las garantías adecuadas (marcos de adecuación de la UE o cláusulas contractuales tipo).",
