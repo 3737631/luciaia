@@ -12,6 +12,7 @@ import AccountModal from "@/components/AccountModal";
 import PurchaseDialog from "@/components/PurchaseDialog";
 import { payments, ServerStatus } from "@/lib/payments";
 import { supabase } from "@/lib/supabase";
+import { computeUpgradeOffer, chargeForBilling, fullForBilling, formatEuro } from "@/lib/pricing";
 
 type Billing = "monthly" | "annual";
 
@@ -160,7 +161,12 @@ export default function PremiumPage() {
 
   return (
     <>
-      {unlock && <UnlockOverlay plan={unlock} onDone={() => router.push("/girls")} />}
+      {unlock && (
+        <UnlockOverlay
+          plan={unlock}
+          onDone={() => setUnlock(null)}
+        />
+      )}
       <AccountModal
         open={accountOpen}
         onClose={() => { setAccountOpen(false); setPurchasePlan(null); }}
@@ -173,6 +179,14 @@ export default function PremiumPage() {
         plan={purchasePlan ?? "premium"}
         open={purchasePlan !== null && !accountOpen}
         onClose={() => setPurchasePlan(null)}
+        offer={
+          purchasePlan
+            ? computeUpgradeOffer(
+                { plan: activePlan, billing: server?.billing ?? null, expiresAt: server?.expiresAt ?? null },
+                purchasePlan
+              )
+            : null
+        }
         onPaid={(info) => {
           applyServerPlan({ plan: info.plan, active: true, expiresAt: info.expiresAt });
           setUnlock(info.plan);
@@ -224,7 +238,16 @@ export default function PremiumPage() {
             const isUpgrade = isPaid && !isCurrent && activePlan !== null && rank[p.planId] > rank[activePlan];
             const isFreeLocked = p.planId === "free" && activePlan !== null;
             const isDimmed = isLockedLower || isFreeLocked;
-            const price = isPaid ? (billing === "monthly" ? p.monthly : p.annual) : p.price;
+            const offer = isPaid
+              ? computeUpgradeOffer(
+                  { plan: activePlan, billing: server?.billing ?? null, expiresAt: server?.expiresAt ?? null },
+                  p.planId as "premium" | "premium_plus"
+                )
+              : null;
+            const full = isPaid
+              ? Number((billing === "monthly" ? p.monthly : p.annual).replace(/[^\d,]/g, "").replace(",", "."))
+              : 0;
+            const priceLabel = isPaid ? (offer ? formatEuro(offer && billing === "monthly" ? offer.monthlyCharge : offer.annualCharge) : p.monthly && billing === "monthly" ? p.monthly : p.annual) : p.price;
             return (
               <div
                 key={p.name}
@@ -250,10 +273,15 @@ export default function PremiumPage() {
                   {p.name}
                 </p>
                 <div className="mb-1">
-                  <span className="text-4xl font-extrabold gradient-text">{price}</span>
+                  <span className="text-4xl font-extrabold gradient-text">{priceLabel}</span>
                   <span className="text-sm text-muted/70">{` ${p.period}`}</span>
                 </div>
-                {isPaid && billing === "annual" && (
+                {offer && (
+                  <p className="text-[11px] font-semibold text-green-300/90">
+                    en vez de {formatEuro(full)} &middot; descuento de {formatEuro(offer.credit)} por tu {activePlan === "premium_plus" ? "Premium+" : "Premium"} actual
+                  </p>
+                )}
+                {isPaid && billing === "annual" && !offer && (
                   <p className="text-[11px] font-semibold text-green-300/90">{p.annualHint}</p>
                 )}
                 <ul className="my-6 space-y-2 text-left">

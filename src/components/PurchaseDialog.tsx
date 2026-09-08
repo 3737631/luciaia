@@ -4,12 +4,14 @@ import { useState } from "react";
 import { payments } from "@/lib/payments";
 import NeonButton from "@/components/NeonButton";
 import Link from "next/link";
+import { UpgradeOffer, formatEuro } from "@/lib/pricing";
 
 interface Props {
   plan: "premium" | "premium_plus";
   open: boolean;
   onClose: () => void;
   onPaid: (info: { plan: "premium" | "premium_plus"; expiresAt: string }) => void;
+  offer?: UpgradeOffer | null;
 }
 
 const OPTIONS: Record<"premium" | "premium_plus", { monthly: number; annual: number }> = {
@@ -22,13 +24,15 @@ const NAMES: Record<"premium" | "premium_plus", string> = {
   premium_plus: "Premium+",
 };
 
-export default function PurchaseDialog({ plan, open, onClose, onPaid }: Props) {
+export default function PurchaseDialog({ plan, open, onClose, onPaid, offer }: Props) {
   const [busy, setBusy] = useState<"one_month" | "one_year" | "subscription" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   if (!open) return null;
 
   const prices = OPTIONS[plan];
+  const monthly = offer ? offer.monthlyCharge : prices.monthly;
+  const annual = offer ? offer.annualCharge : prices.annual;
 
   async function start(kind: "one_month" | "one_year" | "subscription") {
     setBusy(kind);
@@ -109,34 +113,44 @@ export default function PurchaseDialog({ plan, open, onClose, onPaid }: Props) {
         </div>
         <p style={{ margin: "0 0 14px", fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Elige cómo quieres pagar con PayPal:</p>
 
+        {offer && (
+          <p style={{ margin: "0 0 12px", fontSize: 12, fontWeight: 700, color: "#4ade80" }}>
+            Oferta por subir de plan: te descontamos {formatEuro(offer.credit)} por los días restantes de tu plan actual.
+          </p>
+        )}
+
         <button disabled={busy !== null} style={optionStyle(busy === "one_month")} onClick={() => start("one_month")} className="press">
           <span>
             <span style={{ display: "block", fontSize: 14, fontWeight: 700 }}>1 mes · pago único</span>
             <span style={{ display: "block", fontSize: 12, color: "rgba(255,255,255,0.5)" }}>
-              {prices.monthly.toFixed(2).replace(".", ",")} € · acceso durante 30 días
+              {formatEuro(monthly)} {offer ? `(en vez de ${formatEuro(prices.monthly)})` : "· acceso durante 30 días"}
             </span>
           </span>
-          <span style={{ fontSize: 16, fontWeight: 800, color: "#ff5f8f" }}>{prices.monthly.toFixed(2).replace(".", ",")} €</span>
+          <span style={{ fontSize: 16, fontWeight: 800, color: "#ff5f8f" }}>{formatEuro(monthly)}</span>
         </button>
 
         <button disabled={busy !== null} style={optionStyle(busy === "one_year")} onClick={() => start("one_year")} className="press">
           <span>
             <span style={{ display: "block", fontSize: 14, fontWeight: 700 }}>1 año · pago único</span>
             <span style={{ display: "block", fontSize: 12, color: "rgba(255,255,255,0.5)" }}>
-              {prices.annual.toFixed(2).replace(".", ",")} € · ahorras un 25%
+              {formatEuro(annual)} {offer ? `(en vez de ${formatEuro(prices.annual)})` : "· ahorras un 25%"}
             </span>
           </span>
-          <span style={{ fontSize: 16, fontWeight: 800, color: "#ff5f8f" }}>{prices.annual.toFixed(2).replace(".", ",")} €</span>
+          <span style={{ fontSize: 16, fontWeight: 800, color: "#ff5f8f" }}>{formatEuro(annual)}</span>
         </button>
 
         <button disabled={busy !== null} style={optionStyle(busy === "subscription")} onClick={() => start("subscription")} className="press">
           <span>
             <span style={{ display: "block", fontSize: 14, fontWeight: 700 }}>Suscripción mensual automática</span>
             <span style={{ display: "block", fontSize: 12, color: "rgba(255,255,255,0.5)" }}>
-              {prices.monthly.toFixed(2).replace(".", ",")} €/mes · se renueva cada mes, cancela cuando quieras
+              {offer ? (
+                <>Primera cuota {formatEuro(monthly)}, luego {formatEuro(prices.monthly)}/mes</>
+              ) : (
+                <>{formatEuro(prices.monthly)}/mes · se renueva cada mes, cancela cuando quieras</>
+              )}
             </span>
           </span>
-          <span style={{ fontSize: 16, fontWeight: 800, color: "#ff5f8f" }}>{prices.monthly.toFixed(2).replace(".", ",")} €</span>
+          <span style={{ fontSize: 16, fontWeight: 800, color: "#ff5f8f" }}>{offer ? formatEuro(monthly) : formatEuro(prices.monthly)}</span>
         </button>
 
         {error && <p style={{ margin: "8px 0 0", fontSize: 13, color: "#ff5f8f" }}>{error}</p>}

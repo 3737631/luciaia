@@ -6,6 +6,7 @@ export interface ServerStatus {
   plan: "premium" | "premium_plus" | null;
   active: boolean;
   expiresAt: string | null;
+  billing: "monthly" | "annual" | null;
   recurring: boolean;
   subscriptionId: string | null;
   hasPending: boolean;
