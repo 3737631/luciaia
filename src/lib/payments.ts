@@ -46,4 +46,25 @@ export const payments = {
     call("cancel-subscription", { subscriptionId }),
   status: () => call("status"),
   account: () => call("account"),
+  adminStats: () => call("admin-stats"),
 };
+
+export interface AdminStats {
+  dev: string;
+  generatedAt: string;
+  totalUsers: number;
+  usersActiveToday: number;
+  usersActiveLast7d: number;
+  activePremiumUsers: number;
+  activePremiumRows: number;
+  sessions: { email: string; lastSignInAt: string; createdAt: string }[];
+  purchases: {
+    email: string;
+    plan: string;
+    billing: string;
+    kind: string;
+    status: string;
+    expiresAt: string | null;
+    createdAt: string;
+  }[];
+}

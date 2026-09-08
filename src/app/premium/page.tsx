@@ -10,7 +10,7 @@ import { setPlan, resetFreeCallSeconds, resetTrial, applyServerPlan } from "@/li
 import UnlockOverlay from "@/components/UnlockOverlay";
 import AccountModal from "@/components/AccountModal";
 import PurchaseDialog from "@/components/PurchaseDialog";
-import { payments, ServerStatus } from "@/lib/payments";
+import { payments, ServerStatus, AdminStats } from "@/lib/payments";
 import { supabase } from "@/lib/supabase";
 import { computeUpgradeOffer, chargeForBilling, fullForBilling, formatEuro } from "@/lib/pricing";
 
@@ -92,7 +92,9 @@ export default function PremiumPage() {
   const [sessionEmail, setSessionEmail] = useState<string | null>(null);
   const [server, setServer] = useState<ServerStatus | null>(null);
   const [cancelling, setCancelling] = useState(false);
+  const [adminStats, setAdminStats] = useState<AdminStats | null>(null);
 
+  const isDev = sessionEmail !== null && sessionEmail.toLowerCase() === "fortpay107@gmail.com";
   const activePlan: "premium" | "premium_plus" | null =
     server?.active && (server.plan === "premium" || server.plan === "premium_plus") ? server.plan : null;
 
@@ -106,6 +108,20 @@ export default function PremiumPage() {
     });
     return () => { mounted = false; sub.subscription.unsubscribe(); };
   }, []);
+
+  useEffect(() => {
+    if (!isDev) { setAdminStats(null); return; }
+    let mounted = true;
+    payments.adminStats()
+      .then((st: AdminStats) => { if (mounted) setAdminStats(st); })
+      .catch(() => { if (mounted) setAdminStats(null); });
+    const iv = setInterval(() => {
+      payments.adminStats()
+        .then((st: AdminStats) => { if (mounted) setAdminStats(st); })
+        .catch(() => {});
+    }, 30000);
+    return () => { mounted = false; clearInterval(iv); };
+  }, [isDev, sessionEmail]);
 
   useEffect(() => {
     if (!sessionEmail) { setServer(null); return; }
@@ -380,6 +396,74 @@ export default function PremiumPage() {
             )}
           </div>
         </section>
+
+        {isDev && sessionEmail && (
+          <section className="pb-8 sm:pb-10">
+            <div className="mx-auto max-w-5xl rounded-xl3 glass p-6 shadow-glow sm:p-8">
+              <p className="mb-1 text-sm text-pink font-semibold tracking-wide uppercase">Mantenimiento</p>
+              <p className="mb-5 text-xs text-muted/60">
+                Panel solo visible para la cuenta de desarrollador ({sessionEmail}). Se actualiza cada 30 s.
+              </p>
+              {adminStats ? (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {[
+                      { label: "Usuarios registrados", value: adminStats.totalUsers },
+                      { label: "Activos hoy", value: adminStats.usersActiveToday },
+                      { label: "Activos 7 días", value: adminStats.usersActiveLast7d },
+                      { label: "Premium activos", value: adminStats.activePremiumUsers },
+                    ].map((k) => (
+                      <div key={k.label} className="rounded-xl border border-white/10 bg-white/5 p-3 text-center">
+                        <p className="text-2xl font-extrabold gradient-text">{k.value}</p>
+                        <p className="mt-1 text-[11px] text-muted/70">{k.label}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div>
+                    <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted/80">Últimos inicios de sesión</p>
+                    <div className="max-h-40 space-y-1 overflow-y-auto pr-1">
+                      {(adminStats.sessions.length ? adminStats.sessions.slice(0, 20) : []).map((s) => (
+                        <div key={s.email} className="flex items-center justify-between rounded-lg border border-white/5 bg-white/[0.03] px-3 py-1.5 text-xs">
+                          <span className="truncate text-muted">{s.email}</span>
+                          <span className="ml-3 shrink-0 text-muted/60">
+                            {new Date(s.lastSignInAt).toLocaleString("es-ES", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                        </div>
+                      ))}
+                      {!adminStats.sessions.length && (
+                        <p className="py-2 text-xs text-muted/60">Todavía no hay inicios de sesión registrados.</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted/80">Compras Premium ({adminStats.activePremiumRows})</p>
+                    <div className="max-h-40 space-y-1 overflow-y-auto pr-1">
+                      {(adminStats.purchases.length ? adminStats.purchases : []).map((p) => (
+                        <div key={p.email + p.createdAt} className="flex items-center justify-between rounded-lg border border-white/5 bg-white/[0.03] px-3 py-1.5 text-xs">
+                          <span className="truncate text-muted">{p.email}</span>
+                          <span className="ml-3 shrink-0">
+                            <span className="font-semibold text-pink">{p.plan === "premium_plus" ? "Premium+" : "Premium"}</span>
+                            <span className="ml-2 text-muted/60">
+                              {p.billing === "annual" ? "anual" : "mensual"}
+                              {p.expiresAt ? ` · hasta ${new Date(p.expiresAt).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" })}` : ""}
+                            </span>
+                          </span>
+                        </div>
+                      ))}
+                      {!adminStats.purchases.length && (
+                        <p className="py-2 text-xs text-muted/60">Aún no hay compras activas.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-muted/60">Cargando estadísticas…</p>
+              )}
+            </div>
+          </section>
+        )}
       </main>
       <Footer />
     </>
