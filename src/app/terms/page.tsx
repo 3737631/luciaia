@@ -84,7 +84,7 @@ export default function TermsPageRoute() {
         {
           title: "9. Tus derechos",
           paragraphs: [
-            "Puedes dejar de usar el servicio en cualquier momento y eliminar tus datos limpiando el almacenamiento del navegador o escribiéndonos a fortpay107@gmail.com.",
+            "Puedes dejar de usar el servicio en cualquier momento y eliminar tus datos limpiando el almacenamiento del navegador o escribiéndonos a info.nuviachat@gmail.com.",
           ],
         },
         {
@@ -96,7 +96,7 @@ export default function TermsPageRoute() {
         {
           title: "11. Contacto",
           paragraphs: [
-            "Para cualquier cuestión puedes escribir a: fortpay107@gmail.com.",
+            "Para cualquier cuestión puedes escribir a: info.nuviachat@gmail.com.",
           ],
         },
       ]}

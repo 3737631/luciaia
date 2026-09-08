@@ -902,8 +902,12 @@ el.volume = !audioOn ? 0 : 1;
       ? `Chica: ${activeCustom.girlDesc}\nRoleplay: ${activeCustom.roleplayDesc}`
       : "";
     try {
+      const liveFrame = videoStreamRef.current ? captureVideoFrame() : null;
+      const visionPrompt = liveFrame
+        ? ` ${text} (Nota: estás en videollamada y la chica que habla ve una captura en vivo de la cámara del usuario. Obsérvala y descríbele brevemente qué ves en ella —su expresión, gestos o entorno— y sigue hablando con él de forma natural y corta, sin repetir piropos genéricos.)`
+        : text;
       const reply = await sendChatMessage({
-        message: text,
+        message: visionPrompt,
         girlId: activeCustom?.id ?? girl.id,
         girlName: activeCustom?.name ?? girl.name,
         girlStyle: activeCustom?.girlDesc ?? girl.style,
@@ -916,6 +920,7 @@ el.volume = !audioOn ? 0 : 1;
         userGender: (localStorage.getItem("lunacall_gender") || "hombre") as "hombre" | "mujer",
         characterGender: detectGender(activeCustom?.name ?? girl.name),
         customScenario: customScenario || undefined,
+        image: liveFrame || undefined,
       });
       if (!mountedRef.current) return;
       const msgs: ChatMessage[] = [

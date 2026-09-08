@@ -79,8 +79,8 @@ export default function Footer() {
           {/* Contacto */}
           <div>
             <h4 style={colTitle}>Contacto</h4>
-            <a href="mailto:fortpay107@gmail.com" className="footer-link" style={{ ...linkStyle, display: "block" }}>
-              fortpay107@gmail.com
+            <a href="mailto:info.nuviachat@gmail.com" className="footer-link" style={{ ...linkStyle, display: "block" }}>
+              info.nuviachat@gmail.com
             </a>
             <div
               style={{

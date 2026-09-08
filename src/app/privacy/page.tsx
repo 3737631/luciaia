@@ -18,7 +18,7 @@ export default function PrivacyPageRoute() {
           title: "1. Responsable del tratamiento",
           paragraphs: [
             "Responsable: Francisco Ortuño Payseo (persona física, independiente).",
-            "Correo de contacto: fortpay107@gmail.com.",
+            "Correo de contacto: info.nuviachat@gmail.com.",
           ],
         },
         {
@@ -78,7 +78,7 @@ export default function PrivacyPageRoute() {
         {
           title: "7. Tus derechos",
           paragraphs: [
-            "Puedes ejercer en cualquier momento tus derechos de acceso, rectificación, supresión, limitación del tratamiento, portabilidad y oposición escribiendo a fortpay107@gmail.com. También puedes revocar el consentimiento prestado.",
+            "Puedes ejercer en cualquier momento tus derechos de acceso, rectificación, supresión, limitación del tratamiento, portabilidad y oposición escribiendo a info.nuviachat@gmail.com. También puedes revocar el consentimiento prestado.",
             "Si consideras que no hemos tratado tus datos correctamente, puedes reclamar ante la Agencia Española de Protección de Datos (www.aepd.es).",
           ],
         },

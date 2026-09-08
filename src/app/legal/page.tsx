@@ -18,7 +18,7 @@ export default function LegalPageRoute() {
           title: "Identificación del titular",
           list: [
             "Titular: Francisco Ortuño Payseo (persona física, independiente).",
-            "Correo de contacto: fortpay107@gmail.com.",
+            "Correo de contacto: info.nuviachat@gmail.com.",
             "Actividad: servicio de entretenimiento de compañía virtual para mayores de 18 años (chat, voz y vídeo con personajes ficticios generados por IA).",
           ],
         },
@@ -64,7 +64,7 @@ export default function LegalPageRoute() {
         {
           title: "Contacto",
           paragraphs: [
-            "Para cualquier cuestión relativa a este aviso legal, los Términos del Servicio o la Política de Privacidad, puedes escribir a: fortpay107@gmail.com.",
+            "Para cualquier cuestión relativa a este aviso legal, los Términos del Servicio o la Política de Privacidad, puedes escribir a: info.nuviachat@gmail.com.",
           ],
         },
       ]}
