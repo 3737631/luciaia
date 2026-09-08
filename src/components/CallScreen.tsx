@@ -501,7 +501,8 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
       const finalResults = results.filter(Boolean) as { audio: string; contentType: string }[];
       if (finalResults.length === 0) return;
 
-      el.volume = (muted || !audioOn) ? 0 : 1;
+      el.volume = !audioOn ? 0 : 1;
+      let anyPlayed = false;
       for (let i = 0; i < finalResults.length; i++) {
         if (!mountedRef.current || tid !== turnIdRef.current) return;
         await new Promise<void>((resolve, reject) => {
@@ -515,6 +516,7 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
           el.onplaying = () => {
             clearTimeout(timeout);
             playedRef.started = true;
+            anyPlayed = true;
             if (isGreeting && callStateRef.current === "dialing") {
               stopRingback();
               setCS("greeting");
@@ -542,6 +544,9 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
           el.src = `data:${finalResults[i].contentType};base64,${finalResults[i].audio}`;
           playGuarded(el).catch(e => { clearTimeout(timeout); reject(e); });
         });
+      }
+      if (audioOn && !anyPlayed) {
+        await speakWithBrowserVoice(sanitized);
       }
     } catch (err) {
       if (tid !== turnIdRef.current || !mountedRef.current) return;
@@ -1561,7 +1566,6 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
       if (callStateRef.current !== "listening" && callStateRef.current !== "speaking") return;
       if (processingRef.current) return;
       if (videoBlurredRef.current) return;
-      if (mutedRef.current) return;
       if (callStateRef.current === "speaking") {
         const el = audioElRef.current;
         const playing = !!el && !el.paused && !el.ended && el.currentTime > 0;
