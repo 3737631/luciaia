@@ -496,26 +496,19 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
       };
       const chunks = splitForTTS(sanitized);
       const voiceKey = (activeCustom ? getCustomGirlVoice(activeCustom.id) : voiceIdMap[girl.id] || `female-${girl.id}`);
-      const results = await Promise.all(
-        chunks.map(async (chunk) => {
-          const r = await ttsText(chunk, voiceKey);
-          if (!mountedRef.current || tid !== turnIdRef.current) return null;
-          return r;
-        })
-      );
-      if (!mountedRef.current || tid !== turnIdRef.current) return;
-      const finalResults = results.filter(Boolean) as { audio: string; contentType: string }[];
-      if (finalResults.length === 0) return;
-
+      const pending = chunks.map(chunk => ttsText(chunk, voiceKey));
       el.volume = !audioOn ? 0 : 1;
+      el.muted = false;
       let anyPlayed = false;
-      for (let i = 0; i < finalResults.length; i++) {
+      for (let i = 0; i < pending.length; i++) {
         if (!mountedRef.current || tid !== turnIdRef.current) return;
+        const r: { audio: string; contentType: string } | null = await pending[i];
+        if (!mountedRef.current || tid !== turnIdRef.current) return;
+        if (!r) continue;
         await new Promise<void>((resolve, reject) => {
           const playedRef = { started: false };
           const timeout = setTimeout(() => reject(new Error("timeout")), 30000);
           const guardTimer = setTimeout(() => {
-            // Solo corta si el audio nunca llegó a sonar; si ya suena, esperamos al onended real.
             if (!playedRef.started) resolve();
           }, 2500);
           const cleanup = () => { clearTimeout(timeout); clearTimeout(guardTimer); };
@@ -523,7 +516,6 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
             clearTimeout(timeout);
             playedRef.started = true;
             anyPlayed = true;
-            startLipSync();
             if (isGreeting && callStateRef.current === "dialing") {
               stopRingback();
               setCS("greeting");
@@ -548,7 +540,10 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
             cleanup();
             reject(new Error("audio error"));
           };
-          el.src = `data:${finalResults[i].contentType};base64,${finalResults[i].audio}`;
+          el.volume = !audioOn ? 0 : 1;
+          el.muted = false;
+          el.src = `data:${r.contentType};base64,${r.audio}`;
+          if (i === 0) startLipSync();
           playGuarded(el).catch(e => { clearTimeout(timeout); reject(e); });
         });
       }
@@ -588,6 +583,8 @@ el.volume = !audioOn ? 0 : 1;
             resolve();
           };
           el.onerror = () => { clearTimeout(timeout); reject(new Error("audio error")); };
+          el.volume = !audioOn ? 0 : 1;
+          el.muted = false;
           el.src = `data:${result.contentType};base64,${result.audio}`;
           const pp = playGuarded(el);
           pp.catch(e => { clearTimeout(timeout); reject(e); });
