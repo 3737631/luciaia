@@ -138,6 +138,8 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
   const micSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const speakerAnalyserRef = useRef<AnalyserNode | null>(null);
   const audioElRef = useRef<HTMLAudioElement | null>(null);
+  const ttsGainRef = useRef<GainNode | null>(null);
+  const ttsRoutedRef = useRef(false);
   const speechRecRef = useRef<SpeechRecognition | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const ringbackRef = useRef<{ ctx: AudioContext; osc: OscillatorNode; gain: GainNode } | null>(null);
@@ -439,6 +441,25 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
     });
   }
 
+  function routeTtsBoost() {
+    if (ttsRoutedRef.current) return true;
+    if (!audioCtxRef.current || !audioElRef.current) return false;
+    try {
+      const ctx = audioCtxRef.current;
+      const src = ctx.createMediaElementSource(audioElRef.current);
+      const g = ctx.createGain();
+      g.gain.value = 2.5;
+      src.connect(g);
+      g.connect(ctx.destination);
+      ttsGainRef.current = g;
+      ttsRoutedRef.current = true;
+      return true;
+    } catch {
+      ttsRoutedRef.current = false;
+      return false;
+    }
+  }
+
   function setSubtitleWords(text: string) {
     if (subtitleTimerRef.current) { clearInterval(subtitleTimerRef.current); subtitleTimerRef.current = null; }
     const words = text.split(/\s+/).filter(Boolean);
@@ -467,6 +488,10 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
     const tid = ++turnIdRef.current;
     const el = audioElRef.current;
     if (!el) return;
+    if (!ttsRoutedRef.current) {
+      try { routeTtsBoost(); } catch {}
+      if (audioCtxRef.current && audioCtxRef.current.state === "suspended") audioCtxRef.current.resume().catch(() => {});
+    }
     let lipSegStartMs = -1;
     let startLipSync: () => void = () => {};
 
@@ -499,6 +524,9 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
       const pending = chunks.map(chunk => ttsText(chunk, voiceKey));
       el.volume = !audioOn ? 0 : 1;
       el.muted = false;
+      if (ttsGainRef.current) {
+        try { ttsGainRef.current.gain.value = audioOn ? 2.5 : 0; } catch {}
+      }
       let anyPlayed = false;
       for (let i = 0; i < pending.length; i++) {
         if (!mountedRef.current || tid !== turnIdRef.current) return;
@@ -542,6 +570,9 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
           };
           el.volume = !audioOn ? 0 : 1;
           el.muted = false;
+          if (ttsGainRef.current) {
+            try { ttsGainRef.current.gain.value = audioOn ? 2.5 : 0; } catch {}
+          }
           el.src = `data:${r.contentType};base64,${r.audio}`;
           if (i === 0) startLipSync();
           playGuarded(el).catch(e => { clearTimeout(timeout); reject(e); });
@@ -559,6 +590,9 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
         const result = await ttsText(sanitized, (activeCustom ? getCustomGirlVoice(activeCustom.id) : voiceIdMap[girl.id] || `female-${girl.id}`));
         if (!mountedRef.current || tid !== turnIdRef.current) return;
 el.volume = !audioOn ? 0 : 1;
+        if (ttsGainRef.current) {
+          try { ttsGainRef.current.gain.value = audioOn ? 2.5 : 0; } catch {}
+        }
         await new Promise<void>((resolve, reject) => {
           const timeout = setTimeout(() => reject(new Error("timeout")), 30000);
           el.onplaying = () => {
@@ -585,6 +619,9 @@ el.volume = !audioOn ? 0 : 1;
           el.onerror = () => { clearTimeout(timeout); reject(new Error("audio error")); };
           el.volume = !audioOn ? 0 : 1;
           el.muted = false;
+          if (ttsGainRef.current) {
+            try { ttsGainRef.current.gain.value = audioOn ? 2.5 : 0; } catch {}
+          }
           el.src = `data:${result.contentType};base64,${result.audio}`;
           const pp = playGuarded(el);
           pp.catch(e => { clearTimeout(timeout); reject(e); });
@@ -1033,6 +1070,10 @@ el.volume = !audioOn ? 0 : 1;
 
     const audioEl = new Audio();
     audioEl.preload = "auto";
+    audioEl.muted = false;
+    audioEl.volume = 1;
+    audioEl.style.display = "none";
+    document.body.appendChild(audioEl);
     audioElRef.current = audioEl;
     if (typeof audioEl.setSinkId === "function") setHasSinkSupport(true);
 
@@ -1070,6 +1111,8 @@ el.volume = !audioOn ? 0 : 1;
     }).catch(() => {});
 
 const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
+      try { routeTtsBoost(); } catch {}
+      if (audioCtxRef.current && audioCtxRef.current.state === "suspended") audioCtxRef.current.resume().catch(() => {});
       // Watchdog: si seguimos en "Llamando..." a los 6s, rescatamos con voz del navegador
       // para no quedarnos jamás en dialing (el TTS remoto es el punto más frágil).
       let rescued = false;
@@ -1107,6 +1150,10 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
           const result = await ttsText(sanitized, (activeCustom ? getCustomGirlVoice(activeCustom.id) : voiceIdMap[girl.id] || `female-${girl.id}`));
           if (abort.signal.aborted || !mountedRef.current) return null;
           audioEl.volume = 1;
+          audioEl.muted = false;
+          if (ttsGainRef.current) {
+            try { ttsGainRef.current.gain.value = 2.5; } catch {}
+          }
           audioEl.src = `data:${result.contentType};base64,${result.audio}`;
           await new Promise<void>((resolve, reject) => {
             const t = setTimeout(() => reject(new Error("timeout")), 12000);
@@ -1187,6 +1234,10 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
         const result = await ttsText(sanitized, (activeCustom ? getCustomGirlVoice(activeCustom.id) : voiceIdMap[girl.id] || `female-${girl.id}`));
         if (abort.signal.aborted || !mountedRef.current) return;
         audioEl.volume = 1;
+        audioEl.muted = false;
+        if (ttsGainRef.current) {
+          try { ttsGainRef.current.gain.value = 2.5; } catch {}
+        }
         audioEl.src = `data:${result.contentType};base64,${result.audio}`;
         setSubtitleWords(greeting);
         audioEl.onplaying = () => {
@@ -1353,6 +1404,11 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
     cancelAnimationFrame(micLevelRafRef.current);
     const el = audioElRef.current;
     if (el) { el.pause(); el.src = ""; el.load(); }
+    if (ttsGainRef.current && ttsGainRef.current.context && ttsGainRef.current.context.state !== "closed") {
+      try { ttsGainRef.current.disconnect(); } catch {}
+    }
+    ttsGainRef.current = null;
+    ttsRoutedRef.current = false;
     if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
     if (voiceActivityRef.current?.rafId) cancelAnimationFrame(voiceActivityRef.current.rafId);
     if (audioCtxRef.current && audioCtxRef.current.state !== "closed") audioCtxRef.current.close();
@@ -1607,9 +1663,15 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
     if (on) {
       const el = audioElRef.current;
       if (el) el.volume = 1;
+      if (ttsGainRef.current) {
+        try { ttsGainRef.current.gain.value = 2.5; } catch {}
+      }
     } else {
       const el = audioElRef.current;
       if (el) { el.pause(); el.src = ""; el.load(); }
+      if (ttsGainRef.current) {
+        try { ttsGainRef.current.gain.value = 0; } catch {}
+      }
       if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
       stopRingback();
       turnIdRef.current++;
