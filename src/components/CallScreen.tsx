@@ -467,6 +467,8 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
     const tid = ++turnIdRef.current;
     const el = audioElRef.current;
     if (!el) return;
+    let lipSegStartMs = -1;
+    let startLipSync: () => void = () => {};
 
     try {
       const sanitized = sanitizeForTTS(text);
@@ -477,9 +479,13 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
         const seg = pickSpeakSegment(lipProfile, targetMs, lipLastPickRef.current);
         lipLastPickRef.current = seg.startMs;
         lipSegmentEndRef.current = seg.endMs;
+        lipSegStartMs = seg.startMs;
+      }
+      startLipSync = () => {
+        if (!lipVideo || lipSegStartMs < 0) return;
         try {
           if (lipVideo.readyState >= 1 && lipVideo.duration > 0) {
-            const segStartSec = seg.startMs / 1000;
+            const segStartSec = lipSegStartMs / 1000;
             if (Math.abs(lipVideo.currentTime - segStartSec) > 0.35) {
               lipVideo.currentTime = segStartSec;
             }
@@ -487,7 +493,7 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
             if (p && p.catch) p.catch(() => {});
           }
         } catch {}
-      }
+      };
       const chunks = splitForTTS(sanitized);
       const voiceKey = (activeCustom ? getCustomGirlVoice(activeCustom.id) : voiceIdMap[girl.id] || `female-${girl.id}`);
       const results = await Promise.all(
@@ -517,6 +523,7 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
             clearTimeout(timeout);
             playedRef.started = true;
             anyPlayed = true;
+            startLipSync();
             if (isGreeting && callStateRef.current === "dialing") {
               stopRingback();
               setCS("greeting");
@@ -561,6 +568,7 @@ el.volume = !audioOn ? 0 : 1;
           const timeout = setTimeout(() => reject(new Error("timeout")), 30000);
           el.onplaying = () => {
             clearTimeout(timeout);
+            startLipSync();
             if (isGreeting) {
               stopRingback();
               setCS("greeting");
