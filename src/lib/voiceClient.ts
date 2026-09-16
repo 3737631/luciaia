@@ -28,13 +28,88 @@ export function getCustomGirlVoice(customId: string): string {
   }
 }
 
+let ttsCtx: AudioContext | null = null;
+let ttsGain: GainNode | null = null;
+
+// Crea (una sola vez) un AudioContext dedicado con ganancia 2.5x para la voz TTS.
+// Debe crearse/resumirse DENTRO de un gesto del usuario para que iOS lo deje correr.
+export function getTTSGain(): { ctx: AudioContext | null; gain: GainNode | null } {
+  try {
+    if (!ttsCtx) {
+      const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!Ctx) return { ctx: null, gain: null };
+      ttsCtx = new Ctx();
+      ttsGain = ttsCtx.createGain();
+      ttsGain.gain.value = 2.5; // voz EN ALTO
+      ttsGain.connect(ttsCtx.destination);
+    }
+    if (ttsCtx.state === "suspended") ttsCtx.resume().catch(() => {});
+    return { ctx: ttsCtx, gain: ttsGain };
+  } catch {
+    return { ctx: null, gain: null };
+  }
+}
+
+// Reproduce audio TTS SIEMPRE en alto: decodifica a AudioBuffer y lo amplifica
+// con una GainNode 2.5x conectada al contexto compartido. Si el contexto está
+// suspendido o no existe, cae a un <audio> normal a volumen 1 (nunca silencio).
+export async function playTTSLoud(
+  dataUrl: string,
+  opts?: { onStart?: () => void; volume?: number }
+): Promise<{ play(): Promise<void>; stop(): void } | null> {
+  const vol = opts?.volume ?? 1;
+  const callStart = () => { try { opts?.onStart?.(); } catch {} };
+  const fallback = () => {
+    try {
+      const au = new Audio(dataUrl);
+      au.volume = vol;
+      return {
+        play: () =>
+          au.play().then(() => { callStart(); return new Promise<void>((res) => {
+            au.onended = () => res();
+            au.onerror = () => res();
+          }); }).catch(() => { callStart(); return Promise.resolve(); }),
+        stop: () => { try { au.pause(); } catch {} },
+      };
+    } catch {
+      return null;
+    }
+  };
+
+  try {
+    const { ctx, gain } = getTTSGain();
+    if (!ctx || !gain) return fallback();
+    if (ctx.state === "suspended") { try { await ctx.resume(); } catch {} }
+    const res = await fetch(dataUrl);
+    const ab = await res.arrayBuffer();
+    const buf = await ctx.decodeAudioData(ab);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const g = ctx.createGain();
+    g.gain.value = vol === 0 ? 0 : 2.5;
+    src.connect(g);
+    g.connect(gain);
+    return {
+      play: () => {
+        callStart();
+        return new Promise<void>((res) => {
+          src.onended = () => res();
+          try { src.start(); } catch { res(); }
+        });
+      },
+      stop: () => { try { src.stop(); } catch {} },
+    };
+  } catch {
+    return fallback();
+  }
+}
+
 // Debe llamarse DENTRO de un gesto del usuario (click/touch): habilita
 // la reproducción programática de audio en iOS/Safari y Android estricto.
 export function unlockAudioGesture(): void {
   try {
-    const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (Ctx) {
-      const ctx = new Ctx();
+    const { ctx } = getTTSGain();
+    if (ctx) {
       if (ctx.state === "suspended") ctx.resume().catch(() => {});
       try {
         const b = ctx.createBuffer(1, 1, 22050);

@@ -7,7 +7,7 @@ import { getFallbackResponse } from "@/lib/ai";
 import { goBack } from "@/lib/nav";
 import { useSession } from "@/lib/session";
 import { sendChatMessage } from "@/lib/chatClient";
-import { splitForTTS, sttAudio, ttsText, voiceIdMap, getCustomGirlVoice } from "@/lib/voiceClient";
+import { splitForTTS, sttAudio, ttsText, voiceIdMap, getCustomGirlVoice, getTTSGain, playTTSLoud, unlockAudioGesture } from "@/lib/voiceClient";
 import { lipProfiles, isVideoGirl, estimateSpeechMs, pickSpeakSegment } from "@/lib/lipSync";
 import {
   getConversationHistory,
@@ -138,8 +138,6 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
   const micSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const speakerAnalyserRef = useRef<AnalyserNode | null>(null);
   const audioElRef = useRef<HTMLAudioElement | null>(null);
-  const ttsGainRef = useRef<GainNode | null>(null);
-  const ttsRoutedRef = useRef(false);
   const speechRecRef = useRef<SpeechRecognition | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const ringbackRef = useRef<{ ctx: AudioContext; osc: OscillatorNode; gain: GainNode } | null>(null);
@@ -441,25 +439,6 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
     });
   }
 
-  function routeTtsBoost() {
-    if (ttsRoutedRef.current) return true;
-    if (!audioCtxRef.current || !audioElRef.current) return false;
-    try {
-      const ctx = audioCtxRef.current;
-      const src = ctx.createMediaElementSource(audioElRef.current);
-      const g = ctx.createGain();
-      g.gain.value = 2.5;
-      src.connect(g);
-      g.connect(ctx.destination);
-      ttsGainRef.current = g;
-      ttsRoutedRef.current = true;
-      return true;
-    } catch {
-      ttsRoutedRef.current = false;
-      return false;
-    }
-  }
-
   function setSubtitleWords(text: string) {
     if (subtitleTimerRef.current) { clearInterval(subtitleTimerRef.current); subtitleTimerRef.current = null; }
     const words = text.split(/\s+/).filter(Boolean);
@@ -488,10 +467,7 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
     const tid = ++turnIdRef.current;
     const el = audioElRef.current;
     if (!el) return;
-    if (!ttsRoutedRef.current) {
-      try { routeTtsBoost(); } catch {}
-      if (audioCtxRef.current && audioCtxRef.current.state === "suspended") audioCtxRef.current.resume().catch(() => {});
-    }
+    unlockAudioGesture();
     let lipSegStartMs = -1;
     let startLipSync: () => void = () => {};
 
@@ -522,27 +498,19 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
       const chunks = splitForTTS(sanitized);
       const voiceKey = (activeCustom ? getCustomGirlVoice(activeCustom.id) : voiceIdMap[girl.id] || `female-${girl.id}`);
       const pending = chunks.map(chunk => ttsText(chunk, voiceKey));
-      el.volume = !audioOn ? 0 : 1;
-      el.muted = false;
-      if (ttsGainRef.current) {
-        try { ttsGainRef.current.gain.value = audioOn ? 2.5 : 0; } catch {}
-      }
       let anyPlayed = false;
       for (let i = 0; i < pending.length; i++) {
         if (!mountedRef.current || tid !== turnIdRef.current) return;
         const r: { audio: string; contentType: string } | null = await pending[i];
         if (!mountedRef.current || tid !== turnIdRef.current) return;
         if (!r) continue;
-        await new Promise<void>((resolve, reject) => {
-          const playedRef = { started: false };
-          const timeout = setTimeout(() => reject(new Error("timeout")), 30000);
-          const guardTimer = setTimeout(() => {
-            if (!playedRef.started) resolve();
-          }, 2500);
-          const cleanup = () => { clearTimeout(timeout); clearTimeout(guardTimer); };
-          el.onplaying = () => {
-            clearTimeout(timeout);
-            playedRef.started = true;
+        const url = `data:${r.contentType};base64,${r.audio}`;
+        const started = { v: false };
+        if (i === 0) startLipSync();
+        const handle = await playTTSLoud(url, {
+          volume: audioOn ? 1 : 0,
+          onStart: () => {
+            started.v = true;
             anyPlayed = true;
             if (isGreeting && callStateRef.current === "dialing") {
               stopRingback();
@@ -555,28 +523,19 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
               setCS("speaking");
               startFreqAnimation();
             }
-          };
-          el.onended = () => {
-            cleanup();
-            stopFreqAnimation();
-            setFreqData(Array(12).fill(2));
-            setSubtitleText("");
-            if (subtitleTimerRef.current) { clearInterval(subtitleTimerRef.current); subtitleTimerRef.current = null; }
-            resolve();
-          };
-          el.onerror = () => {
-            cleanup();
-            reject(new Error("audio error"));
-          };
-          el.volume = !audioOn ? 0 : 1;
-          el.muted = false;
-          if (ttsGainRef.current) {
-            try { ttsGainRef.current.gain.value = audioOn ? 2.5 : 0; } catch {}
-          }
-          el.src = `data:${r.contentType};base64,${r.audio}`;
-          if (i === 0) startLipSync();
-          playGuarded(el).catch(e => { clearTimeout(timeout); reject(e); });
+          },
         });
+        if (!handle) continue;
+        const played = await Promise.race([
+          handle.play().then(() => true, () => false),
+          new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 30000)),
+        ]);
+        if (!mountedRef.current || tid !== turnIdRef.current) return;
+        stopFreqAnimation();
+        setFreqData(Array(12).fill(2));
+        setSubtitleText("");
+        if (subtitleTimerRef.current) { clearInterval(subtitleTimerRef.current); subtitleTimerRef.current = null; }
+        if (!played && !started.v) break;
       }
       if (audioOn && !anyPlayed) {
         await speakWithBrowserVoice(sanitized);
@@ -589,15 +548,11 @@ const callGirlImage = activeCustom?.imageUrl || girl.cloudinaryImage || getGirlI
         if (!sanitized) return;
         const result = await ttsText(sanitized, (activeCustom ? getCustomGirlVoice(activeCustom.id) : voiceIdMap[girl.id] || `female-${girl.id}`));
         if (!mountedRef.current || tid !== turnIdRef.current) return;
-el.volume = !audioOn ? 0 : 1;
-        if (ttsGainRef.current) {
-          try { ttsGainRef.current.gain.value = audioOn ? 2.5 : 0; } catch {}
-        }
-        await new Promise<void>((resolve, reject) => {
-          const timeout = setTimeout(() => reject(new Error("timeout")), 30000);
-          el.onplaying = () => {
-            clearTimeout(timeout);
-            startLipSync();
+        const url = `data:${result.contentType};base64,${result.audio}`;
+        startLipSync();
+        const handle = await playTTSLoud(url, {
+          volume: audioOn ? 1 : 0,
+          onStart: () => {
             if (isGreeting) {
               stopRingback();
               setCS("greeting");
@@ -609,24 +564,18 @@ el.volume = !audioOn ? 0 : 1;
               setCS("speaking");
               startFreqAnimation();
             }
-          };
-          el.onended = () => {
-            stopFreqAnimation();
-            setFreqData(Array(12).fill(2));
-            setSubtitleText("");
-            resolve();
-          };
-          el.onerror = () => { clearTimeout(timeout); reject(new Error("audio error")); };
-          el.volume = !audioOn ? 0 : 1;
-          el.muted = false;
-          if (ttsGainRef.current) {
-            try { ttsGainRef.current.gain.value = audioOn ? 2.5 : 0; } catch {}
-          }
-          el.src = `data:${result.contentType};base64,${result.audio}`;
-          const pp = playGuarded(el);
-          pp.catch(e => { clearTimeout(timeout); reject(e); });
-          setTimeout(() => resolve(), 2500);
+          },
         });
+        if (!handle) throw new Error("no audio");
+        const played = await Promise.race([
+          handle.play().then(() => true, () => false),
+          new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 30000)),
+        ]);
+        if (!mountedRef.current || tid !== turnIdRef.current) return;
+        stopFreqAnimation();
+        setFreqData(Array(12).fill(2));
+        setSubtitleText("");
+        if (!played) throw new Error("audio no arrancó");
       } catch (e) {
         console.warn("[CALL] TTS retry failed, usando voz del navegador", e);
         if (!mountedRef.current || tid !== turnIdRef.current) return;
@@ -1111,8 +1060,6 @@ el.volume = !audioOn ? 0 : 1;
     }).catch(() => {});
 
 const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
-      try { routeTtsBoost(); } catch {}
-      if (audioCtxRef.current && audioCtxRef.current.state === "suspended") audioCtxRef.current.resume().catch(() => {});
       // Watchdog: si seguimos en "Llamando..." a los 6s, rescatamos con voz del navegador
       // para no quedarnos jamás en dialing (el TTS remoto es el punto más frágil).
       let rescued = false;
@@ -1143,136 +1090,84 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
           });
       }, 6000);
       // El saludo no debe tardar: si el TTS tarda más de 12s, cambiamos a voz del navegador.
-      const greetingRace = await Promise.race([
-        (async () => {
-          const sanitized = sanitizeForTTS(greeting);
-          if (!sanitized) throw new Error("empty after sanitize");
-          const result = await ttsText(sanitized, (activeCustom ? getCustomGirlVoice(activeCustom.id) : voiceIdMap[girl.id] || `female-${girl.id}`));
-          if (abort.signal.aborted || !mountedRef.current) return null;
-          audioEl.volume = 1;
-          audioEl.muted = false;
-          if (ttsGainRef.current) {
-            try { ttsGainRef.current.gain.value = 2.5; } catch {}
-          }
-          audioEl.src = `data:${result.contentType};base64,${result.audio}`;
-          await new Promise<void>((resolve, reject) => {
-            const t = setTimeout(() => reject(new Error("timeout")), 12000);
-            audioEl.oncanplay = () => { clearTimeout(t); resolve(); };
-            audioEl.onerror = () => { clearTimeout(t); reject(new Error("error")); };
-          });
-          return true;
-        })(),
-        new Promise<null>((resolve) => setTimeout(() => resolve(null), 14000)),
-      ]);
-
-      if (abort.signal.aborted || !mountedRef.current || rescued) return;
-      if (greetingRace === null) {
-        // TTS lento: voz del navegador al instante para no dejar "Llamando..." para siempre.
-        if (dotTimerRef.current) { clearInterval(dotTimerRef.current); dotTimerRef.current = null; }
-        setCS("greeting");
-        stopRingback();
-        startFreqAnimation();
-        if (!durTimerRef.current) {
-          durTimerRef.current = setInterval(() => setCallDuration(d => d + 1), 1000);
-        }
-        
-        silentPingsRef.current = 0;
-        setSubtitleWords(greeting);
-        await speakWithBrowserVoice(sanitizeForTTS(greeting) || greeting);
-        if (abort.signal.aborted || !mountedRef.current) return;
-        if (callStateRef.current !== "ended" && callStateRef.current !== "error") {
-          startListening();
-        }
-        return;
-      }
-
+      let greetingOk = false;
       try {
-      setSubtitleWords(greeting);
-      audioEl.onplaying = () => {
-        if (dotTimerRef.current) { clearInterval(dotTimerRef.current); dotTimerRef.current = null; }
-        setCS("greeting");
-        stopRingback();
-        startFreqAnimation();
-        if (!durTimerRef.current) {
-          durTimerRef.current = setInterval(() => setCallDuration(d => d + 1), 1000);
-        }
-      };
-      audioEl.onended = () => {
-        if (mountedRef.current && callStateRef.current !== "ended" && callStateRef.current !== "error") {
-          
-          silentPingsRef.current = 0;
-          startListening();
-        }
-      };
-      const played = await Promise.race([
-        playGuarded(audioEl).then(() => true, () => false),
-        new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 2500)),
-      ]);
-      if (abort.signal.aborted || !mountedRef.current) return;
-      if (!played && callStateRef.current === "dialing") {
-        if (dotTimerRef.current) { clearInterval(dotTimerRef.current); dotTimerRef.current = null; }
-        setCS("greeting");
-        stopRingback();
-        startFreqAnimation();
-        if (!durTimerRef.current) {
-          durTimerRef.current = setInterval(() => setCallDuration(d => d + 1), 1000);
-        }
-        // El audio remoto no arrancó: que hable con voz del navegador para que
-        // siempre se la oiga desde el primer momento de la llamada.
-        setSubtitleWords(greeting);
-        await speakWithBrowserVoice(sanitizeForTTS(greeting) || greeting);
-        if (abort.signal.aborted || !mountedRef.current) return;
-        silentPingsRef.current = 0;
-        startListening();
-      }
-    } catch (err) {
-      console.warn("[CALL] greeting prep failed", err);
-      if (abort.signal.aborted || !mountedRef.current || rescued) return;
-      try {
-        const sanitized = sanitizeForTTS(greeting);
-        if (!sanitized) throw new Error("empty");
-        const result = await ttsText(sanitized, (activeCustom ? getCustomGirlVoice(activeCustom.id) : voiceIdMap[girl.id] || `female-${girl.id}`));
-        if (abort.signal.aborted || !mountedRef.current) return;
-        audioEl.volume = 1;
-        audioEl.muted = false;
-        if (ttsGainRef.current) {
-          try { ttsGainRef.current.gain.value = 2.5; } catch {}
-        }
-        audioEl.src = `data:${result.contentType};base64,${result.audio}`;
-        setSubtitleWords(greeting);
-        audioEl.onplaying = () => {
-          if (dotTimerRef.current) { clearInterval(dotTimerRef.current); dotTimerRef.current = null; }
-          setCS("greeting");
-          stopRingback();
-          startFreqAnimation();
-          if (!durTimerRef.current) {
-            durTimerRef.current = setInterval(() => setCallDuration(d => d + 1), 1000);
-          }
-        };
-        audioEl.onended = () => {
-          if (mountedRef.current && callStateRef.current !== "ended" && callStateRef.current !== "error") {
-            
-            silentPingsRef.current = 0;
-            startListening();
-          }
-        };
-        await playGuarded(audioEl);
-      } catch (err) {
-        console.warn("[CALL] greeting TTS failed, usando voz del navegador", err);
+        const gResult = await Promise.race<boolean | null>([
+          (async () => {
+            try {
+              const sanitized = sanitizeForTTS(greeting);
+              if (!sanitized) return null;
+              const result = await ttsText(sanitized, (activeCustom ? getCustomGirlVoice(activeCustom.id) : voiceIdMap[girl.id] || `female-${girl.id}`));
+              if (abort.signal.aborted || !mountedRef.current || !result) return null;
+              const greeter = await playTTSLoud(`data:${result.contentType};base64,${result.audio}`, {
+                volume: audioOn ? 1 : 0,
+                onStart: () => {
+                  if (dotTimerRef.current) { clearInterval(dotTimerRef.current); dotTimerRef.current = null; }
+                  setCS("greeting");
+                  stopRingback();
+                  startFreqAnimation();
+                  if (!durTimerRef.current) {
+                    durTimerRef.current = setInterval(() => setCallDuration(d => d + 1), 1000);
+                  }
+                },
+              });
+              if (!greeter) return null;
+              greetingOk = true;
+              setSubtitleWords(greeting);
+              await greeter.play();
+              return true;
+            } catch {
+              return null;
+            }
+          })(),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 14000)),
+        ]);
         if (abort.signal.aborted || !mountedRef.current || rescued) return;
-        try {
+        if (gResult === null) {
           if (dotTimerRef.current) { clearInterval(dotTimerRef.current); dotTimerRef.current = null; }
-          setCS("greeting");
-          stopRingback();
-          startFreqAnimation();
-          if (!durTimerRef.current) {
-            durTimerRef.current = setInterval(() => setCallDuration(d => d + 1), 1000);
+          if (callStateRef.current === "dialing") {
+            setCS("greeting");
+            stopRingback();
+            startFreqAnimation();
+            if (!durTimerRef.current) {
+              durTimerRef.current = setInterval(() => setCallDuration(d => d + 1), 1000);
+            }
+          } else if (!greetingOk) {
+            setCS("greeting");
           }
           setSubtitleWords(greeting);
           await speakWithBrowserVoice(sanitizeForTTS(greeting) || greeting);
           if (abort.signal.aborted || !mountedRef.current) return;
           if (callStateRef.current !== "ended" && callStateRef.current !== "error") {
-            
+            silentPingsRef.current = 0;
+            startListening();
+          }
+          return;
+        }
+        if (greetingOk) {
+          if (dotTimerRef.current) { clearInterval(dotTimerRef.current); dotTimerRef.current = null; }
+          if (callStateRef.current !== "ended" && callStateRef.current !== "error") {
+            silentPingsRef.current = 0;
+            startListening();
+          }
+        }
+      } catch (err) {
+        console.warn("[CALL] greeting prep failed", err);
+        if (abort.signal.aborted || !mountedRef.current || rescued) return;
+        try {
+          if (dotTimerRef.current) { clearInterval(dotTimerRef.current); dotTimerRef.current = null; }
+          if (callStateRef.current === "dialing") {
+            setCS("greeting");
+            stopRingback();
+            startFreqAnimation();
+            if (!durTimerRef.current) {
+              durTimerRef.current = setInterval(() => setCallDuration(d => d + 1), 1000);
+            }
+          }
+          setSubtitleWords(greeting);
+          await speakWithBrowserVoice(sanitizeForTTS(greeting) || greeting);
+          if (abort.signal.aborted || !mountedRef.current) return;
+          if (callStateRef.current !== "ended" && callStateRef.current !== "error") {
             silentPingsRef.current = 0;
             startListening();
           }
@@ -1284,7 +1179,6 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
           setCS("error");
         }
       }
-    }
 
     const resumeCtx = () => {
       if (audioCtxRef.current && audioCtxRef.current.state === "suspended") audioCtxRef.current.resume();
@@ -1404,11 +1298,6 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
     cancelAnimationFrame(micLevelRafRef.current);
     const el = audioElRef.current;
     if (el) { el.pause(); el.src = ""; el.load(); }
-    if (ttsGainRef.current && ttsGainRef.current.context && ttsGainRef.current.context.state !== "closed") {
-      try { ttsGainRef.current.disconnect(); } catch {}
-    }
-    ttsGainRef.current = null;
-    ttsRoutedRef.current = false;
     if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
     if (voiceActivityRef.current?.rafId) cancelAnimationFrame(voiceActivityRef.current.rafId);
     if (audioCtxRef.current && audioCtxRef.current.state !== "closed") audioCtxRef.current.close();
@@ -1663,15 +1552,13 @@ const greeting = `Hola, soy ${callName}. ¿Cómo estás?`;
     if (on) {
       const el = audioElRef.current;
       if (el) el.volume = 1;
-      if (ttsGainRef.current) {
-        try { ttsGainRef.current.gain.value = 2.5; } catch {}
-      }
+      const g = getTTSGain();
+      if (g.ctx && g.gain) { try { g.gain.gain.value = 2.5; } catch {} }
     } else {
       const el = audioElRef.current;
       if (el) { el.pause(); el.src = ""; el.load(); }
-      if (ttsGainRef.current) {
-        try { ttsGainRef.current.gain.value = 0; } catch {}
-      }
+      const g = getTTSGain();
+      if (g.ctx && g.gain) { try { g.gain.gain.value = 0; } catch {} }
       if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
       stopRingback();
       turnIdRef.current++;

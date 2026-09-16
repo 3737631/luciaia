@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { ttsText, getGirlVoice, unlockAudioGesture } from "@/lib/voiceClient";
+import { ttsText, getGirlVoice, unlockAudioGesture, playTTSLoud } from "@/lib/voiceClient";
 import { isFeatureLocked } from "@/lib/premium";
 
 const APPLE_SPRING = "cubic-bezier(.32,.72,0,1)";
@@ -102,12 +102,10 @@ export default function StoryVideoViewer({
   const frameRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef(true);
   const scrollYRef = useRef(0);
-  const replyAudioRef = useRef<HTMLAudioElement | null>(null);
+  const replyAudioRef = useRef<{ stop(): void } | null>(null);
   const replyDataRef = useRef<{ text: string; url: string } | null>(null);
   const pendingReplyRef = useRef<string | null>(null);
   const autoUsedRef = useRef<Set<number>>(new Set());
-  const ttsCtxRef = useRef<AudioContext | null>(null);
-  const ttsGainRef = useRef<GainNode | null>(null);
   const prefetchRef = useRef<{ text: string; url: string }[]>([]);
 
   const [closing, setClosing] = useState(false);
@@ -155,7 +153,7 @@ export default function StoryVideoViewer({
     speakWindows.forEach(([a, b], i) => {
       const line = pickReply(b - a);
       ttsText(line, getGirlVoice(girlId || "luna"))
-        .then((r) => { if (alive) prefetchRef.current[i] = { text: line, url: `data:audio/mp3;base64,${r.audio}` }; })
+        .then((r) => { if (alive) prefetchRef.current[i] = { text: line, url: `data:${r.contentType};base64,${r.audio}` }; })
         .catch(() => {});
     });
     return () => { alive = false; };
@@ -216,7 +214,7 @@ export default function StoryVideoViewer({
     videoRef.current?.pause();
     if ("speechSynthesis" in window) window.speechSynthesis.cancel();
     if (replyAudioRef.current) {
-      replyAudioRef.current.pause();
+      try { replyAudioRef.current.stop(); } catch {}
       replyAudioRef.current = null;
     }
     setTimeout(onClose, 280);
@@ -249,26 +247,10 @@ export default function StoryVideoViewer({
 
   const stopPrevVoice = () => {
     if (replyAudioRef.current) {
-      try { replyAudioRef.current.pause(); } catch {}
+      try { replyAudioRef.current.stop(); } catch {}
       replyAudioRef.current = null;
     }
     if ("speechSynthesis" in window) window.speechSynthesis.cancel();
-  };
-
-  const ensureAudioGain = (): { ctx: AudioContext | null; gain: GainNode | null } => {
-    try {
-      if (!ttsCtxRef.current) {
-        const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-        if (!Ctx) return { ctx: null, gain: null };
-        ttsCtxRef.current = new Ctx();
-        ttsGainRef.current = ttsCtxRef.current.createGain();
-        ttsGainRef.current.gain.value = 2.5; // voz EN ALTO
-        ttsGainRef.current.connect(ttsCtxRef.current.destination);
-      }
-      return { ctx: ttsCtxRef.current, gain: ttsGainRef.current };
-    } catch {
-      return { ctx: null, gain: null };
-    }
   };
 
   // Reproduce SIEMPRE el nuevo mensaje: corta el anterior.
@@ -295,30 +277,15 @@ export default function StoryVideoViewer({
     stopPrevVoice();
     if (!data) { synthSpeak(text); return; }
     try {
-      const au = new Audio(data);
-      au.volume = 1;
-      const g = ensureAudioGain();
-      if (g.ctx && g.gain && g.ctx.state === "running") {
-        try {
-          const src = g.ctx.createMediaElementSource(au);
-          src.connect(g.gain);
-        } catch {}
-      } else if (g.ctx && g.ctx.state === "suspended") {
-        g.ctx.resume().catch(() => {});
-      }
-      let started = false;
-      au.onended = () => { replyAudioRef.current = null; };
-      au.onerror = () => { replyAudioRef.current = null; };
-      replyAudioRef.current = au;
-      au.play().then(() => { started = true; }).catch(() => {});
-      // Si en 1.5s no ha empezado (autoplay bloqueado), voz del navegador como red de seguridad
-      setTimeout(() => {
-        if (!started) {
-          try { au.pause(); } catch {}
-          if (replyAudioRef.current === au) replyAudioRef.current = null;
-          synthSpeak(text);
-        }
-      }, 1500);
+      playTTSLoud(data, { volume: 1 })
+        .then((handle) => {
+          if (!handle) { synthSpeak(text); return; }
+          try { replyAudioRef.current = handle; handle.play().catch(() => {}); } catch {}
+          setTimeout(() => {
+            if (replyAudioRef.current === handle) { try { handle.stop(); } catch {} replyAudioRef.current = null; }
+          }, 15000);
+        })
+        .catch(() => synthSpeak(text));
     } catch {
       synthSpeak(text);
     }
@@ -358,7 +325,7 @@ export default function StoryVideoViewer({
             showSofiaReply(line);
             // TTS en caliente: pide y reproduce en cuanto llegue
             ttsText(line, getGirlVoice(girlId || "luna"))
-              .then((r) => { replyDataRef.current = { text: line, url: `data:audio/mp3;base64,${r.audio}` }; playReplyAudio(line); })
+              .then((r) => { replyDataRef.current = { text: line, url: `data:${r.contentType};base64,${r.audio}` }; playReplyAudio(line); })
               .catch(() => { playReplyAudio(line); });
           }
         }
@@ -391,7 +358,7 @@ export default function StoryVideoViewer({
     replyAudioRef.current = null;
     replyDataRef.current = null;
     ttsText(replyText, getGirlVoice(girlId || "luna"))
-      .then((r) => { replyDataRef.current = { text: replyText, url: `data:audio/mp3;base64,${r.audio}` }; })
+      .then((r) => { replyDataRef.current = { text: replyText, url: `data:${r.contentType};base64,${r.audio}` }; })
       .catch(() => { replyDataRef.current = null; });
     pendingReplyRef.current = replyText;
   };

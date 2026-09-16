@@ -135,11 +135,40 @@ Deno.serve(async (req) => {
 
       const activeVoice = resolveVoice(voice);
 
-      // Primary: Microsoft Edge TTS (free, unlimited, no key, real differentiated voices)
+      // Google Translate TTS: HTTP puro, sin clave y fiable en el runtime de Deno
+      // (los fallbacks con WebSocket tipo Edge TTS se cuelgan en Supabase Edge).
       try {
-        // Ajustes de naturalidad: velocidad normal de conversación con tono ligeramente cálido.
+        const gttsChunks: string[] = [];
+        const step = 180;
+        for (let i = 0; i < text.length; i += step) gttsChunks.push(text.slice(i, i + step));
+        const parts: Uint8Array[] = [];
+        for (const chunk of gttsChunks) {
+          const gttsRes = await fetch(
+            `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(chunk)}&tl=es&client=tw-ob`,
+            { headers: { "User-Agent": "Mozilla/5.0" } }
+          );
+          if (!gttsRes.ok) throw new Error(`gtts ${gttsRes.status}`);
+          parts.push(new Uint8Array(await gttsRes.arrayBuffer()));
+        }
+        // Concatenamos los MP3 (los decodificadores saltan tramas/frames inválidos).
+        const total = parts.reduce((a, b) => a + b.length, 0);
+        const combined = new Uint8Array(total);
+        let off = 0;
+        for (const p of parts) { combined.set(p, off); off += p.length; }
+        const base64Audio = btoa(String.fromCharCode(...combined));
+        return new Response(JSON.stringify({ audio: base64Audio, contentType: "audio/mpeg" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      } catch (gErr) {
+        console.error("[voice] Google TTS failed", String(gErr));
+      }
+
+      // Secondary: Microsoft Edge TTS con timeout estricto (el WebSocket suele
+      // estar bloqueado en Supabase, pero si responde rápido, voces diferenciadas).
+      try {
         const tts = new UniversalEdgeTTS(text, activeVoice, { rate: "+0%", pitch: "+2Hz" });
-        const result = await tts.synthesize();
+        const result = await Promise.race([
+          tts.synthesize(),
+          new Promise<never>((_, rej) => setTimeout(() => rej(new Error("edge tts timeout")), 4000)),
+        ]);
         const audioBuffer = await result.audio.arrayBuffer();
         const base64Audio = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
         return new Response(JSON.stringify({ audio: base64Audio, contentType: "audio/mp3" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
