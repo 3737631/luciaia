@@ -9,7 +9,7 @@ import { getCustomGirls, CustomGirlData } from "@/lib/storage";
 import { getFallbackResponse } from "@/lib/ai";
 import { goBack } from "@/lib/nav";
 import { sendChatMessage } from "@/lib/chatClient";
-import { sttAudio, ttsText, getGirlVoice, getCustomGirlVoice } from "@/lib/voiceClient";
+import { sttAudio, ttsText, getGirlVoice, getCustomGirlVoice, unlockAudioGesture } from "@/lib/voiceClient";
 import { consumeTrial, getPlan, isMessageLimitReached, getMessagesLeftToday, recordFreeMessage, FREE_DAILY_MESSAGES, PREMIUM_DAILY_MESSAGES } from "@/lib/premium";
 import { useSession } from "@/lib/session";
 import LockIcon from "./LockIcon";
@@ -684,7 +684,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
           </div>
           <svg className={styles.optionChevron} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
-        <button className={styles.optionCard} onClick={() => { router.push(`/call/${girl.id}?mode=voice${activeCustom ? `&custom=${activeCustom.id}` : ""}`); }}>
+        <button className={styles.optionCard} onClick={() => { unlockAudioGesture(); router.push(`/call/${girl.id}?mode=voice${activeCustom ? `&custom=${activeCustom.id}` : ""}`); }}>
           <div className={styles.iconBlueWrap}>
             <svg className={styles.iconBlue} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
           </div>
@@ -694,7 +694,7 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
           </div>
           <svg className={styles.optionChevron} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
-        <button className={styles.optionCard} onClick={() => { if (isFree) { setPremiumPrompt("Las videollamadas son una función Premium. Hazte Premium para llamar cara a cara ilimitadamente."); return; } router.push(`/call/${girl.id}?mode=video`); }}>
+        <button className={styles.optionCard} onClick={() => { if (isFree) { setPremiumPrompt("Las videollamadas son una función Premium. Hazte Premium para llamar cara a cara ilimitadamente."); return; } unlockAudioGesture(); router.push(`/call/${girl.id}?mode=video`); }}>
           <div className={styles.iconGreenWrap}>
             <svg className={styles.iconGreen} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
           </div>
@@ -754,13 +754,13 @@ export default function ChatWindow({ girl }: { girl: Girl }) {
               <span className={styles.chatStatusText}>En línea</span>
             </div>
           </div>
-          <button className={`${styles.chatHeaderIcon} ${styles.video} ${isFree ? "lock-relative" : ""}`} title={isFree ? "Videollamada (Premium)" : "Videollamada"} onClick={() => { if (isFree) { setPremiumPrompt("Las videollamadas son una función Premium. Hazte Premium para llamar cara a cara ilimitadamente."); return; } router.push(`/call/${girl.id}?mode=video${activeCustom ? `&custom=${activeCustom.id}` : ""}`); }}>
+          <button className={`${styles.chatHeaderIcon} ${styles.video} ${isFree ? "lock-relative" : ""}`} title={isFree ? "Videollamada (Premium)" : "Videollamada"} onClick={() => { if (isFree) { setPremiumPrompt("Las videollamadas son una función Premium. Hazte Premium para llamar cara a cara ilimitadamente."); return; } unlockAudioGesture(); router.push(`/call/${girl.id}?mode=video${activeCustom ? `&custom=${activeCustom.id}` : ""}`); }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
             {isFree && (
               <span className="quick-action-lock"><LockIcon size={6} /></span>
             )}
           </button>
-          <button className={`${styles.chatHeaderIcon} ${styles.video}`} title="Llamada de voz" onClick={() => { router.push(`/call/${girl.id}?mode=voice${activeCustom ? `&custom=${activeCustom.id}` : ""}`); }}>
+          <button className={`${styles.chatHeaderIcon} ${styles.video}`} title="Llamada de voz" onClick={() => { unlockAudioGesture(); router.push(`/call/${girl.id}?mode=voice${activeCustom ? `&custom=${activeCustom.id}` : ""}`); }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
           </button>
           <button className={`${styles.chatHeaderIcon} ${styles.menu}`} title="Menú" onClick={() => setChatMenu((v) => !v)}>

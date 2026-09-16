@@ -11,6 +11,7 @@ import { OptionGroup } from "@/components/CustomizationPanel";
 import { Girl } from "@/data/girls";
 import { Customization, getCustomization, saveCustomization } from "@/lib/storage";
 import { getPlan } from "@/lib/premium";
+import { unlockAudioGesture } from "@/lib/voiceClient";
 import PremiumOverlay from "@/components/PremiumOverlay";
 
 const maleIds = new Set(["axel", "liam"]);
@@ -184,7 +185,7 @@ export default function CustomizeClient({ girl }: { girl: Girl }) {
           </NeonButton>
           <NeonButton
             variant="secondary"
-            onClick={() => { if (getPlan() === "free") { setShowVideoOverlay(true); return; } router.push(`/call/${girl.id}`); }}
+            onClick={() => { unlockAudioGesture(); if (getPlan() === "free") { setShowVideoOverlay(true); return; } router.push(`/call/${girl.id}`); }}
             fullWidth
             className="flex items-center justify-center gap-2"
           >

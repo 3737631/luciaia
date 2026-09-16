@@ -8,6 +8,7 @@ import { getGirlImage } from "@/lib/images";
 import { getCustomization } from "@/lib/storage";
 import { isFeatureLocked } from "@/lib/premium";
 import { useSession } from "@/lib/session";
+import { unlockAudioGesture } from "@/lib/voiceClient";
 import LockIcon from "./LockIcon";
 import PremiumOverlay from "./PremiumOverlay";
 
@@ -40,6 +41,7 @@ export default function GirlCard({ girl, index = 0 }: { girl: Girl; index?: numb
     if (handledRef.current) return;
     if (!requireLogin()) return;
     handledRef.current = true;
+    unlockAudioGesture();
     router.push(path);
     window.setTimeout(() => { handledRef.current = false; }, 500);
   }, [router, requireLogin]);

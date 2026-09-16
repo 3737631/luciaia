@@ -31,6 +31,14 @@ export function getCustomGirlVoice(customId: string): string {
 let ttsCtx: AudioContext | null = null;
 let ttsGain: GainNode | null = null;
 
+// En móvil el WebAudio es poco fiable (iOS deja el contexto suspended cuando
+// se crea fuera de un gesto) → preferimos siempre un <audio> HTML simple.
+// En desktop el <audio> suena igual de bien y evita bloqueos de autoplay.
+export const prefersPlainAudio =
+  typeof navigator !== "undefined" &&
+  ("ontouchstart" in window ||
+    (navigator.maxTouchPoints > 0 && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)));
+
 // Crea (una sola vez) un AudioContext dedicado con ganancia 2.5x para la voz TTS.
 // Debe crearse/resumirse DENTRO de un gesto del usuario para que iOS lo deje correr.
 export function getTTSGain(): { ctx: AudioContext | null; gain: GainNode | null } {
@@ -76,10 +84,14 @@ export async function playTTSLoud(
     }
   };
 
+  // En móvil el WebAudio iOS queda suspendido sin error → <audio> simple siempre.
+  if (prefersPlainAudio) return fallback();
+
   try {
     const { ctx, gain } = getTTSGain();
     if (!ctx || !gain) return fallback();
     if (ctx.state === "suspended") { try { await ctx.resume(); } catch {} }
+    if (ctx.state !== "running") return fallback();
     const res = await fetch(dataUrl);
     const ab = await res.arrayBuffer();
     const buf = await ctx.decodeAudioData(ab);
