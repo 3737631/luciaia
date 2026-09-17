@@ -31,10 +31,36 @@ export function getCustomGirlVoice(customId: string): string {
 let ttsCtx: AudioContext | null = null;
 let ttsGain: GainNode | null = null;
 
+// Elemento de audio ÚNICO (singleton). En iOS/Safari el permiso de reproducción
+// es POR ELEMENTO: un <audio> creado y reproducido dentro de un gesto queda
+// autorizado para siempre; otro <audio> creado después (fuera del gesto) queda
+// bloqueado por autoplay y play() se rechaza en silencio. Por eso desbloqueamos
+// este mismo elemento en el gesto (unlockAudioGesture) y lo REUTILIZAMOS para
+// todas las voces TTS, cambiando solo su .src.
+let ttsAudioEl: HTMLAudioElement | null = null;
+
+function getTTSAudioEl(): HTMLAudioElement | null {
+  try {
+    if (!ttsAudioEl) {
+      ttsAudioEl = new Audio();
+      ttsAudioEl.preload = "auto";
+      ttsAudioEl.setAttribute("playsinline", "");
+      (ttsAudioEl as unknown as { playsInline: boolean }).playsInline = true;
+    }
+    return ttsAudioEl;
+  } catch {
+    return null;
+  }
+}
+
+const SILENT_WAV =
+  "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
+
 // En móvil el WebAudio es poco fiable (iOS deja el contexto suspended cuando
 // se crea fuera de un gesto) → preferimos siempre un <audio> HTML simple.
 // En desktop el <audio> suena igual de bien y evita bloqueos de autoplay.
 export const prefersPlainAudio =
+  typeof window !== "undefined" &&
   typeof navigator !== "undefined" &&
   ("ontouchstart" in window ||
     (navigator.maxTouchPoints > 0 && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)));
@@ -69,6 +95,25 @@ export async function playTTSLoud(
   const callStart = () => { try { opts?.onStart?.(); } catch {} };
   const fallback = () => {
     try {
+      // Móvil: reutilizamos SIEMPRE el mismo <audio> (desbloqueado en el gesto).
+      if (prefersPlainAudio) {
+        const el = getTTSAudioEl();
+        if (!el) return null;
+        try { el.pause(); } catch {}
+        el.src = dataUrl;
+        el.volume = vol;
+        return {
+          play: () => {
+            callStart();
+            return new Promise<void>((res) => {
+              el.onended = () => res();
+              el.onerror = () => res();
+              try { el.play().catch(() => res()); } catch { res(); }
+            });
+          },
+          stop: () => { try { el.pause(); } catch {} },
+        };
+      }
       const au = new Audio(dataUrl);
       au.volume = vol;
       return {
@@ -131,10 +176,20 @@ export function unlockAudioGesture(): void {
         s.start(0);
       } catch {}
     }
-    const a = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=");
-    a.volume = 0.01;
-    const p = a.play();
-    if (p && p.then) p.then(() => { a.pause(); }).catch(() => {});
+    const a = getTTSAudioEl();
+    if (a) {
+      try {
+        a.src = SILENT_WAV;
+        a.volume = 0.01;
+        const p = a.play();
+        if (p && p.then) p.then(() => { try { a.pause(); } catch {} }).catch(() => {});
+      } catch {}
+    } else {
+      const legacy = new Audio(SILENT_WAV);
+      legacy.volume = 0.01;
+      const p = legacy.play();
+      if (p && p.then) p.then(() => { try { legacy.pause(); } catch {} }).catch(() => {});
+    }
   } catch {}
 }
 
